@@ -1,3 +1,5 @@
+import { energyDepartureReason } from '../core/energy.js';
+import { energyText } from './EnergyService.js';
 import { airport } from '../core/catalog.js';
 import { MAX_PLAN_LEGS, manifest, planQuote, type GameState, type Plane } from '../core/game.js';
 import { controller } from '../runtime.js';
@@ -15,7 +17,9 @@ export function PlanControls({ game, plane, stops, setStops, candidate, busy, on
   } catch (e) {
     error = e instanceof Error ? e.message : '计划无效';
   }
-  const locked = busy || Boolean(plane.flight || plane.autoRouteId || plane.itinerary.length) || plane.readyAt > game.simTime;
+  const locked = busy || Boolean(plane.flight || plane.autoRouteId || plane.itinerary.length || plane.energy.serviceUntil !== null) || plane.readyAt > game.simTime;
+  const energyReason = preview ? energyDepartureReason(plane.energy, preview.legs[0]!.duration) : '';
+  const requiredEnergy = preview?.legs.reduce((sum, leg) => sum + leg.duration, 0) ?? 0;
   const last = stops.at(-1) ?? plane.airportId;
   async function launch() {
     if (!preview) return;
@@ -55,8 +59,9 @@ export function PlanControls({ game, plane, stops, setStops, candidate, busy, on
       <span data-testid="plan-summary">{preview ? `${stops.length} 段 · ${duration(preview.duration)} · 成本 ${money(preview.cost)} · 交付 ${money(preview.revenue)} · 运输净收益 ${money(preview.profit)}` : error || '最多 5 个航段；每站周转 8 秒，途中不自动装入新订单。'}</span>
       {preview && preview.openingCost > 0
         ? <button disabled={locked || game.credits < preview.openingCost} onClick={() => ignore(controller.command({ type: 'open-plan-routes', planeId: plane.id, stops }))}>开通计划航线 {money(preview.openingCost)}</button>
-        : <button className="gold-button" disabled={locked || !preview || game.credits < (preview?.legs[0]?.cost ?? 0)} onClick={() => ignore(launch())}>执行运输计划</button>}
+        : <button className="gold-button" disabled={locked || !preview || Boolean(energyReason) || game.credits < (preview?.legs[0]?.cost ?? 0)} onClick={() => ignore(launch())}>执行运输计划</button>}
     </div>
+    {preview && <small className="energy-plan-note" data-testid="plan-energy">全程需 {energyText(requiredEnergy)} 点（不含周转），可用 {energyText(plane.energy.availableSeconds)} 点。{energyReason || (requiredEnergy > plane.energy.availableSeconds ? "能量只能覆盖部分航段；不足时保留客货并停止后续计划。" : "逐段预留，不预扣全程能量。")}</small>}
     {preview && <small className="plan-footnote">逐段扣费，不预扣全部成本；资金不足则停在当前机场。{preview.undelivered > 0 ? `计划后还有 ${preview.undelivered} 单留在机上。` : '本计划覆盖全部已装订单的目的地。'}</small>}
   </section>;
 }

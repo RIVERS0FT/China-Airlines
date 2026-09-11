@@ -1,3 +1,4 @@
+import { EnergyService } from './EnergyService.js';
 import { AircraftService } from './AircraftService.js';
 import './management.css';
 import { useState } from 'react';
@@ -10,7 +11,7 @@ export function Hangar({ game, busy, selectedPlaneId, onSelect }: { game: GameSt
   const [selected, setSelected] = useState(selectedPlaneId ?? game.fleet[0]!.id);
   const p = game.fleet.find(p => p.id === selected) ?? game.fleet[0]!, m = aircraftSpecs(p);
   const view = useGame();
-  const reason = p.flight ? '飞行中，抵达并完成周转后可改装' : p.autoRouteId ? '请先停止自动往返' : p.itinerary.length ? '请先取消剩余运输计划' : p.readyAt > game.simTime ? '地面周转中' : '';
+  const reason = p.energy.serviceUntil !== null ? '地勤补能中' : p.flight ? '飞行中，抵达并完成周转后可改装' : p.autoRouteId ? '请先停止自动往返' : p.itinerary.length ? '请先取消剩余运输计划' : p.readyAt > game.simTime ? '地面周转中' : '';
   const full = game.hangarSlots >= MAX_FLEET;
   const details: Record<UpgradeKey, string> = {
     capacity: `客舱 ${m.seats} 人 / 货舱 ${m.cargo} 吨`, engine: `速度参数 ${m.speed}`,
@@ -27,6 +28,7 @@ export function Hangar({ game, busy, selectedPlaneId, onSelect }: { game: GameSt
           return <article key={key} data-testid={`upgrade-${key}`}><header><strong>{UPGRADE_LABEL[key]}</strong><span>Lv.{p.upgrades[key]} / 3</span></header><p>{details[key]}</p><small>{max ? '已达到最高等级' : `下一级 → ${nextText}`}</small><button disabled={busy || max || Boolean(reason) || game.credits < price} aria-label={`升级${UPGRADE_LABEL[key]}`} onClick={() => ignore(controller.command({ type: 'retrofit', planeId: p.id, upgrade: key }))}>{max ? '已满级' : reason ? '暂不可改装' : game.credits < price ? '运营资金不足' : `改装 · ${money(price)}`}</button></article>;
         })}</div>
       </div></div>
+    <EnergyService game={game} plane={p} busy={busy}/>
     <AircraftService key={p.id} game={game} plane={p} busy={busy}/>
     {view.error && <p role="alert" className="workshop-feedback">{view.error}</p>}{view.notice && <p role="status" className="workshop-feedback">{view.notice}</p>}
     <p className="workshop-note">改装立即生效；不改变机型类别、已有订单报酬或在途航班。纯客机不增设货舱，纯货机不增设座位。数值为航空化游戏配置。</p>

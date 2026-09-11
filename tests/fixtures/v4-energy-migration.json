@@ -1,0 +1,156 @@
+{
+  "version": 4,
+  "credits": 169265,
+  "simTime": 0,
+  "lastWallTime": 1800000000000,
+  "nextId": 3,
+  "airports": [
+    {
+      "id": "PEK",
+      "level": 1
+    },
+    {
+      "id": "PVG",
+      "level": 1
+    }
+  ],
+  "fleet": [
+    {
+      "id": "AC0001",
+      "modelId": "lark",
+      "airportId": "PEK",
+      "readyAt": 0,
+      "autoRouteId": "PEK-PVG",
+      "flight": {
+        "id": "FL2",
+        "routeId": "PEK-PVG",
+        "from": "PEK",
+        "to": "PVG",
+        "departAt": 0,
+        "arriveAt": 77,
+        "passengers": 70,
+        "cargo": 2,
+        "revenue": 22408,
+        "cost": 2710
+      },
+      "upgrades": {
+        "capacity": 0,
+        "engine": 0,
+        "range": 0,
+        "efficiency": 0
+      },
+      "itinerary": [],
+      "dispatcher": true
+    }
+  ],
+  "routes": [
+    {
+      "id": "PEK-PVG",
+      "from": "PEK",
+      "to": "PVG"
+    }
+  ],
+  "stats": {
+    "flights": 0,
+    "passengers": 0,
+    "cargo": 0,
+    "revenue": 0,
+    "costs": 2710
+  },
+  "claimedTasks": [],
+  "log": [
+    {
+      "at": 0,
+      "text": "AC0001 北京 → 上海 起飞",
+      "amount": -2710
+    },
+    {
+      "at": 0,
+      "text": "开通北京 ↔ 上海",
+      "amount": -8025
+    },
+    {
+      "at": 0,
+      "text": "AC0001 已装载 6 单 · 前往上海",
+      "amount": 0
+    },
+    {
+      "at": 0,
+      "text": "公司成立 · 北京与上海机场已开放",
+      "amount": 180000
+    }
+  ],
+  "orders": [
+    {
+      "id": "JB1",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "AC0001",
+      "reward": 4484,
+      "createdAt": 0,
+      "expiresAt": null
+    },
+    {
+      "id": "JB2",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "AC0001",
+      "reward": 5978,
+      "createdAt": 0,
+      "expiresAt": null
+    },
+    {
+      "id": "JB3",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "AC0001",
+      "reward": 742,
+      "createdAt": 0,
+      "expiresAt": null
+    },
+    {
+      "id": "JB4",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "AC0001",
+      "reward": 4484,
+      "createdAt": 0,
+      "expiresAt": null
+    },
+    {
+      "id": "JB5",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "AC0001",
+      "reward": 5978,
+      "createdAt": 0,
+      "expiresAt": null
+    },
+    {
+      "id": "JB6",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "AC0001",
+      "reward": 742,
+      "createdAt": 0,
+      "expiresAt": null
+    }
+  ],
+  "nextOrderId": 25,
+  "nextDemandAt": 120,
+  "hangarSlots": 4,
+  "fleetPeak": 1,
+  "tutorial": "skipped"
+}

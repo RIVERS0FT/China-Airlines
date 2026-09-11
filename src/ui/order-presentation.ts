@@ -4,6 +4,7 @@ import { loadSummary, MAX_WAITING, waiting, type GameState, type Plane, type Ord
 /** Read-only explanations. The core revalidates every actual load/unload command. */
 export function loadingLock(game: GameState, plane?: Plane): string {
   if (!plane) return '请先选择飞机';
+  if (plane.energy.serviceUntil !== null) return '地勤补能中，不能装卸';
   if (plane.flight) return '飞行中，不能装卸';
   if (plane.autoRouteId) return '请先停止自动值勤';
   if (plane.itinerary.length) return '请先取消剩余计划';
