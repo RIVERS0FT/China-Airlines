@@ -75,7 +75,9 @@ class Controller {
       // Publish success only after the IndexedDB transaction commits. Otherwise an
       // immediate reload after a visible purchase can lose that purchase.
       await this.persist();
-      useGame.setState({ notice: this.core.snapshot().log[0]?.text ?? '操作完成' });
+      // The guide already provides persistent feedback. A duplicate toast obscures
+      // the passenger cards that the player is being asked to select.
+      useGame.setState({ notice: command.type === 'tutorial' ? null : this.core.snapshot().log[0]?.text ?? '操作完成' });
     });
   }
   save() { return this.run(async () => { this.advance(); await this.persist(); }); }

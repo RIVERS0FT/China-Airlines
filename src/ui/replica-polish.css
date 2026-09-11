@@ -1,0 +1,58 @@
+/* Loading remains a horizontal scene, not a dashboard. All runtime art is original. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.aviation-game .game-hud{height:64px}
+.aviation-game .airport-titlebar{height:66px;min-height:66px}
+.aviation-game .airplane-display{width:min(91%,1240px);height:94%;bottom:3%}
+.aviation-game .game-dock{height:78px}
+.aviation-game .apron-queue{height:230px;min-height:230px;background:linear-gradient(#f8f1dd 64%,#d5d9c9 64%,#c0cbbf 66%,#e7e5d2 67%)}
+.order-window{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;flex:1;min-height:0;gap:3px;padding:0 6px}
+.aviation-game .queue-arrow{min-height:36px;height:42px;padding:0;align-self:center;font-size:26px;background:#efdfad;color:#674f2a;border-color:#a98b55}
+.aviation-game .queue-arrow:disabled{opacity:.35}
+.aviation-game .apron-queue .order-strip{padding:7px 4px 9px;gap:12px;overflow-y:hidden;scroll-snap-type:x proximity;scroll-padding-inline:4px}
+.aviation-game .apron-queue .order-strip:focus-visible{outline:3px solid #d19438;outline-offset:-3px}
+.aviation-game .apron-queue .job-card{flex-basis:138px;scroll-snap-align:start;background:linear-gradient(#fff9e680,#faf0cfb8)!important;border:1px solid #b79a6780!important;border-bottom:3px solid #b69a68!important;box-shadow:none!important;border-radius:5px!important;gap:2px!important;padding-bottom:5px!important}
+.aviation-game .apron-queue .job-card.aboard{background:#dfeecedb!important;border-color:#548b75!important}
+.aviation-game .apron-queue .job-card:disabled{opacity:1}
+.aviation-game .apron-queue .job-card:disabled .job-art{opacity:.55}
+.aviation-game .apron-queue .job-destination{border-radius:3px;font-size:15px;padding:4px 8px}
+.aviation-game .apron-queue .job-art{height:64px;width:104px}
+.aviation-game .apron-queue .job-quantity{font-size:12px;line-height:16px}
+.aviation-game .apron-queue .job-state{font-size:11px!important;line-height:16px;white-space:nowrap;color:#625636;margin:0}
+.aviation-game .apron-queue .job-card strong{font-size:15px;line-height:18px}
+.route-preview-key{position:absolute;left:16px;top:16px;max-width:calc(100% - 155px);padding:6px 9px;border:1px solid #b6924f;border-radius:5px;color:#684718;background:#fff7dce8;font-size:12px;line-height:1.4;pointer-events:none}
+.map-caption.with-preview{display:none}
+.aviation-game .map-area.is-compact .route-preview-key{left:10px;top:7px;font-size:11px;padding:4px 7px}
+@media(max-height:600px) and (orientation:landscape){
+  .aviation-game .game-hud{height:44px}
+  .aviation-game .airport-titlebar{height:44px;min-height:44px;padding:3px 10px}
+  .aviation-game .gate-sign>div{gap:3px;padding:4px 8px}
+  .aviation-game .gate-sign>b{padding:5px 8px}
+  .aviation-game .game-dock{height:52px}
+  .aviation-game .airplane-display{height:100%;bottom:0}
+  .aviation-game .scene-caption{font-size:10px;bottom:2px}
+  .aviation-game .apron-queue{height:142px;min-height:142px}
+  .aviation-game .apron-queue .order-toolbar{min-height:34px;height:34px;padding:2px 7px;gap:6px}
+  .aviation-game .apron-queue .order-tabs button{font-size:11px;padding:3px 6px;min-height:28px}
+  .aviation-game .apron-queue select{font-size:11px;min-height:28px}
+  .aviation-game .apron-queue .quick-load button{font-size:11px;min-height:28px;padding:3px 6px}
+  .order-window{grid-template-columns:30px minmax(0,1fr) 30px;padding:0 3px;gap:2px}
+  .aviation-game .queue-arrow{font-size:23px;height:34px;min-height:34px}
+  .aviation-game .apron-queue .order-strip{gap:7px;padding:4px 3px 5px}
+  .aviation-game .apron-queue .job-card{flex-basis:132px;display:grid!important;grid-template-columns:47px minmax(0,1fr);grid-template-rows:21px minmax(16px,1fr) minmax(16px,1fr) 15px;column-gap:2px!important;row-gap:0!important;padding:0 0 2px!important}
+  .aviation-game .apron-queue .job-destination{font-size:12px;line-height:15px;padding:2px 6px}
+  .aviation-game .apron-queue .job-art{height:39px;width:48px}
+  .aviation-game .apron-queue .job-quantity{font-size:11px;line-height:14px;white-space:nowrap}
+  .aviation-game .apron-queue .job-card strong{font-size:12px;line-height:15px;white-space:nowrap}
+  .aviation-game .apron-queue .job-state{font-size:11px!important;line-height:14px}
+  .aviation-game.training-active .airport-titlebar{height:44px;min-height:44px}
+  .aviation-game.training-active .apron-queue{height:132px;min-height:132px}
+  .aviation-game.training-active .apron-queue .job-card{grid-template-rows:19px minmax(14px,1fr) minmax(14px,1fr) 14px}
+  .aviation-game.training-active .apron-queue .job-art{height:30px}
+}
+@media(max-width:750px) and (orientation:landscape){
+  .aviation-game .apron-queue .quick-load{gap:3px}
+  .aviation-game .apron-queue .order-toolbar{gap:4px}
+  .aviation-game .apron-queue .job-card{flex-basis:128px}
+  .aviation-game .apron-queue .empty-orders{font-size:12px;text-align:center}
+}
+@media(prefers-reduced-motion:reduce){.aviation-game .apron-queue .order-strip{scroll-behavior:auto}}

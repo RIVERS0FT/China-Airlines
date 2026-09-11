@@ -1,10 +1,20 @@
+import { useSyncExternalStore } from 'react';
 import { airport, aircraftSpecs } from '../core/catalog.js';
 import { loadSummary, type GameState, type Plane } from '../core/game.js';
+
+const compactQuery = '(max-height:600px) and (orientation:landscape)';
+const compactScene = () => window.matchMedia(compactQuery).matches;
+function subscribeScene(listener: () => void) {
+  const media = window.matchMedia(compactQuery);
+  media.addEventListener('change', listener);
+  return () => media.removeEventListener('change', listener);
+}
 
 /** Original vector art. The cabin icons are a capacity diagram, not individual seats. */
 export function AviationScene({ game, plane, airportId, onCabin }: {
   game: GameState; plane?: Plane; airportId: string; onCabin: () => void;
 }) {
+  const compact = useSyncExternalStore(subscribeScene, compactScene, () => false);
   const flying = Boolean(plane?.flight), a = airport(airportId);
   const total = plane ? loadSummary(game, plane.id) : { passengers: 0, cargo: 0 };
   const m = plane ? aircraftSpecs(plane) : null;
@@ -30,11 +40,11 @@ export function AviationScene({ game, plane, airportId, onCabin }: {
       {flying && <><path d="M0 440q180-100 330 0t330 0 330 0 450-15v95H0Z" fill="#eaf7f7"/><path d="M0 485q200-65 430-5t540-15 470-5v60H0Z" fill="#fff"/></>}
     </svg>
     {plane && <button className="airplane-display" onClick={onCabin} aria-label="查看机上客货" data-testid="plane-art">
-      <svg viewBox="0 0 1000 330" role="img" aria-label={`${m!.name}客舱与货舱示意`}>
+      <svg viewBox={compact ? "90 90 840 215" : "0 0 1000 330"} role="img" aria-label={`${m!.name}客舱与货舱示意`}>
         {!flying && <ellipse cx="490" cy="286" rx="365" ry="15" fill="#456b78" opacity=".15"/>}
         <g stroke="#466477" strokeWidth="3" strokeLinejoin="round">
-          <path d="m694 151 75-117h54l-7 124Z" fill={(m!.kind === 'cargo' || m!.family === 'horizon') ? '#e79548' : '#2b8cc7'}/>
-          <path d="m738 102 40-47h22l-11 47Z" fill="#f5ca59" stroke="none"/>
+          <path d={compact ? "m710 158 62-63h47l-3 70Z" : "m694 151 75-117h54l-7 124Z"} fill={(m!.kind === 'cargo' || m!.family === 'horizon') ? '#e79548' : '#2b8cc7'}/>
+          <path d={compact ? "m752 133 27-27h22l-7 27Z" : "m738 102 40-47h22l-11 47Z"} fill="#f5ca59" stroke="none"/>
           <path d="M107 200c8-31 53-68 109-72h536l94 41 71 21-84 37H195c-55 0-100-8-88-27Z" fill="#fffdf1"/>
           <path d="M109 201h706l48-4-43 30H195c-51 0-81-6-86-26Z" fill="#76bbd0" stroke="none"/>
           <path d="M156 164q18-20 47-20v30h-58Z" fill="#476c87"/>

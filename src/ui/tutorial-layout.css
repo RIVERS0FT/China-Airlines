@@ -1,0 +1,7 @@
+/* Keep the action/rejection label inside each card while the training bar is open. */
+@media(max-height:600px) and (orientation:landscape){
+  .aviation-game.training-active .job-card{grid-template-rows:18px minmax(0,1fr) minmax(0,1fr) 11px;row-gap:0!important}
+  .aviation-game.training-active .job-card .job-destination{font-size:11px;line-height:12px;padding:2px 7px}
+  .aviation-game.training-active .job-card .job-art{height:24px}
+  .aviation-game.training-active .job-card .job-state{line-height:10px}
+}
