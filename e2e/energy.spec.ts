@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { GameCore, quote, planQuote, type GameState } from '../src/core/game.js';
 import { ENERGY_CAPACITY_SECONDS as CAP } from '../src/core/energy.js';
-import legacy from '../tests/fixtures/v4-energy-migration.json';
+import legacy from '../tests/fixtures/v4-energy-migration.json' with { type: 'json' };
 const NOW = Date.parse('2026-09-12T00:00:00Z'), ID = 'AC0001';
 const money=(n:number)=>`¥ ${Math.round(n).toLocaleString('zh-CN')}`;
 let errors: string[];
