@@ -10,12 +10,11 @@ async function plan(page:Page){
   await page.getByRole('button',{name:'选择航线起飞',exact:true}).click();
   await page.getByLabel('选择机场',{exact:true}).selectOption('WUH');
   await page.getByRole('button',{name:/^解锁机场/}).click();
-  await page.getByRole('button',{name:'多段计划',exact:true}).click();
-  await page.getByRole('button',{name:'添加武汉航段'}).click();
   await page.getByLabel('选择机场',{exact:true}).selectOption('PVG');
-  await page.getByRole('button',{name:'添加上海航段'}).click();
   await expect(page.getByTestId('plan-summary')).toContainText('2 段');
-  await page.getByRole('button',{name:/^开通计划航线/}).click();
+  await expect(page.getByRole('button',{name:'单段派航',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'多段计划',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:/开通航线|开通计划航线/})).toHaveCount(0);
 }
 test('specialist purchase, real cargo loading, workshop retrofit and hangar expansion',async({page})=>{
   await ready(page);await page.getByRole('button',{name:'飞机商店',exact:true}).click();
@@ -33,17 +32,17 @@ test('specialist purchase, real cargo loading, workshop retrofit and hangar expa
   await page.reload();await page.getByRole('button',{name:'机队管理',exact:true}).click();await expect(page.getByTestId('hangar-capacity')).toHaveText('机位 2 / 6');
   await page.getByRole('button',{name:/云雀 8F.*AC0002/}).click();await expect(page.getByTestId('upgrade-engine')).toContainText('Lv.1');
 });
-test('map plan executes two legs, survives reload and does not pay twice',async({page})=>{
+test('map route executes two legs, survives reload and does not pay twice',async({page})=>{
   await ready(page);await plan(page);await page.screenshot({path:'artifacts/desktop-plan.png'});
-  await page.getByRole('button',{name:'执行运输计划',exact:true}).click();await expect(page.getByTestId('active-plan')).toContainText('上海');
+  await page.getByTestId('dispatch').click();await expect(page.getByTestId('active-plan')).toContainText('上海');
   await page.reload();await expect(page.getByTestId('active-plan')).toContainText('上海');
   await page.clock.fastForward(220000);await expect(page.getByTestId('flights-count')).toHaveText('2 班');
   await expect(page.getByTestId('onboard-count')).toHaveText('0');const credits=await page.getByTestId('credits').textContent();
   await page.reload();await expect(page.getByTestId('flights-count')).toHaveText('2 班');await expect(page.getByTestId('credits')).toHaveText(credits!);
 });
-test('cancel plan in flight only removes onward destinations',async({page})=>{
-  await ready(page);await plan(page);await page.getByRole('button',{name:'执行运输计划',exact:true}).click();
-  await page.getByRole('button',{name:'取消剩余计划',exact:true}).click();await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
+test('cancel route in flight only removes onward destinations',async({page})=>{
+  await ready(page);await plan(page);await page.getByTestId('dispatch').click();
+  await page.getByRole('button',{name:'取消剩余路线',exact:true}).click();await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
   await page.clock.fastForward(200000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');
   await expect(page.locator('.gate-sign')).toContainText('武汉');await expect(page.getByTestId('onboard-count')).not.toHaveText('0');
 });
@@ -58,9 +57,9 @@ test('v2 import preserves manifest and exports v4 upgrade fields',async({page})=
   expect(s.version).toBe(4);expect(s.hangarSlots).toBe(4);expect(s.orders).toEqual(v2.orders);expect(s.fleet[0].flight).toEqual(previousPlane.flight);
   expect(s.fleet[0].upgrades).toEqual({capacity:0,engine:0,range:0,efficiency:0});
 });
-test('landscape plan editor and workshop stay reachable',async({page})=>{
+test('landscape route editor and workshop stay reachable',async({page})=>{
   await page.setViewportSize({width:844,height:390});await ready(page);await plan(page);
-  await expect(page.getByRole('button',{name:'执行运输计划',exact:true})).toBeInViewport();
+  await expect(page.getByTestId('dispatch')).toBeInViewport();
   await page.screenshot({path:'artifacts/landscape-plan.png'});
   await page.getByRole('button',{name:'机队管理',exact:true}).click();
   await page.getByRole('button',{name:'升级舱位扩充',exact:true}).scrollIntoViewIfNeeded();await page.getByRole('button',{name:'升级舱位扩充',exact:true}).click();
