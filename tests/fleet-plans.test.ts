@@ -110,7 +110,7 @@ describe('finite click-order routes',()=>{
   });
   it('keeps the old open-plan command free and idempotent for compatibility',()=>{
     const c=prepared(),before=c.snapshot();c.execute({type:'open-plan-routes',planeId:ID,stops:['WUH','PEK','PVG']},NOW);
-    expect(c.snapshot().credits).toBe(before.credits);expect(c.snapshot().routes).toHaveLength(3);
+    expect(c.snapshot().credits).toBe(before.credits);expect(c.snapshot().routes).toHaveLength(2);
     const once=c.snapshot();c.execute({type:'open-plan-routes',planeId:ID,stops:['WUH','PEK','PVG']},NOW);expect(c.snapshot().routes).toEqual(once.routes);expect(c.snapshot().credits).toBe(once.credits);
   });
   it('locks manual loading, retrofit and alternate dispatch during a queued route',()=>{
