@@ -21,7 +21,7 @@ export function PlanControls({ game, plane, stops, setStops, auto, busy, onDepar
     if (!manifest(game, plane.id).length && !window.confirm(`这是空机${stops.length > 1 ? '多段' : ''}调机路线，仍需支付运营成本。确定执行？`)) return;
     if (preview.undelivered && !window.confirm(`路线结束后仍有 ${preview.undelivered} 单未到最终目的地，将继续留在机上。确定执行？`)) return;
     try {
-      if (auto && stops.length === 1) await controller.command({ type: 'dispatch', planeId: plane.id, to: stops[0]!, auto: true });
+      if (stops.length === 1) await controller.command({ type: 'dispatch', planeId: plane.id, to: stops[0]!, auto });
       else await controller.command({ type: 'dispatch-plan', planeId: plane.id, stops });
       onDepart();
     } catch { /* Controller renders errors. */ }
