@@ -11,51 +11,19 @@ concurrency:
   group: verify-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  refresh-test-lock:
-    # One-time, trusted feature-branch dependency refresh; never runs for PR code.
-    if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/feat/single-player-mvp' && github.event.head_commit.message == 'build: resolve patched dependencies with current npm'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: write
-    outputs:
-      sha: ${{ steps.lock.outputs.sha }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Resolve and commit only the dependency lock
-        id: lock
-        run: |
-          npm install --global npm@12.0.2
-          npm --version
-          rm package-lock.json
-          npm install --package-lock-only --ignore-scripts
-          git diff --exit-code -- package.json
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add package-lock.json
-          git commit -m 'build: lock patched Vitest dependencies'
-          git push origin HEAD:feat/single-player-mvp
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
   verify:
-    needs: refresh-test-lock
-    if: always() && !cancelled() && (needs.refresh-test-lock.result == 'success' || needs.refresh-test-lock.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.refresh-test-lock.outputs.sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Install exact locked dependencies
         run: npm ci
-      - name: Record full audit and check runtime dependency advisories
+      - name: Audit development and runtime dependencies
         run: |
           mkdir -p artifacts
           npm audit --audit-level=moderate --json > artifacts/npm-audit-all.json
