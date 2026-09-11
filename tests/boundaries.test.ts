@@ -6,6 +6,8 @@ function routeWithTwoPlanes(): GameCore {
   core.execute({ type: 'buy', modelId: 'lark', airportId: 'PEK' }, NOW);
   core.execute({ type: 'route', from: 'PEK', to: 'PVG' }, NOW);
   for (const plane of core.snapshot().fleet) {
+    // v0.4 requires a real dispatcher contract on newly purchased aircraft.
+    if (!plane.dispatcher) core.execute({ type: 'hire-dispatcher', planeId: plane.id }, NOW);
     core.execute({ type: 'load-destination', planeId: plane.id, to: 'PVG' }, NOW);
     core.execute({ type: 'dispatch', planeId: plane.id, to: 'PVG', auto: true }, NOW);
   }
