@@ -1,3 +1,5 @@
+import { AircraftService } from './AircraftService.js';
+import './management.css';
 import { useState } from 'react';
 import { aircraftSpecs, AIRCRAFT_KIND_LABEL, UPGRADE_LABEL, retrofitPrice, hangarPrice, airport, type UpgradeKey } from '../core/catalog.js';
 import { MAX_FLEET, manifest, type GameState } from '../core/game.js';
@@ -25,6 +27,7 @@ export function Hangar({ game, busy, onSelect }: { game: GameState; busy: boolea
           return <article key={key} data-testid={`upgrade-${key}`}><header><strong>{UPGRADE_LABEL[key]}</strong><span>Lv.{p.upgrades[key]} / 3</span></header><p>{details[key]}</p><small>{max ? '已达到最高等级' : `下一级 → ${nextText}`}</small><button disabled={busy || max || Boolean(reason) || game.credits < price} aria-label={`升级${UPGRADE_LABEL[key]}`} onClick={() => ignore(controller.command({ type: 'retrofit', planeId: p.id, upgrade: key }))}>{max ? '已满级' : reason ? '暂不可改装' : game.credits < price ? '运营资金不足' : `改装 · ${money(price)}`}</button></article>;
         })}</div>
       </div></div>
+    <AircraftService key={p.id} game={game} plane={p} busy={busy}/>
     {view.error && <p role="alert" className="workshop-feedback">{view.error}</p>}{view.notice && <p role="status" className="workshop-feedback">{view.notice}</p>}
     <p className="workshop-note">改装立即生效；不改变机型类别、已有订单报酬或在途航班。纯客机不增设货舱，纯货机不增设座位。数值为航空化游戏配置。</p>
   </section>;
