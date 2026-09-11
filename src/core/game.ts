@@ -1,4 +1,4 @@
-import { aircraftSpecs, emptyUpgrades, retrofitPrice, hangarPrice, UPGRADE_LABEL, type Upgrades, type UpgradeKey, airport, model, routeId, routePrice, TASKS, upgradePrice, distance } from './catalog.js';
+import { aircraftSpecs, emptyUpgrades, retrofitPrice, hangarPrice, UPGRADE_LABEL, type Upgrades, type UpgradeKey, airport, model, routeId, TASKS, upgradePrice, distance } from './catalog.js';
 import { GameCore as LegacyCore, validateSave as validateV1, type GameState as LegacyState, type Plane as LegacyPlane, type Command as LegacyCommand, type AdvanceReport } from './legacy.js';
 export { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND } from './legacy.js';
 export type { Flight, AdvanceReport } from './legacy.js';
@@ -38,6 +38,11 @@ function note(s: GameState, text: string, amount = 0) {
   s.log.unshift({ at: s.simTime, text, amount }); s.log.length = Math.min(s.log.length, 60);
 }
 function spend(s: GameState, amount: number) { check(s.credits >= amount, '运营资金不足'); s.credits -= amount; }
+function ensureRoute(s: GameState, from: string, to: string) {
+  const id = routeId(from, to);
+  if (!s.routes.some(r => r.id === id)) s.routes.push({ id, from, to });
+  return id;
+}
 export function taskProgress(s: GameState, taskId: string) {
   const t = TASKS.find(t => t.id === taskId);
   return !t ? 0 : t.metric === 'flights' ? s.stats.flights : t.metric === 'fleet' ? s.fleetPeak : s.airports.length;
@@ -109,29 +114,27 @@ export function quote(s: GameState, p: Plane, to: string) {
 export function planQuote(s: GameState, p: Plane, stops: string[]) {
   check(Array.isArray(stops) && stops.length > 0 && stops.length <= MAX_PLAN_LEGS, '运输计划需要 1 至 5 个航段');
   let from = p.airportId;
-  const delivered = new Set<string>(), unopened = new Set<string>();
+  const delivered = new Set<string>();
   const legs = stops.map(to => {
-    const leg = legQuote(s, p, from, to), id = routeId(from, to);
+    const leg = legQuote(s, p, from, to);
     const revenue = manifest(s, p.id).filter(o => o.to === to && !delivered.has(o.id))
       .reduce((n, o) => { delivered.add(o.id); return n + o.reward; }, 0);
-    const opened = s.routes.some(r => r.id === id);
-    const openingCost = opened || unopened.has(id) ? 0 : routePrice(from, to);
-    if (!opened) unopened.add(id);
-    const result = { ...leg, from, to, opened, openingCost, revenue };
+    const opened = s.routes.some(r => r.id === routeId(from, to));
+    const result = { ...leg, from, to, opened, openingCost: 0, revenue };
     from = to; return result;
   });
   const cost = legs.reduce((n, l) => n + l.cost, 0), revenue = legs.reduce((n, l) => n + l.revenue, 0);
-  return { legs, cost, revenue, profit: revenue - cost, openingCost: legs.reduce((n, l) => n + l.openingCost, 0),
+  return { legs, cost, revenue, profit: revenue - cost, openingCost: 0,
     duration: legs.reduce((n, l) => n + l.duration, 0) + (legs.length - 1) * TURNAROUND,
     undelivered: manifest(s, p.id).filter(o => !delivered.has(o.id)).length };
 }
 function depart(s: GameState, p: Plane, to: string, auto: boolean) {
   check(!p.flight, '飞机正在飞行'); check(s.simTime >= p.readyAt, '飞机正在地面周转');
-  const id = routeId(p.airportId, to); check(s.routes.some(r => r.id === id), '请先开通这条航线');
   check(!auto || p.dispatcher, '请先在机库雇用随航调度员');
   check(!auto || manifest(s, p.id).every(o => o.to === to), '自动往返只支持全部订单直达，请先卸下中转订单');
   check(!auto || manifest(s, p.id).length > 0, '自动往返需要先装载客货');
-  const q = quote(s, p, to); spend(s, q.cost); s.stats.costs += q.cost; p.autoRouteId = auto ? id : null;
+  const q = quote(s, p, to); spend(s, q.cost); s.stats.costs += q.cost;
+  const id = ensureRoute(s, p.airportId, to); p.autoRouteId = auto ? id : null;
   p.flight = { id: `FL${s.nextId++}`, routeId: id, from: p.airportId, to, departAt: s.simTime,
     arriveAt: s.simTime + q.duration, passengers: q.passengers, cargo: q.cargo, revenue: q.revenue, cost: q.cost };
   note(s, `${p.id} ${airport(p.airportId).city} → ${airport(to).city} 起飞`, -q.cost);
@@ -217,11 +220,10 @@ export class GameCore {
         const p = planeAtGate(s, command.planeId); check(p.dispatcher, '请先在机库雇用随航调度员');
         legQuote(s, p, p.airportId, command.to);
         const id = routeId(p.airportId, command.to);
-        check(s.routes.some(r => r.id === id), '请先开通这条航线');
         check(manifest(s, p.id).every(o => o.to === command.to), '自动值勤只运送直达订单，请先卸下中转订单');
         loadForDestination(s, p, command.to);
         if (manifest(s, p.id).length) depart(s, p, command.to, true);
-        else { p.autoRouteId = id; p.readyAt = s.nextDemandAt; }
+        else { ensureRoute(s, p.airportId, command.to); p.autoRouteId = id; p.readyAt = s.nextDemandAt; }
         note(s, `${p.id} 自动值勤已开始 · ${p.flight ? '装载起飞' : '等待真实客源'}`); break;
       }
       case 'sell-plane': {
@@ -250,17 +252,10 @@ export class GameCore {
         note(s, `机库扩建至 ${s.hangarSlots} 个机位`, -price); break;
       }
       case 'open-plan-routes': {
-        const p = planeAtGate(s, command.planeId), q = planQuote(s, p, command.stops);
-        check(q.openingCost > 0, '计划内航线已经全部开通'); spend(s, q.openingCost);
-        for (const leg of q.legs) {
-          const id = routeId(leg.from, leg.to);
-          if (!s.routes.some(r => r.id === id)) s.routes.push({ id, from: leg.from, to: leg.to });
-        }
-        note(s, `${p.id} 开通运输计划所需航线`, -q.openingCost); break;
+        const p = planeAtGate(s, command.planeId); planQuote(s, p, command.stops); break;
       }
       case 'dispatch-plan': {
-        const p = planeAtGate(s, command.planeId), q = planQuote(s, p, command.stops);
-        check(q.openingCost === 0, '请先开通计划中的全部航线');
+        const p = planeAtGate(s, command.planeId); planQuote(s, p, command.stops);
         depart(s, p, command.stops[0]!, false); p.itinerary = command.stops.slice(1);
         note(s, `${p.id} 运输计划开始 · ${command.stops.map(id => airport(id).city).join(' → ')}`); break;
       }
@@ -302,9 +297,7 @@ export class GameCore {
       }
       case 'route': {
         check(command.from !== command.to, '航线需要两个不同机场'); check(owned(s, command.from) && owned(s, command.to), '请先解锁两端机场');
-        const id = routeId(command.from, command.to); check(!s.routes.some(r => r.id === id), '航线已经开通');
-        const price = routePrice(command.from, command.to); spend(s, price); s.routes.push({ id, from: command.from, to: command.to });
-        note(s, `开通${airport(command.from).city} ↔ ${airport(command.to).city}`, -price); break;
+        ensureRoute(s, command.from, command.to); break;
       }
       case 'dispatch': {
         const p = s.fleet.find(p => p.id === command.planeId); check(p, '未找到这架飞机'); check(typeof command.auto === 'boolean', '自动往返参数无效');
