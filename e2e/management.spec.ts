@@ -43,5 +43,11 @@ test('narrow landscape personnel controls and skip remain reachable',async({page
   await page.setViewportSize({width:667,height:375});await ready(page);await secondPlane(page);await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await expect(page.getByTestId('crew-status')).toContainText('已雇用');
   await page.getByRole('button',{name:'出售这架飞机',exact:true}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'出售这架飞机',exact:true})).toBeInViewport();await page.screenshot({path:'artifacts/landscape-personnel.png'});
   await page.getByRole('button',{name:'关闭我的机库'}).click();await page.getByRole('button',{name:'操作帮助',exact:true}).click();await page.getByRole('button',{name:'开始分步引导',exact:true}).click();await page.getByRole('button',{name:'跳过引导',exact:true}).click();
-  await page.reload();await expect(page.getByTestId('tutorial')).toHaveCount(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  // A click only schedules the async save. Observe its successful commit before
+  // navigating away, and wait for the saved fleet after reload before testing absence.
+  await expect(page.getByRole('status')).toContainText('已跳过引导');
+  await expect(page.getByTestId('tutorial')).toHaveCount(0);
+  await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 90,000');
+  await expect(page.getByTestId('tutorial')).toHaveCount(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
