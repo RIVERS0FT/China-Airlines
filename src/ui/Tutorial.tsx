@@ -3,6 +3,7 @@ import { guideStep } from '../core/onboarding.js';
 import type { GameState, Plane } from '../core/game.js';
 import { controller } from '../runtime.js';
 import { ignore } from './Panels.js';
+import './tutorial-layout.css';
 export function Tutorial({ game, plane, screen, destination, busy, onLocate }: {
   game: GameState; plane: Plane; screen: 'airport' | 'map'; destination: string; busy: boolean;
   onLocate: (screen: 'airport' | 'map' | 'tasks') => void;
