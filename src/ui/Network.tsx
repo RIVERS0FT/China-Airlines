@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AIRPORTS, airport, upgradePrice } from '../core/catalog.js';
-import { MAX_PLAN_LEGS, manifest, planQuote, type GameState, type Plane, type Command } from '../core/game.js';
+import { MAX_PLAN_LEGS, planQuote, type GameState, type Plane, type Command } from '../core/game.js';
 import { controller } from '../runtime.js';
 import { MapView } from './MapView.js';
 import { PlanControls } from './PlanControls.js';
@@ -24,8 +24,6 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
   const summary = active ?? draft;
   const inFlight = Boolean(active), cooling = plane && (game.simTime < plane.readyAt || plane.itinerary.length > 0 || Boolean(plane.autoRouteId));
   const preview = plane && !inFlight ? routePreview(game, plane, stops) : null;
-  const autoTarget = stops.length === 1 ? stops[0]! : '';
-  const incompatible = Boolean(auto && plane && autoTarget && (manifest(game, plane.id).length === 0 || manifest(game, plane.id).some(o => o.to !== autoTarget)));
   const last = stops.at(-1) ?? from;
   function appendStop(id: string) {
     if (!plane || inFlight || !game.airports.some(item => item.id === id) || id === last || stops.length >= MAX_PLAN_LEGS) return;
