@@ -1,7 +1,7 @@
 /* Reuse the resource-bar entry and centered game dialog; keep the airport canvas visible. */
 .aviation-game .game-hud>.fleet-status-button{display:flex;height:auto;min-width:112px;padding:3px 8px;text-align:left;border-color:#71a5b7;background:#e9f4ed;gap:8px}
 .aviation-game .fleet-status-button small{white-space:nowrap}
-.flight-board{padding:18px}
+.fleet-operations{padding:18px}
 .flight-board-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .flight-board-toolbar>div{display:flex;gap:6px;flex-wrap:wrap}
 .flight-board-toolbar button,.flight-enter,.flight-list-empty button{border:2px solid #7196a4;border-radius:7px;padding:8px 12px;color:#355668;background:#e1ece8;min-height:36px}
@@ -34,7 +34,7 @@
 @media(max-height:600px) and (orientation:landscape){
   .aviation-game .game-hud>.fleet-status-button{min-width:72px;padding:2px 5px;min-height:32px;gap:5px}
   .aviation-game .fleet-status-button strong{font-size:14px}
-  .flight-board{padding:12px}.flight-board-toolbar{margin-bottom:10px;gap:6px}.flight-board-toolbar button{font-size:12px;padding:5px 8px}
+  .fleet-operations{padding:12px}.flight-board-toolbar{margin-bottom:10px;gap:6px}.flight-board-toolbar button{font-size:12px;padding:5px 8px}
   .flight-card{padding:10px;gap:6px}.flight-route>strong{font-size:16px}.flight-money{gap:12px}
   .aviation-game .order-toolbar .flight-money>span{min-width:74px}
   .aviation-game .order-toolbar .flight-money small{font-size:11px;line-height:12px}

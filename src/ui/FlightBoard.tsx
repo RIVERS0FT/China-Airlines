@@ -18,7 +18,7 @@ export function FlightBoard({ game, selectedId, onSelect }: {
 }) {
   const [filter, setFilter] = useState<FleetFilter>('all');
   const all = fleetStatuses(game), shown = all.filter(s => filter === 'all' || s.phase === filter);
-  return <section className="flight-board" aria-label="机队运行清单">
+  return <section className="fleet-operations" aria-label="机队运行清单">
     <div className="flight-board-toolbar"><div role="group" aria-label="运行状态筛选">
       {(['all', 'ready', 'flying'] as const).map(key => <button key={key} aria-pressed={filter === key} onClick={() => setFilter(key)}>
         {{ all: '全部飞机', ready: '待命飞机', flying: '飞行中的飞机' }[key]}<b>{key === 'all' ? all.length : all.filter(s => s.phase === key).length}</b>
