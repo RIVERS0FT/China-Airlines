@@ -48,12 +48,14 @@ test('cancel plan in flight only removes onward destinations',async({page})=>{
   await expect(page.locator('.gate-sign')).toContainText('武汉');await expect(page.getByTestId('onboard-count')).not.toHaveText('0');
 });
 test('v2 import preserves manifest and exports v3 upgrade fields',async({page})=>{
+  const previousPlane = v2.fleet[0];
+  if (!previousPlane?.flight) throw new Error('v2 migration fixture must contain an active flight');
   await ready(page);page.on('dialog',d=>void d.accept());await page.getByRole('button',{name:'存档设置',exact:true}).click();
   await page.getByLabel('选择存档文件').setInputFiles({name:'v2.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(v2))});
   await expect(page.getByTestId('credits')).toHaveText(`¥ ${v2.credits.toLocaleString('zh-CN')}`);
   const pending=page.waitForEvent('download');await page.getByRole('button',{name:'导出存档',exact:true}).click();
   const file=await pending,s=JSON.parse(await readFile((await file.path())!,'utf8'));
-  expect(s.version).toBe(3);expect(s.hangarSlots).toBe(4);expect(s.orders).toEqual(v2.orders);expect(s.fleet[0].flight).toEqual(v2.fleet[0].flight);
+  expect(s.version).toBe(3);expect(s.hangarSlots).toBe(4);expect(s.orders).toEqual(v2.orders);expect(s.fleet[0].flight).toEqual(previousPlane.flight);
   expect(s.fleet[0].upgrades).toEqual({capacity:0,engine:0,range:0,efficiency:0});
 });
 test('landscape plan editor and workshop stay reachable',async({page})=>{
