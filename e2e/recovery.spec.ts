@@ -5,7 +5,7 @@ async function dismissReport(page: Page) {const button=page.getByRole('button',{
 test('automatic return, stop after current flight, and reload do not duplicate income',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});await ready(page);
   await page.getByRole('button',{name:'同目的地装载',exact:true}).click();await page.getByRole('button',{name:'选择航线起飞',exact:true}).click();
-  await page.getByRole('button',{name:/开通航线/}).click();await page.getByLabel('自动往返').check();await page.getByTestId('dispatch').click();
+  await page.getByLabel('选择机场',{exact:true}).selectOption('PVG');await page.getByLabel('自动往返').check();await page.getByTestId('dispatch').click();
   await page.clock.fastForward(300_000);await expect(page.getByTestId('flights-count')).toHaveText('3 班');await dismissReport(page);
   await page.getByRole('button',{name:'停止自动往返',exact:true}).click();await page.clock.fastForward(180_000);
   await expect(page.getByTestId('flights-count')).toHaveText('4 班');await dismissReport(page);
