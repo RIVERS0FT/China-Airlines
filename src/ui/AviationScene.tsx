@@ -1,4 +1,4 @@
-import { airport, model } from '../core/catalog.js';
+import { airport, aircraftSpecs } from '../core/catalog.js';
 import { loadSummary, type GameState, type Plane } from '../core/game.js';
 
 /** Original vector art. The cabin icons are a capacity diagram, not individual seats. */
@@ -7,8 +7,8 @@ export function AviationScene({ game, plane, airportId, onCabin }: {
 }) {
   const flying = Boolean(plane?.flight), a = airport(airportId);
   const total = plane ? loadSummary(game, plane.id) : { passengers: 0, cargo: 0 };
-  const m = plane ? model(plane.modelId) : null;
-  const occupied = m ? Math.ceil(total.passengers / m.seats * 14) : 0;
+  const m = plane ? aircraftSpecs(plane) : null;
+  const occupied = m && m.seats > 0 ? Math.ceil(total.passengers / m.seats * 14) : 0;
   return <div className={`aviation-stage ${flying ? 'is-flying' : ''}`} data-testid="airport-scene">
     <svg className="airport-backdrop" viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <defs><linearGradient id="sky" x2="0" y2="1"><stop stopColor="#74c6ee"/><stop offset="1" stopColor="#e2f6fb"/></linearGradient><pattern id="terminal-windows" width="47" height="38" patternUnits="userSpaceOnUse"><rect width="43" height="33" rx="2" fill="#68abc7"/><path d="m2 2 34 29M23 2l18 16" stroke="#bcdeea" strokeWidth="3" opacity=".5"/></pattern></defs>
@@ -33,7 +33,7 @@ export function AviationScene({ game, plane, airportId, onCabin }: {
       <svg viewBox="0 0 1000 330" role="img" aria-label={`${m!.name}客舱与货舱示意`}>
         {!flying && <ellipse cx="490" cy="286" rx="365" ry="15" fill="#456b78" opacity=".15"/>}
         <g stroke="#466477" strokeWidth="3" strokeLinejoin="round">
-          <path d="m694 151 75-117h54l-7 124Z" fill={plane.modelId === 'horizon' ? '#e79548' : '#2b8cc7'}/>
+          <path d="m694 151 75-117h54l-7 124Z" fill={(m!.kind === 'cargo' || m!.family === 'horizon') ? '#e79548' : '#2b8cc7'}/>
           <path d="m738 102 40-47h22l-11 47Z" fill="#f5ca59" stroke="none"/>
           <path d="M107 200c8-31 53-68 109-72h536l94 41 71 21-84 37H195c-55 0-100-8-88-27Z" fill="#fffdf1"/>
           <path d="M109 201h706l48-4-43 30H195c-51 0-81-6-86-26Z" fill="#76bbd0" stroke="none"/>
@@ -44,9 +44,10 @@ export function AviationScene({ game, plane, airportId, onCabin }: {
           <path d="M558 232h76v24h-76q-23-12 0-24Z" fill="#f2eee2"/><ellipse cx="553" cy="244" rx="9" ry="13" fill="#567689"/>
           {!flying && <><path d="M222 227v43m396-13v13"/><circle cx="219" cy="274" r="11" fill="#314657"/><circle cx="617" cy="275" r="11" fill="#314657"/><circle cx="641" cy="275" r="11" fill="#314657"/></>}
           <rect x="255" y="143" width="433" height="49" rx="8" fill="#d8e7e6"/>
-          {Array.from({ length: 14 }, (_, i) => <g key={i} transform={`translate(${268 + i * 29},152)`}><path d="M0 0h14v20h6v7H-3V9h3Z" fill={i < occupied ? '#32a98a' : '#aebdbb'} strokeWidth="1.5"/><path d="M1 20h12" stroke="#f5ffff" strokeWidth="2"/></g>)}
-          <rect x="260" y="210" width="138" height="25" rx="3" fill="#eee7cb"/>
-          {Array.from({ length: 4 }, (_, i) => <rect key={i} x={270 + i * 28} y="214" width="20" height="17" rx="1" fill={i < Math.ceil(total.cargo / m!.cargo * 4) ? '#d59d55' : '#d2d1bc'} strokeWidth="1"/>)}
+          {m!.seats > 0 && Array.from({ length: 14 }, (_, i) => <g key={i} transform={`translate(${268 + i * 29},152)`}><path d="M0 0h14v20h6v7H-3V9h3Z" fill={i < occupied ? '#32a98a' : '#aebdbb'} strokeWidth="1.5"/><path d="M1 20h12" stroke="#f5ffff" strokeWidth="2"/></g>)}
+          {m!.kind === 'cargo' && <g><rect x="290" y="148" width="340" height="41" rx="3" fill="#debb83"/>{Array.from({length:8},(_,i)=><rect key={i} x={301+i*40} y="151" width="33" height="35" fill={i < Math.ceil(total.cargo / m!.cargo * 8) ? "#b68548" : "#e6d7b5"} strokeWidth="1.5"/>)}</g>}
+          {m!.cargo > 0 && <rect x="260" y="210" width="138" height="25" rx="3" fill="#eee7cb"/>}
+          {m!.cargo > 0 && Array.from({ length: 4 }, (_, i) => <rect key={i} x={270 + i * 28} y="214" width="20" height="17" rx="1" fill={i < Math.ceil(total.cargo / m!.cargo * 4) ? '#d59d55' : '#d2d1bc'} strokeWidth="1"/>)}
         </g>
         <text x="459" y="124" textAnchor="middle" fill="#214f72" fontSize="19" fontWeight="800">中华航空 · {m!.name}</text>
         <text x="698" y="186" fill="#234f6b" fontSize="15" fontWeight="700">{plane.id}</text>
