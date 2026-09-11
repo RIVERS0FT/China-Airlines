@@ -14,28 +14,21 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref || github.ref_name }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install locked dependencies (bootstrap only when absent)
+      - name: Install exact locked dependencies
+        run: npm ci
+      - name: Record full audit and check runtime dependency advisories
         run: |
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
-      - name: Preserve initial dependency lock on the feature branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/feat/single-player-mvp'
-        run: |
-          if ! git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add package-lock.json
-            git commit -m 'build: lock verified dependency resolution'
-            git push origin HEAD:feat/single-player-mvp
-          fi
+          mkdir -p artifacts
+          npm audit --json > artifacts/npm-audit-all.json || true
+          node --input-type=module -e "import fs from 'node:fs'; const report=JSON.parse(fs.readFileSync('artifacts/npm-audit-all.json','utf8')); if(!report.metadata?.vulnerabilities) throw new Error('Audit service did not return a vulnerability report'); console.log(report.metadata.vulnerabilities);"
+          npm audit --omit=dev --audit-level=moderate --json > artifacts/npm-audit-runtime.json
       - name: Typecheck
         run: npm run typecheck
       - name: Domain and persistence tests

@@ -42,7 +42,7 @@ Playwright 自动启动生产预览服务器。浏览器截图位于 `artifacts/
 
 `npm run build` 输出 `dist/`，默认相对资源路径，适合普通 HTTPS 静态主机。`npm run preview` 可在本地验证。不要直接以 `file://` 打开 HTML。
 
-`.github/workflows/ci.yml` 执行测试、根目录与项目子路径验证、生成源码 ZIP 与通用静态 ZIP。初始化时仅在专用功能分支自动提交新生成的锁文件，之后使用 `npm ci`。`.github/workflows/deploy.yml` 在 main 更新后尝试部署到已启用的 GitHub Pages；站点未配置或权限不足时会失败，不会把私有仓库变成公开仓库。
+`.github/workflows/ci.yml` 执行测试、根目录与项目子路径验证、生成源码 ZIP 与通用静态 ZIP。依赖锁文件已提交，CI 使用只读仓库权限和 `npm ci`；浏览器验收禁用自动重试，同时记录完整依赖审计并检查运行时依赖。`.github/workflows/deploy.yml` 在 main 更新后尝试部署到已启用的 GitHub Pages；站点未配置或权限不足时会失败，不会把私有仓库变成公开仓库。
 
 离线运行需要首次成功加载并缓存资源。缓存就绪会显示状态；应用更新先提示，手动确认后保存再刷新。
 
