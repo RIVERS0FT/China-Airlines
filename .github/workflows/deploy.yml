@@ -1,0 +1,32 @@
+name: Deploy GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: verify
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Use the tested artifact from the verification job; do not rebuild for release.
+      # Existing site configuration is required. Never enable billing or change visibility.
+      - uses: actions/configure-pages@v5
+      - name: Deploy tested Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,75 @@
+name: Verify and package
+on:
+  push:
+    branches: ['feat/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install exact locked dependencies
+        run: npm ci
+      - name: Audit development and runtime dependencies
+        run: |
+          mkdir -p artifacts
+          npm audit --audit-level=moderate --json > artifacts/npm-audit-all.json
+          node --input-type=module -e "import fs from 'node:fs'; const report=JSON.parse(fs.readFileSync('artifacts/npm-audit-all.json','utf8')); if(!report.metadata?.vulnerabilities) throw new Error('Audit service did not return a vulnerability report'); console.log(report.metadata.vulnerabilities);"
+          npm audit --omit=dev --audit-level=moderate --json > artifacts/npm-audit-runtime.json
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Domain and persistence tests
+        run: npm test -- --reporter=default --reporter=json --outputFile=artifacts/unit-tests.json
+      - name: Production build (portable root)
+        run: npm run build
+      - name: Install Chromium and system fonts
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-cjk
+          mkdir -p artifacts
+      - name: Browser verification (root)
+        run: npm run test:e2e
+      - name: Production build (GitHub Pages subpath)
+        env:
+          BASE_PATH: /China-Airlines/
+        run: npm run build
+      - name: Browser verification (subpath)
+        env:
+          BASE_PATH: /China-Airlines/
+        run: npm run test:e2e
+      - name: Preserve the tested Pages build
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Package portable static build and source
+        run: |
+          npm run build
+          git archive --format=zip --prefix=China-Airlines/ HEAD > artifacts/china-airlines-source.zip
+          (cd dist && zip -qr ../artifacts/china-airlines-web.zip .)
+          printf 'Validated source commit: %s\n' "$(git rev-parse HEAD)" > artifacts/BUILD.txt
+          (cd artifacts && sha256sum china-airlines-source.zip china-airlines-web.zip > SHA256SUMS.txt)
+      - name: Upload delivery and browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: china-airlines-delivery
+          path: |
+            artifacts/
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
