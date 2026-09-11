@@ -48,7 +48,7 @@ function depart(s: GameState, p: Plane, to: string, auto: boolean) {
   note(s, `${p.id} ${airport(p.airportId).city} → ${airport(to).city} 起飞`, -q.cost);
 }
 function advance(s: GameState, now: number): AdvanceReport {
-  check(Number.isFinite(now) && now >= 0, '无效的系统时间');
+  check(Number.isFinite(now) && now >= 0 && now <= 8.64e15, '无效的系统时间');
   const gap = (now - s.lastWallTime) / 1000, elapsed = Math.min(OFFLINE_LIMIT, Math.max(0, gap));
   // Consume the whole wall-clock gap, including discarded time, exactly once.
   s.lastWallTime = now;
@@ -85,6 +85,7 @@ function advance(s: GameState, now: number): AdvanceReport {
 export class GameCore {
   private state: GameState;
   constructor(now: number, saved?: GameState) {
+    check(Number.isFinite(now) && now >= 0 && now <= 8.64e15, '无效的系统时间');
     this.state = saved ? validateSave(saved) : { version: 1, credits: 180000, simTime: 0, lastWallTime: now, nextId: 2,
       airports: [{ id: 'PEK', level: 1 }, { id: 'PVG', level: 1 }],
       fleet: [{ id: 'AC0001', modelId: 'lark', airportId: 'PEK', readyAt: 0, autoRouteId: null, flight: null }], routes: [],
@@ -190,7 +191,7 @@ export function validateSave(value: unknown): GameState {
       if (!routeIds.includes(text(f.routeId, 7)) || f.from !== p.airportId || f.from === f.to || f.routeId !== routeId(text(f.from, 3), text(f.to, 3))) fail();
       const q = quote(s, plane as Plane, text(f.to, 3));
       const departAt = num(f.departAt, 1e12, false), arriveAt = num(f.arriveAt, 1e12, false);
-      if (departAt > s.simTime || arriveAt <= s.simTime || arriveAt !== departAt + q.duration) fail();
+      if ((p.readyAt as number) > departAt || departAt > s.simTime || arriveAt <= s.simTime || arriveAt !== departAt + q.duration) fail();
       const passengers = num(f.passengers, m.seats), cargo = num(f.cargo, m.cargo);
       if (num(f.revenue) !== fare(q.km, passengers, cargo) || num(f.cost) !== q.cost) fail();
       if (p.autoRouteId !== null && p.autoRouteId !== f.routeId) fail();

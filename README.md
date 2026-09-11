@@ -2,7 +2,7 @@
 
 中文、横屏、2D 的单机航空运输经营 Web/PWA。React 管理经营界面，PixiJS 8 绘制原创航网，独立 TypeScript 核心负责时间事件与经济，Dexie/IndexedDB 保存进度。
 
-开始开发前阅读 [AGENTS.md](AGENTS.md) 与 [设计文档](docs/DESIGN.md)。
+开始开发前阅读 [AGENTS.md](AGENTS.md) 与 [设计文档](docs/DESIGN.md)。游玩步骤见 [上手指南](docs/PLAYING.md)，验证和交付约定见 [发布文档](docs/DELIVERY.md)。
 
 ## 首版内容
 
@@ -42,7 +42,7 @@ Playwright 自动启动生产预览服务器。浏览器截图位于 `artifacts/
 
 `npm run build` 输出 `dist/`，默认相对资源路径，适合普通 HTTPS 静态主机。`npm run preview` 可在本地验证。不要直接以 `file://` 打开 HTML。
 
-`.github/workflows/ci.yml` 执行测试、根目录与项目子路径验证、生成源码 ZIP 与通用静态 ZIP。依赖锁文件已提交，CI 使用只读仓库权限和 `npm ci`；浏览器验收禁用自动重试，同时记录完整依赖审计并检查运行时依赖。`.github/workflows/deploy.yml` 在 main 更新后尝试部署到已启用的 GitHub Pages；站点未配置或权限不足时会失败，不会把私有仓库变成公开仓库。
+`.github/workflows/ci.yml` 执行测试、根目录与项目子路径验证、生成源码 ZIP 与通用静态 ZIP。依赖锁文件已提交，CI 使用只读仓库权限和 `npm ci`；浏览器验收禁用自动重试，同时检查开发及运行时依赖审计。`.github/workflows/deploy.yml` 在 main 更新后复用全部验收流程，再部署已通过测试的构建到已启用的 GitHub Pages；站点未配置或权限不足时会失败，不会把私有仓库变成公开仓库。
 
 离线运行需要首次成功加载并缓存资源。缓存就绪会显示状态；应用更新先提示，手动确认后保存再刷新。
 
@@ -61,6 +61,6 @@ src/runtime.ts     命令队列、时钟、持久化与 Zustand 快照
 src/ui/            横屏 React 界面、PixiJS 航线地图
 src/pwa.ts         离线注册、保存后更新
 scripts/icons.mjs  无外部依赖的原创 PWA 图标生成
- tests/            领域逻辑和存档数据库测试
- e2e/              生产构建的浏览器验收
+tests/            领域逻辑和存档数据库测试
+e2e/              生产构建的浏览器验收
 ```

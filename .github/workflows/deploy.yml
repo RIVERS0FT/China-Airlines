@@ -5,37 +5,28 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
   group: pages
   cancel-in-progress: false
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - run: npm ci
-      - run: npm run typecheck && npm test
-      - run: npm run build
-        env:
-          BASE_PATH: /China-Airlines/
-      # No enablement flag: never change visibility, billing, or site policy.
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
+  verify:
+    uses: ./.github/workflows/ci.yml
   deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: verify
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
+    timeout-minutes: 10
     steps:
-      - name: Deploy
+      # Use the tested artifact from the verification job; do not rebuild for release.
+      # Existing site configuration is required. Never enable billing or change visibility.
+      - uses: actions/configure-pages@v5
+      - name: Deploy tested Pages artifact
         id: deployment
         uses: actions/deploy-pages@v4
