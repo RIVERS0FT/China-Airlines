@@ -45,18 +45,19 @@ test('landscape touch loading and portrait prompt',async({browser,baseURL})=>{
   const context=await browser.newContext({baseURL,viewport:{width:844,height:390},deviceScaleFactor:2,isMobile:true,hasTouch:true});
   const page=await context.newPage();page.on('pageerror',e=>pageErrors.push(e.message));await ready(page);
   await page.getByRole('button',{name:'航线地图',exact:true}).click();await page.getByLabel('选择机场',{exact:true}).selectOption('WUH');await page.getByRole('button',{name:/解锁机场/}).click();
-  await expect(page.getByText('已解锁 3',{exact:false})).toBeVisible();await page.getByRole('button',{name:'返回机场装载',exact:false}).click();
+  await expect(page.getByText('已解锁 3 座机场',{exact:true})).toBeVisible();await page.getByRole('button',{name:'返回机场装载',exact:false}).click();
   await page.getByTestId('waiting-order').first().tap();await expect(page.getByTestId('onboard-count')).toHaveText('1');
   await expect(page.locator('.rotate-screen')).toBeHidden();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:'artifacts/landscape.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});await expect(page.locator('.rotate-screen')).toBeVisible();
   await page.screenshot({path:'artifacts/portrait.png',fullPage:true});await context.close();
 });
-test('a competing tab cannot overwrite the first writer',async({page,context})=>{
+test('a competing tab cannot overwrite the first writer and recovery stays reachable',async({page,context})=>{
   await ready(page);const other=await context.newPage();other.on('pageerror',e=>pageErrors.push(e.message));await ready(other);
   await settings(page);await page.getByRole('button',{name:'立即保存',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'此存档正在另一个窗口中使用'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'此存档正在另一个窗口中使用'})).toBeVisible();await expect(page.locator('dialog[open]')).toHaveCount(0);
   await settings(other);await other.getByRole('button',{name:'立即保存',exact:true}).click();await expect(other.getByRole('alert')).toHaveCount(0);
+  await page.getByRole('button',{name:'重新载入最新进度',exact:true}).click();await expect(page.locator('.blocking-screen')).toHaveCount(0);await expect(page.getByTestId('airport-scene')).toBeVisible();
 });
 test('captures airport, network, and collection with no overflow',async({page})=>{
   await ready(page);await page.screenshot({path:'artifacts/desktop-airport.png',fullPage:true});
