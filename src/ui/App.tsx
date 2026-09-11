@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AIRPORTS, airport, aircraftSpecs, routeId, routePrice, upgradePrice } from '../core/catalog.js';
-import { manifest, waiting, loadSummary, quote, type Order, type GameState, type Plane, type Command } from '../core/game.js';
+import { manifest, waiting, loadSummary, quote, planQuote, type Order, type GameState, type Plane, type Command } from '../core/game.js';
 import { controller, useGame } from '../runtime.js';
 import { MapView } from './MapView.js';
 import { Hangar } from './Hangar.js';
@@ -66,6 +66,11 @@ function Network({ game, plane, destination, setDestination, onReturn, onDepart,
   const opened = game.routes.some(r => r.id === routeId(from, destination));
   let q: ReturnType<typeof quote> | null = null, error = '';
   if (plane && own && from !== destination) { try { q = quote(game, plane, destination); } catch (e) { error = e instanceof Error ? e.message : '无法飞行'; } }
+  let summary: Pick<NonNullable<typeof q>, 'duration' | 'cost' | 'revenue' | 'profit'> | null = q;
+  if (planMode) {
+    try { summary = plane && stops.length ? planQuote(game, plane, stops) : null; }
+    catch { summary = null; }
+  }
   const inFlight = Boolean(plane?.flight), cooling = plane && (game.simTime < plane.readyAt || plane.itinerary.length > 0);
   const incompatible = Boolean(auto && plane && (manifest(game, plane.id).length === 0 || manifest(game, plane.id).some(o => o.to !== destination)));
   async function dispatch() {
@@ -73,7 +78,7 @@ function Network({ game, plane, destination, setDestination, onReturn, onDepart,
     if (q && q.passengers === 0 && q.cargo === 0 && !window.confirm('当前为空机调机，只有成本、没有运输收入。确定起飞？')) return;
     try { await act({ type: 'dispatch', planeId: plane.id, to: destination, auto }); onDepart(); } catch { /* Controller exposes error. */ }
   }
-  return <section className="network-view"><div className="network-summary"><button onClick={onReturn}>← 返回机场装载</button><strong>{airport(from).city} → {a.city}</strong><span>用时 <b>{q ? duration(q.duration) : '—'}</b></span><span>成本 <b>{q ? money(q.cost) : '—'}</b></span><span>本段交付 <b>{q ? money(q.revenue) : '—'}</b></span><span>净收益 <b>{q ? money(q.profit) : '—'}</b></span></div>
+  return <section className={`network-view${planMode ? ' is-planning' : ''}`}><div className="network-summary"><button onClick={onReturn}>← 返回机场装载</button><strong>{planMode ? '多段运输计划' : `${airport(from).city} → ${a.city}`}</strong><span>{planMode ? '总用时' : '用时'} <b>{summary ? duration(summary.duration) : '—'}</b></span><span>成本 <b>{summary ? money(summary.cost) : '—'}</b></span><span>{planMode ? '总交付' : '本段交付'} <b>{summary ? money(summary.revenue) : '—'}</b></span><span>运输净收益 <b>{summary ? money(summary.profit) : '—'}</b></span></div>
     <div className="network-mode"><button aria-pressed={!planMode} onClick={() => setPlanMode(false)}>单段派航</button><button aria-pressed={planMode} onClick={() => { setPlanMode(true); setAuto(false); }}>多段计划</button></div>
     <div className="network-map"><MapView game={game} selected={destination} onSelect={setDestination}/></div>
     <div className="network-controls"><label>目的地<select aria-label="选择机场" value={destination} onChange={e => setDestination(e.target.value)}>{AIRPORTS.map(a => <option value={a.id} key={a.id}>{a.city} · {a.id}{game.airports.some(x => x.id === a.id) ? '' : ' · 未解锁'}</option>)}</select></label>
