@@ -1,4 +1,4 @@
-import { airport, AIRPORTS, distance, model, MODELS, routeId, routePrice, TASKS, upgradePrice } from './catalog.js';
+import { airport, AIRPORTS, distance, model, MODELS, routeId, routePrice, TASKS, upgradePrice } from './legacy-catalog.js';
 export const SAVE_VERSION = 1;
 export const OFFLINE_LIMIT = 8 * 3600;
 export const MAX_FLEET = 16;
