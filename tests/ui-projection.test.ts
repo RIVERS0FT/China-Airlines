@@ -61,7 +61,9 @@ describe('loading state explanations', () => {
   });
   it('shows full waiting-room reason before an unload', () => {
     const {game,plane} = setup();
-    const crowded: GameState = {...game,orders:[...game.orders,...waiting(game,'PEK')]};
-    expect(orderBlockReason(crowded,plane,game.orders[0]!,true)).toBe('机场候运区已满');
+    // An unload explanation requires a genuinely onboard order, not a waiting one.
+    const onboard = {...game.orders[0]!,id:'JB9999',location:plane.id,expiresAt:null};
+    const crowded: GameState = {...game,orders:[...game.orders,...waiting(game,'PEK'),onboard]};
+    expect(orderBlockReason(crowded,plane,onboard,true)).toBe('机场候运区已满');
   });
 });
