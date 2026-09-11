@@ -1,0 +1,23 @@
+name: Materialize reviewed energy budget
+on:
+  push:
+    branches: ['feat/energy-budget-v05']
+permissions:
+  contents: write
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+      - name: Verify reviewed source and remove the one-time writer
+        run: |
+          git fetch --no-tags origin 649aec4e822dbcbeb1d4025a42fb67a168f203fc
+          python scripts/materialize-energy-v05.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat: reserve exact flight energy, add ground service and migrate v4 saves'
+          git push origin HEAD:feat/energy-budget-v05
