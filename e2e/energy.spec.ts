@@ -17,8 +17,9 @@ async function load(page:Page,state:GameState|typeof legacy){
   await page.getByRole('button',{name:'存档设置',exact:true}).click();page.once('dialog',d=>void d.accept());
   await page.getByLabel('选择存档文件').setInputFiles({name:'energy.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(state))});
   await expect(page.getByTestId('credits')).toHaveText(money(state.credits));
-  await expect(page.getByText('存档导入成功，旧进度已保留为备份。',{exact:true})).toBeVisible();
+  // Settings intentionally hides the global notice; inspect it only after closing.
   await page.getByRole('button',{name:'关闭存档设置',exact:true}).click();
+  await expect(page.getByText('存档导入成功，旧进度已保留为备份。',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'关闭提示',exact:true}).click();
 }
 for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
@@ -54,7 +55,7 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   });
 }
-test('the exact flight budget is reserved once and survives reload plus stop',async({page})=>{
+test('the exact flight budget is reserved once and survives reload and arrival',async({page})=>{
   const s=readyState(CAP),q=quote(s,s.fleet[0]!,'PVG');await load(page,s);
   await page.getByRole('button',{name:'航线地图',exact:true}).click();await page.getByTestId('dispatch').click();
   const energy=`能量 ${((CAP-q.duration)/60).toFixed(2)} 点`;

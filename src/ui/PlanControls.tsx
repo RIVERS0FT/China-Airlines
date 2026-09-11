@@ -45,7 +45,7 @@ export function PlanControls({ game, plane, stops, setStops, candidate, busy, on
       <summary>逐段费用与交付</summary>
       <div className="plan-table-scroll" tabIndex={0} role="region" aria-label="航段费用明细">
         <table>
-          <caption>建设费用单独计入，运输净收益不含建设费用；同一航线只收一次建设费。</caption>
+          <caption>建设费用单独计入，运输净收益不含建设费用；同一航线只收一次建设费。逐段扣运营费，不预扣全程；资金或能量不足则停在实际机场并保留客货。{preview.undelivered > 0 ? `计划后还有 ${preview.undelivered} 单留在机上。` : '本计划覆盖全部已装订单的目的地。'}</caption>
           <thead><tr><th scope="col">航段</th><th scope="col">飞行时间</th><th scope="col">运营成本</th><th scope="col">本段交付</th><th scope="col">航线建设</th></tr></thead>
           <tbody>{preview.legs.map((leg, i) => <tr key={i} data-testid="plan-leg">
             <th scope="row">{i + 1}. {airport(leg.from).city} → {airport(leg.to).city}</th>
@@ -61,7 +61,6 @@ export function PlanControls({ game, plane, stops, setStops, candidate, busy, on
         ? <button disabled={locked || game.credits < preview.openingCost} onClick={() => ignore(controller.command({ type: 'open-plan-routes', planeId: plane.id, stops }))}>开通计划航线 {money(preview.openingCost)}</button>
         : <button className="gold-button" disabled={locked || !preview || Boolean(energyReason) || game.credits < (preview?.legs[0]?.cost ?? 0)} onClick={() => ignore(launch())}>执行运输计划</button>}
     </div>
-    {preview && <small className="energy-plan-note" data-testid="plan-energy">全程需 {energyText(requiredEnergy)} 点（不含周转），可用 {energyText(plane.energy.availableSeconds)} 点。{energyReason || (requiredEnergy > plane.energy.availableSeconds ? "能量只能覆盖部分航段；不足时保留客货并停止后续计划。" : "逐段预留，不预扣全程能量。")}</small>}
-    {preview && <small className="plan-footnote">逐段扣费，不预扣全部成本；资金不足则停在当前机场。{preview.undelivered > 0 ? `计划后还有 ${preview.undelivered} 单留在机上。` : '本计划覆盖全部已装订单的目的地。'}</small>}
+    {preview && <small className="energy-plan-note" data-testid="plan-energy">能量：全程需 {energyText(requiredEnergy)} 点／可用 {energyText(plane.energy.availableSeconds)} 点（不含周转）。{energyReason || (requiredEnergy > plane.energy.availableSeconds ? "只能覆盖部分航段，不足停航保留客货。" : "逐段扣费、预留能量，不足停航保留客货。")}</small>}
   </section>;
 }
