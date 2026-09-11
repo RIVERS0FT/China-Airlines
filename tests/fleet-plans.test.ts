@@ -10,7 +10,6 @@ function prepared() {
   const c = rich();
   c.execute({ type: 'unlock', airportId: 'WUH' }, NOW);
   c.execute({ type: 'load-destination', planeId: ID, to: 'PVG' }, NOW);
-  c.execute({ type: 'open-plan-routes', planeId: ID, stops: ['WUH', 'PVG', 'PEK'] }, NOW);
   return c;
 }
 function mutated(fn: (s: GameState) => void) { const s = prepared().snapshot(); fn(s); return () => validateSave(s); }
@@ -63,11 +62,16 @@ describe('aircraft specialisation and workshop', () => {
     expect(()=>c.execute({type:'expand-hangar'},NOW)).toThrow(/资金/);expect(c.snapshot()).toEqual(s);
   });
 });
-describe('finite multi-stop plans',()=>{
+describe('finite click-order routes',()=>{
   it('does not count repeated destination visits as new revenue',()=>{
     const c=prepared(),s=c.snapshot(),q=planQuote(s,s.fleet[0]!,['WUH','PVG','PEK','PVG']);
     expect(q.legs[0]!.revenue).toBe(0);expect(q.legs[1]!.revenue).toBeGreaterThan(0);expect(q.legs[3]!.revenue).toBe(0);
     expect(q.revenue).toBe(manifest(s,ID).reduce((sum,o)=>sum+o.reward,0));
+  });
+  it('has no construction fee for any unlocked-city route',()=>{
+    const c=prepared(),s=c.snapshot(),q=planQuote(s,s.fleet[0]!,['WUH','PEK','PVG']);
+    expect(q.openingCost).toBe(0);expect(q.legs.every(leg=>leg.openingCost===0)).toBe(true);
+    expect(c.snapshot().credits).toBe(s.credits);
   });
   it('executes layovers and final delivery exactly once without new boarding',()=>{
     const c=prepared(),s=c.snapshot(),expected=planQuote(s,s.fleet[0]!,['WUH','PVG','PEK']);
@@ -76,6 +80,11 @@ describe('finite multi-stop plans',()=>{
     c.tick(NOW+expected.duration*1000);const final=c.snapshot();expect(final.stats.flights).toBe(3);
     expect(final.stats.revenue).toBe(expected.revenue);expect(final.stats.costs).toBe(expected.cost);expect(final.fleet[0]!.airportId).toBe('PEK');expect(manifest(final,ID)).toHaveLength(0);
     c.tick(NOW+expected.duration*1000);expect(c.snapshot()).toEqual(final);expect(validateSave(final)).toEqual(final);
+  });
+  it('records each route edge only when it is actually used',()=>{
+    const c=prepared();expect(c.snapshot().routes).toHaveLength(0);
+    c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW);expect(c.snapshot().routes.map(r=>r.id)).toContain('PEK-WUH');expect(c.snapshot().routes.map(r=>r.id)).not.toContain('PVG-WUH');
+    const first=c.snapshot().fleet[0]!.flight!;c.tick(NOW+(first.arriveAt+TURNAROUND+1)*1000);expect(c.snapshot().routes.map(r=>r.id)).toContain('PVG-WUH');
   });
   it('cancel leaves the current flight and its earnings intact',()=>{
     const c=prepared();c.execute({type:'dispatch-plan',planeId:ID,stops:['PVG','WUH']},NOW);const f=c.snapshot().fleet[0]!.flight!;
@@ -89,30 +98,28 @@ describe('finite multi-stop plans',()=>{
   it('stops safely on insufficient onward funds and retains all cargo',()=>{
     const setup=prepared().snapshot();setup.credits=quote(setup,setup.fleet[0]!,'WUH').cost;
     const c=new GameCore(NOW,setup);c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW);c.tick(NOW+400000);
-    const s=c.snapshot();expect(s.credits).toBe(0);expect(s.fleet[0]!.airportId).toBe('WUH');expect(s.fleet[0]!.itinerary).toHaveLength(0);expect(manifest(s,ID)).toEqual(manifest(setup,ID));expect(s.log.some(l=>l.text.includes('计划停止'))).toBe(true);
+    const s=c.snapshot();expect(s.credits).toBe(0);expect(s.fleet[0]!.airportId).toBe('WUH');expect(s.fleet[0]!.itinerary).toHaveLength(0);expect(manifest(s,ID)).toEqual(manifest(setup,ID));expect(s.log.some(l=>l.text.includes('路线停止'))).toBe(true);
   });
   it('validates the complete path before charging or taking off',()=>{
     const c=prepared(),before=c.snapshot();for(const stops of [[],['PEK'],['WUH','WUH'],['WUH','URC'],['WUH','PVG','PEK','WUH','PVG','PEK']]){
       expect(()=>c.execute({type:'dispatch-plan',planeId:ID,stops},NOW)).toThrow();expect(c.snapshot()).toEqual(before);
     }
   });
-  it('rejects a missing later route without spending or altering orders',()=>{
-    const s=prepared().snapshot();s.routes=s.routes.filter(r=>r.id!=='PVG-WUH');const c=new GameCore(NOW,s);
-    expect(()=>c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW)).toThrow(/全部航线/);expect(c.snapshot()).toEqual(s);
+  it('accepts a later unlocked edge even when no route record exists yet',()=>{
+    const c=prepared();expect(c.snapshot().routes).toHaveLength(0);expect(()=>c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW)).not.toThrow();
   });
-  it('opens a repeated route only once and validates before spending',()=>{
-    const c=rich(),s=c.snapshot(),q=planQuote(s,s.fleet[0]!,['PVG','PEK','PVG']);
-    expect(q.legs[1]!.openingCost).toBe(0);c.execute({type:'open-plan-routes',planeId:ID,stops:['PVG','PEK','PVG']},NOW);
-    expect(c.snapshot().routes).toHaveLength(1);expect(c.snapshot().credits).toBe(s.credits-q.openingCost);
-    const before=c.snapshot();expect(()=>c.execute({type:'open-plan-routes',planeId:ID,stops:['WUH']},NOW)).toThrow();expect(c.snapshot()).toEqual(before);
+  it('keeps the old open-plan command free and idempotent for compatibility',()=>{
+    const c=prepared(),before=c.snapshot();c.execute({type:'open-plan-routes',planeId:ID,stops:['WUH','PEK','PVG']},NOW);
+    expect(c.snapshot().credits).toBe(before.credits);expect(c.snapshot().routes).toHaveLength(3);
+    const once=c.snapshot();c.execute({type:'open-plan-routes',planeId:ID,stops:['WUH','PEK','PVG']},NOW);expect(c.snapshot().routes).toEqual(once.routes);expect(c.snapshot().credits).toBe(once.credits);
   });
-  it('locks manual loading, retrofit and alternate dispatch during a queued plan',()=>{
+  it('locks manual loading, retrofit and alternate dispatch during a queued route',()=>{
     const c=prepared();c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW);
     expect(()=>c.execute({type:'retrofit',planeId:ID,upgrade:'engine'},NOW)).toThrow(/飞行/);
     const at=c.snapshot().fleet[0]!.flight!.arriveAt;c.tick(NOW+at*1000);
     expect(()=>c.execute({type:'dispatch',planeId:ID,to:'PEK',auto:false},NOW+at*1000)).toThrow(/取消/);
   });
-  it('restores a mid-plan save without losing queued destinations',()=>{
+  it('restores a mid-route save without losing queued destinations',()=>{
     const c=prepared();c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG','PEK']},NOW);c.tick(NOW+10000);
     const loaded=new GameCore(NOW+10000,validateSave(c.snapshot()));c.tick(NOW+500000);loaded.tick(NOW+500000);expect(loaded.snapshot()).toEqual(c.snapshot());
   });
@@ -142,10 +149,10 @@ describe('v1/v2 migration and v3 save validation',()=>{
     'unknown plan airport':(s:GameState)=>{s.fleet[0]!.itinerary=['ZZZ'];},
     'oversized plan':(s:GameState)=>{s.fleet[0]!.itinerary=Array(6).fill('PVG');},
     'repeated adjacent airport':(s:GameState)=>{s.fleet[0]!.itinerary=['WUH','WUH'];},
-    'unopened plan edge':(s:GameState)=>{s.fleet[0]!.itinerary=['WUH','PVG'];s.routes=s.routes.filter(r=>r.id!=='PVG-WUH');},
     'invalid capacity':(s:GameState)=>{s.fleet[0]!.modelId='lark-f';},
     'invalid order number':(s:GameState)=>{s.orders[0]!.amount=NaN;},
   })) it(`rejects ${name}`,()=>expect(mutated(fn)).toThrow());
+  it('accepts a valid queued route whose later edges have never been flown',()=>{const s=prepared().snapshot();s.fleet[0]!.itinerary=['WUH','PVG'];expect(()=>validateSave(s)).not.toThrow();});
   it('rejects tampered upgraded flight duration and locked costs',()=>{
     const c=prepared();c.execute({type:'retrofit',planeId:ID,upgrade:'engine'},NOW);c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW);
     for(const field of ['arriveAt','cost','revenue'] as const){const s=c.snapshot();s.fleet[0]!.flight![field]++;expect(()=>validateSave(s)).toThrow();}
