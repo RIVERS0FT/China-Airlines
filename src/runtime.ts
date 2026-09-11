@@ -71,7 +71,10 @@ class Controller {
   command(command: Command) {
     return this.run(async () => {
       if (!this.core) throw new Error('尚未载入游戏');
-      this.core.execute(command, Date.now()); this.publish(); await this.persist();
+      this.core.execute(command, Date.now());
+      // Publish success only after the IndexedDB transaction commits. Otherwise an
+      // immediate reload after a visible purchase can lose that purchase.
+      await this.persist();
       useGame.setState({ notice: this.core.snapshot().log[0]?.text ?? '操作完成' });
     });
   }
