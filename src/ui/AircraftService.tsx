@@ -8,7 +8,7 @@ import { money, ignore } from './Panels.js';
 /** Confirmations never change state; the core rechecks every operation. */
 export function AircraftService({ game, plane, busy }: { game: GameState; plane: Plane; busy: boolean }) {
   const [selected, setSelected] = useState('');
-  const destinations = game.routes.flatMap(route => route.from === plane.airportId ? [route.to] : route.to === plane.airportId ? [route.from] : [])
+  const destinations = game.airports.map(item => item.id).filter(id => id !== plane.airportId)
     .filter(id => { try { legQuote(game, plane, plane.airportId, id); return true; } catch { return false; } });
   const to = destinations.includes(selected) ? selected : destinations[0] ?? '';
   const reason = plane.flight ? '飞行中，请等待落地' : plane.autoRouteId ? '请先停止自动值勤' : plane.itinerary.length ? '请先取消剩余计划' : plane.readyAt > game.simTime ? '地面周转中' : '';
@@ -26,7 +26,7 @@ export function AircraftService({ game, plane, busy }: { game: GameState; plane:
       <p>只装真实直达客货，按机型容量装载；无订单就等待，不空飞刷收益。</p>
       <small>一次雇用 {money(DISPATCHER_PRICE)}，无周期工资。首架及旧存档飞机保留免费调度员；新购飞机需单独雇用。</small>
       {!plane.dispatcher ? <button disabled={busy || Boolean(reason) || game.credits < DISPATCHER_PRICE} onClick={() => ignore(controller.command({ type: 'hire-dispatcher', planeId: plane.id }))}>雇用随航调度员</button> : <>
-        {plane.autoRouteId ? <button disabled={busy} onClick={() => ignore(controller.command({ type: 'stop', planeId: plane.id }))}>停止自动值勤</button> : <div className="crew-duty-controls"><label>值勤目的地<select aria-label="值勤目的地" value={to} disabled={!destinations.length || busy || Boolean(reason)} onChange={e => setSelected(e.target.value)}>{!destinations.length && <option value="">请先开通可达航线</option>}{destinations.map(id => <option key={id} value={id}>{airport(id).city}</option>)}</select></label><button disabled={busy || Boolean(reason) || !to || incompatible} onClick={() => ignore(controller.command({ type: 'start-duty', planeId: plane.id, to }))}>启动自动值勤</button></div>}
+        {plane.autoRouteId ? <button disabled={busy} onClick={() => ignore(controller.command({ type: 'stop', planeId: plane.id }))}>停止自动值勤</button> : <div className="crew-duty-controls"><label>值勤目的地<select aria-label="值勤目的地" value={to} disabled={!destinations.length || busy || Boolean(reason)} onChange={e => setSelected(e.target.value)}>{!destinations.length && <option value="">暂无可达的已解锁机场</option>}{destinations.map(id => <option key={id} value={id}>{airport(id).city}</option>)}</select></label><button disabled={busy || Boolean(reason) || !to || incompatible} onClick={() => ignore(controller.command({ type: 'start-duty', planeId: plane.id, to }))}>启动自动值勤</button></div>}
         {incompatible && !plane.autoRouteId && to && <p>机上有其他目的地订单，请先卸下或手动完成运输。</p>}
         <button className="subtle-action" disabled={busy || Boolean(reason)} onClick={() => { if (window.confirm('解聘当前随航调度员？雇用费用不退还，重新雇用需再次付费。')) ignore(controller.command({ type: 'dismiss-dispatcher', planeId: plane.id })); }}>解聘调度员</button>
       </>}
