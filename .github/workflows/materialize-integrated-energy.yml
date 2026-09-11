@@ -1,0 +1,23 @@
+name: Materialize reviewed energy and city-route merge
+on:
+  push:
+    branches: ['feat/energy-budget-v05']
+permissions:
+  contents: write
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+      - name: Verify both source parents and remove the one-time writer
+        run: |
+          git fetch --no-tags origin abc4d17a2cb5b20efe391b088371f02400421961 c736d3b36ad373cea254748a3f7e86a15334630e
+          python scripts/materialize-integrated-energy.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'merge: retain ordered-city routes and validate v4 energy migration'
+          git push origin HEAD:feat/energy-budget-v05

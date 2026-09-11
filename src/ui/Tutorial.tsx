@@ -19,7 +19,7 @@ export function Tutorial({ game, plane, screen, destination, busy, onLocate }: {
     if (screen === step.screen) document.querySelector<HTMLElement>(step.target)?.focus({ preventScroll: true });
   }
   return <section className="tutorial-strip" role="region" aria-label="起航引导" data-testid="tutorial" data-step={step.id}>
-    <span className="guide-number" aria-hidden="true">{step.number}/7</span><div className="guide-copy"><strong aria-live="polite">{step.title}</strong><p>{step.text}</p></div>
+    <span className="guide-number" aria-hidden="true">{step.number}/6</span><div className="guide-copy"><strong aria-live="polite">{step.title}</strong><p>{step.text}</p></div>
     {step.id === 'done' ? <button disabled={busy} onClick={() => ignore(controller.command({ type: 'tutorial', action: 'finish' }))}>完成引导</button> : <button disabled={busy} onClick={locate}>{step.screen === 'tasks' ? '查看首航任务' : '定位操作'}</button>}
     <button className="guide-skip" disabled={busy} onClick={() => ignore(controller.command({ type: 'tutorial', action: 'skip' }))}>跳过引导</button>
   </section>;

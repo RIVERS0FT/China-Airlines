@@ -19,6 +19,6 @@ export function routePreview(game: GameState, plane: Plane, stops: readonly stri
   return { legs, visits: [...visits].map(([airportId, numbers]) => ({ airportId, numbers })) };
 }
 export function previewDescription(preview: RoutePreview | null | undefined): string {
-  if (!preview?.legs.length) return '尚未添加航段';
-  return preview.legs.map(leg => `${leg.number}. ${airport(leg.from).city}→${airport(leg.to).city}：${leg.error || (leg.opened ? '可飞，航线已开通' : '可飞，须先开通航线')}`).join('；');
+  if (!preview?.legs.length) return '尚未选择路线城市';
+  return preview.legs.map(leg => `${leg.number}. ${airport(leg.from).city}→${airport(leg.to).city}：${leg.error || (leg.opened ? '可飞，已有运营记录' : '可飞，城市已解锁')}`).join('；');
 }
