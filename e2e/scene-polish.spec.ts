@@ -37,39 +37,35 @@ for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
   });
 }
 for (const [width, height] of [[1440,900],[844,390]]) {
-  test(`map draws numbered multi-stop draft and clears it at ${width}`, async ({ page }) => {
+  test(`map draws ordered multi-stop draft and clears it at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width: width!, height: height! }); await ready(page);
     await page.getByRole('button', { name:'航线地图', exact:true }).click();
     const canvas = page.getByTestId('map-canvas');
     await expect(canvas).toHaveAttribute('data-renderer','ready');
-    await expect(canvas).toHaveAttribute('data-preview-path','PVG');
-    await expect(page.getByTestId('route-preview')).toContainText('须先开通航线');
+    await expect(canvas).toHaveAttribute('data-preview-path','');
+    await expect(page.getByTestId('route-preview')).toContainText('尚未选择路线');
+    await expect(page.getByRole('button', { name:'单段派航', exact:true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name:'多段计划', exact:true })).toHaveCount(0);
     await page.getByLabel('选择机场', { exact:true }).selectOption('WUH');
     await page.getByRole('button', { name:/^解锁机场/ }).click();
-    // Await the persisted unlock result before measuring read-only draft edits.
     await expect(page.getByRole('button', { name:/^解锁机场/ })).toHaveCount(0);
     await expect(page.getByTestId('credits')).toHaveText('¥ 148,000');
     const money = await page.getByTestId('credits').textContent();
-    await page.getByRole('button', { name:'多段计划', exact:true }).click();
-    await expect(canvas).toHaveAttribute('data-preview-path','');
-    await page.getByRole('button', { name:'添加武汉航段', exact:true }).click();
     await page.getByLabel('选择机场', { exact:true }).selectOption('PEK');
-    await page.getByRole('button', { name:'添加北京航段', exact:true }).click();
     await page.getByLabel('选择机场', { exact:true }).selectOption('PVG');
-    await page.getByRole('button', { name:'添加上海航段', exact:true }).click();
     await expect(canvas).toHaveAttribute('data-preview-path','WUH,PEK,PVG');
     await expect(page.getByTestId('route-preview')).toHaveAttribute('data-legs','3');
     await expect(page.getByTestId('route-preview')).toContainText('2. 武汉→北京');
+    await expect(page.getByTestId('route-preview')).toContainText('可飞，城市已解锁');
     await expect(page.getByTestId('credits')).toHaveText(money!);
     await page.screenshot({ path:`artifacts/route-preview-${width}.png` });
-    await page.getByRole('button', { name:'撤销末段', exact:true }).click();
+    await page.getByRole('button', { name:'撤销末站', exact:true }).click();
     await expect(canvas).toHaveAttribute('data-preview-path','WUH,PEK');
-    await page.getByRole('button', { name:'清空计划', exact:true }).click();
+    await page.getByRole('button', { name:'清空路线', exact:true }).click();
     await expect(canvas).toHaveAttribute('data-preview-path','');
-    await page.getByRole('button', { name:'单段派航', exact:true }).click();
     await page.getByLabel('选择机场', { exact:true }).selectOption('URC');
-    await expect(page.getByTestId('route-preview')).toContainText('解锁');
-    await expect(canvas).toHaveAttribute('data-preview-path','URC');
+    await expect(page.getByTestId('route-preview')).toContainText('尚未选择路线');
+    await expect(page.getByText(/先解锁城市/)).toBeVisible();
     await expect(page.getByTestId('credits')).toHaveText(money!);
     await expect(page.getByTestId('flights-count')).toHaveText('0 班');
   });
@@ -77,7 +73,7 @@ for (const [width, height] of [[1440,900],[844,390]]) {
 test('in-flight manifest explains why unload is unavailable', async ({ page }) => {
   await ready(page); await page.getByRole('button', { name:'同目的地装载', exact:true }).click();
   await page.getByRole('button', { name:'选择航线起飞', exact:true }).click();
-  await page.getByRole('button', { name:/^开通航线/ }).click(); await page.getByTestId('dispatch').click();
+  await page.getByLabel('选择机场',{exact:true}).selectOption('PVG');await page.getByTestId('dispatch').click();
   const job = page.getByTestId('loaded-order').first();
   await expect(job).toBeDisabled(); await expect(job.locator('.job-state')).toHaveText('飞行中，不能装卸');
   await expect(page.getByRole('button', { name:'同目的地装载', exact:true })).toHaveCount(0);
