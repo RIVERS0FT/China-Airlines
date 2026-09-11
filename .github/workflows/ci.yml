@@ -14,7 +14,7 @@ jobs:
   refresh-test-lock:
     # One-time, trusted feature-branch dependency refresh; never runs for PR code.
     if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/feat/single-player-mvp' && github.event.head_commit.message == 'build: regenerate clean patched test dependency lock'
+      github.event_name == 'push' && github.ref == 'refs/heads/feat/single-player-mvp' && github.event.head_commit.message == 'build: resolve patched dependencies with current npm'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -29,6 +29,8 @@ jobs:
       - name: Resolve and commit only the dependency lock
         id: lock
         run: |
+          npm install --global npm@12.0.2
+          npm --version
           rm package-lock.json
           npm install --package-lock-only --ignore-scripts
           git diff --exit-code -- package.json
