@@ -18,6 +18,7 @@ async function load(page:Page,s:GameState){
   await page.clock.install({time:new Date(NOW)});await page.clock.pauseAt(new Date(NOW+1000));
   await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   await page.getByRole('button',{name:'存档设置',exact:true}).click();
+  page.once('dialog', dialog => { expect(dialog.type()).toBe('confirm'); expect(dialog.message()).toContain('导入将替换'); void dialog.accept(); });
   await page.getByLabel('选择存档文件').setInputFiles({name:'flight-view.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(s))});
   await expect(page.getByTestId('fleet-count')).toHaveText(`${s.fleet.length} 架`);
   await expect(page.getByTestId('credits')).toHaveText(money(s.credits));
