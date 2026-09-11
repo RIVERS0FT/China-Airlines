@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Application, Container, Graphics, Text } from 'pixi.js';
 import { AIRPORTS, airport } from '../core/catalog.js';
 import type { GameState } from '../core/game.js';
+import { mapLayout, MIN_MAP_SCALE } from './map-camera.js';
+import './map-readability.css';
 interface Props { game: GameState; selected: string; onSelect: (id: string) => void }
 function curve(from: string, to: string, t: number) {
   const a = airport(from), b = airport(to), cx = (a.x + b.x) / 2, cy = Math.min(a.y, b.y) - Math.min(100, Math.abs(b.x - a.x) * 0.2 + 35);
@@ -10,7 +12,7 @@ function curve(from: string, to: string, t: number) {
 }
 export function MapView(props: Props) {
   const host = useRef<HTMLDivElement>(null), latest = useRef(props), controls = useRef<{zoom: (factor: number) => void; reset: () => void} | null>(null);
-  const [status, setStatus] = useState('loading');
+  const [status, setStatus] = useState('loading'), [compact, setCompact] = useState(false);
   latest.current = props;
   useEffect(() => {
     const element = host.current!; const app = new Application();
@@ -38,21 +40,30 @@ export function MapView(props: Props) {
           const code = new Text({text:a.id,style:{fontFamily:'monospace',fontSize:12,letterSpacing:2,fill:0x738a7d}});
           label.position.set(16,-18); code.position.set(17,7); group.addChild(ring,label,code); nodes.addChild(group); marks.set(a.id,{ring,label,code});
         }
-        let fitScale = 1, zoom = 1, selectionKey = '', lastGame: GameState | null = null, snapshotAt = performance.now();
+        let fitScale = 1, zoom = 1, regional = false, focusedSelection = '', selectionKey = '', lastGame: GameState | null = null, snapshotAt = performance.now();
         const planes = new Map<string, Graphics>();
         const clamp = () => {
-          const margin = 60, w=app.screen.width, h=app.screen.height, scale=world.scale.x;
+          const w=app.screen.width, h=app.screen.height, margin=Math.min(60, h / 3), scale=world.scale.x;
           world.x=Math.max(margin-960*scale,Math.min(w-margin,world.x)); world.y=Math.max(margin-630*scale,Math.min(h-margin,world.y));
         };
-        const reset = () => { zoom=1; world.scale.set(fitScale); world.position.set((app.screen.width-960*fitScale)/2,(app.screen.height-630*fitScale)/2); };
+        const focusSelection = () => {
+          const a = airport(latest.current.selected);
+          world.position.set(app.screen.width / 2 - a.x * world.scale.x, app.screen.height / 2 - a.y * world.scale.y);
+          clamp();
+        };
+        const reset = () => {
+          const layout = mapLayout(app.screen.width, app.screen.height, airport(latest.current.selected));
+          zoom = 1; fitScale = layout.scale; regional = layout.regional;
+          world.scale.set(fitScale); world.position.set(layout.x, layout.y); clamp();
+        };
         const zoomAt = (factor:number,x:number,y:number) => {
-          const old=world.scale.x, next=Math.max(0.8,Math.min(3,zoom*factor)); zoom=next;
+          const old=world.scale.x, next=Math.max(MIN_MAP_SCALE / fitScale,Math.min(3,zoom*factor)); zoom=next;
           const scale=fitScale*next; world.position.set(x-(x-world.x)/old*scale,y-(y-world.y)/old*scale); world.scale.set(scale); clamp();
         };
         controls.current={zoom:(factor)=>zoomAt(factor,app.screen.width/2,app.screen.height/2),reset};
         const observer = new ResizeObserver(() => {
           const width=element.clientWidth,height=element.clientHeight;
-          if(width<1||height<1)return; app.renderer.resize(width,height); fitScale=Math.min(width/1000,height/670); reset();
+          if(width<1||height<1)return; app.renderer.resize(width,height); setCompact(height < 220); reset();
         }); observer.observe(element);
         const pointers = new Map<number,{x:number;y:number}>();
         let drag=false, multi=false, start={x:0,y:0}, last={x:0,y:0};
@@ -83,6 +94,11 @@ export function MapView(props: Props) {
         app.ticker.maxFPS=45;
         app.ticker.add(()=>{
           const {game,selected}=latest.current;
+          if (focusedSelection !== selected) {
+            focusedSelection = selected;
+            if (regional) focusSelection();
+            canvas.setAttribute('aria-label', `机场航线示意图，当前选择${airport(selected).city}，可拖动、缩放或点击机场`);
+          }
           if(lastGame!==game){lastGame=game;snapshotAt=performance.now();lines.clear();
             for(const r of game.routes){const a=airport(r.from),b=airport(r.to),c=curve(r.from,r.to,.5);
               lines.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color:0x418e7d,width:2.5,alpha:.60});}
@@ -104,10 +120,10 @@ export function MapView(props: Props) {
     })();
     return()=>{cancelled=true;dispose();if(initialized&&!app.stage.destroyed)app.destroy(true,{children:true});};
   },[]);
-  return <section className="map-area" aria-label="航线地图">
+  return <section className={`map-area${compact ? ' is-compact' : ''}`} aria-label="航线地图">
     <div className="map-canvas" ref={host} data-testid="map-canvas" data-renderer={status}/>
-    <div className="map-caption"><span className="eyebrow">ROUTE NETWORK / 航线网络</span><h2>让每座城市，彼此更近。</h2><p>选择机场，规划下一段旅程。</p></div>
-    {status==='fallback'&&<div className="map-fallback" role="status">地图渲染不可用。仍可通过右侧机场列表进行全部经营操作。</div>}
+    <div className="map-caption">{compact ? <span className="map-hint">航线地图 · 拖拽查看城市</span> : <><span className="eyebrow">ROUTE NETWORK / 航线网络</span><h2>让每座城市，彼此更近。</h2><p>选择机场，规划下一段旅程。</p></>}</div>
+    {status==='fallback'&&<div className="map-fallback" role="status">地图渲染不可用。仍可通过下方机场列表进行全部经营操作。</div>}
     <div className="map-legend"><span><i className="dot"/>已解锁 {props.game.airports.length}</span><span><i className="dot muted"/>待拓展 {AIRPORTS.length-props.game.airports.length}</span></div>
     <div className="map-controls"><button aria-label="放大地图" onClick={()=>controls.current?.zoom(1.25)}>＋</button><button aria-label="缩小地图" onClick={()=>controls.current?.zoom(.8)}>−</button><button aria-label="重置地图视角" onClick={()=>controls.current?.reset()}>⌖</button></div>
     <small className="map-disclaimer">原创示意航网 · 非导航地图</small>

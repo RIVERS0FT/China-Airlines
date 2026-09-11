@@ -21,6 +21,15 @@ for (const width of [1440, 844]) {
     await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer', 'ready');
     const mapBounds = await page.locator('.network-map').boundingBox();
     expect(mapBounds?.height ?? 0).toBeGreaterThanOrEqual(90);
+    for (const label of ['放大地图', '缩小地图', '重置地图视角']) {
+      await expect(page.getByRole('button', { name: label, exact: true })).toBeInViewport();
+      await page.getByRole('button', { name: label, exact: true }).click();
+    }
+    if (width === 844) {
+      await expect(page.locator('.map-area')).toHaveClass(/is-compact/);
+      await expect(page.getByRole('img', { name: /机场航线示意图，当前选择上海/ })).toBeVisible();
+      await page.screenshot({ path: 'artifacts/landscape-map-readable.png' });
+    }
     await page.getByText('逐段费用与交付', { exact: true }).click();
     const legs = page.getByTestId('plan-leg');
     await expect(legs).toHaveCount(3);
