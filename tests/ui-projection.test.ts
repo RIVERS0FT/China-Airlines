@@ -5,10 +5,10 @@ import { orderBlockReason, loadingLock } from '../src/ui/order-presentation.js';
 const NOW = 1_800_000_000_000;
 function setup() { const core = new GameCore(NOW); return { core, game: core.snapshot(), plane: core.snapshot().fleet[0]! }; }
 describe('read-only map preview', () => {
-  it('labels a valid unopened route without charging or opening it', () => {
+  it('labels a valid unoperated route as directly flyable without charging or writing', () => {
     const {game,plane} = setup(), before = structuredClone(game), q = routePreview(game,plane,['PVG']);
     expect(q.legs[0]).toMatchObject({from:'PEK',to:'PVG',opened:false,error:'',number:1});
-    expect(previewDescription(q)).toContain('须先开通航线'); expect(game).toEqual(before);
+    expect(previewDescription(q)).toContain('城市已解锁'); expect(game).toEqual(before);
   });
   it('keeps repeated visits and direction, and never writes to the core', () => {
     const {core,plane} = setup(); core.execute({type:'unlock',airportId:'WUH'},NOW);
@@ -17,7 +17,7 @@ describe('read-only map preview', () => {
     expect(q.legs.map(l=>[l.from,l.to])).toEqual([['PEK','WUH'],['WUH','PEK'],['PEK','PVG']]);
     expect(core.snapshot()).toEqual(before);
   });
-  it('reports unopened airports as invalid rather than valid dotted routes', () => {
+  it('reports locked airports as invalid rather than valid routes', () => {
     const {game,plane} = setup(); expect(routePreview(game,plane,['WUH']).legs[0]?.error).toContain('解锁');
   });
   it('uses current range and airport-level checks', () => {
@@ -25,11 +25,11 @@ describe('read-only map preview', () => {
     expect(routePreview(core.snapshot(),plane,['URC']).legs[0]?.error).toContain('航程');
     expect(routePreview(core.snapshot(),{...plane,modelId:'horizon'},['PVG']).legs[0]?.error).toContain('级');
   });
-  it('marks already opened routes and resets an empty draft', () => {
+  it('marks previously operated relations without making them a flight prerequisite', () => {
     const {core,plane} = setup(); core.execute({type:'route',from:'PEK',to:'PVG'},NOW);
-    expect(routePreview(core.snapshot(),plane,['PVG']).legs[0]?.opened).toBe(true);
+    const preview=routePreview(core.snapshot(),plane,['PVG']);expect(preview.legs[0]?.opened).toBe(true);expect(previewDescription(preview)).toContain('已有运营记录');
     expect(routePreview(core.snapshot(),plane,[])).toEqual({legs:[],visits:[]});
-    expect(previewDescription(null)).toBe('尚未添加航段');
+    expect(previewDescription(null)).toBe('尚未选择路线城市');
   });
   it('rejects unknown coordinate IDs', () => { const {game,plane} = setup(); expect(()=>routePreview(game,plane,['UNKNOWN'])).toThrow('未知机场'); });
 });
@@ -51,8 +51,7 @@ describe('loading state explanations', () => {
     expect(orderBlockReason(game,p,remaining,false)).toContain('客舱'); expect(game).toEqual(before);
   });
   it('disallows flight unload and automatic/plan manual loading', () => {
-    const {core,plane} = setup(); core.execute({type:'route',from:'PEK',to:'PVG'},NOW);
-    core.execute({type:'load-destination',planeId:plane.id,to:'PVG'},NOW);
+    const {core,plane} = setup(); core.execute({type:'load-destination',planeId:plane.id,to:'PVG'},NOW);
     core.execute({type:'dispatch',planeId:plane.id,to:'PVG',auto:false},NOW);
     const game = core.snapshot(), p = game.fleet[0]!, job = manifest(game,p.id)[0]!;
     expect(orderBlockReason(game,p,job,true)).toBe('飞行中，不能装卸');
