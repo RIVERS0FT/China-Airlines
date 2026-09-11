@@ -84,8 +84,8 @@ describe('safe resale and lifetime fleet milestones',()=>{
 });
 describe('migration and strict invariants',()=>{
   it('preserves all v3 identities, clocks, locked flights and auto privileges',()=>{
-    const s=new GameCore(NOW,v3).snapshot();expect(s.version).toBe(4);expect(s.tutorial).toBe('skipped');expect(s.fleetPeak).toBe(v3.fleet.length);
-    expect(s.fleet.map(({dispatcher:_d,...p})=>p)).toEqual(v3.fleet);expect(s.orders).toEqual(v3.orders);expect(s.credits).toBe(v3.credits);expect(s.lastWallTime).toBe(v3.lastWallTime);expect(s.fleet.every(p=>p.dispatcher)).toBe(true);expect(validateSave(s)).toEqual(s);
+    const s=new GameCore(NOW,v3).snapshot();expect(s.version).toBe(5);expect(s.tutorial).toBe('skipped');expect(s.fleetPeak).toBe(v3.fleet.length);
+    expect(s.fleet.map(({dispatcher:_d,energy:_e,...p})=>p)).toEqual(v3.fleet);expect(s.orders).toEqual(v3.orders);expect(s.credits).toBe(v3.credits);expect(s.lastWallTime).toBe(v3.lastWallTime);expect(s.fleet.every(p=>p.dispatcher)).toBe(true);expect(validateSave(s)).toEqual(s);
   });
   it('imports without old wall-clock income and resumes only once',()=>{
     const c=GameCore.imported(v3,NOW+1e9);expect(c.snapshot().stats).toEqual(v3.stats);expect(c.snapshot().lastWallTime).toBe(NOW+1e9);

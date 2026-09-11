@@ -1,0 +1,498 @@
+{
+  "version": 4,
+  "credits": 145386,
+  "simTime": 0,
+  "lastWallTime": 1800000000000,
+  "nextId": 3,
+  "airports": [
+    {
+      "id": "PEK",
+      "level": 1
+    },
+    {
+      "id": "PVG",
+      "level": 1
+    },
+    {
+      "id": "WUH",
+      "level": 1
+    }
+  ],
+  "fleet": [
+    {
+      "id": "AC0001",
+      "modelId": "lark",
+      "airportId": "PEK",
+      "readyAt": 0,
+      "autoRouteId": null,
+      "flight": {
+        "id": "FL2",
+        "routeId": "PEK-WUH",
+        "from": "PEK",
+        "to": "WUH",
+        "departAt": 0,
+        "arriveAt": 74,
+        "passengers": 70,
+        "cargo": 2,
+        "revenue": 0,
+        "cost": 2614
+      },
+      "upgrades": {
+        "capacity": 0,
+        "engine": 0,
+        "range": 0,
+        "efficiency": 0
+      },
+      "itinerary": [
+        "PVG",
+        "PEK"
+      ],
+      "dispatcher": true
+    }
+  ],
+  "routes": [
+    {
+      "id": "PEK-WUH",
+      "from": "PEK",
+      "to": "WUH"
+    }
+  ],
+  "stats": {
+    "flights": 0,
+    "passengers": 0,
+    "cargo": 0,
+    "revenue": 0,
+    "costs": 2614
+  },
+  "claimedTasks": [],
+  "log": [
+    {
+      "at": 0,
+      "text": "AC0001 运输计划开始 · 武汉 → 上海 → 北京",
+      "amount": 0
+    },
+    {
+      "at": 0,
+      "text": "AC0001 北京 → 武汉 起飞",
+      "amount": -2614
+    },
+    {
+      "at": 0,
+      "text": "AC0001 已装载 6 单 · 前往上海",
+      "amount": 0
+    },
+    {
+      "at": 0,
+      "text": "解锁武汉机场",
+      "amount": -32000
+    },
+    {
+      "at": 0,
+      "text": "公司成立 · 北京与上海机场已开放",
+      "amount": 180000
+    }
+  ],
+  "fleetPeak": 1,
+  "tutorial": "available",
+  "hangarSlots": 4,
+  "orders": [
+    {
+      "id": "JB1",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "AC0001",
+      "reward": 4484,
+      "createdAt": 0,
+      "expiresAt": null
+    },
+    {
+      "id": "JB2",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "AC0001",
+      "reward": 5978,
+      "createdAt": 0,
+      "expiresAt": null
+    },
+    {
+      "id": "JB3",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "AC0001",
+      "reward": 742,
+      "createdAt": 0,
+      "expiresAt": null
+    },
+    {
+      "id": "JB4",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "AC0001",
+      "reward": 4484,
+      "createdAt": 0,
+      "expiresAt": null
+    },
+    {
+      "id": "JB5",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "AC0001",
+      "reward": 5978,
+      "createdAt": 0,
+      "expiresAt": null
+    },
+    {
+      "id": "JB6",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "AC0001",
+      "reward": 742,
+      "createdAt": 0,
+      "expiresAt": null
+    },
+    {
+      "id": "JB7",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "PEK",
+      "reward": 4484,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB8",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "PEK",
+      "reward": 5978,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB9",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "PEK",
+      "reward": 742,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB10",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "PEK",
+      "reward": 4484,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB11",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "PEK",
+      "reward": 5978,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB12",
+      "from": "PEK",
+      "to": "PVG",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "PEK",
+      "reward": 742,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB13",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "PVG",
+      "reward": 4484,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB14",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "PVG",
+      "reward": 5978,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB15",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "PVG",
+      "reward": 742,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB16",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "PVG",
+      "reward": 4484,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB17",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "PVG",
+      "reward": 5978,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB18",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "PVG",
+      "reward": 742,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB19",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "PVG",
+      "reward": 4484,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB20",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "PVG",
+      "reward": 5978,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB21",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "PVG",
+      "reward": 742,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB22",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "PVG",
+      "reward": 4484,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB23",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "PVG",
+      "reward": 5978,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB24",
+      "from": "PVG",
+      "to": "PEK",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "PVG",
+      "reward": 742,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB25",
+      "from": "WUH",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "WUH",
+      "reward": 4354,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB26",
+      "from": "WUH",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "WUH",
+      "reward": 5805,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB27",
+      "from": "WUH",
+      "to": "PEK",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "WUH",
+      "reward": 723,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB28",
+      "from": "WUH",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "WUH",
+      "reward": 3458,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB29",
+      "from": "WUH",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "WUH",
+      "reward": 4610,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB30",
+      "from": "WUH",
+      "to": "PVG",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "WUH",
+      "reward": 590,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB31",
+      "from": "WUH",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "WUH",
+      "reward": 4354,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB32",
+      "from": "WUH",
+      "to": "PEK",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "WUH",
+      "reward": 5805,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB33",
+      "from": "WUH",
+      "to": "PEK",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "WUH",
+      "reward": 723,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB34",
+      "from": "WUH",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 15,
+      "location": "WUH",
+      "reward": 3458,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB35",
+      "from": "WUH",
+      "to": "PVG",
+      "kind": "passengers",
+      "amount": 20,
+      "location": "WUH",
+      "reward": 4610,
+      "createdAt": 0,
+      "expiresAt": 360
+    },
+    {
+      "id": "JB36",
+      "from": "WUH",
+      "to": "PVG",
+      "kind": "cargo",
+      "amount": 1,
+      "location": "WUH",
+      "reward": 590,
+      "createdAt": 0,
+      "expiresAt": 360
+    }
+  ],
+  "nextOrderId": 37,
+  "nextDemandAt": 120
+}
