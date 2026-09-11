@@ -27,15 +27,14 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
   const autoTarget = stops.length === 1 ? stops[0]! : '';
   const incompatible = Boolean(auto && plane && autoTarget && (manifest(game, plane.id).length === 0 || manifest(game, plane.id).some(o => o.to !== autoTarget)));
   const last = stops.at(-1) ?? from;
+  function appendStop(id: string) {
+    if (!plane || inFlight || !game.airports.some(item => item.id === id) || id === last || stops.length >= MAX_PLAN_LEGS) return;
+    if (stops.length >= 1) setAuto(false);
+    setStops([...stops, id]);
+  }
   function chooseAirport(id: string) {
     setDestination(id);
-    if (!plane || inFlight || !game.airports.some(item => item.id === id)) return;
-    setStops(current => {
-      const currentLast = current.at(-1) ?? plane.airportId;
-      if (id === currentLast || current.length >= MAX_PLAN_LEGS) return current;
-      if (current.length >= 1) setAuto(false);
-      return [...current, id];
-    });
+    appendStop(id);
   }
   async function unlockSelected() {
     try {
