@@ -71,8 +71,9 @@ test('purchase into an empty inspected airport enables only local aircraft loadi
   await page.getByRole('button', { name: '同目的地装载', exact: true }).click();
   await expect(page.getByTestId('onboard-count')).not.toHaveText('0');
   await page.getByRole('button', { name: '选择航线起飞', exact: true }).click();
+  await page.getByLabel('选择机场', { exact: true }).selectOption('PEK');
   await expect(page.locator('.network-summary')).toContainText('上海 → 北京');
-  await page.getByRole('button', { name: /^开通航线/ }).click();
+  await expect(page.getByRole('button', { name: /开通航线/ })).toHaveCount(0);
   await page.getByTestId('dispatch').click();
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
   await page.getByRole('button', { name: '上一架飞机', exact: true }).click();
@@ -83,7 +84,7 @@ test('purchase into an empty inspected airport enables only local aircraft loadi
 test('incoming and outbound boards track real arrival while pinned to an airport', async ({ page }) => {
   await ready(page); await page.getByRole('button', { name: '同目的地装载', exact: true }).click();
   await page.getByRole('button', { name: '选择航线起飞', exact: true }).click();
-  await page.getByRole('button', { name: /^开通航线/ }).click(); await page.getByTestId('dispatch').click();
+  await page.getByLabel('选择机场', { exact: true }).selectOption('PVG'); await page.getByTestId('dispatch').click();
   await detail(page, '北京');
   await expect(page.getByTestId('airport-parked').getByRole('listitem')).toHaveCount(0);
   await expect(page.getByTestId('airport-outgoing').getByRole('listitem')).toHaveCount(1);
@@ -101,10 +102,9 @@ test('incoming and outbound boards track real arrival while pinned to an airport
   await expect(page.getByTestId('airport-incoming').getByRole('listitem')).toHaveCount(0);
   await expect(page.getByTestId('airport-parked').getByRole('listitem')).toHaveCount(1);
 });
-test('opening airport details from a map preserves a multi-stop draft', async ({ page }) => {
+test('opening airport details from a map preserves an ordered route draft', async ({ page }) => {
   await ready(page); await page.getByRole('button', { name: '航线地图', exact: true }).click();
-  await page.getByRole('button', { name: '多段计划', exact: true }).click();
-  await page.getByRole('button', { name: '添加上海航段', exact: true }).click();
+  await page.getByLabel('选择机场', { exact: true }).selectOption('PVG');
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-preview-path', 'PVG');
   const money = await page.getByTestId('credits').textContent();
   await page.getByRole('button', { name: '查看上海机场详情', exact: true }).click();
