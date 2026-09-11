@@ -5,9 +5,15 @@ test.beforeEach(async({page})=>{pageErrors=[];page.on('pageerror',e=>pageErrors.
 test.afterEach(()=>{expect(pageErrors).toEqual([]);});
 async function ready(page:Page){await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('airport-scene')).toBeVisible();}
 async function settings(page:Page){if(await page.locator('.game-modal').isVisible())await page.locator('.game-modal>header button').click();await page.getByRole('button',{name:'存档设置',exact:true}).click();await expect(page.getByRole('dialog')).toBeVisible();}
+async function chooseShanghai(page:Page){
+  const select=page.getByLabel('选择机场',{exact:true});
+  await select.selectOption('WUH');
+  await select.selectOption('PVG');
+  await expect(page.getByTestId('plan-summary')).toContainText('1 段');
+}
 test('desktop loading, first flight, reward, and reload',async({page})=>{
   await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});await ready(page);
-  await page.getByRole('button',{name:'同目的地装载',exact:true}).click();await page.getByRole('button',{name:'选择航线起飞',exact:true}).click();await page.getByRole('button',{name:/开通航线/}).click();
+  await page.getByRole('button',{name:'同目的地装载',exact:true}).click();await page.getByRole('button',{name:'选择航线起飞',exact:true}).click();await chooseShanghai(page);
   await expect(page.getByTestId('dispatch')).toBeEnabled();await page.getByTestId('dispatch').click();
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();await page.screenshot({path:'artifacts/desktop-flight.png'});
   await page.clock.fastForward(180_000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');
@@ -45,7 +51,7 @@ test('landscape touch loading and portrait prompt',async({browser,baseURL})=>{
   const context=await browser.newContext({baseURL,viewport:{width:844,height:390},deviceScaleFactor:2,isMobile:true,hasTouch:true});
   const page=await context.newPage();page.on('pageerror',e=>pageErrors.push(e.message));await ready(page);
   await page.getByRole('button',{name:'航线地图',exact:true}).click();await page.getByLabel('选择机场',{exact:true}).selectOption('WUH');await page.getByRole('button',{name:/解锁机场/}).click();
-  await expect(page.getByText('已解锁 3 座机场',{exact:true})).toBeVisible();await page.getByRole('button',{name:'返回机场装载',exact:false}).click();
+  await expect(page.getByText('已解锁 3 座机场',{exact:true})).toBeVisible();await expect(page.getByTestId('plan-summary')).toContainText('1 段');await page.getByRole('button',{name:'返回机场装载',exact:false}).click();
   await page.getByTestId('waiting-order').first().tap();await expect(page.getByTestId('onboard-count')).toHaveText('1');
   await expect(page.locator('.rotate-screen')).toBeHidden();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:'artifacts/landscape.png',fullPage:true});
