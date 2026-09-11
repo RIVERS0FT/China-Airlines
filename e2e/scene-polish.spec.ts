@@ -29,6 +29,10 @@ for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
     expect(t!.x + t!.width).toBeLessThanOrEqual(b!.x + b!.width + 1);
     expect(await label.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (width! < 1000) {
+      const bodyWidth = await page.getByTestId('plane-art').locator('svg').evaluate(el => 810 * Math.abs((el as SVGSVGElement).getScreenCTM()!.a));
+      expect(bodyWidth).toBeGreaterThan(width! * .4);
+    }
     await page.screenshot({ path:`artifacts/loading-queue-${width}.png` });
   });
 }
@@ -42,6 +46,9 @@ for (const [width, height] of [[1440,900],[844,390]]) {
     await expect(page.getByTestId('route-preview')).toContainText('须先开通航线');
     await page.getByLabel('选择机场', { exact:true }).selectOption('WUH');
     await page.getByRole('button', { name:/^解锁机场/ }).click();
+    // Await the persisted unlock result before measuring read-only draft edits.
+    await expect(page.getByRole('button', { name:/^解锁机场/ })).toHaveCount(0);
+    await expect(page.getByTestId('credits')).toHaveText('¥ 148,000');
     const money = await page.getByTestId('credits').textContent();
     await page.getByRole('button', { name:'多段计划', exact:true }).click();
     await expect(canvas).toHaveAttribute('data-preview-path','');
