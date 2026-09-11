@@ -1,8 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './ui/App.js';
+import { SaveConflictGuard } from './ui/SaveConflictGuard.js';
 import { controller } from './runtime.js';
 import './pwa.js';
 import './ui/styles.css';
-createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);
+import './ui/scene.css';
+createRoot(document.getElementById('root')!).render(<StrictMode><App /><SaveConflictGuard /></StrictMode>);
 void controller.start();
