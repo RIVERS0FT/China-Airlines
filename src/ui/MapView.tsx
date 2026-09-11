@@ -4,7 +4,8 @@ import { AIRPORTS, airport } from '../core/catalog.js';
 import type { GameState } from '../core/game.js';
 import { mapLayout, MIN_MAP_SCALE } from './map-camera.js';
 import './map-readability.css';
-interface Props { game: GameState; selected: string; onSelect: (id: string) => void }
+import { previewDescription, type RoutePreview } from './route-preview.js';
+interface Props { game: GameState; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null }
 function curve(from: string, to: string, t: number) {
   const a = airport(from), b = airport(to), cx = (a.x + b.x) / 2, cy = Math.min(a.y, b.y) - Math.min(100, Math.abs(b.x - a.x) * 0.2 + 35);
   return { x: (1-t)**2*a.x + 2*(1-t)*t*cx + t*t*b.x, y: (1-t)**2*a.y + 2*(1-t)*t*cy + t*t*b.y,
@@ -26,7 +27,9 @@ export function MapView(props: Props) {
         canvas.setAttribute('aria-label', '机场航线示意图，可拖动、缩放或点击机场');
         canvas.setAttribute('role', 'img'); element.appendChild(canvas);
         const world = new Container(), terrain = new Graphics(), lines = new Graphics(), nodes = new Container(), aircraft = new Container();
-        app.stage.addChild(world); world.addChild(terrain, lines, nodes, aircraft);
+        app.stage.addChild(world); const draft = new Graphics(), draftLabels = new Container();
+        draft.eventMode = draftLabels.eventMode = 'none';
+        world.addChild(terrain, lines, draft, nodes, draftLabels, aircraft);
         for (let x = 0; x <= 960; x += 60) terrain.moveTo(x,0).lineTo(x,630).stroke({ color: 0x92a89c, alpha: 0.10, width: 1 });
         for (let y = 0; y <= 630; y += 60) terrain.moveTo(0,y).lineTo(960,y).stroke({ color: 0x92a89c, alpha: 0.10, width: 1 });
         // Original abstract terrain contours; deliberately not an administrative map.
@@ -42,6 +45,36 @@ export function MapView(props: Props) {
         }
         let fitScale = 1, zoom = 1, regional = false, focusedSelection = '', selectionKey = '', lastGame: GameState | null = null, snapshotAt = performance.now();
         const planes = new Map<string, Graphics>();
+        let previewKey = '';
+        const drawPreview = () => {
+          const preview = latest.current.preview, key = JSON.stringify(preview ?? null);
+          if (key === previewKey) return;
+          previewKey = key; draft.clear();
+          for (const child of draftLabels.removeChildren()) child.destroy();
+          for (const leg of preview?.legs ?? []) {
+            const a = airport(leg.from), b = airport(leg.to), c = curve(leg.from, leg.to, .5);
+            const color = leg.error ? 0xad473d : 0xa76411;
+            if (leg.error) {
+              for (let i = 0; i < 32; i += 2) {
+                const u = curve(leg.from, leg.to, i / 32), v = curve(leg.from, leg.to, (i + 1) / 32);
+                draft.moveTo(u.x,u.y).lineTo(v.x,v.y).stroke({color,width:4});
+              }
+            } else {
+              draft.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color:0xfff7d1,width:8});
+              draft.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color,width:4});
+            }
+            const v = curve(leg.from,leg.to,.38 + (leg.number % 3) * .11), arrow = new Graphics();
+            arrow.poly([10,0,-6,-6,-6,6]).fill(color).stroke({color:0xfff7d1,width:1});
+            arrow.position.set(v.x,v.y); arrow.rotation = v.angle; draftLabels.addChild(arrow);
+          }
+          for (const visit of preview?.visits ?? []) {
+            const a = airport(visit.airportId), label = new Text({text:visit.numbers.join('/'),style:{fontFamily:'system-ui, sans-serif',fontSize:16,fontWeight:'700',fill:0xfff9e5}});
+            label.anchor.set(.5); label.position.set(a.x-25,a.y-20);
+            const badge = new Graphics().roundRect(a.x-25-Math.max(13,label.width/2+5),a.y-34,Math.max(26,label.width+10),28,5).fill(0x885719).stroke({color:0xfff4ca,width:2});
+            draftLabels.addChild(badge,label);
+          }
+          element.setAttribute('data-preview-path', (preview?.legs ?? []).map(l => l.to).join(','));
+        };
         const clamp = () => {
           const w=app.screen.width, h=app.screen.height, margin=Math.min(60, h / 3), scale=world.scale.x;
           world.x=Math.max(margin-960*scale,Math.min(w-margin,world.x)); world.y=Math.max(margin-630*scale,Math.min(h-margin,world.y));
@@ -94,6 +127,7 @@ export function MapView(props: Props) {
         app.ticker.maxFPS=45;
         app.ticker.add(()=>{
           const {game,selected}=latest.current;
+          drawPreview();
           if (focusedSelection !== selected) {
             focusedSelection = selected;
             if (regional) focusSelection();
@@ -120,9 +154,11 @@ export function MapView(props: Props) {
     })();
     return()=>{cancelled=true;dispose();if(initialized&&!app.stage.destroyed)app.destroy(true,{children:true});};
   },[]);
-  return <section className={`map-area${compact ? ' is-compact' : ''}`} aria-label="航线地图">
+  return <section className={`map-area${compact ? ' is-compact' : ''}`} aria-label="航线地图" aria-describedby="route-preview-description">
     <div className="map-canvas" ref={host} data-testid="map-canvas" data-renderer={status}/>
-    <div className="map-caption">{compact ? <span className="map-hint">航线地图 · 拖拽查看城市</span> : <><span className="eyebrow">ROUTE NETWORK / 航线网络</span><h2>让每座城市，彼此更近。</h2><p>选择机场，规划下一段旅程。</p></>}</div>
+    <p id="route-preview-description" className="sr-only" data-testid="route-preview" data-legs={props.preview?.legs.length ?? 0}>{previewDescription(props.preview)}</p>
+    {Boolean(props.preview?.legs.length) && <div className="route-preview-key">路线草稿 · {props.preview!.legs.length} 段 · 箭头为方向{props.preview!.legs.some(l => l.error) ? ' · 虚线段不可飞' : ' · 未确认不扣费'}</div>}
+    <div className={`map-caption${props.preview?.legs.length ? ' with-preview' : ''}`}>{compact ? <span className="map-hint">航线地图 · 拖拽查看城市</span> : <><span className="eyebrow">ROUTE NETWORK / 航线网络</span><h2>让每座城市，彼此更近。</h2><p>选择机场，规划下一段旅程。</p></>}</div>
     {status==='fallback'&&<div className="map-fallback" role="status">地图渲染不可用。仍可通过下方机场列表进行全部经营操作。</div>}
     <div className="map-legend"><span><i className="dot"/>已解锁 {props.game.airports.length}</span><span><i className="dot muted"/>待拓展 {AIRPORTS.length-props.game.airports.length}</span></div>
     <div className="map-controls"><button aria-label="放大地图" onClick={()=>controls.current?.zoom(1.25)}>＋</button><button aria-label="缩小地图" onClick={()=>controls.current?.zoom(.8)}>−</button><button aria-label="重置地图视角" onClick={()=>controls.current?.reset()}>⌖</button></div>

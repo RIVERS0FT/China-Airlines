@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { AIRPORTS, airport, aircraftSpecs, routeId, routePrice, upgradePrice } from '../core/catalog.js';
-import { manifest, waiting, loadSummary, quote, planQuote, type Order, type GameState, type Plane, type Command } from '../core/game.js';
+import { airport, aircraftSpecs } from '../core/catalog.js';
+import { loadSummary, type Command } from '../core/game.js';
 import { controller, useGame } from '../runtime.js';
-import { MapView } from './MapView.js';
+import { Network } from './Network.js';
+import { OrderBoard } from './OrderBoard.js';
 import { Tutorial } from './Tutorial.js';
 import './management.css';
 import { Hangar } from './Hangar.js';
-import { PlanControls } from './PlanControls.js';
 import './workshop.css';
 import { AviationScene } from './AviationScene.js';
 import { Icon, Settings, Shop, Tasks, money, duration, ignore } from './Panels.js';
@@ -18,80 +18,6 @@ function Modal({ title, children, onClose }: { title: string; children: ReactNod
   return <dialog ref={ref} className="game-modal" aria-label={title} onClose={onClose}>
     <header><h2>{title}</h2><button onClick={() => ref.current?.close()} aria-label={`关闭${title}`}>×</button></header>{children}
   </dialog>;
-}
-function PassengerArt({ cargo = false }: { cargo?: boolean }) {
-  return <svg viewBox="0 0 90 60" aria-hidden="true" className="job-art">{cargo ? <g stroke="#785b3e" strokeWidth="2"><path d="m17 23 25-9 30 9v29H17Z" fill="#dba760"/><path d="M17 23h55M42 14v38"/><path d="M35 23h13v15H35Z" fill="#f8dea3"/></g> : <g stroke="#465e74" strokeWidth="1.6">
-    {[22, 47, 70].map((x, i) => <g key={x} transform={`translate(${x},${i === 1 ? 0 : 5})`}><path d="m-7 36-2 17m15-17 2 17" strokeWidth="5"/><path d="M-10 19h20l3 20h-26Z" fill={['#e6a754','#49a6b4','#df7d6d'][i]}/><circle cy="12" r="9" fill="#f6cfac"/><path d="M-9 11q-3-17 13-12 8 2 5 13l-5-8-11 7Z" fill="#6e594c"/></g>)}</g>}</svg>;
-}
-function OrderCard({ order, aboard, disabled, reason, onClick }: { order: Order; aboard: boolean; disabled: boolean; reason?: string; onClick: () => void }) {
-  return <button className={`job-card ${aboard ? 'aboard' : ''}`} disabled={disabled} onClick={onClick}
-    data-testid={aboard ? 'loaded-order' : 'waiting-order'} aria-label={`${aboard ? '卸下' : '装载'} ${order.id} 前往${airport(order.to).city} ${order.amount}${order.kind === 'cargo' ? '吨货物' : '位旅客'}`}>
-    <span className="job-destination">{airport(order.to).city}<small>{order.to}</small></span><PassengerArt cargo={order.kind === 'cargo'}/>
-    <span className="job-quantity">{order.kind === 'cargo' ? '货物' : '旅客'} × {order.amount}{order.kind === 'cargo' ? '吨' : '人'}</span>
-    <strong>{money(order.reward)}</strong><small className="job-state">{reason ? reason : aboard ? '已装载 · 点击卸下' : order.expiresAt === null ? '中转保留 · 点击装载' : '点击装载'}</small>
-  </button>;
-}
-function OrderBoard({ game, plane, airportId, aboard, setAboard, destination, setDestination, busy }: {
-  game: GameState; plane?: Plane; airportId: string; aboard: boolean; setAboard: (b: boolean) => void;
-  destination: string; setDestination: (s: string) => void; busy: boolean;
-}) {
-  const [filter, setFilter] = useState('all');
-  const list = aboard ? plane ? manifest(game, plane.id) : [] : waiting(game, airportId);
-  const capacity = plane ? aircraftSpecs(plane) : null, total = plane ? loadSummary(game, plane.id) : {passengers:0,cargo:0};
-  function reason(o: Order) {
-    if (aboard || !capacity) return undefined;
-    if (o.kind === 'passengers' && capacity.seats === 0) return '纯货机不载客';
-    if (o.kind === 'cargo' && capacity.cargo === 0) return '纯客机不载货';
-    if (o.kind === 'passengers' ? total.passengers + o.amount > capacity.seats : total.cargo + o.amount > capacity.cargo) return '剩余容量不足';
-    return undefined;
-  }
-  const shown = list.filter(o => filter === 'all' || o.kind === filter);
-  const locked = busy || !plane || Boolean(plane.flight) || Boolean(plane.autoRouteId) || Boolean(plane.itinerary.length) || plane.readyAt > game.simTime;
-  return <section className="order-board" aria-label="客货装载区">
-    <div className="order-toolbar"><div className="order-tabs"><button className={!aboard ? 'active' : ''} onClick={() => setAboard(false)}>候机大厅 <b>{waiting(game, airportId).length}</b></button><button className={aboard ? 'active' : ''} onClick={() => setAboard(true)}>机上客货 <b data-testid="onboard-count">{plane ? manifest(game, plane.id).length : 0}</b></button></div>
-      <select aria-label="客货分类" value={filter} onChange={e => setFilter(e.target.value)}><option value="all">全部客货</option><option value="passengers">只看旅客</option><option value="cargo">只看货物</option></select>
-      <span className="demand-clock">{duration(game.nextDemandAt - game.simTime)} 后补充客源</span>
-      <div className="quick-load"><select value={destination} aria-label="装载目的地" onChange={e => setDestination(e.target.value)}>{game.airports.filter(a => a.id !== airportId).map(a => <option key={a.id} value={a.id}>{airport(a.id).city}</option>)}</select><button disabled={locked} onClick={() => plane && ignore(act({ type: 'load-destination', planeId: plane.id, to: destination }))}>同目的地装载</button></div>
-    </div>
-    <div className="order-strip">{shown.map(o => <OrderCard key={o.id} order={o} aboard={aboard} reason={reason(o)} disabled={locked || Boolean(reason(o))} onClick={() => plane && ignore(act({ type: aboard ? 'unload' : 'load', planeId: plane.id, orderId: o.id }))}/>)}
-      {!shown.length && <div className="empty-orders">{aboard ? '机舱还空着，去候机大厅选择旅客或货物。' : '暂时没有此类订单，已接受的中转订单不会过期。'}</div>}
-    </div>
-  </section>;
-}
-function Network({ game, plane, destination, setDestination, onReturn, onDepart, busy }: {
-  game: GameState; plane?: Plane; destination: string; setDestination: (id: string) => void;
-  onReturn: () => void; onDepart: () => void; busy: boolean;
-}) {
-  const [planMode, setPlanMode] = useState(false), [stops, setStops] = useState<string[]>([]);
-  const [auto, setAuto] = useState(false); const a = airport(destination), own = game.airports.find(x => x.id === destination);
-  const from = plane?.airportId ?? 'PEK';
-  const opened = game.routes.some(r => r.id === routeId(from, destination));
-  let q: ReturnType<typeof quote> | null = null, error = '';
-  if (plane && own && from !== destination) { try { q = quote(game, plane, destination); } catch (e) { error = e instanceof Error ? e.message : '无法飞行'; } }
-  let summary: Pick<NonNullable<typeof q>, 'duration' | 'cost' | 'revenue' | 'profit'> | null = q;
-  if (planMode) {
-    try { summary = plane && stops.length ? planQuote(game, plane, stops) : null; }
-    catch { summary = null; }
-  }
-  const inFlight = Boolean(plane?.flight), cooling = plane && (game.simTime < plane.readyAt || plane.itinerary.length > 0);
-  const incompatible = Boolean(auto && plane && (manifest(game, plane.id).length === 0 || manifest(game, plane.id).some(o => o.to !== destination)));
-  async function dispatch() {
-    if (!plane) return;
-    if (q && q.passengers === 0 && q.cargo === 0 && !window.confirm('当前为空机调机，只有成本、没有运输收入。确定起飞？')) return;
-    try { await act({ type: 'dispatch', planeId: plane.id, to: destination, auto }); onDepart(); } catch { /* Controller exposes error. */ }
-  }
-  return <section className={`network-view${planMode ? ' is-planning' : ''}`}><div className="network-summary"><button onClick={onReturn}>← 返回机场装载</button><strong>{planMode ? '多段运输计划' : `${airport(from).city} → ${a.city}`}</strong><span>{planMode ? '总用时' : '用时'} <b>{summary ? duration(summary.duration) : '—'}</b></span><span>成本 <b>{summary ? money(summary.cost) : '—'}</b></span><span>{planMode ? '总交付' : '本段交付'} <b>{summary ? money(summary.revenue) : '—'}</b></span><span>运输净收益 <b>{summary ? money(summary.profit) : '—'}</b></span></div>
-    <div className="network-mode"><button aria-pressed={!planMode} onClick={() => setPlanMode(false)}>单段派航</button><button aria-pressed={planMode} onClick={() => { setPlanMode(true); setAuto(false); }}>多段计划</button></div>
-    <div className="network-map"><MapView game={game} selected={destination} onSelect={setDestination}/></div>
-    <div className="network-controls"><label>目的地<select aria-label="选择机场" value={destination} onChange={e => setDestination(e.target.value)}>{AIRPORTS.map(a => <option value={a.id} key={a.id}>{a.city} · {a.id}{game.airports.some(x => x.id === a.id) ? '' : ' · 未解锁'}</option>)}</select></label>
-      <div className="destination-detail"><strong>{a.city}机场 · {own ? `${own.level} 级` : '未解锁'}</strong><small>{error || (inFlight ? '当前飞机正在飞行，可选其他飞机继续规划' : cooling ? '地面周转中' : from === destination ? '请选择其他机场' : incompatible ? '自动往返需装载且全部订单直达' : q?.revenue === 0 ? '本段无交付收入；未到最终目的地的订单留在机上' : '只在订单最终目的地付款，中转不重复结算')}</small></div>
-      {!own ? <button className="gold-button" disabled={busy || game.credits < a.price} onClick={() => ignore(act({ type: 'unlock', airportId: destination }))}>解锁机场 {money(a.price)}</button> : <>
-        {own.level < 3 && <button disabled={busy || game.credits < upgradePrice(own.level)} onClick={() => ignore(act({ type: 'upgrade', airportId: destination }))}>升级机场 {money(upgradePrice(own.level))}</button>}
-        {!planMode && (from !== destination && !opened ? <button data-guide="open-route" className="gold-button" disabled={busy || game.credits < routePrice(from, destination)} onClick={() => ignore(act({ type: 'route', from, to: destination }))}>开通航线 {money(routePrice(from, destination))}</button> : <><label className="auto-choice"><input type="checkbox" checked={auto} disabled={!plane?.dispatcher} onChange={e => setAuto(e.target.checked)}/>自动往返{!plane?.dispatcher && <small className="crew-note">需在机库雇用调度员</small>}</label><button className="gold-button launch" data-testid="dispatch" disabled={busy || !q || !plane || inFlight || cooling || incompatible || game.credits < (q?.cost ?? 0)} onClick={() => ignore(dispatch())}>确认起飞</button></>)}
-      </>}
-    </div>
-    {planMode && plane && <PlanControls game={game} plane={plane} stops={stops} setStops={setStops} candidate={destination} busy={busy} onDepart={onDepart}/>}
-  </section>;
 }
 export function App() {
   const view = useGame(), game = view.game;
