@@ -12,6 +12,7 @@ for (const width of [1440, 844]) {
     await page.getByRole('button', { name: '选择航线起飞', exact: true }).click();
     await page.getByLabel('选择机场', { exact: true }).selectOption('WUH');
     await page.getByRole('button', { name: /^解锁机场/ }).click();
+    await expect(page.getByTestId('credits')).toHaveText('¥ 148,000');
     const credits = await page.getByTestId('credits').textContent();
     await page.getByLabel('选择机场', { exact: true }).selectOption('PEK');
     await page.getByLabel('选择机场', { exact: true }).selectOption('PVG');
