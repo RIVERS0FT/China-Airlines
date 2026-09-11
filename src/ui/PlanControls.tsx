@@ -16,9 +16,11 @@ export function PlanControls({ game, plane, stops, setStops, auto, busy, onDepar
     error = e instanceof Error ? e.message : '路线不可用';
   }
   const locked = busy || Boolean(plane.flight || plane.autoRouteId || plane.itinerary.length) || plane.readyAt > game.simTime;
+  const jobs = manifest(game, plane.id);
+  const autoBlocked = Boolean(auto && stops.length === 1 && (!jobs.length || jobs.some(order => order.to !== stops[0])));
   async function launch() {
     if (!preview || !stops.length) return;
-    if (!manifest(game, plane.id).length && !window.confirm(`这是空机${stops.length > 1 ? '多段' : ''}调机路线，仍需支付运营成本。确定执行？`)) return;
+    if (!jobs.length && !window.confirm(`这是空机${stops.length > 1 ? '多段' : ''}调机路线，仍需支付运营成本。确定执行？`)) return;
     if (preview.undelivered && !window.confirm(`路线结束后仍有 ${preview.undelivered} 单未到最终目的地，将继续留在机上。确定执行？`)) return;
     try {
       if (stops.length === 1) await controller.command({ type: 'dispatch', planeId: plane.id, to: stops[0]!, auto });
@@ -51,8 +53,8 @@ export function PlanControls({ game, plane, stops, setStops, auto, busy, onDepar
     </details>}
     <div className="plan-summary">
       <span data-testid="plan-summary">{preview ? `${stops.length} 段 · ${duration(preview.duration)} · 成本 ${money(preview.cost)} · 交付 ${money(preview.revenue)} · 运输净收益 ${money(preview.profit)}` : error || `依次点击城市规划路线；最多 ${MAX_PLAN_LEGS} 段，每站周转 8 秒。`}</span>
-      <button className="gold-button" data-testid="dispatch" disabled={locked || !preview || game.credits < (preview?.legs[0]?.cost ?? 0)} onClick={() => ignore(launch())}>{stops.length > 1 ? '确认路线起飞' : '确认起飞'}</button>
+      <button className="gold-button" data-testid="dispatch" disabled={locked || !preview || autoBlocked || game.credits < (preview?.legs[0]?.cost ?? 0)} onClick={() => ignore(launch())}>{stops.length > 1 ? '确认路线起飞' : '确认起飞'}</button>
     </div>
-    {preview && <small className="plan-footnote">逐段扣费，不预扣全部成本；资金不足则停在当前机场。{auto && stops.length === 1 ? '本次将按该目的地自动往返。' : preview.undelivered > 0 ? `路线后还有 ${preview.undelivered} 单留在机上。` : '本路线覆盖全部已装订单的目的地。'}</small>}
+    {preview && <small className="plan-footnote">{autoBlocked ? '自动往返需要已装载客货，且机上订单必须全部直达当前唯一目的城市。' : `逐段扣费，不预扣全部成本；资金不足则停在当前机场。${auto && stops.length === 1 ? '本次将按该目的地自动往返。' : preview.undelivered > 0 ? `路线后还有 ${preview.undelivered} 单留在机上。` : '本路线覆盖全部已装订单的目的地。'}`}</small>}
   </section>;
 }
