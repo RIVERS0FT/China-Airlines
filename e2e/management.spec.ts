@@ -45,6 +45,6 @@ test('narrow landscape personnel controls and skip remain reachable',async({page
   await page.getByRole('button',{name:'关闭我的机库'}).click();await page.getByRole('button',{name:'操作帮助',exact:true}).click();await page.getByRole('button',{name:'开始分步引导',exact:true}).click();await page.getByRole('button',{name:'跳过引导',exact:true}).click();
   // A click dispatches an async command; wait for its persisted result before reloading.
   await expect(page.getByTestId('tutorial')).toHaveCount(0);
-  await expect(page.locator('.toast')).toContainText('已跳过引导');
+  await expect(page.getByRole('button',{name:'存档设置',exact:true})).toContainText('已存档');
   await page.reload();await expect(page.getByTestId('tutorial')).toHaveCount(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
