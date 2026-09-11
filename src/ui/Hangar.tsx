@@ -6,8 +6,8 @@ import { MAX_FLEET, manifest, type GameState } from '../core/game.js';
 import { controller, useGame } from '../runtime.js';
 import { PlaneArt, money, ignore } from './Panels.js';
 
-export function Hangar({ game, busy, onSelect }: { game: GameState; busy: boolean; onSelect: (id: string) => void }) {
-  const [selected, setSelected] = useState(game.fleet[0]!.id);
+export function Hangar({ game, busy, selectedPlaneId, onSelect }: { game: GameState; busy: boolean; selectedPlaneId?: string; onSelect: (id: string) => void }) {
+  const [selected, setSelected] = useState(selectedPlaneId ?? game.fleet[0]!.id);
   const p = game.fleet.find(p => p.id === selected) ?? game.fleet[0]!, m = aircraftSpecs(p);
   const view = useGame();
   const reason = p.flight ? '飞行中，抵达并完成周转后可改装' : p.autoRouteId ? '请先停止自动往返' : p.itinerary.length ? '请先取消剩余运输计划' : p.readyAt > game.simTime ? '地面周转中' : '';
