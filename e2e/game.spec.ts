@@ -7,8 +7,9 @@ async function ready(page:Page){await page.goto('./');await expect(page.getByTes
 async function settings(page:Page){if(await page.locator('.game-modal').isVisible())await page.locator('.game-modal>header button').click();await page.getByRole('button',{name:'存档设置',exact:true}).click();await expect(page.getByRole('dialog')).toBeVisible();}
 test('desktop loading, first flight, reward, and reload',async({page})=>{
   await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});await ready(page);
-  await page.getByRole('button',{name:'同目的地装载',exact:true}).click();await page.getByRole('button',{name:'选择航线起飞',exact:true}).click();await page.getByRole('button',{name:/开通航线/}).click();
-  await expect(page.getByTestId('dispatch')).toBeEnabled();await page.getByTestId('dispatch').click();
+  await page.getByRole('button',{name:'同目的地装载',exact:true}).click();await page.getByRole('button',{name:'选择航线起飞',exact:true}).click();
+  await page.getByLabel('选择机场',{exact:true}).selectOption('PVG');
+  await expect(page.getByRole('button',{name:/开通航线/})).toHaveCount(0);await expect(page.getByTestId('dispatch')).toBeEnabled();await page.getByTestId('dispatch').click();
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();await page.screenshot({path:'artifacts/desktop-flight.png'});
   await page.clock.fastForward(180_000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');
   const resume=page.getByRole('button',{name:'继续经营'});if(await resume.isVisible())await resume.click();
