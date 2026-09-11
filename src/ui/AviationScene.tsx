@@ -64,6 +64,6 @@ export function AviationScene({ game, plane, airportId, onCabin }: {
       </svg>
     </button>}
     {!plane && <div className="empty-apron">此机场暂无停靠飞机<br/><small>可在商店选择此处交付，或安排飞机飞来。</small></div>}
-    <div className="scene-caption">{flying ? '航班运行中 · 可切换其他飞机继续经营' : '点击客货卡装载 · 点击飞机查看机上清单'}</div>
+    <div className="scene-caption">{flying ? '航班运行中 · 可切换其他飞机继续经营' : plane ? '点击客货卡装载 · 点击飞机查看机上清单' : '机场浏览 · 选择停靠飞机后才能装载'}</div>
   </div>;
 }

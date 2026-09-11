@@ -13,6 +13,7 @@ export function loadingLock(game: GameState, plane?: Plane): string {
 export function orderBlockReason(game: GameState, plane: Plane | undefined, order: Order, aboard: boolean): string {
   const locked = loadingLock(game, plane);
   if (locked || !plane) return locked;
+  if (order.location !== (aboard ? plane.id : plane.airportId)) return aboard ? '订单不在这架飞机上' : '订单不在当前机场';
   if (aboard) return waiting(game, plane.airportId).length >= MAX_WAITING ? '机场候运区已满' : '';
   const specs = aircraftSpecs(plane), total = loadSummary(game, plane.id);
   if (order.kind === 'passengers') {
