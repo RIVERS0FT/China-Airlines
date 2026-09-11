@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import legacy from '../tests/fixtures/v1-flying.json';
+import legacy from '../tests/fixtures/v1-flying.json' with { type: 'json' };
 import { readFile } from 'node:fs/promises';
 test('manual loading, unloading, capacity, saved manifest, and plane switching',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('./');
