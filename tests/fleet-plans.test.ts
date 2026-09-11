@@ -10,7 +10,6 @@ function prepared() {
   const c = rich();
   c.execute({ type: 'unlock', airportId: 'WUH' }, NOW);
   c.execute({ type: 'load-destination', planeId: ID, to: 'PVG' }, NOW);
-  c.execute({ type: 'open-plan-routes', planeId: ID, stops: ['WUH', 'PVG', 'PEK'] }, NOW);
   return c;
 }
 function mutated(fn: (s: GameState) => void) { const s = prepared().snapshot(); fn(s); return () => validateSave(s); }
@@ -68,6 +67,7 @@ describe('finite multi-stop plans',()=>{
     const c=prepared(),s=c.snapshot(),q=planQuote(s,s.fleet[0]!,['WUH','PVG','PEK','PVG']);
     expect(q.legs[0]!.revenue).toBe(0);expect(q.legs[1]!.revenue).toBeGreaterThan(0);expect(q.legs[3]!.revenue).toBe(0);
     expect(q.revenue).toBe(manifest(s,ID).reduce((sum,o)=>sum+o.reward,0));
+    expect(q.openingCost).toBe(0);expect(q.legs.every(leg=>leg.openingCost===0)).toBe(true);
   });
   it('executes layovers and final delivery exactly once without new boarding',()=>{
     const c=prepared(),s=c.snapshot(),expected=planQuote(s,s.fleet[0]!,['WUH','PVG','PEK']);
@@ -96,14 +96,15 @@ describe('finite multi-stop plans',()=>{
       expect(()=>c.execute({type:'dispatch-plan',planeId:ID,stops},NOW)).toThrow();expect(c.snapshot()).toEqual(before);
     }
   });
-  it('rejects a missing later route without spending or altering orders',()=>{
-    const s=prepared().snapshot();s.routes=s.routes.filter(r=>r.id!=='PVG-WUH');const c=new GameCore(NOW,s);
-    expect(()=>c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW)).toThrow(/全部航线/);expect(c.snapshot()).toEqual(s);
+  it('does not require prebuilt route records for later plan legs',()=>{
+    const c=prepared();expect(c.snapshot().routes).toHaveLength(0);c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW);
+    expect(c.snapshot().fleet[0]!.flight?.to).toBe('WUH');expect(c.snapshot().routes.map(r=>r.id)).toContain('PEK-WUH');
+    c.tick(NOW+400000);expect(c.snapshot().routes.map(r=>r.id)).toEqual(expect.arrayContaining(['PEK-WUH','PVG-WUH']));
   });
-  it('opens a repeated route only once and validates before spending',()=>{
+  it('keeps the compatibility plan-route command free and non-required',()=>{
     const c=rich(),s=c.snapshot(),q=planQuote(s,s.fleet[0]!,['PVG','PEK','PVG']);
-    expect(q.legs[1]!.openingCost).toBe(0);c.execute({type:'open-plan-routes',planeId:ID,stops:['PVG','PEK','PVG']},NOW);
-    expect(c.snapshot().routes).toHaveLength(1);expect(c.snapshot().credits).toBe(s.credits-q.openingCost);
+    expect(q.openingCost).toBe(0);c.execute({type:'open-plan-routes',planeId:ID,stops:['PVG','PEK','PVG']},NOW);
+    expect(c.snapshot().routes).toHaveLength(0);expect(c.snapshot().credits).toBe(s.credits);
     const before=c.snapshot();expect(()=>c.execute({type:'open-plan-routes',planeId:ID,stops:['WUH']},NOW)).toThrow();expect(c.snapshot()).toEqual(before);
   });
   it('locks manual loading, retrofit and alternate dispatch during a queued plan',()=>{
@@ -142,10 +143,10 @@ describe('v1/v2 migration and v3 save validation',()=>{
     'unknown plan airport':(s:GameState)=>{s.fleet[0]!.itinerary=['ZZZ'];},
     'oversized plan':(s:GameState)=>{s.fleet[0]!.itinerary=Array(6).fill('PVG');},
     'repeated adjacent airport':(s:GameState)=>{s.fleet[0]!.itinerary=['WUH','WUH'];},
-    'unopened plan edge':(s:GameState)=>{s.fleet[0]!.itinerary=['WUH','PVG'];s.routes=s.routes.filter(r=>r.id!=='PVG-WUH');},
     'invalid capacity':(s:GameState)=>{s.fleet[0]!.modelId='lark-f';},
     'invalid order number':(s:GameState)=>{s.orders[0]!.amount=NaN;},
   })) it(`rejects ${name}`,()=>expect(mutated(fn)).toThrow());
+  it('accepts queued plan legs without historical route records',()=>{const s=prepared().snapshot();s.fleet[0]!.itinerary=['WUH','PVG'];s.routes=[];expect(validateSave(s)).toEqual(s);});
   it('rejects tampered upgraded flight duration and locked costs',()=>{
     const c=prepared();c.execute({type:'retrofit',planeId:ID,upgrade:'engine'},NOW);c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW);
     for(const field of ['arriveAt','cost','revenue'] as const){const s=c.snapshot();s.fleet[0]!.flight![field]++;expect(()=>validateSave(s)).toThrow();}
