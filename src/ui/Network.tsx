@@ -9,9 +9,9 @@ import { routePreview } from './route-preview.js';
 import { money, duration, ignore } from './Panels.js';
 const act = (command: Command) => controller.command(command);
 
-export function Network({ game, plane, destination, setDestination, onReturn, onDepart, busy }: {
+export function Network({ game, plane, destination, setDestination, onReturn, onDepart, onInspect, busy }: {
   game: GameState; plane?: Plane; destination: string; setDestination: (id: string) => void;
-  onReturn: () => void; onDepart: () => void; busy: boolean;
+  onReturn: () => void; onDepart: () => void; onInspect: (id: string) => void; busy: boolean;
 }) {
   const [planMode, setPlanMode] = useState(false), [stops, setStops] = useState<string[]>([]);
   const [auto, setAuto] = useState(false); const a = airport(destination), own = game.airports.find(x => x.id === destination);
@@ -37,7 +37,7 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
     <div className="network-mode">{active ? <span className="flight-browse-note">当前航班已锁定 · 下方仅浏览机场，不会更改航班目的地</span> : <><button aria-pressed={!planMode} onClick={() => setPlanMode(false)}>单段派航</button><button aria-pressed={planMode} onClick={() => { setPlanMode(true); setAuto(false); }}>多段计划</button></>}</div>
     <div className="network-map"><MapView game={game} selected={destination} onSelect={setDestination} preview={preview}/></div>
     <div className="network-controls"><label>目的地<select aria-label="选择机场" value={destination} onChange={e => setDestination(e.target.value)}>{AIRPORTS.map(a => <option value={a.id} key={a.id}>{a.city} · {a.id}{game.airports.some(x => x.id === a.id) ? '' : ' · 未解锁'}</option>)}</select></label>
-      <div className="destination-detail"><strong>{a.city}机场 · {own ? `${own.level} 级` : '未解锁'}</strong><small>{error || (inFlight ? '当前飞机正在飞行，可选其他飞机继续规划' : plane?.autoRouteId ? '请先停止自动值勤再手动派航' : cooling ? '地面周转或计划执行中' : from === destination ? '请选择其他机场' : incompatible ? '自动往返需装载且全部订单直达' : q?.revenue === 0 ? '本段无交付收入；未到最终目的地的订单留在机上' : '只在订单最终目的地付款，中转不重复结算')}</small></div>
+      <div className="destination-detail"><button className="airport-detail-link" aria-label={`查看${a.city}机场详情`} onClick={() => onInspect(destination)}>{a.city}机场 · {own ? `${own.level} 级` : '未解锁'} ›</button><small>{error || (inFlight ? '当前飞机正在飞行，可选其他飞机继续规划' : plane?.autoRouteId ? '请先停止自动值勤再手动派航' : cooling ? '地面周转或计划执行中' : from === destination ? '请选择其他机场' : incompatible ? '自动往返需装载且全部订单直达' : q?.revenue === 0 ? '本段无交付收入；未到最终目的地的订单留在机上' : '只在订单最终目的地付款，中转不重复结算')}</small></div>
       {!own ? <button className="gold-button" disabled={busy || game.credits < a.price} onClick={() => ignore(act({ type: 'unlock', airportId: destination }))}>解锁机场 {money(a.price)}</button> : <>
         {own.level < 3 && <button disabled={busy || game.credits < upgradePrice(own.level)} onClick={() => ignore(act({ type: 'upgrade', airportId: destination }))}>升级机场 {money(upgradePrice(own.level))}</button>}
         {!inFlight && !planMode && (from !== destination && !opened ? <button data-guide="open-route" className="gold-button" disabled={busy || game.credits < routePrice(from, destination)} onClick={() => ignore(act({ type: 'route', from, to: destination }))}>开通航线 {money(routePrice(from, destination))}</button> : <><label className="auto-choice"><input type="checkbox" checked={auto} disabled={!plane?.dispatcher} onChange={e => setAuto(e.target.checked)}/>自动往返{!plane?.dispatcher && <small className="crew-note">需在机库雇用调度员</small>}</label><button className="gold-button launch" data-testid="dispatch" disabled={busy || !q || !plane || inFlight || cooling || incompatible || game.credits < (q?.cost ?? 0)} onClick={() => ignore(dispatch())}>确认起飞</button></>)}

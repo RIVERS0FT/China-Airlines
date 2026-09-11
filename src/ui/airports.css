@@ -1,0 +1,59 @@
+/* Airport information remains in scene-linked dialogs, not a permanent dashboard. */
+.airport-directory,.airport-details{padding:20px;min-width:0}
+.airport-directory-tools,.airport-detail-actions,.airport-detail-hero{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.airport-directory-tools{justify-content:space-between;margin-bottom:12px}
+.airport-filters{display:flex;gap:6px;flex-wrap:wrap}
+.airport-directory-tools label{display:flex;align-items:center;gap:8px;font-size:13px}
+.airport-directory input{width:240px;max-width:100%;padding:9px;border:1px solid #799ca9;border-radius:6px;background:#fffef2;font:inherit}
+.airport-directory button,.airport-details button{min-height:38px;border:2px solid #7696a2;border-radius:7px;padding:7px 12px;background:#eef2de;color:#294e62;font-size:13px}
+.airport-filters button[aria-pressed=true]{background:#f3d680;border-color:#af843b}
+.airport-explanation{font-size:13px;line-height:1.7;margin:10px 0;color:#536d76}
+.airport-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.airport-card{width:100%;display:grid!important;grid-template-columns:64px minmax(0,1fr);gap:10px!important;text-align:left;padding:14px!important;background:linear-gradient(#fef9e8,#e3eddf)!important;border-color:#a4ada0!important}
+.airport-card.is-locked{background:#eee9dd!important}
+.airport-code-badge{display:grid;place-items:center;width:64px;height:55px;font-size:20px;font-weight:800;background:#316780;color:#fff4c9;border:2px solid #244b61;border-radius:5px;letter-spacing:1px}
+.airport-card-title,.airport-card-facts{display:flex;flex-direction:column;gap:5px;min-width:0}
+.airport-card-title strong{font-size:17px}
+.airport-card-title small{font-size:12px;color:#567077}
+.airport-card-facts,.airport-card-link{grid-column:1/-1;font-size:13px;line-height:1.6}
+.airport-card-link{font-weight:700;color:#316d89}
+.airport-card-facts small{font-size:12px}
+.airport-detail-hero{padding:14px;border:2px solid #8aadb6;background:linear-gradient(#c6e4e9,#eef1db);border-radius:8px}
+.airport-detail-hero h3{font-size:24px;margin:0 0 5px}
+.airport-detail-hero p{font-size:13px;margin:0}
+.airport-detail-hero>button{margin-left:auto}
+.airport-detail-actions{margin:14px 0}
+.airport-funds{font-size:12px;color:#8d492c}
+.airport-facts{display:flex;gap:16px;flex-wrap:wrap;background:#e4eddd;border:1px solid #aabcab;border-radius:6px;padding:12px}
+.airport-facts span{font-size:13px}.airport-facts b{margin-left:4px;font-size:15px}
+.airport-detail-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.airport-detail-columns section{min-width:0;padding:12px;background:#fffcef;border:1px solid #bdb692;border-radius:8px}
+.airport-detail-columns h4{font-size:16px;border-bottom:1px solid #c6d0b9;padding-bottom:9px}
+.airport-destinations,.airport-flight-list{margin:0;padding:0;list-style:none}
+.airport-destinations li,.airport-flight-list li{display:flex;gap:8px;justify-content:space-between;align-items:center;border-bottom:1px solid #e0dfc9;padding:10px 0;font-size:12px}
+.airport-destinations li{flex-wrap:wrap}
+.airport-flight-list li>span{display:flex;flex-direction:column;gap:6px;min-width:0}
+.airport-flight-list small{font-size:12px;line-height:1.5}
+.airport-flight-list button{flex-shrink:0;font-size:12px;min-height:34px;padding:5px 8px}
+.airport-empty{padding:15px 0;font-size:13px;line-height:1.8;color:#61767a}
+.aviation-game .airport-info-trigger{padding:4px 8px;flex-shrink:0;min-height:34px;font-size:12px}
+.aviation-game .airport-detail-link{background:transparent;box-shadow:none;border:0;padding:0;justify-content:flex-start;text-align:left;min-height:24px;font-size:14px;font-weight:700}
+.aviation-game .return-selected-plane{position:absolute;right:12px;top:8px;z-index:2;min-height:30px;font-size:12px;padding:4px 9px;background:#fff4cb}
+@media(max-height:600px) and (orientation:landscape){
+ .airport-directory,.airport-details{padding:12px}.airport-detail-hero{padding:9px}.airport-detail-hero h3{font-size:20px}
+ .airport-code-badge{height:46px}.airport-directory-tools{gap:8px}.airport-directory-tools label{font-size:12px}.airport-directory input{width:200px}
+ .airport-detail-columns{gap:10px}.airport-detail-columns section{padding:10px}
+ .aviation-game .airport-titlebar{gap:10px}.aviation-game .airport-info-trigger{min-height:30px;padding:2px 5px;font-size:11px}
+ .aviation-game .airport-detail-link{font-size:12px}.aviation-game .return-selected-plane{top:4px;right:7px;font-size:11px;min-height:28px;padding:3px 6px}
+ .aviation-game .empty-apron{top:38%;font-size:12px;line-height:1.7}
+ .game-dock .dock-status{font-size:10px;padding:0 2px}
+}
+@media(max-width:750px){
+ .airport-detail-columns{grid-template-columns:1fr}.airport-cards{gap:8px}
+ .airport-card{grid-template-columns:52px minmax(0,1fr);padding:10px!important;gap:8px!important}.airport-card .airport-code-badge{width:52px;font-size:17px}
+ .airport-card-title strong{font-size:15px}.airport-card-facts{font-size:12px}
+ .airport-directory-tools label{flex:1;min-width:200px}.airport-directory input{flex:1;min-width:0}
+ .aviation-game .airport-titlebar{gap:6px}.aviation-game .gate-sign>div{min-width:115px;padding-inline:6px}
+ .aviation-game .plane-status{min-width:0;max-width:150px}.aviation-game .plane-status strong{font-size:11px}
+ .aviation-game .airport-titlebar .capacity{flex-shrink:0;font-size:11px}
+}
