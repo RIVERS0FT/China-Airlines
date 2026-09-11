@@ -80,6 +80,11 @@ test('in-flight manifest explains why unload is unavailable', async ({ page }) =
   await page.getByRole('button', { name:/^开通航线/ }).click(); await page.getByTestId('dispatch').click();
   const job = page.getByTestId('loaded-order').first();
   await expect(job).toBeDisabled(); await expect(job.locator('.job-state')).toHaveText('飞行中，不能装卸');
-  await expect(page.getByRole('button', { name:'同目的地装载', exact:true })).toBeDisabled();
+  await expect(page.getByRole('button', { name:'同目的地装载', exact:true })).toHaveCount(0);
+  await expect(page.getByRole('group', { name:'当前航班收支', exact:true })).toBeVisible();
+  const cost = await page.getByTestId('flight-cost').textContent();
+  const revenue = await page.getByTestId('flight-revenue').textContent();
   await page.reload(); await expect(page.getByTestId('loaded-order').first().locator('.job-state')).toHaveText('飞行中，不能装卸');
+  await expect(page.getByTestId('flight-cost')).toHaveText(cost!);
+  await expect(page.getByTestId('flight-revenue')).toHaveText(revenue!);
 });

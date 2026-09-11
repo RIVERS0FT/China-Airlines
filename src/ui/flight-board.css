@@ -1,0 +1,47 @@
+/* Reuse the resource-bar entry and centered game dialog; keep the airport canvas visible. */
+.aviation-game .game-hud>.fleet-status-button{display:flex;height:auto;min-width:112px;padding:3px 8px;text-align:left;border-color:#71a5b7;background:#e9f4ed;gap:8px}
+.aviation-game .fleet-status-button small{white-space:nowrap}
+.fleet-operations{padding:18px}
+.flight-board-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.flight-board-toolbar>div{display:flex;gap:6px;flex-wrap:wrap}
+.flight-board-toolbar button,.flight-enter,.flight-list-empty button{border:2px solid #7196a4;border-radius:7px;padding:8px 12px;color:#355668;background:#e1ece8;min-height:36px}
+.flight-board-toolbar button{gap:6px}
+.flight-board-toolbar button[aria-pressed=true]{border-color:#a98340;background:#f7d984;color:#775b23}
+.flight-board-toolbar b{font-size:12px;background:#fffaf0;padding:1px 6px;border-radius:10px}
+.flight-board-toolbar p,.flight-board-note{color:#57707a;font-size:12px;line-height:1.6}
+.flight-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.flight-card{min-width:0;padding:14px;border:2px solid #adbbac;border-radius:8px;background:#fffbed;display:flex;flex-direction:column;gap:8px}
+.flight-card>header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.flight-card>header>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.flight-card>header strong{font-size:15px;overflow-wrap:anywhere}
+.flight-card>header small{font-size:12px;color:#56737d}
+.flight-status-tag{flex-shrink:0;padding:4px 8px;border-radius:5px;background:#deebce;color:#37604c;font-size:12px}
+.phase-flying .flight-status-tag{background:#dceef7;color:#255e7e}
+.phase-automatic .flight-status-tag,.phase-planned .flight-status-tag{background:#f8e7ba;color:#725622}
+.flight-route{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.flight-route>strong{font-size:19px}.flight-route>span{font-size:12px;color:#526d76}
+.fleet-flight-progress{width:100%;height:12px;accent-color:#337f9b}
+.flight-clock,.flight-load,.flight-ground-note,.flight-onward{font-size:13px;line-height:1.5;margin:0}
+.flight-clock{color:#396775}.flight-ground-note{color:#647575;padding:8px 0}
+.flight-onward{overflow-wrap:anywhere}.flight-enter{align-self:flex-end;margin-top:auto}
+.flight-money{display:flex;gap:18px;align-items:center;margin-left:auto;font-variant-numeric:tabular-nums;flex-shrink:0}
+.flight-money>span{display:flex;flex-direction:column;gap:2px;min-width:88px}
+.flight-money small{font-size:11px;color:#596953;white-space:nowrap}
+.flight-money strong{font-size:14px;color:#4a5f35;white-space:nowrap}
+.flight-card .flight-money{width:100%;margin:0;padding:8px 0;border-top:1px solid #c5cab0;justify-content:space-between;gap:8px}
+.flight-list-empty{padding:32px 12px;text-align:center;font-size:14px;line-height:2}.flight-list-empty button{margin-top:10px}
+.flight-board-note{margin-top:14px}.network-mode .flight-browse-note{font-size:12px;line-height:1.6;padding:3px 0}
+@media(max-height:600px) and (orientation:landscape){
+  .aviation-game .game-hud>.fleet-status-button{min-width:72px;padding:2px 5px;min-height:32px;gap:5px}
+  .aviation-game .fleet-status-button strong{font-size:14px}
+  .fleet-operations{padding:12px}.flight-board-toolbar{margin-bottom:10px;gap:6px}.flight-board-toolbar button{font-size:12px;padding:5px 8px}
+  .flight-card{padding:10px;gap:6px}.flight-route>strong{font-size:16px}.flight-money{gap:12px}
+  .aviation-game .order-toolbar .flight-money>span{min-width:74px}
+  .aviation-game .order-toolbar .flight-money small{font-size:11px;line-height:12px}
+  .aviation-game .order-toolbar .flight-money strong{font-size:12px;line-height:14px}
+}
+@media(max-width:750px){
+  .flight-list{grid-template-columns:minmax(0,1fr)}
+  .aviation-game .order-toolbar .flight-money{gap:8px}
+  .aviation-game .order-toolbar .flight-money>span{min-width:72px}
+}

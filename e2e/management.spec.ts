@@ -85,6 +85,7 @@ test('narrow landscape personnel controls and skip remain reachable',async({page
   await expect.poll(() => savedTutorial(page)).toMatchObject({ tutorial: 'skipped', credits: 90000, fleetSize: 2 });
   expect((await savedTutorial(page)).revision).toBeGreaterThan(previous.revision);
   await expect(page.getByTestId('tutorial')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'存档设置',exact:true})).toContainText('已存档');
   await expect(page.locator('.toast')).toHaveCount(0);
   await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   await expect(page.getByTestId('credits')).toHaveText('¥ 90,000');
