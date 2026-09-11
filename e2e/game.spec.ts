@@ -62,6 +62,6 @@ test('a competing tab cannot overwrite the first writer and recovery stays reach
 test('captures airport, network, and collection with no overflow',async({page})=>{
   await ready(page);await page.screenshot({path:'artifacts/desktop-airport.png',fullPage:true});
   await page.getByRole('button',{name:'航线地图',exact:true}).click();await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer','ready');await page.screenshot({path:'artifacts/desktop-map.png',fullPage:true});
-  await page.getByRole('button',{name:'飞机商店',exact:true}).click();await expect(page.getByRole('heading',{name:'下一架，为更远的航程。'})).toBeVisible();
+  await page.getByRole('button',{name:'飞机商店',exact:true}).click();await expect(page.getByRole('group',{name:'机型分类'})).toBeVisible();await expect(page.getByTestId('shop-aircraft')).toHaveCount(3);
   await page.screenshot({path:'artifacts/desktop-shop.png',fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
