@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GameCore, validateSave, manifest, planQuote, quote, type GameState } from '../src/core/game.js';
+import { GameCore, TURNAROUND, validateSave, manifest, planQuote, quote, type GameState } from '../src/core/game.js';
 import { MODELS, aircraftSpecs, emptyUpgrades, hangarPrice, retrofitPrice } from '../src/core/catalog.js';
 import type { GameState as V2State } from '../src/core/save-v2.js';
 import legacyV2 from './fixtures/v2-flying.json';
