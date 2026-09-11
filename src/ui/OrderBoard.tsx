@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { airport } from '../core/catalog.js';
 import { manifest, waiting, type Order, type GameState, type Plane } from '../core/game.js';
 import { controller } from '../runtime.js';
+import { FlightMoney } from './FlightBoard.js';
+import { currentFlight } from './flight-status.js';
 import { loadingLock, orderBlockReason } from './order-presentation.js';
 import { money, duration, ignore } from './Panels.js';
 
@@ -76,16 +78,16 @@ export function OrderBoard({ game, plane, airportId, aboard, setAboard, destinat
     if (event.key === 'Home' || event.key === 'End') strip.current?.scrollTo({ left: event.key === 'Home' ? 0 : strip.current.scrollWidth, behavior: 'instant' });
     else scroll(event.key === 'ArrowLeft' ? -1 : 1);
   }
-  const lock = loadingLock(game, plane);
+  const lock = loadingLock(game, plane), flight = plane ? currentFlight(game, plane) : null;
   return <section className="order-board apron-queue" aria-label="客货装载区">
     <div className="order-toolbar">
       <div className="order-tabs" role="group" aria-label="装载区域">
-        <button className={!aboard ? 'active' : ''} aria-pressed={!aboard} onClick={() => setAboard(false)}>候机大厅 <b>{waiting(game, airportId).length}</b></button>
+        {!flight && <button className={!aboard ? 'active' : ''} aria-pressed={!aboard} onClick={() => setAboard(false)}>候机大厅 <b>{waiting(game, airportId).length}</b></button>}
         <button className={aboard ? 'active' : ''} aria-pressed={aboard} onClick={() => setAboard(true)}>机上客货 <b data-testid="onboard-count">{plane ? manifest(game, plane.id).length : 0}</b></button>
       </div>
       <select aria-label="客货分类" value={filter} onChange={e => setFilter(e.target.value)}><option value="all">全部客货</option><option value="passengers">只看旅客</option><option value="cargo">只看货物</option></select>
-      <span className="demand-clock">{duration(game.nextDemandAt - game.simTime)} 后补充客源</span>
-      <div className="quick-load"><select value={destination} aria-label="装载目的地" onChange={e => setDestination(e.target.value)}>{game.airports.filter(a => a.id !== airportId).map(a => <option key={a.id} value={a.id}>{airport(a.id).city}</option>)}</select><button disabled={busy || Boolean(lock)} title={lock || '按队列装载同一目的地且容量允许的订单'} onClick={() => plane && ignore(controller.command({ type: 'load-destination', planeId: plane.id, to: destination }))}>同目的地装载</button></div>
+      {!flight && <span className="demand-clock">{duration(game.nextDemandAt - game.simTime)} 后补充客源</span>}
+      {flight ? <FlightMoney flight={flight}/> : <div className="quick-load"><select value={destination} aria-label="装载目的地" onChange={e => setDestination(e.target.value)}>{game.airports.filter(a => a.id !== airportId).map(a => <option key={a.id} value={a.id}>{airport(a.id).city}</option>)}</select><button disabled={busy || Boolean(lock)} title={lock || '按队列装载同一目的地且容量允许的订单'} onClick={() => plane && ignore(controller.command({ type: 'load-destination', planeId: plane.id, to: destination }))}>同目的地装载</button></div>}
     </div>
     <div className="order-window">
       <button className="queue-arrow" aria-label="上一组客货" disabled={edges.start} onClick={() => scroll(-1)}>‹</button>
