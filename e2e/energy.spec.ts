@@ -12,7 +12,7 @@ function readyState(seconds=13) {
   const c=new GameCore(NOW);c.execute({type:'load-destination',planeId:ID,to:'PVG'},NOW);
   const s=c.snapshot();s.fleet[0]!.energy.availableSeconds=seconds;return s;
 }
-async function load(page:Page,state:GameState|typeof legacy){
+async function load(page:Page,state:GameState|typeof legacy|typeof orderedV4){
   await page.clock.install({time:new Date(NOW)});await page.clock.pauseAt(new Date(NOW+1000));
   await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   await page.getByRole('button',{name:'存档设置',exact:true}).click();page.once('dialog',d=>void d.accept());
