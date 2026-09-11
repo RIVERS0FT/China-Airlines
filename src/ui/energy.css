@@ -1,0 +1,8 @@
+.energy-service{margin:16px 18px;padding:14px 16px;border:2px solid #94aba2;border-radius:8px;background:#f2f5df;color:#345567}
+.energy-service header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}.energy-service h3{margin:0;font-size:18px}
+.energy-service progress{width:100%;height:16px;margin:8px 0;accent-color:#497c62}.energy-service p{font-size:13px;line-height:1.65;margin:6px 0}
+.energy-service small{display:block;font-size:12px;line-height:1.7;margin-top:10px}.energy-service button{border:2px solid #7c9b91;border-radius:6px;padding:8px 14px;min-height:36px;background:#e9eed1;color:#2f5364}
+.aviation-game .capacity .plane-energy{font-size:11px;line-height:12px;color:#3e644a}
+.network-energy{font-size:12px;line-height:1.4;margin-left:auto;align-self:center;max-width:52%;text-align:right}
+.energy-plan-note{display:block;font-size:12px;line-height:1.5;color:#536960}.phase-service .flight-status-tag{background:#e2daed;color:#5d4381}
+@media(max-height:600px) and (orientation:landscape){.energy-service{padding:10px 12px;margin:12px}.energy-service h3{font-size:16px}.network-energy{font-size:11px}.aviation-game .airport-titlebar .capacity{gap:1px}}

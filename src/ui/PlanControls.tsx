@@ -1,3 +1,5 @@
+import { energyDepartureReason } from '../core/energy.js';
+import { energyText } from './EnergyService.js';
 import { airport } from '../core/catalog.js';
 import { MAX_PLAN_LEGS, manifest, planQuote, type GameState, type Plane } from '../core/game.js';
 import { controller } from '../runtime.js';
@@ -15,7 +17,9 @@ export function PlanControls({ game, plane, stops, setStops, auto, busy, onDepar
   } catch (e) {
     error = e instanceof Error ? e.message : '路线不可用';
   }
-  const locked = busy || Boolean(plane.flight || plane.autoRouteId || plane.itinerary.length) || plane.readyAt > game.simTime;
+  const locked = busy || Boolean(plane.flight || plane.autoRouteId || plane.itinerary.length || plane.energy.serviceUntil !== null) || plane.readyAt > game.simTime;
+  const energyReason = preview ? energyDepartureReason(plane.energy, preview.legs[0]!.duration) : '';
+  const requiredEnergy = preview?.legs.reduce((sum, leg) => sum + leg.duration, 0) ?? 0;
   const jobs = manifest(game, plane.id);
   const autoBlocked = Boolean(auto && stops.length === 1 && (!jobs.length || jobs.some(order => order.to !== stops[0])));
   async function launch() {
@@ -42,7 +46,7 @@ export function PlanControls({ game, plane, stops, setStops, auto, busy, onDepar
       <summary>逐段费用与交付</summary>
       <div className="plan-table-scroll" tabIndex={0} role="region" aria-label="航段费用明细">
         <table>
-          <caption>城市解锁后即可直接通航；这里只计算各段运营成本与最终目的地交付。</caption>
+          <caption>城市解锁后即可直接通航；这里只计算各段运营成本与最终目的地交付。逐段扣费，不预扣全程；资金或能量不足停在实际机场，保留客货。{preview.undelivered > 0 ? `路线后还有 ${preview.undelivered} 单留在机上。` : '本路线覆盖全部已装订单的目的地。'}</caption>
           <thead><tr><th scope="col">航段</th><th scope="col">飞行时间</th><th scope="col">运营成本</th><th scope="col">本段交付</th></tr></thead>
           <tbody>{preview.legs.map((leg, i) => <tr key={i} data-testid="plan-leg">
             <th scope="row">{i + 1}. {airport(leg.from).city} → {airport(leg.to).city}</th>
@@ -53,8 +57,8 @@ export function PlanControls({ game, plane, stops, setStops, auto, busy, onDepar
     </details>}
     <div className="plan-summary">
       <span data-testid="plan-summary">{preview ? `${stops.length} 段 · ${duration(preview.duration)} · 成本 ${money(preview.cost)} · 交付 ${money(preview.revenue)} · 运输净收益 ${money(preview.profit)}` : error || `依次点击城市规划路线；最多 ${MAX_PLAN_LEGS} 段，每站周转 8 秒。`}</span>
-      <button className="gold-button" data-testid="dispatch" disabled={locked || !preview || autoBlocked || game.credits < (preview?.legs[0]?.cost ?? 0)} onClick={() => ignore(launch())}>{stops.length > 1 ? '确认路线起飞' : '确认起飞'}</button>
+      <button className="gold-button" data-testid="dispatch" disabled={locked || !preview || autoBlocked || Boolean(energyReason) || game.credits < (preview?.legs[0]?.cost ?? 0)} onClick={() => ignore(launch())}>{stops.length > 1 ? '确认路线起飞' : '确认起飞'}</button>
     </div>
-    {preview && <small className="plan-footnote">{autoBlocked ? '自动往返需要已装载客货，且机上订单必须全部直达当前唯一目的城市。' : `逐段扣费，不预扣全部成本；资金不足则停在当前机场。${auto && stops.length === 1 ? '本次将按该目的地自动往返。' : preview.undelivered > 0 ? `路线后还有 ${preview.undelivered} 单留在机上。` : '本路线覆盖全部已装订单的目的地。'}`}</small>}
+    {preview && <small className="energy-plan-note" data-testid="plan-energy">能量：全程需 {energyText(requiredEnergy)} 点／可用 {energyText(plane.energy.availableSeconds)} 点（不含周转）。{autoBlocked ? '自动往返需已装载且全部直达唯一目的城市。' : energyReason || (requiredEnergy > plane.energy.availableSeconds ? '只能覆盖部分航段，不足停航保留客货。' : auto ? '按该目的地自动往返，每段预留能量。' : '逐段扣费、预留能量，不足停航保留客货。')}</small>}
   </section>;
 }
