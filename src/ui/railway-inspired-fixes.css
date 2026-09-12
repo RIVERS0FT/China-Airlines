@@ -16,3 +16,11 @@
   .aviation-game:not(.dispatch-focused) .order-window{padding-right:92px}
   .aviation-game:not(.dispatch-focused) .apron-queue .job-state{font-size:11px!important;line-height:12px}
 }
+
+/* At the 667px acceptance viewport four filtered cargo cards must fit without paging.
+   The departure control still owns the far-right 73px rail, so this only tightens
+   the queue itself and leaves a clear pointer gap between both controls. */
+@media(max-width:720px) and (orientation:landscape){
+  .aviation-game:not(.dispatch-focused) .order-window{padding-right:84px}
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-card{flex-basis:118px}
+}
