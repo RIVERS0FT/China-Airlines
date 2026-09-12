@@ -3,6 +3,7 @@
 .aviation-game .game-hud{height:64px}
 .aviation-game .airport-titlebar{height:66px;min-height:66px}
 .aviation-game .airplane-display{width:min(91%,1240px);height:94%;bottom:3%}
+.aviation-game .aviation-stage:not(.is-flying) .airplane-display{bottom:0}
 .aviation-game .game-dock{height:78px}
 .aviation-game .apron-queue{height:230px;min-height:230px;background:linear-gradient(#f8f1dd 64%,#d5d9c9 64%,#c0cbbf 66%,#e7e5d2 67%)}
 .order-window{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;flex:1;min-height:0;gap:3px;padding:0 6px}
