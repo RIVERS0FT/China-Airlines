@@ -21,7 +21,9 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     await page.mouse.move(bounds.x + bounds.width * .7, bounds.y + bounds.height * .48, { steps: 8 }); await page.mouse.up();
     await expect(host).not.toHaveAttribute('data-camera', camera!); await expect(host).toHaveAttribute('data-preview-path', '');
     await expect(page.getByTestId('credits')).toHaveText('¥ 180,000');
+    const frames = Number(await host.getAttribute('data-render-count'));
     await host.locator('canvas').focus(); await page.keyboard.press('Home');
+    await expect.poll(async () => Number(await host.getAttribute('data-render-count'))).toBeGreaterThan(frames);
     await page.screenshot({ path: `artifacts/globe-asia-${width}.png` });
     await page.getByRole('button', { name: '选择目的城市', exact: true }).click();
     await page.getByLabel('搜索全球机场', { exact: true }).fill(' iCn ');
@@ -30,7 +32,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     await expect(page.getByRole('dialog', { name: '机场详情', exact: true })).toContainText('首尔');
     await page.getByRole('button', { name: /^解锁机场/ }).click();
     await expect(host).toHaveAttribute('data-preview-path', 'ICN'); await expect(page.getByTestId('credits')).toHaveText('¥ 144,000');
-    await expect(page.getByTestId('network-destination')).toHaveText('首尔');
+    await expect(page.getByTestId('network-destination')).toHaveText('首尔▾');
     await expect(page.getByTestId('dispatch')).toBeEnabled();
     page.once('dialog', d => void d.accept()); await launchRoute(page);
     await expect(page.locator('.gate-sign')).toContainText('北京 → 首尔');
@@ -108,4 +110,19 @@ test('world search and foreign flight remain usable when WebGL fails', async ({ 
   await page.getByLabel('选择机场', { exact: true }).selectOption('ICN'); await page.getByRole('button', { name: /^解锁机场/ }).click();
   await expect(page.getByTestId('dispatch')).toBeEnabled(); page.once('dialog', d => void d.accept()); await launchRoute(page);
   await expect(page.locator('.gate-sign')).toContainText('北京 → 首尔');
+});
+
+test('an idle globe does not redraw for clock-only updates, but camera input paints a new frame', async ({ page }) => {
+  await page.clock.install({ time: new Date(NOW) }); await page.clock.pauseAt(new Date(NOW + 1000));
+  await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
+  await page.getByRole('button', { name: '航线地图', exact: true }).click();
+  const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-renderer', 'ready');
+  await page.clock.runFor(100);
+  const frames = Number(await host.getAttribute('data-render-count')); expect(frames).toBeGreaterThan(0);
+  await page.clock.runFor(500);
+  await expect(host).toHaveAttribute('data-render-count', String(frames));
+  await host.locator('canvas').focus(); await page.keyboard.press('ArrowRight'); await page.clock.runFor(50);
+  expect(Number(await host.getAttribute('data-render-count'))).toBeGreaterThan(frames);
+  await expect(host).toHaveAttribute('data-preview-path', '');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 180,000');
 });

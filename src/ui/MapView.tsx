@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Application, Container, Graphics, Text } from 'pixi.js';
+import { Application, Container, Graphics, Text, Ticker } from 'pixi.js';
 import { AIRPORTS, aircraftSpecs, airport } from '../core/catalog.js';
 import type { GameState, Plane } from '../core/game.js';
 import { arcPoints, fromVector, frontPolygon, frontSegment, globeCamera, greatCircle, projectGeo, rangePoints, screenPoint, toVector, viewVector, wrapLongitude, type GlobeCamera, type Vec3 } from './globe-geometry.js';
@@ -41,7 +41,7 @@ export function MapView(props: Props) {
     let cancelled = false, initialized = false, dispose = () => {};
     void (async () => {
       try {
-        await app.init({ backgroundAlpha: 0, antialias: true, resolution: Math.min(devicePixelRatio || 1, 2), autoDensity: true, preference: ['webgl'] });
+        await app.init({ autoStart: false, sharedTicker: false, backgroundAlpha: 0, antialias: true, resolution: Math.min(devicePixelRatio || 1, 2), autoDensity: true, preference: ['webgl'] });
         initialized = true;
         if (cancelled) { app.destroy(true, { children: true }); return; }
         const canvas = app.canvas as HTMLCanvasElement;
@@ -208,15 +208,25 @@ export function MapView(props: Props) {
           element.dataset.previewPath = (preview?.legs ?? []).map(l => l.to).join(',');
           canvas.setAttribute('aria-label', `球形机场航线示意图，当前选择${airport(selected).city}。拖动旋转，双指缩放；方向键旋转，Home定位飞机。`);
         }
-        app.ticker.maxFPS = 30;
-        app.ticker.add(() => {
+        // The application renderer is demand-driven. A quiet airport must not
+        // repaint a full sphere 30 times a second while the user reads a dialog.
+        // Keep a lightweight private ticker for coalescing touch and snapshot updates.
+        const renderLoop = new Ticker();
+        let networkKey = '', frames = 0;
+        renderLoop.maxFPS = 30;
+        renderLoop.add(() => {
           const { game, selected, preview, showOthers } = latest.current;
           const previewKey = JSON.stringify(preview ?? null), gameChanged = lastGame !== game;
           if (focused !== selected) { focused = selected; const a = airport(selected); camera.lat = a.lat; camera.lon = a.lon; publishCamera(); }
+          const nextNetworkKey = gameChanged ? JSON.stringify([game.airports, game.routes, game.fleet,
+            passengerDestinationKey(passengerDestinationCounts(game, latest.current.plane?.id))]) : networkKey;
+          const repaint = dirty || nextNetworkKey !== networkKey || previewKey !== lastPreview || lastOthers !== showOthers;
           if (gameChanged) { lastGame = game; snapshotAt = performance.now(); }
           if (dirty) drawGlobe();
-          if (dirty || gameChanged || previewKey !== lastPreview || lastOthers !== showOthers) drawNetwork();
-          dirty = false; lastPreview = previewKey; lastOthers = showOthers;
+          if (repaint) drawNetwork();
+          dirty = false; lastPreview = previewKey; lastOthers = showOthers; networkKey = nextNetworkKey;
+          const animating = game.fleet.some(p => p.flight && (showOthers || p.id === latest.current.plane?.id));
+          if (!repaint && !animating) return;
           const visualTime = game.simTime + Math.min(1, Math.max(0, (performance.now() - snapshotAt) / 1000));
           for (const p of game.fleet) {
             let g = planes.get(p.id);
@@ -229,10 +239,13 @@ export function MapView(props: Props) {
           }
           for (const [id, g] of planes) if (!game.fleet.some(p => p.id === id)) { g.destroy(); planes.delete(id); }
           element.dataset.visiblePlanes = [...planes].filter(([, g]) => g.visible).map(([id]) => id).join(',');
+          app.render();
+          element.dataset.renderCount = String(++frames);
         });
+        renderLoop.start();
         publishCamera();
         dispose = () => {
-          controls.current = null; observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move);
+          renderLoop.destroy(); controls.current = null; observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move);
           canvas.removeEventListener('pointerup', up); canvas.removeEventListener('pointercancel', up); canvas.removeEventListener('wheel', wheel); canvas.removeEventListener('keydown', keydown);
         };
         setStatus('ready');
