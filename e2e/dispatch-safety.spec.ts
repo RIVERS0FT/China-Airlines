@@ -22,12 +22,17 @@ test('hidden fleet markers do not hide the selected aircraft or mutate flight ac
   await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
   await page.getByRole('button', { name: '航线地图', exact: true }).click();
   const canvas = page.getByTestId('map-canvas');
+  await expect(canvas).toHaveAttribute('data-renderer', 'ready');
+  await page.clock.runFor(50); // Permit a real render frame under the paused test clock.
   await expect(canvas).toHaveAttribute('data-visible-planes', 'AC0001,AC0002');
   await expect(page.getByRole('button', { name: '返回航班', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: '取消起飞', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: '隐藏其他飞机', exact: true }).click();
+  await page.clock.runFor(50);
   await expect(canvas).toHaveAttribute('data-visible-planes', 'AC0001');
   await page.getByRole('button', { name: '显示其他飞机', exact: true }).click();
+  await expect(canvas).toHaveAttribute('data-renderer', 'ready');
+  await page.clock.runFor(50); // Permit a real render frame under the paused test clock.
   await expect(canvas).toHaveAttribute('data-visible-planes', 'AC0001,AC0002');
   await expect(canvas).toHaveAttribute('data-preview-path', '');
   await expect(page.getByTestId('network-cost')).toHaveText(`¥ ${saved.fleet[0]!.flight!.cost.toLocaleString('zh-CN')}`);
@@ -44,6 +49,8 @@ test('a real autosave write failure remains visible with a recovery entry on the
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   await page.getByRole('button', { name: '航线地图', exact: true }).click(); await selectCity(page, 'PVG');
   const canvas = page.getByTestId('map-canvas');
+  await expect(canvas).toHaveAttribute('data-renderer', 'ready');
+  await page.clock.runFor(50); // Canvas attributes are produced by the real Pixi ticker.
   await expect(canvas).toHaveAttribute('data-preview-path', 'PVG');
   // Fault injection at the storage boundary, not injection of expected UI state.
   // There are no economic commands in this test; the automatic save must report it.
