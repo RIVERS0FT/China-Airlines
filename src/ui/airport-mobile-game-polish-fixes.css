@@ -1,0 +1,60 @@
+/* Regression fixes layered after airport-mobile-game-polish.css. */
+
+/* Generated text becomes part of Chromium's accessible button name. Keep the
+   existing exact accessible name used by controls and browser tests. */
+.aviation-game:not(.dispatch-focused) .game-dock .depart-button::after{
+  content:none;
+  display:none;
+}
+
+/* The established scene-first contract keeps the departure action above the
+   launcher dock. It can still be a wide orange primary CTA on desktop, while
+   the queue reserves a matching right rail so cards and paging never sit under it. */
+@media(min-height:601px){
+  .aviation-game:not(.dispatch-focused) .game-dock .depart-button{
+    right:12px;
+    bottom:calc(100% + 12px);
+    width:248px;
+    min-width:248px;
+    height:70px;
+    min-height:70px;
+  }
+  .aviation-game:not(.dispatch-focused) .order-window{
+    padding-right:278px;
+  }
+
+  /* Desktop queue cards have less vertical room than the decorative mobile-game
+     treatment initially assumed. Compact the artwork while keeping the 11px
+     order-state text fully inside each card. */
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-card{
+    gap:1px!important;
+    padding:3px 5px 4px!important;
+  }
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-art{
+    width:90px;
+    height:46px;
+    margin-top:1px;
+  }
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-quantity{
+    padding:0 5px;
+    line-height:13px;
+  }
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-card strong{
+    padding:1px 6px;
+    line-height:14px;
+  }
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-state{
+    padding:1px 4px;
+    line-height:13px;
+  }
+}
+
+@media(max-width:1100px) and (min-height:601px){
+  .aviation-game:not(.dispatch-focused) .game-dock .depart-button{
+    width:198px;
+    min-width:198px;
+  }
+  .aviation-game:not(.dispatch-focused) .order-window{
+    padding-right:224px;
+  }
+}
