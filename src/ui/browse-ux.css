@@ -17,8 +17,8 @@
 .game-modal .flight-clock,.game-modal .flight-money{font-variant-numeric:tabular-nums}
 .game-modal .airport-card:focus-visible,.game-modal .fleet-operations button:focus-visible,.dispatch-dialog button:focus-visible{outline:3px solid #995018;outline-offset:2px}
 @media(max-width:750px){
- .game-modal .airport-directory-tools{align-items:stretch}
- .game-modal .airport-directory-tools .browse-search-field{flex-basis:100%}
+ .game-modal .airport-directory-tools{align-items:flex-end}
+ .game-modal .airport-directory-tools .browse-search-field{flex-basis:250px}
  .game-modal .flight-search-controls{gap:8px}
  .game-modal .flight-search-controls .browse-search-field{flex-basis:240px}
  .game-modal .flight-extra-filter{flex:1 1 160px}

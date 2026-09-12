@@ -60,12 +60,22 @@ test('airport empty results offer a reset and reopening preserves the current se
   await expect(directory.getByRole('button', { name: /^全部/ })).toHaveAttribute('aria-pressed', 'true');
   await expect(directory.getByRole('listitem').first()).toBeVisible();
   await directory.getByLabel('搜索机场', { exact: true }).fill('PEK');
+  // A focused native search field consumes the first Escape to clear its query.
   await page.keyboard.press('Escape');
+  await expect(directory.getByLabel('搜索机场', { exact: true })).toHaveValue('');
+  await expect(directory).toBeVisible();
+  await directory.getByLabel('搜索机场', { exact: true }).fill('PEK');
+  // Explicit close must retain the query, unlike the search field's clear action.
+  await directory.getByRole('button', { name: '关闭机场目录', exact: true }).click();
   await expect(directory).toHaveCount(0);
   await page.getByRole('button', { name: '机场目录', exact: true }).click();
   directory = page.getByRole('dialog', { name: '机场目录', exact: true });
   await expect(directory.getByLabel('搜索机场', { exact: true })).toHaveValue('PEK');
   await expect(directory.getByRole('listitem')).toHaveCount(1);
+  // Escape still closes the dialog when focus is outside the search field.
+  await directory.getByRole('button', { name: '关闭机场目录', exact: true }).focus();
+  await page.keyboard.press('Escape');
+  await expect(directory).toHaveCount(0);
 });
 
 test('airport detail navigation restores the scrolled card instead of jumping to the top', async ({ page }) => {
