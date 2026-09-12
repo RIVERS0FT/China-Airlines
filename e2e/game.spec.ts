@@ -14,7 +14,7 @@ async function chooseShanghai(page:Page){
 }
 test('desktop loading, first flight, reward, and reload',async({page})=>{
   await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});await ready(page);
-  await page.getByRole('button',{name:'同目的地装载',exact:true}).click();await page.getByRole('button',{name:'选择航线起飞',exact:true}).click();await chooseShanghai(page);
+  await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await page.getByRole('button',{name:'制定路线',exact:true}).click();await chooseShanghai(page);
   await expect(page.getByTestId('dispatch')).toBeEnabled();await launchRoute(page);
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();await page.screenshot({path:'artifacts/desktop-flight.png'});
   await page.clock.fastForward(180_000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');
@@ -52,8 +52,8 @@ test('landscape touch loading and portrait prompt',async({browser,baseURL})=>{
   const context=await browser.newContext({baseURL,viewport:{width:844,height:390},deviceScaleFactor:2,isMobile:true,hasTouch:true});
   const page=await context.newPage();page.on('pageerror',e=>pageErrors.push(e.message));await ready(page);
   await page.getByRole('button',{name:'航线地图',exact:true}).click();await selectCity(page, 'WUH');await page.getByRole('button',{name:/解锁机场/}).click();
-  await expect(await detailValue(page, 'plan-summary')).toContainText('1 段');await leaveMap(page);await expect(page.getByText('已解锁 3 座机场',{exact:true})).toBeVisible();
-  await page.getByTestId('waiting-order').first().tap();await expect(page.getByTestId('onboard-count')).toHaveText('1');
+  await expect(await detailValue(page, 'plan-summary')).toContainText('1 段');await leaveMap(page);await openGlobal(page, '机场目录');await expect(page.getByRole('button',{name:'已开放 3',exact:true})).toBeVisible();await page.getByRole('button',{name:'关闭机场目录',exact:true}).click();
+  await page.getByTestId('waiting-order').first().tap();await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   await expect(page.locator('.rotate-screen')).toBeHidden();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:'artifacts/landscape.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});await expect(page.locator('.rotate-screen')).toBeVisible();

@@ -16,11 +16,11 @@ test('desktop airport uses the polished game hierarchy without changing real dat
   await expect(page.getByTestId('waiting-order')).toHaveCount(12);
   await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 6 人');
 
-  const launch = page.getByRole('button', { name: '选择航线起飞', exact: true });
+  const launch = page.getByRole('button', { name: '制定路线', exact: true });
   await expect(launch).toBeVisible();
   const box = await launch.boundingBox();
   expect(box).not.toBeNull();
-  expect(box!.width).toBeGreaterThan(200);
+  expect(box!.width).toBeGreaterThan(120);
   expect(box!.height).toBeGreaterThan(60);
 
   const background = await launch.evaluate(element => getComputedStyle(element).backgroundImage);
@@ -33,16 +33,16 @@ test('compact landscape keeps queue controls clear of the launch action', async 
   await page.setViewportSize({ width: 844, height: 390 });
   await ready(page);
 
-  const launch = page.getByRole('button', { name: '选择航线起飞', exact: true });
+  const launch = page.getByRole('button', { name: '制定路线', exact: true });
   await expect(launch).toBeInViewport();
   const box = await launch.boundingBox();
   expect(box).not.toBeNull();
-  expect(box!.width).toBeLessThan(100);
+  expect(box!.width).toBeLessThanOrEqual(140);
 
   const next = page.getByRole('button', { name: '下一组客货', exact: true });
   await expect(next).toBeVisible();
   const launchBox = box!, nextBox = (await next.boundingBox())!;
-  expect(nextBox.x + nextBox.width).toBeLessThanOrEqual(launchBox.x);
+  expect(nextBox.y + nextBox.height).toBeLessThanOrEqual(launchBox.y);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'artifacts/airport-mobile-game-polish-844.png', fullPage: true });
 });

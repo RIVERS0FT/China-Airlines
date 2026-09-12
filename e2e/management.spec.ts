@@ -50,7 +50,7 @@ test('hangar duty can start for a reachable unlocked city without route purchase
   await expect(page.getByLabel('值勤目的地',{exact:true})).toHaveValue('PVG');
   await page.getByRole('button',{name:'启动自动值勤',exact:true}).click();await expect(page.getByTestId('crew-status')).toContainText('自动值勤');
   await page.getByRole('button',{name:'停止自动值勤',exact:true}).click();await expect(page.getByRole('button',{name:'解聘调度员',exact:true})).toBeDisabled();await page.getByRole('button',{name:'关闭我的机库'}).click();
-  await openGlobal(page, '机场装载');await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();await page.clock.fastForward(200000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');await expect(page.getByTestId('onboard-count')).toHaveText('0');
+  await openGlobal(page, '机场装载');await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();await page.clock.fastForward(200000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');await expect(page.getByTestId('loaded-order')).toHaveCount(0);
 });
 test('v3 automatic flight migrates without changed manifest or extra money',async({page})=>{
   await ready(page);page.on('dialog',d=>void d.accept());await openGlobal(page, '存档设置');
@@ -61,7 +61,7 @@ test('v3 automatic flight migrates without changed manifest or extra money',asyn
 for(const width of [1440,844])test(`guided real first flight persists at ${width}`,async({page})=>{
   await page.setViewportSize({width,height:width===1440?900:390});await ready(page);await openGlobal(page, '操作帮助');await page.getByRole('button',{name:'开始分步引导',exact:true}).click();
   await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','load');await expect(page.getByTestId('waiting-order').first()).toHaveClass(/tutorial-target/);await page.screenshot({path:`artifacts/tutorial-loading-${width}.png`});
-  await page.getByRole('button',{name:'同目的地装载',exact:true}).click();await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','map');await page.getByRole('button',{name:'选择航线起飞',exact:true}).click();
+  await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','map');await page.getByRole('button',{name:'制定路线',exact:true}).click();
   await expect(page.getByTestId('tutorial')).toHaveCount(0);await expect(page.getByRole('button',{name:'选择目的城市',exact:true})).toBeVisible();await chooseShanghai(page);
   await launchRoute(page);await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','flight');await page.reload();await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','flight');
   await page.clock.fastForward(200000);await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','reward');await page.getByRole('button',{name:'查看首航任务',exact:true}).click();

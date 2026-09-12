@@ -44,7 +44,8 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
     await page.getByRole('button',{name:'开始地勤补能',exact:true}).click();await expect(page.getByTestId('energy-service-status')).toContainText('地勤补能中');
     await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
     await expect(page.locator('.plane-status')).toContainText('地勤补能');
-    await expect(page.getByTestId('loaded-order').first()).toHaveCount(0);
+    await expect(page.getByTestId('loaded-order').first()).toBeDisabled();
+    await expect(page.getByTestId('loaded-order').first().locator('.job-state')).toHaveText('地勤补能中，不能装卸');
     await openGlobal(page, '航班运行表');await page.getByRole('button',{name:/^待命飞机/}).click();
     await expect(page.getByTestId('flight-row')).toHaveCount(0);await page.getByRole('button',{name:'关闭航班运行表',exact:true}).click();
     await openGlobal(page, '机队管理');

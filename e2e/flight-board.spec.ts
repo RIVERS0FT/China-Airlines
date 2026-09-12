@@ -75,14 +75,14 @@ test('automatic waiting is not mislabeled as ready or a paid flight',async({page
 });
 for(const viewport of [{width:1440,height:900},{width:844,height:390},{width:667,height:375}])test(`running scene and board remain readable at ${viewport.width}`,async({page})=>{
   await page.setViewportSize(viewport);await load(page,flying());
-  const toolbar=page.locator('.order-toolbar');
+  const toolbar=page.locator('.scene-flight-summary');
   for(const id of ['flight-cost','flight-revenue','flight-profit']){
     const text=page.getByTestId(id);await expect(text).toBeInViewport();
     const parent=await toolbar.boundingBox(),box=await text.boundingBox();expect(parent&&box).toBeTruthy();
     expect(box!.x).toBeGreaterThanOrEqual(parent!.x);expect(box!.x+box!.width).toBeLessThanOrEqual(parent!.x+parent!.width);
     expect(box!.y+box!.height).toBeLessThanOrEqual(parent!.y+parent!.height+1);
   }
-  await expect(page.getByTestId('loaded-order').first()).toBeDisabled();await expect(page.getByTestId('loaded-order').first().locator('.job-state')).toHaveText('飞行中，不能装卸');
+  await expect(page.locator('.apron-queue')).toHaveCount(0);await expect(page.getByTestId('loaded-order')).toHaveCount(0);
   await page.screenshot({path:`artifacts/running-flight-${viewport.width}.png`});
   await openGlobal(page, '航班运行表');await expect(page.getByRole('dialog',{name:'航班运行表'})).toBeVisible();
   const row=page.getByTestId('flight-row').first();

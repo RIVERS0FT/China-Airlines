@@ -1,7 +1,7 @@
 import { type GameState, type Plane } from '../core/game.js';
 import { ENERGY_CAPACITY_SECONDS, ENERGY_SECONDS_PER_POINT, ENERGY_SERVICE_SECONDS } from '../core/energy.js';
 import { controller } from '../runtime.js';
-import { duration, ignore } from './Panels.js';
+import { Icon, duration, ignore } from './Panels.js';
 import './energy.css';
 /** Exact seconds remain in the save; only the display rounds points. */
 export const energyText = (seconds: number) => (seconds / ENERGY_SECONDS_PER_POINT).toFixed(2);
@@ -9,7 +9,7 @@ export function EnergyService({ game, plane, busy }: { game: GameState; plane: P
   const e = plane.energy, servicing = e.serviceUntil !== null;
   const reason = plane.flight ? (e.reservedSeconds ? `飞行中，当前航段已预留 ${energyText(e.reservedSeconds)} 点` : '旧版在途航班豁免，不追扣能量') : plane.autoRouteId ? '请先停止自动值勤' : plane.itinerary.length ? '请先取消剩余计划' : plane.readyAt > game.simTime ? '地面周转中' : '';
   return <section className="energy-service" aria-label="飞机能量管理">
-    <header><h3>飞机能量</h3><strong data-testid="hangar-energy">{energyText(e.availableSeconds)} / {ENERGY_CAPACITY_SECONDS / ENERGY_SECONDS_PER_POINT} 点</strong></header>
+    <header><h3><Icon name="energy"/>飞机能量</h3><strong data-testid="hangar-energy">{energyText(e.availableSeconds)} / {ENERGY_CAPACITY_SECONDS / ENERGY_SECONDS_PER_POINT} 点</strong></header>
     <progress aria-label="可用能量" value={e.availableSeconds} max={ENERGY_CAPACITY_SECONDS}/>
     <p>可再飞 {duration(e.availableSeconds)}。每飞行 60 秒需要 1 点，起飞前预留整段；不到一分钟按秒计算。</p>
     <p data-testid="energy-service-status">{servicing ? `地勤补能中 · ${duration(e.serviceUntil! - game.simTime)} 后补满` : reason || (e.availableSeconds === ENERGY_CAPACITY_SECONDS ? '能量已满' : '可安排地勤补能')}</p>

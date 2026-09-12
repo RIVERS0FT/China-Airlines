@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { aircraftSpecs, AIRCRAFT_KIND_LABEL, UPGRADE_LABEL, retrofitPrice, hangarPrice, airport, type UpgradeKey } from '../core/catalog.js';
 import { MAX_FLEET, manifest, type GameState } from '../core/game.js';
 import { controller, useGame } from '../runtime.js';
-import { PlaneArt, money, ignore } from './Panels.js';
+import { Icon, PlaneArt, money, ignore } from './Panels.js';
 
 export function Hangar({ game, busy, selectedPlaneId, onSelect }: { game: GameState; busy: boolean; selectedPlaneId?: string; onSelect: (id: string) => void }) {
   const [selected, setSelected] = useState(selectedPlaneId ?? game.fleet[0]!.id);
@@ -25,7 +25,7 @@ export function Hangar({ game, busy, selectedPlaneId, onSelect }: { game: GameSt
         <div className="upgrade-grid">{(Object.keys(UPGRADE_LABEL) as UpgradeKey[]).map(key => {
           const max = p.upgrades[key] >= 3, price = retrofitPrice(p, key), next = aircraftSpecs({ ...p, upgrades: { ...p.upgrades, [key]: Math.min(3, p.upgrades[key] + 1) } });
           const nextText = key === 'capacity' ? `${next.seats} 人 / ${next.cargo} 吨` : key === 'engine' ? `${next.speed}` : key === 'range' ? `${next.range} km` : `${next.costKm.toFixed(2)} 币/km`;
-          return <article key={key} data-testid={`upgrade-${key}`}><header><strong>{UPGRADE_LABEL[key]}</strong><span>Lv.{p.upgrades[key]} / 3</span></header><p>{details[key]}</p><small>{max ? '已达到最高等级' : `下一级 → ${nextText}`}</small><button disabled={busy || max || Boolean(reason) || game.credits < price} aria-label={`升级${UPGRADE_LABEL[key]}`} onClick={() => ignore(controller.command({ type: 'retrofit', planeId: p.id, upgrade: key }))}>{max ? '已满级' : reason ? '暂不可改装' : game.credits < price ? '运营资金不足' : `改装 · ${money(price)}`}</button></article>;
+          return <article key={key} data-testid={`upgrade-${key}`}><header><strong><Icon name="maintenance"/>{UPGRADE_LABEL[key]}</strong><span>Lv.{p.upgrades[key]} / 3</span></header><p>{details[key]}</p><small>{max ? '已达到最高等级' : `下一级 → ${nextText}`}</small><button disabled={busy || max || Boolean(reason) || game.credits < price} aria-label={`升级${UPGRADE_LABEL[key]}`} onClick={() => ignore(controller.command({ type: 'retrofit', planeId: p.id, upgrade: key }))}>{max ? '已满级' : reason ? '暂不可改装' : game.credits < price ? '运营资金不足' : `改装 · ${money(price)}`}</button></article>;
         })}</div>
       </div></div>
     <EnergyService game={game} plane={p} busy={busy}/>
