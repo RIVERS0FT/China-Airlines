@@ -7,9 +7,11 @@ import { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND } from './legacy.js';
 import { validateV2, type GameState as V2State } from './save-v2.js';
 import { validateSave as validateV3 } from './save-v3.js';
 import { validateSave as validateV4 } from './save-v4.js';
+import { validateV5 } from './save-v5.js';
+import { validateInfrastructure } from './save-infrastructure.js';
 import { fullEnergy, energyRequired, energyDepartureReason, ENERGY_CAPACITY_SECONDS, ENERGY_SERVICE_SECONDS, type EnergyBudget } from './energy.js';
 import { DISPATCHER_PRICE, resaleValue } from './management.js';
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 export type TutorialState = 'available' | 'active' | 'completed' | 'skipped';
 export const MAX_PLAN_LEGS = 5;
 export interface Plane extends LegacyPlane { upgrades: Upgrades; itinerary: string[]; dispatcher: boolean; energy: EnergyBudget }
@@ -21,7 +23,7 @@ export interface Order {
   reward: number; location: string; createdAt: number; expiresAt: number | null;
 }
 export interface GameState extends Omit<LegacyState, 'version' | 'fleet'> {
-  version: 5; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
+  version: 6; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
 }
 export type Command = LegacyCommand
   | { type: 'load' | 'unload'; planeId: string; orderId: string }
@@ -348,7 +350,7 @@ export class GameCore {
 /** Validate v1 first; preserve a legacy in-flight manifest and its exact locked payment. */
 export function migrateV1(value: unknown): GameState {
   const old = validateV1(value);
-  const s: GameState = { ...old, version: 5, fleetPeak: old.fleet.length, tutorial: 'skipped', fleet: old.fleet.map(p => ({ ...p, upgrades: emptyUpgrades(), itinerary: [], dispatcher: true, energy: fullEnergy() })), hangarSlots: Math.max(4, Math.ceil(old.fleet.length / 2) * 2), orders: [], nextOrderId: 1, nextDemandAt: old.simTime + DEMAND_INTERVAL };
+  const s: GameState = { ...old, version: 6, fleetPeak: old.fleet.length, tutorial: 'skipped', fleet: old.fleet.map(p => ({ ...p, upgrades: emptyUpgrades(), itinerary: [], dispatcher: true, energy: fullEnergy() })), hangarSlots: Math.max(4, Math.ceil(old.fleet.length / 2) * 2), orders: [], nextOrderId: 1, nextDemandAt: old.simTime + DEMAND_INTERVAL };
   for (const p of s.fleet) {
     const f = p.flight; if (!f) continue;
     const passengerReward = orderReward(f.from, f.to, 'passengers', f.passengers);
@@ -360,20 +362,24 @@ export function migrateV1(value: unknown): GameState {
 /** Upgrade v2 without moving orders, resetting clocks, or recalculating in-flight income. */
 export function migrateV2(value: unknown): GameState {
   const old: V2State = validateV2(value);
-  return { ...old, version: 5, fleetPeak: old.fleet.length, tutorial: 'skipped', hangarSlots: Math.max(4, Math.ceil(old.fleet.length / 2) * 2),
+  return { ...old, version: 6, fleetPeak: old.fleet.length, tutorial: 'skipped', hangarSlots: Math.max(4, Math.ceil(old.fleet.length / 2) * 2),
     fleet: old.fleet.map(p => ({ ...p, upgrades: emptyUpgrades(), itinerary: [], dispatcher: true, energy: fullEnergy() })) };
 }
 /** Preserve all old automatic permissions without charging or changing locked flights. */
 export function migrateV3(value: unknown): GameState {
   const old = validateV3(value);
-  return { ...old, version: 5, fleetPeak: old.fleet.length, tutorial: 'skipped',
+  return { ...old, version: 6, fleetPeak: old.fleet.length, tutorial: 'skipped',
     fleet: old.fleet.map(p => ({ ...p, dispatcher: true, energy: fullEnergy() })) };
 }
 /** Validate the entire frozen schema first; existing flights are grandfathered,
  * with no retroactive charge or change to their locked schedule and payment. */
 export function migrateV4(value: unknown): GameState {
   const old = validateV4(value);
-  return { ...old, version: 5, fleet: old.fleet.map(p => ({ ...p, energy: fullEnergy() })) };
+  return { ...old, version: 6, fleet: old.fleet.map(p => ({ ...p, energy: fullEnergy() })) };
+}
+/** v5 changes only its version: clocks, energy, orders and locked flights stay exact. */
+export function migrateV5(value: unknown): GameState {
+  return { ...validateV5(value), version: 6 };
 }
 export function validateSave(value: unknown): GameState {
   const fail = (): never => { throw new Error('存档结构或经营数据无效，原进度未被覆盖'); };
@@ -392,6 +398,7 @@ export function validateSave(value: unknown): GameState {
   if (version === 2) return validateSave(migrateV2(value));
   if (version === 3) return validateSave(migrateV3(value));
   if (version === 4) return validateSave(migrateV4(value));
+  if (version === 5) return validateSave(migrateV5(value));
   if (version !== SAVE_VERSION) throw new Error('不支持此存档版本；请使用对应版本的游戏');
   const s = structuredClone(value) as GameState;
   record(s, ['version','credits','simTime','lastWallTime','nextId','airports','fleet','routes','stats','claimedTasks','log','orders','nextOrderId','nextDemandAt','hangarSlots','fleetPeak','tutorial']);
@@ -409,11 +416,9 @@ export function validateSave(value: unknown): GameState {
     const task = TASKS.find(t => t.id === id)!;
     if (task.metric === 'fleet' && s.fleetPeak < task.target) fail();
   }
-  // The frozen validator checks infrastructure, IDs, stats, clocks and tasks only.
-  // Real v5 aircraft, upgrades, plans and flights are checked below, never projected for settlement.
-  const { orders: _orders, nextOrderId: _id, nextDemandAt: _time, hangarSlots: _slots, fleetPeak: _peak, tutorial: _tutorial, ...rest } = s;
-  const projection: LegacyState = { ...rest, version: 1,
-    claimedTasks: s.claimedTasks.filter(id => TASKS.find(t => t.id === id)!.metric !== 'fleet'), fleet: s.fleet.map(p => {
+  validateInfrastructure(s);
+  // v6 validates the expanded registry directly; never relax frozen legacy schemas.
+  for (const p of s.fleet) {
     record(p, ['id','modelId','airportId','readyAt','autoRouteId','flight','upgrades','itinerary','dispatcher','energy']);
     record(p.energy, ['availableSeconds','reservedSeconds','serviceUntil']);
     number(p.energy.availableSeconds, ENERGY_CAPACITY_SECONDS);
@@ -432,9 +437,7 @@ export function validateSave(value: unknown): GameState {
     for (const level of Object.values(p.upgrades)) number(level, 3);
     if (!Array.isArray(p.itinerary) || p.itinerary.length > MAX_PLAN_LEGS - 1) fail();
     number(p.readyAt, 1e12, false);
-    return { id: p.id, modelId: model(p.modelId).family, airportId: p.airportId, readyAt: 0, autoRouteId: null, flight: null };
-  }) };
-  validateV1(projection);
+  }
   const ids = new Set<string>(), airports = new Set(s.airports.map(a => a.id)), planes = new Map(s.fleet.map(p => [p.id, p]));
   for (const o of s.orders) {
     record(o, ['id','kind','from','to','amount','reward','location','createdAt','expiresAt']);
