@@ -63,3 +63,10 @@
   .aviation-game .route-dispatch-view .flight-browse-note{max-width:46%}.aviation-game .route-dispatch-console .plan-auto-choice small{display:none}
   .aviation-game .route-dispatch-console .route-city-picker select{width:112px}.aviation-game .route-dispatch-console .route-console-actions{left:126px}.aviation-game .route-dispatch-console .route-console-button{width:47px}.aviation-game .route-dispatch-console .route-dispatch-button{width:58px}
 }
+
+/* MAP-LAYOUT's compact rule moves controls to the top. Route dispatch intentionally keeps them beside the route buttons at the bottom. */
+@media(max-height:600px) and (orientation:landscape){
+  .aviation-game .route-dispatch-view .map-area.is-compact .map-controls{top:auto;right:auto;bottom:8px;left:7px;flex-direction:row;gap:6px}
+  .aviation-game .route-dispatch-view .map-area.is-compact .map-controls button{width:39px;height:39px;min-height:39px;font-size:28px;padding:0;border-width:2px}
+  .aviation-game .route-dispatch-view .map-area.is-compact .map-controls .map-reset{width:33px;height:33px;min-height:33px;font-size:20px}
+}
