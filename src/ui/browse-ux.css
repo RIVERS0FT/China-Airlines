@@ -1,7 +1,7 @@
 /* Browsing-only affordances. Do not change the independent dispatch map layout. */
 .game-modal,.dispatch-dialog{overscroll-behavior:contain;scroll-padding-top:72px}
-.game-modal>header{position:sticky;top:0;z-index:5}
-.game-modal>header button{min-width:44px;min-height:44px;flex-shrink:0}
+.game-modal[open]>header{position:sticky;top:0;z-index:5}
+.game-modal[open]>header button{min-width:44px;min-height:44px;flex-shrink:0}
 .game-modal .airport-directory button,.game-modal .fleet-operations button{min-height:44px}
 .game-modal .browse-search-field{display:flex;flex-direction:column;gap:6px;flex:1 1 250px;min-width:0}
 .game-modal .browse-search-field>label{display:block;font-size:13px;line-height:1.5}

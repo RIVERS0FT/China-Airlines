@@ -37,7 +37,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
     await directory.getByRole('button', { name: '清空机场搜索', exact: true }).click();
     await expect(directory.getByLabel('搜索机场', { exact: true })).toBeFocused();
     await expect(directory.getByLabel('搜索机场', { exact: true })).toHaveValue('');
-    const targets = directory.locator('.airport-directory-tools button, .airport-directory-tools input');
+    const targets = directory.locator(':scope > header button, .airport-directory-tools button, .airport-directory-tools input');
     for (const target of await targets.all()) {
       const box = await target.boundingBox();
       expect(box).not.toBeNull(); expect(box!.height).toBeGreaterThanOrEqual(44);
