@@ -1,5 +1,6 @@
+import type { ContinentFilter } from './airport-search.js';
 import { useEffect, useId, useRef } from 'react';
-import { AIRPORTS } from '../core/catalog.js';
+import { AIRPORTS, CONTINENTS } from '../core/catalog.js';
 import type { GameState } from '../core/game.js';
 import { airportDirectory, type AirportFilter } from './airport-presentation.js';
 import { useAirportDirectoryState } from './airport-directory-state.js';
@@ -9,7 +10,8 @@ import './browse-ux.css';
 export function AirportDirectory({ game, onInspect }: { game: GameState; onInspect: (id: string) => void }) {
   const filter = useAirportDirectoryState(s => s.filter), search = useAirportDirectoryState(s => s.search);
   const root = useRef<HTMLElement>(null), input = useRef<HTMLInputElement>(null), listId = useId();
-  const rows = airportDirectory(game, filter, search);
+  const continent = useAirportDirectoryState(s => s.continent);
+  const rows = airportDirectory(game, filter, search, continent);
 
   useEffect(() => {
     const dialog = root.current?.closest('dialog');
@@ -60,13 +62,16 @@ export function AirportDirectory({ game, onInspect }: { game: GameState; onInspe
         </div>
       </div>
     </div>
+    <label className="airport-world-filter">世界区域<select aria-label="机场世界区域" value={continent} onChange={e => { useAirportDirectoryState.getState().setContinent(e.target.value as ContinentFilter); toTop(); }}>
+      <option value="all">全球全部区域</option>{CONTINENTS.map(c => <option key={c} value={c}>{c}</option>)}
+    </select></label>
     <p className="airport-explanation">先查看各地客货与停靠飞机，再决定去哪里装载。不必先把飞机飞到该机场。</p>
     <p role="status" aria-live="polite" aria-atomic="true" className="browse-result-summary">
       {rows.length ? `找到 ${rows.length} 座${filter === 'open' ? '已开放' : filter === 'locked' ? '未开放' : ''}机场` : '没有符合条件的机场。更换筛选或清除搜索后重试。'}
     </p>
     <div id={listId} className="airport-cards" role="list" aria-label="机场列表">
       {rows.map(a => <div role="listitem" key={a.id}><button type="button" className={`airport-card${a.level ? '' : ' is-locked'}`} data-airport-id={a.id} data-testid={`airport-card-${a.id}`} onClick={() => inspect(a.id)} aria-label={`查看${a.city}机场`}>
-        <span className="airport-code-badge">{a.id}</span><span className="airport-card-title"><strong>{a.city}航空港</strong><small>{a.region} · {a.level ? `${a.level} 级` : '未开放'}</small></span>
+        <span className="airport-code-badge">{a.id}</span><span className="airport-card-title"><strong>{a.city}航空港</strong><small>{a.continent} · {a.region} · {a.level ? `${a.level} 级` : '未开放'}</small></span>
         {a.level ? <span className="airport-card-facts"><span>候运 {a.passengers} 人 / {a.cargo} 吨 · 中转 {a.transfers} 单</span><span>停靠 {a.parked.length} 架 · 飞来 {a.incoming.length} 班</span></span>
           : <span className="airport-card-facts">解锁费用 {money(a.price)}<small>未开放机场没有候运客货</small></span>}
         <span className="airport-card-link">查看机场 ›</span>

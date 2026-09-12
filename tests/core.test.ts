@@ -4,7 +4,7 @@ import { GameCore, OFFLINE_LIMIT, parseSave, quote, TURNAROUND, validateSave, ty
 const NOW=1_800_000_000_000;
 function flying(auto=false){const core=new GameCore(NOW);core.execute({type:'load-destination',planeId:'AC0001',to:'PVG'},NOW);core.execute({type:'dispatch',planeId:'AC0001',to:'PVG',auto},NOW);return core;}
 describe('catalog and fresh game',()=>{
-  it('has twelve airports and a playable first route',()=>{const s=new GameCore(NOW).snapshot();expect(AIRPORTS).toHaveLength(12);expect(s.airports).toHaveLength(2);expect(s.fleet).toHaveLength(1);expect(s.credits).toBe(180000);expect(distance('PEK','PVG')).toBeLessThan(1600);expect(quote(s,s.fleet[0]!,'PVG').revenue).toBe(0);});
+  it('has fifty airports and a playable first route',()=>{const s=new GameCore(NOW).snapshot();expect(AIRPORTS).toHaveLength(50);expect(s.airports).toHaveLength(2);expect(s.fleet).toHaveLength(1);expect(s.credits).toBe(180000);expect(distance('PEK','PVG')).toBeLessThan(1600);expect(quote(s,s.fleet[0]!,'PVG').revenue).toBe(0);});
   it('uses geographic distance rather than display coordinates',()=>{expect(distance('PEK','PEK')).toBe(0);expect(distance('PEK','PVG')).toBe(distance('PVG','PEK'));expect(routeId('PEK','PVG')).toBe(routeId('PVG','PEK'));});
   it('does not leak mutable state through snapshots',()=>{const core=new GameCore(NOW),s=core.snapshot();s.credits=1;s.fleet[0]!.airportId='URC';expect(core.snapshot().credits).toBe(180000);expect(core.snapshot().fleet[0]!.airportId).toBe('PEK');});
 });

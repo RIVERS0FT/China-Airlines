@@ -1,3 +1,4 @@
+import { searchAirports, type ContinentFilter } from './airport-search.js';
 import { AIRPORTS, airport } from '../core/catalog.js';
 import { waiting, type GameState } from '../core/game.js';
 
@@ -32,9 +33,8 @@ export function airportTraffic(game: GameState, id: string) {
   };
 }
 export type AirportFilter = 'all' | 'open' | 'locked';
-export function airportDirectory(game: GameState, filter: AirportFilter, query: string) {
-  const text = query.trim().toLocaleLowerCase('zh-CN');
-  return AIRPORTS.filter(a => `${a.city} ${a.id} ${a.region}`.toLocaleLowerCase('zh-CN').includes(text))
+export function airportDirectory(game: GameState, filter: AirportFilter, query: string, continent: ContinentFilter = 'all') {
+  return searchAirports(query, continent)
     .map(a => airportTraffic(game, a.id))
     .filter(a => filter === 'all' || (filter === 'open' ? a.level > 0 : a.level === 0));
 }

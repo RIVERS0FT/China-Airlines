@@ -86,12 +86,14 @@ test('touching a city on the canvas selects it once and preserves automatic mode
     await expect(canvas).toHaveAttribute('data-renderer', 'ready');
     await expect(canvas).toHaveAttribute('data-camera', /scale/);
     const tapShanghai = async () => {
-      const camera = JSON.parse((await canvas.getAttribute('data-camera'))!) as { x: number; y: number; scale: number };
+      const camera = JSON.parse((await canvas.getAttribute('data-camera'))!) as import('../src/ui/globe-geometry.js').GlobeCamera;
       const bounds = (await canvas.boundingBox())!;
-      // Read the same stable game-map coordinates; send a real pointer event.
+      // Project real latitude/longitude through the current sphere, then send a real touch.
       const { airport } = await import('../src/core/catalog.js');
-      const city = airport('PVG');
-      await page.touchscreen.tap(bounds.x + camera.x + city.x * camera.scale, bounds.y + camera.y + city.y * camera.scale);
+      const { projectGeo } = await import('../src/ui/globe-geometry.js');
+      const city = projectGeo(airport('PVG'), camera);
+      expect(city.visible).toBe(true);
+      await page.touchscreen.tap(bounds.x + city.x, bounds.y + city.y);
     };
     await tapShanghai(); await expect(canvas).toHaveAttribute('data-preview-path', 'PVG');
     await page.getByRole('button', { name: '查看路线', exact: true }).click();
