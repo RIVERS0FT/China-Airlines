@@ -1,15 +1,16 @@
 import { energyDepartureReason } from '../core/energy.js';
 import { energyText } from './EnergyService.js';
-import { airport } from '../core/catalog.js';
+import { AIRPORTS, airport } from '../core/catalog.js';
 import { MAX_PLAN_LEGS, manifest, planQuote, type GameState, type Plane } from '../core/game.js';
 import { controller } from '../runtime.js';
 import { duration, money, ignore } from './Panels.js';
 import './plan-details.css';
 
 /** Planning edits are a local draft. Only the confirmed command changes simulation state. */
-export function PlanControls({ game, plane, stops, setStops, auto, busy, onDepart }: {
+export function PlanControls({ game, plane, stops, setStops, destination, onChoose, onInspect, auto, setAuto, busy, onDepart }: {
   game: GameState; plane: Plane; stops: string[]; setStops: (v: string[]) => void;
-  auto: boolean; busy: boolean; onDepart: () => void;
+  destination: string; onChoose: (id: string) => void; onInspect: () => void;
+  auto: boolean; setAuto: (value: boolean) => void; busy: boolean; onDepart: () => void;
 }) {
   let preview: ReturnType<typeof planQuote> | null = null, error = '';
   try {
@@ -33,10 +34,15 @@ export function PlanControls({ game, plane, stops, setStops, auto, busy, onDepar
     } catch { /* Controller renders errors. */ }
   }
   return <section className="plan-editor" aria-label="路线规划">
+    <div className="plan-route-tools">
+      <label className="route-city-picker"><span>城市</span><select aria-label="选择机场" disabled={busy} value={destination} onChange={e => onChoose(e.target.value)}>{AIRPORTS.map(item => <option value={item.id} key={item.id}>{item.city} · {item.id}{game.airports.some(x => x.id === item.id) ? '' : ' · 未解锁'}</option>)}</select></label>
+      <button className="route-city-detail" aria-label={`查看${airport(destination).city}机场详情`} onClick={onInspect}>城市详情</button>
+      {stops.length === 1 && <label className="plan-auto-choice"><input type="checkbox" checked={auto} disabled={busy || !plane.dispatcher} onChange={e => setAuto(e.target.checked)}/>自动往返{!plane.dispatcher && <small>需调度员</small>}</label>}
+    </div>
     <div className="plan-stop-row">
       <b>{airport(plane.airportId).city}</b>
       {stops.map((id, i) => <span className="plan-stop" key={`${id}-${i}`}>→ {i + 1}. {airport(id).city}</span>)}
-      {!stops.length && <span className="plan-hint">点击地图中的已解锁城市，按点击顺序形成路线</span>}
+      {!stops.length && <span className="plan-hint">点击地图中的已解锁城市，按点击顺序形成路线；未解锁城市会按需打开详情。</span>}
       <div className="plan-edit-actions">
         <button disabled={locked || !stops.length} onClick={() => setStops(stops.slice(0, -1))}>撤销末段</button>
         <button disabled={locked || !stops.length} onClick={() => setStops([])}>清空路线</button>

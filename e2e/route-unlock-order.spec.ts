@@ -9,10 +9,17 @@ test('selecting the next city immediately after unlock retains the committed fir
   await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   await page.getByRole('button', { name: '航线地图', exact: true }).click();
   const city = page.getByLabel('选择机场', { exact: true });
+  await expect(page.locator('.network-controls')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^升级机场/ })).toHaveCount(0);
   await city.selectOption('WUH');
-  await page.getByRole('button', { name: /^解锁机场/ }).click();
-  // No sleep or explicit save wait: the real select must remain disabled until
-  // the unlock's asynchronous append is safe from a competing city selection.
+  const detail = page.getByRole('dialog', { name: '机场详情', exact: true });
+  await expect(detail).toBeVisible();
+  await expect(detail.getByRole('button', { name: '返回航线地图', exact: true })).toBeVisible();
+  await detail.getByRole('button', { name: /^解锁机场/ }).click();
+  await expect(detail).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^升级机场/ })).toHaveCount(0);
+  // No sleep or explicit save wait: the unlock callback must append before a
+  // competing city selection can replace the local route draft.
   await city.selectOption('PVG');
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-preview-path', 'WUH,PVG');
   await expect(page.getByTestId('plan-summary')).toContainText('2 段');
