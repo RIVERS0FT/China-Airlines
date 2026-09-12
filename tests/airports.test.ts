@@ -14,7 +14,7 @@ describe('read-only airport views', () => {
   it('counts people, tonnes and orders separately without changing any game state', () => {
     const state = new GameCore(NOW).snapshot(), original = structuredClone(state);
     const a = airportTraffic(state, 'PEK');
-    expect(a.orders).toBe(12); expect(a.passengers).toBe(140); expect(a.cargo).toBe(4);
+    expect(a.orders).toBe(12); expect(a.passengers).toBe(8); expect(a.cargo).toBe(4);
     expect(a.transfers).toBe(0); expect(a.destinations).toHaveLength(1);
     expect(a.parked.map(p => p.id)).toEqual(['AC0001']);
     expect(airportDirectory(state, 'all', '')).toHaveLength(50);

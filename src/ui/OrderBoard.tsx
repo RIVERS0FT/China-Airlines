@@ -7,24 +7,22 @@ import { currentFlight } from './flight-status.js';
 import { loadingLock, orderBlockReason } from './order-presentation.js';
 import { money, duration, ignore } from './Panels.js';
 
-/** Original passenger groups and cargo carts, not assets taken from the reference game. */
+/** Original single-passenger and single-cargo art; fresh demand is never grouped. */
 function PassengerArt({ order }: { order: Order }) {
   const variant = Number(order.id.slice(2)) % 3;
   return <svg viewBox="0 0 100 62" aria-hidden="true" className="job-art">
-    <ellipse cx="50" cy="57" rx="39" ry="4" fill="#536869" opacity=".16"/>
+    <ellipse cx="50" cy="57" rx="25" ry="4" fill="#536869" opacity=".16"/>
     {order.kind === 'cargo' ? <g stroke="#775c3e" strokeWidth="2">
-      <path d="M13 47h70l5-21h7M18 49l-3 7m65-7 3 7" fill="none"/>
-      <path d="M20 23h28v24H20zm30-8h27v32H50Z" fill="#dca25d"/>
-      <path d="M30 23h8v24h-8zm29-8h8v32h-8Z" fill="#f2dba5"/>
-      <circle cx="27" cy="54" r="4" fill="#466477"/><circle cx="73" cy="54" r="4" fill="#466477"/>
-    </g> : <g stroke="#43596c" strokeWidth="1.5">
-      {[23, 50, 75].map((x, i) => <g key={x} transform={`translate(${x},${i === 1 ? 1 : 5})`}>
-        <path d="m-5 35-2 17m10-17 2 17" strokeWidth="4"/>
-        <path d="M-8 20H8l4 18h-24Z" fill={['#dfaa59','#5ca8a5','#cf8070'][(i + variant) % 3]}/>
-        <circle cy="12" r="8" fill="#f2cca6"/>
-        <path d="M-8 11q-3-15 10-11 8 1 6 12l-5-7-10 6Z" fill="#625247"/>
-      </g>)}
-      <rect x="81" y="39" width="12" height="15" rx="2" fill="#7691a4"/><path d="M84 38v-6h6v6" fill="none"/>
+      <path d="M22 48h55l4-18h8M27 50l-3 6m47-6 3 6" fill="none"/>
+      <rect x="34" y="20" width="34" height="28" rx="2" fill="#dca25d"/>
+      <path d="M51 20v28M34 31h34" stroke="#f2dba5"/>
+      <circle cx="34" cy="54" r="4" fill="#466477"/><circle cx="67" cy="54" r="4" fill="#466477"/>
+    </g> : <g stroke="#43596c" strokeWidth="1.8" transform="translate(50,3)">
+      <path d="m-5 34-3 19m11-19 3 19" strokeWidth="4"/>
+      <path d="M-10 19H9l5 19h-29Z" fill={['#dfaa59','#5ca8a5','#cf8070'][variant]}/>
+      <circle cy="11" r="9" fill="#f2cca6"/>
+      <path d="M-9 10q-3-15 11-11 9 1 7 13L4 5-6 11Z" fill="#625247"/>
+      <rect x="15" y="37" width="13" height="16" rx="2" fill="#7691a4"/><path d="M18 36v-6h7v6" fill="none"/>
     </g>}
   </svg>;
 }
@@ -37,7 +35,7 @@ function OrderCard({ order, aboard, reason, busy, onClick }: {
     aria-describedby={`reason-${order.id}`}>
     <span className="job-destination">{airport(order.to).city}<small>{order.to}</small></span>
     <PassengerArt order={order}/>
-    <span className="job-quantity">{order.kind === 'cargo' ? '货物' : '旅客'} × {order.amount}{order.kind === 'cargo' ? '吨' : '人'}</span>
+    <span className="job-quantity">{order.amount === 1 ? (order.kind === 'cargo' ? '1 吨货物' : '1 位旅客') : `${order.kind === 'cargo' ? '历史货单' : '历史旅客组'} × ${order.amount}${order.kind === 'cargo' ? '吨' : '人'}`}</span>
     <strong>{money(order.reward)}</strong>
     <small id={`reason-${order.id}`} className="job-state">{reason || (aboard ? '已装载 · 点击卸下' : order.expiresAt === null ? '中转保留 · 点击装载' : '点击装载')}</small>
   </button>;

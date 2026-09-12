@@ -1,5 +1,5 @@
 import { MAX_FLEET } from './legacy.js';
-import { AIRPORTS, MODELS, TASKS, routeId, model } from './catalog.js';
+import { AIRPORTS, MODELS, STARTER_MODEL, TASKS, routeId, model } from './catalog.js';
 import type { GameState } from './game.js';
 /** v6 infrastructure validation. Older schemas keep their frozen 12-airport registry. */
 export function validateInfrastructure(s: GameState): void {
@@ -32,7 +32,7 @@ export function validateInfrastructure(s: GameState): void {
   const planes = new Set<string>();
   for (const p of s.fleet) {
     if (!p || typeof p.id !== 'string' || !/^AC\d{4,9}$/.test(p.id) || Number(p.id.slice(2)) < 1 ||
-      Number(p.id.slice(2)) >= s.nextId || planes.has(p.id) || !MODELS.some(m => m.id === p.modelId) ||
+      Number(p.id.slice(2)) >= s.nextId || planes.has(p.id) || (p.modelId !== STARTER_MODEL.id && !MODELS.some(m => m.id === p.modelId)) ||
       !airports.has(p.airportId) || airports.get(p.airportId)! < model(p.modelId).level) fail();
     planes.add(p.id);
   }

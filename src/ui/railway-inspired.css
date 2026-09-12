@@ -1,0 +1,309 @@
+/*
+ * Railway-inspired airport chrome.
+ * This borrows only layout hierarchy and interaction emphasis from the supplied
+ * reference: resource counters, scene overlays, platform-like jobs and a strong
+ * departure action. All art, icons, copy and game rules remain original.
+ */
+.aviation-game:not(.dispatch-focused){
+  --ref-blue:#2d93bf;
+  --ref-blue-deep:#225b7b;
+  --ref-cyan:#5ed5ec;
+  --ref-gold:#f2c24f;
+  --ref-gold-deep:#9a6b24;
+  --ref-cream:#fff7d9;
+  --ref-brown:#54443e;
+  background:#8dccdf;
+}
+
+/* Top resources: icon medallion + dark counter pill, preserving existing data/actions. */
+.aviation-game:not(.dispatch-focused) .game-hud{
+  height:66px;
+  padding:6px 14px;
+  gap:10px;
+  background:linear-gradient(#eefcf9 0 18%,#8fd4e5 19% 83%,#6ab8d0 84% 100%);
+  border-bottom:3px solid #2e6684;
+  box-shadow:inset 0 -2px 0 #d7f9fb,0 3px 0 #214c6355;
+}
+.aviation-game:not(.dispatch-focused) .game-brand{gap:8px;margin-right:auto;min-width:160px}
+.aviation-game:not(.dispatch-focused) .pilot-badge{
+  width:48px;height:48px;border-radius:13px;border:3px solid #f0cf73;
+  background:linear-gradient(145deg,#67c4dc,#27688f 72%);
+  box-shadow:inset 0 2px #e4fbff,0 2px 0 #254b6655;
+}
+.aviation-game:not(.dispatch-focused) .game-brand h1{font-size:23px;color:#173f5c;text-shadow:0 1px #fff;letter-spacing:2px}
+.aviation-game:not(.dispatch-focused) .game-brand small{color:#315e72;font-weight:700}
+.aviation-game:not(.dispatch-focused) .game-hud .resource,
+.aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button{
+  min-width:128px;min-height:44px;padding:0!important;gap:0!important;
+  border:0!important;background:transparent!important;box-shadow:none!important;
+}
+.aviation-game:not(.dispatch-focused) .game-hud .resource>i,
+.aviation-game:not(.dispatch-focused) .game-hud .resource>svg,
+.aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button>svg{
+  position:relative;z-index:2;width:38px;height:38px;flex:0 0 38px;
+  border:3px solid #e4a735;border-radius:50%;padding:5px;
+  color:#fff8c9;background:linear-gradient(#ffd85d,#d88a26);
+  box-shadow:inset 0 2px #fff6bb,0 2px 0 #27516d55;
+}
+.aviation-game:not(.dispatch-focused) .game-hud .resource>i{display:grid;place-items:center;padding:0;color:#8d5d18;font-size:13px}
+.aviation-game:not(.dispatch-focused) .game-hud .resource>span,
+.aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button>span{
+  min-width:104px;margin-left:-15px;padding:4px 10px 4px 20px;
+  border:2px solid #ead59a;border-radius:0 18px 18px 0;
+  background:linear-gradient(#64514a,#433936);color:#fff8dc;
+  box-shadow:inset 0 1px #8a7468,0 2px 0 #244d6750;
+}
+.aviation-game:not(.dispatch-focused) .game-hud .resource small,
+.aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button small{font-size:9px;color:#f4dca3;font-weight:700}
+.aviation-game:not(.dispatch-focused) .game-hud .resource strong,
+.aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button strong{font-size:17px;line-height:18px;color:#fffef3;text-shadow:0 1px #2f2522}
+.aviation-game:not(.dispatch-focused) .game-hud>button[aria-label="操作帮助"],
+.aviation-game:not(.dispatch-focused) .game-hud>button[aria-label="存档设置"]{
+  min-width:40px;height:42px;min-height:42px;padding:5px 8px;
+  border-color:#2d7295;background:linear-gradient(#78e2f2,#319fc8);color:#fffce0;
+  text-shadow:0 1px #315f79;box-shadow:inset 0 2px #d8fbff,0 2px #235a78;
+}
+.aviation-game:not(.dispatch-focused) .game-hud>button[aria-label="操作帮助"]{font-size:20px;border-radius:50%}
+.aviation-game:not(.dispatch-focused) .game-hud>button[aria-label="存档设置"] span{font-size:10px;font-weight:800}
+
+/* The airport board now floats over the world instead of consuming a full row. */
+.aviation-game:not(.dispatch-focused) .game-workspace{position:relative}
+.aviation-game:not(.dispatch-focused) .airport-titlebar{
+  position:absolute;z-index:5;top:10px;left:12px;right:12px;
+  height:auto!important;min-height:0!important;padding:0!important;gap:8px;
+  align-items:flex-start;background:transparent;border:0;pointer-events:none;
+}
+.aviation-game:not(.dispatch-focused) .airport-titlebar>*{pointer-events:auto}
+.aviation-game:not(.dispatch-focused) .airport-info-trigger{
+  width:52px;min-width:52px;height:52px;min-height:52px;padding:4px!important;
+  color:#fff9c6;background:linear-gradient(#59cfe8,#2a8fbd)!important;
+  border-color:#205f84!important;box-shadow:inset 0 2px #c9f8ff,0 3px #204f6d!important;
+}
+.aviation-game:not(.dispatch-focused) .gate-sign{
+  min-height:54px;border:3px solid #1e4b70;border-radius:7px;
+  background:#245f8b;color:#fff5b4;box-shadow:inset 0 2px #74bfe2,0 3px #173b5855;
+}
+.aviation-game:not(.dispatch-focused) .gate-sign>b{display:grid;place-items:center;min-width:48px;padding:7px 10px;background:#3c91c1;border-right-color:#1e4b70;font-size:23px}
+.aviation-game:not(.dispatch-focused) .gate-sign>div{min-width:168px;padding:6px 12px;gap:4px}
+.aviation-game:not(.dispatch-focused) .gate-sign strong{font-size:18px;text-shadow:0 1px #1c4666}
+.aviation-game:not(.dispatch-focused) .gate-sign small{font-size:9px;color:#ccebf3;font-weight:700}
+.aviation-game:not(.dispatch-focused) .plane-status,
+.aviation-game:not(.dispatch-focused) .capacity{
+  min-height:52px;padding:7px 10px;border:2px solid #4b7d92;border-radius:9px;
+  background:#fff9e9e8;box-shadow:inset 0 1px #fff,0 3px #244f6630;
+  backdrop-filter:blur(2px);
+}
+.aviation-game:not(.dispatch-focused) .plane-status{min-width:170px;max-width:240px;justify-content:center;gap:3px}
+.aviation-game:not(.dispatch-focused) .plane-status strong{font-size:13px;color:#244a60}
+.aviation-game:not(.dispatch-focused) .plane-status span{font-size:10px;color:#5c6f72;font-weight:700}
+.aviation-game:not(.dispatch-focused) .capacity{
+  margin-left:0;min-width:245px;max-width:360px;flex:1;
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-content:center;gap:5px;
+}
+.aviation-game:not(.dispatch-focused) .capacity span{
+  min-width:0;padding:4px 5px;border:1px solid #d4b96d;border-radius:7px;
+  background:linear-gradient(#fffbe7,#f4e8b9);font-size:10px;text-align:center;white-space:nowrap;
+}
+.aviation-game:not(.dispatch-focused) .capacity .plane-energy{border-color:#69a98e;background:linear-gradient(#edffe7,#cae9bb);color:#315b47}
+.aviation-game:not(.dispatch-focused) .airport-titlebar>.plan-cancel,
+.aviation-game:not(.dispatch-focused) .airport-titlebar>button:not(.airport-info-trigger){
+  min-height:40px;padding:5px 8px;font-size:10px;background:linear-gradient(#fff5b5,#e5bd5b);border-color:#9a7433;
+}
+
+/* Keep the aircraft as the visual hero and join scene + platform with a safety stripe. */
+.aviation-game:not(.dispatch-focused) .scene-wrap{
+  min-height:0;background:#8ad0e3;box-shadow:inset 0 -20px #aeb7b4;
+}
+.aviation-game:not(.dispatch-focused) .scene-wrap::after{
+  content:"";position:absolute;z-index:3;left:0;right:0;bottom:0;height:11px;pointer-events:none;
+  border-top:2px solid #745f2f;border-bottom:2px solid #745f2f;
+  background:repeating-linear-gradient(135deg,#f4cf45 0 14px,#283d4b 14px 28px);
+}
+.aviation-game:not(.dispatch-focused) .airport-backdrop{filter:saturate(1.12) contrast(1.03)}
+.aviation-game:not(.dispatch-focused) .airplane-display{width:min(92%,1220px);height:95%;bottom:1%;z-index:2}
+.aviation-game:not(.dispatch-focused) .aviation-stage:not(.is-flying) .airplane-display{bottom:0}
+.aviation-game:not(.dispatch-focused) .scene-caption{
+  left:50%;bottom:15px;width:auto;max-width:70%;transform:translateX(-50%);
+  padding:3px 12px;border:1px solid #4e7a8299;border-radius:11px;
+  background:#f7fff4cc;color:#315766;font-size:10px;font-weight:700;white-space:nowrap;
+}
+.aviation-game:not(.dispatch-focused) .switch-plane{
+  z-index:4;width:48px;height:62px;border-color:#9e6f2e!important;border-radius:24px 8px 8px 24px!important;
+  background:linear-gradient(#fff38e,#eca93b)!important;color:#744513!important;
+  box-shadow:inset 0 2px #fffac4,0 3px #704a2255!important;
+}
+.aviation-game:not(.dispatch-focused) .switch-plane.next{border-radius:8px 24px 24px 8px!important}
+
+/* Waiting jobs read as platform occupants rather than management cards. */
+.aviation-game:not(.dispatch-focused) .apron-queue{
+  position:relative;height:232px;min-height:232px;border-top:0;
+  background:linear-gradient(#f4e5bd 0 14%,#e2d2aa 14% 18%,#e9dfc5 18% 70%,#c7cbc0 70% 73%,#aeb8b3 73% 100%);
+  box-shadow:inset 0 5px #83734c,0 -2px #4c6570;
+}
+.aviation-game:not(.dispatch-focused) .apron-queue::before{
+  content:"";position:absolute;z-index:1;left:0;right:0;top:0;height:8px;pointer-events:none;
+  background:repeating-linear-gradient(135deg,#f3c93f 0 12px,#253b49 12px 24px);
+}
+.aviation-game:not(.dispatch-focused) .order-toolbar{
+  min-height:48px;padding:7px 14px 5px;margin-top:8px;gap:10px;
+  background:linear-gradient(#fff6d9,#ead9aa);border-bottom:2px solid #a99567;
+  box-shadow:inset 0 1px #fff;
+}
+.aviation-game:not(.dispatch-focused) .order-tabs button{
+  min-height:33px;padding:4px 10px;border-color:#2f7595;background:linear-gradient(#74d8ed,#3aa2ca);color:#fffce2;
+  box-shadow:inset 0 2px #d9fbff,0 2px #2e6680;text-shadow:0 1px #35627a;
+}
+.aviation-game:not(.dispatch-focused) .order-tabs button.active{
+  border-color:#936c31;background:linear-gradient(#fff19a,#e9b541);color:#6b4a1e;text-shadow:none;
+}
+.aviation-game:not(.dispatch-focused) .order-tabs b{background:#fffbdc;color:#37647b;border:1px solid #a5c5cf}
+.aviation-game:not(.dispatch-focused) .demand-clock{padding:4px 7px;border-radius:7px;background:#fff7dc;color:#6e5e45;font-weight:700}
+.aviation-game:not(.dispatch-focused) .quick-load{gap:6px}
+.aviation-game:not(.dispatch-focused) .quick-load button{background:linear-gradient(#fff08a,#e9b548);border-color:#936c31;color:#6e491a;font-weight:800}
+.aviation-game:not(.dispatch-focused) .order-window{grid-template-columns:36px minmax(0,1fr) 36px;padding:0 132px 0 5px;gap:3px}
+.aviation-game:not(.dispatch-focused) .queue-arrow{
+  z-index:2;width:34px;height:46px;min-height:46px;padding:0;border-radius:17px;
+  background:linear-gradient(#68d7ec,#2c92bd);border-color:#245f83;color:#fff9cb;
+  box-shadow:inset 0 2px #cef8ff,0 2px #24566e;font-size:25px;
+}
+.aviation-game:not(.dispatch-focused) .apron-queue .order-strip{padding:7px 3px 9px;gap:11px;overflow-y:hidden}
+.aviation-game:not(.dispatch-focused) .apron-queue .job-card{
+  position:relative;overflow:visible;flex:0 0 148px;min-width:0;padding:0 3px 4px!important;gap:1px!important;
+  border:0!important;border-radius:7px!important;background:transparent!important;box-shadow:none!important;
+}
+.aviation-game:not(.dispatch-focused) .apron-queue .job-card::after{
+  content:"";position:absolute;z-index:-1;left:20%;right:20%;bottom:28px;height:8px;border-radius:50%;background:#54666d26;
+}
+.aviation-game:not(.dispatch-focused) .apron-queue .job-card:hover:not(:disabled){outline:2px solid #e3a932;background:#fff8cc55!important}
+.aviation-game:not(.dispatch-focused) .apron-queue .job-card.aboard{outline:2px solid #4c9c83;background:#dff3d255!important}
+.aviation-game:not(.dispatch-focused) .apron-queue .job-destination{
+  position:relative;z-index:2;width:92%;margin:0 auto;padding:3px 7px;border:2px solid #315f78;border-radius:4px;
+  background:linear-gradient(#5fb9dc,#2d82ad);box-shadow:inset 0 1px #cbf4ff,0 2px #31566a;
+  font-size:14px;text-shadow:0 1px #2d5d73;
+}
+.aviation-game:not(.dispatch-focused) .apron-queue .job-destination::after{
+  content:"";position:absolute;z-index:-1;left:50%;top:100%;width:4px;height:13px;margin-left:-2px;background:#6a7270;border:1px solid #485e63;border-top:0;
+}
+.aviation-game:not(.dispatch-focused) .apron-queue .job-card.aboard .job-destination{background:linear-gradient(#6ac5a4,#348f78);border-color:#2e6759}
+.aviation-game:not(.dispatch-focused) .apron-queue .job-art{height:72px;width:105px;margin-top:6px;filter:drop-shadow(0 2px 0 #ffffff80)}
+.aviation-game:not(.dispatch-focused) .apron-queue .job-quantity{padding:1px 5px;border-radius:7px;background:#fff9e3d9;font-size:11px;font-weight:800;color:#4c5b5b}
+.aviation-game:not(.dispatch-focused) .apron-queue .job-card strong{
+  padding:1px 6px;border:1px solid #d19d36;border-radius:8px;background:#fff1a4;color:#754b16;font-size:14px;text-shadow:0 1px #fff8c9;
+}
+.aviation-game:not(.dispatch-focused) .apron-queue .job-state{max-width:100%;padding:1px 5px;border-radius:6px;background:#fffbe9cc;color:#665a44;font-size:9px!important;line-height:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Bottom launcher: compact icon tiles, with the departure control promoted above it. */
+.aviation-game:not(.dispatch-focused) .game-dock{
+  position:relative;height:80px;padding:7px 152px 7px 10px;gap:7px;justify-content:center;
+  background:linear-gradient(#c9eef2,#70bad3);border-top:3px solid #376e8a;
+  box-shadow:inset 0 2px #efffff;
+}
+.aviation-game:not(.dispatch-focused) .game-dock>button:not(.depart-button){
+  flex:0 0 76px;min-width:76px;height:64px;min-height:64px;padding:5px 4px;
+  border:2px solid #2a6f93;border-radius:10px;background:linear-gradient(#70ddf0,#2594c1);color:#fffbd9;
+  box-shadow:inset 0 2px #d8fbff,0 3px #245c7a;text-shadow:0 1px #37657b;font-size:11px;font-weight:800;
+}
+.aviation-game:not(.dispatch-focused) .game-dock>button:not(.depart-button)>.icon{width:25px;height:25px}
+.aviation-game:not(.dispatch-focused) .game-dock>button.active:not(.depart-button){background:linear-gradient(#fff3a7,#e8b84b);border-color:#9a7434;color:#674819;text-shadow:none;box-shadow:inset 0 2px #fffbd4,0 3px #7c5a2c}
+.aviation-game:not(.dispatch-focused) .dock-status{max-width:170px;margin:auto 0 auto auto;padding:0 6px;gap:4px;color:#234c63;font-size:11px}
+.aviation-game:not(.dispatch-focused) .dock-status small{font-size:9px;color:#416b78;font-weight:700}
+.aviation-game:not(.dispatch-focused) .game-dock .depart-button{
+  position:absolute;z-index:7;right:14px;bottom:calc(100% + 15px);
+  width:124px;height:92px;min-height:92px;padding:8px 7px;border:3px solid #93651f;border-radius:18px;
+  background:linear-gradient(#fff49b 0 16%,#ffc950 17% 62%,#e9932d 63% 100%);color:#6b3f12;
+  box-shadow:inset 0 3px #fffbd0,0 5px #6e4c2555;text-shadow:0 1px #fff6bd;font-size:14px;font-weight:900;
+}
+.aviation-game:not(.dispatch-focused) .game-dock .depart-button>.icon{width:34px;height:34px;color:#2b7098;filter:drop-shadow(0 1px #fff)}
+.aviation-game:not(.dispatch-focused) .game-dock .depart-button:hover:not(:disabled){background:linear-gradient(#fff9bd,#ffd95f 62%,#efa43a)}
+
+@media(max-height:600px) and (orientation:landscape){
+  .aviation-game:not(.dispatch-focused) .game-hud{height:44px;padding:3px 6px;gap:5px}
+  .aviation-game:not(.dispatch-focused) .game-brand{min-width:105px;gap:4px}
+  .aviation-game:not(.dispatch-focused) .pilot-badge{width:32px;height:32px;border-width:2px;border-radius:8px}
+  .aviation-game:not(.dispatch-focused) .pilot-badge svg{width:20px;height:20px}
+  .aviation-game:not(.dispatch-focused) .game-brand h1{font-size:16px;letter-spacing:1px}
+  .aviation-game:not(.dispatch-focused) .game-brand small{display:none}
+  .aviation-game:not(.dispatch-focused) .game-hud .resource,
+  .aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button{min-width:82px;min-height:32px}
+  .aviation-game:not(.dispatch-focused) .game-hud .resource>i,
+  .aviation-game:not(.dispatch-focused) .game-hud .resource>svg,
+  .aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button>svg{width:29px;height:29px;flex-basis:29px;border-width:2px;padding:4px}
+  .aviation-game:not(.dispatch-focused) .game-hud .resource>i{font-size:10px;padding:0}
+  .aviation-game:not(.dispatch-focused) .game-hud .resource>span,
+  .aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button>span{min-width:66px;margin-left:-11px;padding:2px 6px 2px 14px;border-width:1px}
+  .aviation-game:not(.dispatch-focused) .game-hud .resource small,
+  .aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button small{display:none}
+  .aviation-game:not(.dispatch-focused) .game-hud .resource strong,
+  .aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button strong{font-size:13px;line-height:20px}
+  .aviation-game:not(.dispatch-focused) .game-hud>button[aria-label="操作帮助"],
+  .aviation-game:not(.dispatch-focused) .game-hud>button[aria-label="存档设置"]{height:31px;min-height:31px;min-width:31px;padding:3px 5px}
+  .aviation-game:not(.dispatch-focused) .game-hud>button[aria-label="存档设置"] span{display:none}
+
+  .aviation-game:not(.dispatch-focused) .airport-titlebar{top:5px;left:6px;right:6px;gap:5px}
+  .aviation-game:not(.dispatch-focused) .airport-info-trigger{width:38px;min-width:38px;height:38px;min-height:38px;font-size:9px!important}
+  .aviation-game:not(.dispatch-focused) .gate-sign{min-height:38px;border-width:2px}
+  .aviation-game:not(.dispatch-focused) .gate-sign>b{min-width:34px;padding:4px 6px;font-size:16px;border-right-width:2px}
+  .aviation-game:not(.dispatch-focused) .gate-sign>div{min-width:118px;padding:3px 6px;gap:1px}
+  .aviation-game:not(.dispatch-focused) .gate-sign strong{font-size:12px}
+  .aviation-game:not(.dispatch-focused) .gate-sign small{font-size:8px}
+  .aviation-game:not(.dispatch-focused) .plane-status,
+  .aviation-game:not(.dispatch-focused) .capacity{min-height:38px;padding:3px 5px;border-width:1px;border-radius:6px}
+  .aviation-game:not(.dispatch-focused) .plane-status{min-width:105px;max-width:135px;gap:1px}
+  .aviation-game:not(.dispatch-focused) .plane-status strong{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .aviation-game:not(.dispatch-focused) .plane-status span{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .aviation-game:not(.dispatch-focused) .capacity{min-width:170px;max-width:none;gap:3px}
+  .aviation-game:not(.dispatch-focused) .capacity span{padding:2px 3px;font-size:8px;border-radius:4px}
+  .aviation-game:not(.dispatch-focused) .airport-titlebar>.plan-cancel,
+  .aviation-game:not(.dispatch-focused) .airport-titlebar>button:not(.airport-info-trigger){min-height:30px;padding:2px 4px;font-size:8px}
+  .aviation-game:not(.dispatch-focused) .scene-wrap::after{height:8px}
+  .aviation-game:not(.dispatch-focused) .airplane-display{width:88%;height:100%;bottom:0}
+  .aviation-game:not(.dispatch-focused) .scene-caption{display:none}
+  .aviation-game:not(.dispatch-focused) .switch-plane{width:34px;height:40px;min-height:40px!important;font-size:18px!important}
+
+  .aviation-game:not(.dispatch-focused) .apron-queue{height:142px;min-height:142px}
+  .aviation-game:not(.dispatch-focused) .apron-queue::before{height:5px}
+  .aviation-game:not(.dispatch-focused) .order-toolbar{height:34px;min-height:34px;margin-top:5px;padding:2px 6px;gap:4px}
+  .aviation-game:not(.dispatch-focused) .order-tabs button{min-height:27px;padding:2px 5px;font-size:10px}
+  .aviation-game:not(.dispatch-focused) .demand-clock{font-size:8px;padding:2px 4px}
+  .aviation-game:not(.dispatch-focused) .quick-load{gap:3px}
+  .aviation-game:not(.dispatch-focused) .quick-load button{min-height:27px;padding:2px 5px;font-size:9px}
+  .aviation-game:not(.dispatch-focused) .order-window{grid-template-columns:28px minmax(0,1fr) 28px;padding:0 79px 0 3px;gap:2px}
+  .aviation-game:not(.dispatch-focused) .queue-arrow{width:27px;height:34px;min-height:34px;font-size:20px}
+  .aviation-game:not(.dispatch-focused) .apron-queue .order-strip{gap:6px;padding:3px 2px 4px}
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-card{
+    flex-basis:123px;display:grid!important;grid-template-columns:43px minmax(0,1fr);grid-template-rows:19px 25px 14px 14px;
+    column-gap:2px!important;row-gap:0!important;padding:0 1px 1px!important;
+  }
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-destination{grid-column:1/3;width:100%;font-size:10px;line-height:13px;padding:1px 4px;border-width:1px}
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-destination::after{height:7px;width:3px}
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-art{grid-row:2/5;height:43px;width:45px;margin:1px 0 0}
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-quantity{font-size:9px;line-height:12px;padding:0 2px;white-space:nowrap}
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-card strong{font-size:10px;line-height:12px;padding:0 3px;white-space:nowrap}
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-state{font-size:8px!important;line-height:11px;padding:0 2px}
+
+  .aviation-game:not(.dispatch-focused) .game-dock{height:52px;padding:3px 83px 3px 4px;gap:4px}
+  .aviation-game:not(.dispatch-focused) .game-dock>button:not(.depart-button){flex-basis:54px;min-width:54px;height:44px;min-height:44px;padding:2px;font-size:8px;border-radius:7px}
+  .aviation-game:not(.dispatch-focused) .game-dock>button:not(.depart-button)>.icon{width:18px;height:18px}
+  .aviation-game:not(.dispatch-focused) .dock-status{max-width:92px;padding:0 2px;gap:1px;font-size:8px;line-height:10px}
+  .aviation-game:not(.dispatch-focused) .dock-status small{display:none}
+  .aviation-game:not(.dispatch-focused) .game-dock .depart-button{
+    right:5px;bottom:calc(100% + 5px);width:73px;height:62px;min-height:62px;padding:4px 3px;border-width:2px;border-radius:12px;font-size:9px;
+  }
+  .aviation-game:not(.dispatch-focused) .game-dock .depart-button>.icon{width:24px;height:24px}
+}
+
+@media(max-width:720px) and (orientation:landscape){
+  .aviation-game:not(.dispatch-focused) .game-hud{gap:3px;padding-inline:4px}
+  .aviation-game:not(.dispatch-focused) .game-brand{min-width:93px}
+  .aviation-game:not(.dispatch-focused) .game-brand h1{font-size:14px}
+  .aviation-game:not(.dispatch-focused) .game-hud .resource,
+  .aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button{min-width:75px}
+  .aviation-game:not(.dispatch-focused) .game-hud .resource>span,
+  .aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button>span{min-width:59px;padding-right:4px}
+  .aviation-game:not(.dispatch-focused) .plane-status{max-width:112px;min-width:90px}
+  .aviation-game:not(.dispatch-focused) .plane-status span{display:none}
+  .aviation-game:not(.dispatch-focused) .capacity{min-width:150px}
+  .aviation-game:not(.dispatch-focused) .capacity span{font-size:7px;padding-inline:2px}
+  .aviation-game:not(.dispatch-focused) .game-dock>button:not(.depart-button){flex-basis:50px;min-width:50px;font-size:7px}
+  .aviation-game:not(.dispatch-focused) .dock-status{max-width:75px}
+}
