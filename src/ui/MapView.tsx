@@ -4,6 +4,7 @@ import { AIRPORTS, aircraftSpecs, airport } from '../core/catalog.js';
 import type { GameState, Plane } from '../core/game.js';
 import { mapLayout, MIN_MAP_SCALE } from './map-camera.js';
 import './map-readability.css';
+import { passengerDestinationCounts, passengerDestinationKey } from './passenger-destinations.js';
 import { previewDescription, type RoutePreview } from './route-preview.js';
 interface Props { game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null; showOthers: boolean; onToggleOthers: () => void }
 function curve(from: string, to: string, t: number) {
@@ -61,15 +62,18 @@ export function MapView(props: Props) {
         draft.eventMode = draftLabels.eventMode = rangeRing.eventMode = 'none';
         world.addChild(terrain, lines, rangeRing, draft, nodes, draftLabels, aircraft);
         drawDecorativeTerrain(terrain);
-        const marks = new Map<string, { ring: Graphics; label: Text; code: Text; value: Text }>();
+        const marks = new Map<string, { ring: Graphics; label: Text; code: Text; value: Text; passengerBadge: Graphics; passengerText: Text }>();
         for (const a of AIRPORTS) {
           const group = new Container(); group.position.set(a.x,a.y);
           const ring = new Graphics(), label = new Text({text:a.city,style:{fontFamily:'system-ui, sans-serif',fontSize:18,fontWeight:'700',fill:0x203a32}});
           const code = new Text({text:a.id,style:{fontFamily:'monospace',fontSize:11,fontWeight:'700',letterSpacing:1,fill:0x365b53}});
           const value = new Text({text:'',style:{fontFamily:'system-ui, sans-serif',fontSize:11,fontWeight:'700',fill:0x203a32}});
-          label.position.set(15,-23); code.position.set(16,-2); value.position.set(16,13); group.addChild(ring,label,code,value); nodes.addChild(group); marks.set(a.id,{ring,label,code,value});
+          const passengerBadge = new Graphics(), passengerText = new Text({text:'',style:{fontFamily:'system-ui, sans-serif',fontSize:10,fontWeight:'800',fill:0x3f3300}});
+          passengerBadge.visible = false; passengerText.visible = false;
+          label.position.set(15,-23); code.position.set(16,-2); value.position.set(16,13); passengerText.position.set(21,32);
+          group.addChild(ring,label,code,value,passengerBadge,passengerText); nodes.addChild(group); marks.set(a.id,{ring,label,code,value,passengerBadge,passengerText});
         }
-        let fitScale = 1, zoom = 1, regional = false, focusedSelection = '', selectionKey = '', rangeKey = '', lastGame: GameState | null = null, snapshotAt = performance.now();
+        let fitScale = 1, zoom = 1, regional = false, focusedSelection = '', selectionKey = '', passengerKey = '', rangeKey = '', lastGame: GameState | null = null, snapshotAt = performance.now();
         const planes = new Map<string, Graphics>();
         let previewKey = '';
         const drawPreview = () => {
@@ -178,6 +182,16 @@ export function MapView(props: Props) {
             for(const p of game.fleet){if(!planes.has(p.id)){const g=new Graphics();g.poly([14,0,-10,-8,-5,0,-10,8]).fill(0xfbf8db).stroke({color:0x143b50,width:2});aircraft.addChild(g);planes.set(p.id,g);}}
             for(const [id,g] of planes){if(!game.fleet.some(p=>p.id===id)){g.destroy();planes.delete(id);}}
           }
+          const selectedPlane = plane ? game.fleet.find(item => item.id === plane.id) : undefined;
+          const passengerCounts = passengerDestinationCounts(game, selectedPlane?.id), nextPassengerKey = passengerDestinationKey(passengerCounts);
+          if(passengerKey!==nextPassengerKey){passengerKey=nextPassengerKey;
+            for(const a of AIRPORTS){const m=marks.get(a.id)!,amount=passengerCounts.get(a.id)??0;
+              m.passengerBadge.clear();m.passengerBadge.visible=amount>0;m.passengerText.visible=amount>0;
+              if(amount>0){m.passengerText.text=`乘客 ${amount}`;const width=Math.max(52,m.passengerText.width+12);
+                m.passengerBadge.roundRect(15,29,width,20,5).fill({color:0xffe363,alpha:.96}).stroke({color:0x8b6b00,width:1.5});}
+            }
+            element.setAttribute('data-passenger-destinations',nextPassengerKey);
+          }
           const key=selected+game.airports.map(a=>`${a.id}:${a.level}`).join(',');
           if(selectionKey!==key){selectionKey=key;for(const a of AIRPORTS){const m=marks.get(a.id)!,state=game.airports.find(x=>x.id===a.id),open=Boolean(state),active=selected===a.id;
             m.ring.clear();if(active)m.ring.circle(0,0,25).fill({color:0xfff27a,alpha:.18}).circle(0,0,23).stroke({color:0xffec3a,width:3});
@@ -187,7 +201,6 @@ export function MapView(props: Props) {
             m.value.text=open?`${state!.level}级`:'未解锁';
             m.label.alpha=open?1:.68;m.code.alpha=open?.95:.62;m.value.alpha=open?.95:.66;
           }}
-          const selectedPlane = plane ? game.fleet.find(item => item.id === plane.id) : undefined;
           const rangeOrigin = latest.current.preview?.legs.at(-1)?.to ?? selectedPlane?.airportId;
           const nextRangeKey = selectedPlane ? `${selectedPlane.id}:${rangeOrigin}:${aircraftSpecs(selectedPlane).range}:${selectedPlane.flight ? 'flight' : 'ground'}` : '';
           if(rangeKey!==nextRangeKey){rangeKey=nextRangeKey;rangeRing.clear();
