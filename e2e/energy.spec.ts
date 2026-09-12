@@ -29,7 +29,7 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
     await expect(page.getByTestId('plane-energy')).toBeInViewport();
     await page.getByRole('button',{name:'航线地图',exact:true}).click();await page.getByLabel('选择机场',{exact:true}).selectOption('PVG');
     await expect(page.getByTestId('network-energy')).toContainText('本段需');await expect(page.getByTestId('dispatch')).toBeDisabled();
-    await expect(page.locator('.destination-detail')).toContainText('能量不足');
+    await expect(page.getByTestId('plan-energy')).toContainText('能量不足');
     await expect(page.getByTestId('credits')).toHaveText(money(s.credits));
     await page.getByRole('button',{name:'机队管理',exact:true}).click();
     const service=page.getByRole('region',{name:'飞机能量管理'}); // section has an accessible name.

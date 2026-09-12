@@ -7,7 +7,7 @@ async function ready(page:Page){await page.goto('./');await expect(page.getByTes
 async function settings(page:Page){if(await page.locator('.game-modal').isVisible())await page.locator('.game-modal>header button').click();await page.getByRole('button',{name:'存档设置',exact:true}).click();await expect(page.getByRole('dialog')).toBeVisible();}
 async function chooseShanghai(page:Page){
   const select=page.getByLabel('选择机场',{exact:true});
-  await select.selectOption('WUH');
+  await select.selectOption('PEK');
   await select.selectOption('PVG');
   await expect(page.getByTestId('plan-summary')).toContainText('1 段');
 }

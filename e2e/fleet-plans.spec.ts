@@ -10,7 +10,11 @@ async function plan(page:Page){
   await page.getByRole('button',{name:'选择航线起飞',exact:true}).click();
   await expect(page.getByTestId('route-instruction')).toContainText('依次点击已解锁城市');
   await page.getByLabel('选择机场',{exact:true}).selectOption('WUH');
-  await page.getByRole('button',{name:/^解锁机场/}).click();
+  const detail=page.getByRole('dialog',{name:'机场详情',exact:true});
+  await expect(detail).toBeVisible();
+  await detail.getByRole('button',{name:/^解锁机场/}).click();
+  await expect(detail).toHaveCount(0);
+  await expect(page.getByTestId('plan-summary')).toContainText('1 段');
   await page.getByLabel('选择机场',{exact:true}).selectOption('PVG');
   await expect(page.getByTestId('plan-summary')).toContainText('2 段');
   await expect(page.getByRole('button',{name:'确认路线起飞',exact:true})).toBeEnabled();

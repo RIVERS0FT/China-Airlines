@@ -8,7 +8,7 @@ async function ready(page: Page) {
 }
 async function chooseShanghai(page: Page) {
   const select = page.getByLabel('选择机场', { exact:true });
-  await select.selectOption('WUH');
+  await select.selectOption('PEK');
   await select.selectOption('PVG');
   await expect(page.getByTestId('plan-summary')).toContainText('1 段');
 }
@@ -50,12 +50,14 @@ for (const [width, height] of [[1440,900],[844,390]]) {
     await expect(canvas).toHaveAttribute('data-renderer','ready');
     await expect(canvas).toHaveAttribute('data-preview-path','');
     await expect(page.getByTestId('route-preview')).toContainText('尚未选择路线城市');
-    await expect(page.getByTestId('route-instruction')).toContainText('无需另行开通航线');
+    await expect(page.getByTestId('route-instruction')).toContainText('城市管理按需打开');
     await page.getByLabel('选择机场', { exact:true }).selectOption('WUH');
     await expect(canvas).toHaveAttribute('data-preview-path','');
-    await page.getByRole('button', { name:/^解锁机场/ }).click();
-    // Unlocking the selected city immediately makes it the next route stop.
-    await expect(page.getByRole('button', { name:/^解锁机场/ })).toHaveCount(0);
+    const detail = page.getByRole('dialog', { name:'机场详情', exact:true });
+    await expect(detail).toBeVisible();
+    await detail.getByRole('button', { name:/^解锁机场/ }).click();
+    // Unlocking from route planning closes the transient detail and appends the city.
+    await expect(detail).toHaveCount(0);
     await expect(page.getByTestId('credits')).toHaveText('¥ 148,000');
     await expect(canvas).toHaveAttribute('data-preview-path','WUH');
     const money = await page.getByTestId('credits').textContent();
@@ -72,7 +74,11 @@ for (const [width, height] of [[1440,900],[844,390]]) {
     await expect(canvas).toHaveAttribute('data-preview-path','');
     await page.getByLabel('选择机场', { exact:true }).selectOption('URC');
     await expect(canvas).toHaveAttribute('data-preview-path','');
-    await expect(page.getByRole('button', { name:/^解锁机场/ })).toBeVisible();
+    const lockedDetail = page.getByRole('dialog', { name:'机场详情', exact:true });
+    await expect(lockedDetail).toBeVisible();
+    await expect(page.locator('.network-controls')).toHaveCount(0);
+    await expect(lockedDetail.getByRole('button', { name:/^解锁机场/ })).toBeVisible();
+    await lockedDetail.getByRole('button', { name:'返回航线地图', exact:true }).click();
     await expect(page.getByTestId('credits')).toHaveText(money!);
     await expect(page.getByTestId('flights-count')).toHaveText('0 班');
   });
