@@ -2,9 +2,17 @@
 .aviation-game:not(.dispatch-focused) .airport-titlebar>*{pointer-events:none}
 .aviation-game:not(.dispatch-focused) .airport-titlebar>button{pointer-events:auto}
 
+/* Preserve the existing readable order-state baseline. */
+.aviation-game:not(.dispatch-focused) .apron-queue .job-state{font-size:11px!important}
+
+/* Override the original 142px minimum so the floated action occupies only its reserved rail. */
+.aviation-game:not(.dispatch-focused) .game-dock .depart-button{min-width:124px}
+
 /* Keep the queue's next button entirely outside the floated departure action. */
 .aviation-game:not(.dispatch-focused) .order-window{padding-right:154px}
 
 @media(max-height:600px) and (orientation:landscape){
+  .aviation-game:not(.dispatch-focused) .game-dock .depart-button{min-width:73px}
   .aviation-game:not(.dispatch-focused) .order-window{padding-right:92px}
+  .aviation-game:not(.dispatch-focused) .apron-queue .job-state{font-size:11px!important;line-height:12px}
 }
