@@ -14,6 +14,8 @@ async function detail(page: Page, city: string) {
 async function chooseCityAfterDifferentValue(page: Page, cityId: string, differentId: string) {
   const select = page.getByLabel('选择机场', { exact:true });
   await select.selectOption(differentId);
+  const dialog = page.getByRole('dialog', { name:'机场详情', exact:true });
+  if (await dialog.isVisible()) await dialog.getByRole('button', { name:'返回航线地图', exact:true }).click();
   await select.selectOption(cityId);
 }
 for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {

@@ -7,7 +7,7 @@ test.beforeEach(async({page})=>{errors=[];page.on('pageerror',e=>errors.push(e.m
 test.afterEach(()=>expect(errors).toEqual([]));
 async function ready(page:Page){await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');}
 async function secondPlane(page:Page){await page.getByRole('button',{name:'飞机商店',exact:true}).click();await page.getByRole('button',{name:'纯货机',exact:true}).click();await page.getByRole('button',{name:'购买云雀 8F',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await page.getByRole('button',{name:'关闭飞机商店'}).click();await page.getByRole('button',{name:'机队管理',exact:true}).click();await page.getByRole('button',{name:/云雀 8F.*AC0002/}).click();}
-async function chooseShanghai(page:Page){const select=page.getByLabel('选择机场',{exact:true});await select.selectOption('WUH');await select.selectOption('PVG');await expect(page.getByTestId('plan-summary')).toContainText('1 段');}
+async function chooseShanghai(page:Page){const select=page.getByLabel('选择机场',{exact:true});await select.selectOption('PEK');await select.selectOption('PVG');await expect(page.getByTestId('plan-summary')).toContainText('1 段');}
 
 /** Observe only the committed main slot; never change storage to make a test pass.
  * Tutorial commands intentionally suppress toasts, so a toast is not a save ack. */
