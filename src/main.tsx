@@ -9,6 +9,7 @@ import './ui/scene.css';
 import './ui/replica-polish.css';
 import './ui/airports.css';
 import './ui/flight-board.css';
+import './ui/railway-inspired.css';
 import './ui/route-dispatch.css';
 createRoot(document.getElementById('root')!).render(<StrictMode><App /><SaveConflictGuard /></StrictMode>);
 void controller.start();
