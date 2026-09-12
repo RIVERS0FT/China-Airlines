@@ -78,7 +78,7 @@ test('multi-leg energy shortage stops at the hub without erasing transfer cargo'
   await launchRoute(page);await expect(page.getByTestId('plane-energy')).toHaveText('能量 0.00 点');
   await page.clock.fastForward((q.legs[0]!.duration+9)*1000);
   await expect(page.locator('.gate-sign')).toContainText('武汉航空港');await expect(page.getByTestId('flights-count')).toHaveText('1 班');
-  await expect(page.getByTestId('loaded-order')).toHaveCount(6);await expect(page.getByTestId('credits')).toHaveText(money(s.credits-q.legs[0]!.cost));
+  await expect(page.getByTestId('loaded-order')).toHaveCount(7);await expect(page.getByTestId('credits')).toHaveText(money(s.credits-q.legs[0]!.cost));
   await expect(page.getByTestId('active-plan')).toHaveCount(0);
 });
 for(const [label,s] of [['legacy',legacy],['ordered-route',orderedV4]] as const)test(`old v4 ${label} flight imports unchanged, without charging energy retroactively`,async({page})=>{
