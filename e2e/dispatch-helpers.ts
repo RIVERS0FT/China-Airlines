@@ -32,6 +32,9 @@ export async function detailValue(page: Page, id: string) {
 export async function launchRoute(page: Page) {
   await closeRouteDetails(page);
   await page.getByTestId('dispatch').click();
+  // A click starts an async save; navigation follows only its successful result.
+  await expect(page.locator('.route-dispatch-view')).toHaveCount(0);
+  await expect(page.locator('.game-hud')).toBeVisible();
 }
 export async function leaveMap(page: Page) {
   await closeRouteDetails(page);

@@ -50,7 +50,7 @@ export function MapView(props: Props) {
     let cancelled = false, initialized = false, dispose = () => {};
     void (async () => {
       try {
-        await app.init({ backgroundAlpha: 0, antialias: true, resolution: Math.min(devicePixelRatio || 1, 2), autoDensity: true, preference: 'webgl' });
+        await app.init({ backgroundAlpha: 0, antialias: true, resolution: Math.min(devicePixelRatio || 1, 2), autoDensity: true, preference: ['webgl'] });
         initialized = true;
         if (cancelled) { app.destroy(true, { children: true }); return; }
         const canvas = app.canvas as HTMLCanvasElement;

@@ -21,7 +21,7 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
   const preview = plane && !inFlight ? routePreview(game, plane, stops) : null;
   function dismissTip() { tipSeen = true; setTip(false); }
   function appendUnlockedStop(id: string) {
-    if (!plane || inFlight) return;
+    if (!plane || inFlight || id === (stops.at(-1) ?? plane.airportId) || stops.length >= MAX_PLAN_LEGS) return;
     setStops(previous => {
       if (id === (previous.at(-1) ?? plane.airportId) || previous.length >= MAX_PLAN_LEGS) return previous;
       return [...previous, id];
