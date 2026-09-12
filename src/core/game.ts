@@ -76,7 +76,7 @@ function replenish(s: GameState) {
       const index = s.nextOrderId;
       const to = destinations[Math.floor((index - 1) / 3) % destinations.length]!.id;
       const kind = index % 3 === 0 ? 'cargo' : 'passengers';
-      issue(s, a.id, to, kind, kind === 'cargo' ? 1 : 10 + (index % 3) * 5);
+      issue(s, a.id, to, kind, 1);
       count++;
     }
   }
@@ -207,7 +207,10 @@ export class GameCore {
   private state: GameState;
   constructor(now: number, saved?: unknown) {
     clock(now); this.state = saved === undefined ? migrateV1(new LegacyCore(now).snapshot()) : validateSave(saved);
-    if (saved === undefined) this.state.tutorial = 'available';
+    if (saved === undefined) {
+      this.state.fleet[0]!.modelId = 'starter-lark';
+      this.state.tutorial = 'available';
+    }
   }
   snapshot(): GameState { return structuredClone(this.state); }
   tick(now: number): AdvanceReport { return advance(this.state, now); }

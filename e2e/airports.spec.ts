@@ -25,7 +25,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
     const credits = await page.getByTestId('credits').textContent();
     await expect(page.getByRole('button', { name: '机场目录', exact: true })).toBeInViewport();
     await detail(page, '上海');
-    await expect(page.getByTestId('airport-traffic-summary')).toContainText('140 人');
+    await expect(page.getByTestId('airport-traffic-summary')).toContainText('8 人');
     await expect(page.getByTestId('airport-parked').getByRole('listitem')).toHaveCount(0);
     await page.screenshot({ path: `artifacts/airport-detail-${width}.png` });
     await page.getByRole('button', { name: '进入候机大厅', exact: true }).click();

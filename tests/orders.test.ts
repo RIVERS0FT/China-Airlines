@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GameCore, validateSave, manifest, waiting, quote, loadSummary, DEMAND_INTERVAL, TURNAROUND, type GameState } from '../src/core/game.js';
+import { aircraftSpecs, STARTER_MODEL } from '../src/core/catalog.js';
 import legacy from './fixtures/v1-flying.json';
 const NOW = 1800000000000;
 const send = (c: GameCore, to: string, planeId = 'AC0001') => {
@@ -11,6 +12,9 @@ const send = (c: GameCore, to: string, planeId = 'AC0001') => {
 describe('persistent passenger and cargo orders', () => {
   it('starts with visible supply but no invented onboard load or flight revenue', () => {
     const s = new GameCore(NOW).snapshot(); expect(waiting(s,'PEK')).toHaveLength(12); expect(manifest(s,'AC0001')).toHaveLength(0);
+    expect(s.fleet[0]!.modelId).toBe(STARTER_MODEL.id);
+    expect(aircraftSpecs(s.fleet[0]!)).toMatchObject({ seats: 6, cargo: 1 });
+    expect(waiting(s,'PEK').every(o => o.amount === 1)).toBe(true);
     expect(quote(s,s.fleet[0]!,'PVG').revenue).toBe(0); expect(validateSave(s)).toEqual(s);
   });
   it('moves the same order between airport and plane and forbids double loading', () => {
@@ -20,9 +24,9 @@ describe('persistent passenger and cargo orders', () => {
     const before = c.snapshot(); expect(()=>c.execute({type:'load',planeId:'AC0001',orderId:o.id},NOW)).toThrow(); expect(c.snapshot()).toEqual(before);
     c.execute({type:'unload',planeId:'AC0001',orderId:o.id},NOW); expect(waiting(c.snapshot(),'PEK').find(x=>x.id===o.id)?.expiresAt).toBeNull();
   });
-  it('enforces separate capacity limits and all-or-nothing groups', () => {
+  it('enforces separate small starter capacities with unit orders', () => {
     const c = new GameCore(NOW);c.execute({type:'load-destination',planeId:'AC0001',to:'PVG'},NOW);
-    expect(loadSummary(c.snapshot(),'AC0001')).toEqual({passengers:70,cargo:2});
+    expect(loadSummary(c.snapshot(),'AC0001')).toEqual({passengers:6,cargo:1});
     for(const o of waiting(c.snapshot(),'PEK'))expect(()=>c.execute({type:'load',planeId:'AC0001',orderId:o.id},NOW)).toThrow(/容量/);
   });
   it('cannot steal an order at another airport', () => {

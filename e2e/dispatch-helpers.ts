@@ -41,6 +41,10 @@ export async function leaveMap(page: Page) {
   if (await page.locator('.route-dispatch-view').isVisible()) {
     const back = page.getByRole('button', { name: /^(取消起飞|返回航班)$/, exact: true });
     await back.click();
+    // Returning can wait on the same persisted UI transition as dispatch. Always
+    // settle the scene before callers assert on airport-only controls.
+    await expect(page.locator('.route-dispatch-view')).toHaveCount(0);
+    await expect(page.locator('.game-hud')).toBeVisible();
   }
 }
 export async function openGlobal(page: Page, name: string) {
