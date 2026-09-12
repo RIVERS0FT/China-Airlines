@@ -16,5 +16,6 @@ import './ui/airport-mobile-game-polish.css';
 import './ui/airport-mobile-game-polish-fixes.css';
 import './ui/art-assets.css';
 import './ui/airport-reference.css';
+import './ui/airport-mobile-height.css';
 createRoot(document.getElementById('root')!).render(<StrictMode><App /><SaveConflictGuard /></StrictMode>);
 void controller.start();

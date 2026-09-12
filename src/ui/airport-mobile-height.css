@@ -1,0 +1,106 @@
+/* Mobile landscape height budget for the airport home screen only.
+   Keep dispatch-focused independent and preserve 44px primary touch targets. */
+@media (max-width:950px) and (max-height:480px) and (orientation:landscape){
+  .aviation-game:not(.dispatch-focused){
+    --airport-mobile-hud:clamp(46px,12.3dvh,48px);
+    --airport-mobile-queue:clamp(104px,28dvh,112px);
+    --airport-mobile-dock:clamp(52px,13.5dvh,54px);
+  }
+
+  .aviation-game:not(.dispatch-focused) .game-hud{
+    height:var(--airport-mobile-hud);
+    min-height:var(--airport-mobile-hud);
+    flex:0 0 var(--airport-mobile-hud);
+    padding-block:1px;
+  }
+  .aviation-game:not(.dispatch-focused) .game-brand{
+    height:calc(var(--airport-mobile-hud) - 6px);
+  }
+  .aviation-game:not(.dispatch-focused) .game-workspace{
+    min-height:0;
+  }
+  .aviation-game:not(.dispatch-focused) .scene-wrap{
+    flex:1 1 auto;
+    min-height:0;
+  }
+
+  .aviation-game:not(.dispatch-focused) .apron-queue{
+    height:var(--airport-mobile-queue);
+    min-height:var(--airport-mobile-queue);
+    flex:0 0 var(--airport-mobile-queue);
+  }
+  .aviation-game:not(.dispatch-focused) .order-window{
+    flex:1 1 auto;
+    min-height:0;
+    height:100%;
+    align-items:center;
+    padding-block:0;
+  }
+  .aviation-game:not(.dispatch-focused) .apron-queue .order-strip{
+    height:100%;
+    min-height:0;
+    align-items:flex-start;
+    padding:3px 2px 4px;
+  }
+  .aviation-game:not(.dispatch-focused) .destination-group{
+    height:100%;
+    gap:8px;
+  }
+  .aviation-game:not(.dispatch-focused) .destination-orders{
+    height:100%;
+    align-items:flex-start;
+    gap:6px;
+  }
+  .aviation-game:not(.dispatch-focused) .destination-station{
+    width:100px;
+    flex-basis:100px;
+    height:44px;
+    min-height:44px;
+    margin-top:5px;
+    font-size:11px;
+    line-height:14px;
+  }
+  .aviation-game:not(.dispatch-focused) .destination-station::after{
+    height:20px;
+  }
+  .aviation-game:not(.dispatch-focused) .apron-queue .destination-orders .job-card{
+    grid-template-rows:54px 12px 15px 14px;
+    align-content:start;
+  }
+  .aviation-game:not(.dispatch-focused) .apron-queue .destination-orders .job-card:not(.legacy-quantity){
+    grid-template-rows:64px 15px 14px;
+  }
+  .aviation-game:not(.dispatch-focused) .apron-queue .destination-orders .job-art{
+    width:72px;
+    height:54px;
+  }
+  .aviation-game:not(.dispatch-focused) .apron-queue .destination-orders .job-card:not(.legacy-quantity) .job-art{
+    height:64px;
+  }
+
+  .aviation-game:not(.dispatch-focused) .game-dock{
+    height:var(--airport-mobile-dock);
+    min-height:var(--airport-mobile-dock);
+    flex:0 0 var(--airport-mobile-dock);
+    padding:2px 4px;
+    gap:4px;
+  }
+  .aviation-game:not(.dispatch-focused) .game-dock>button:not(.depart-button){
+    height:44px;
+    min-height:44px;
+    padding:1px 2px;
+  }
+  .aviation-game:not(.dispatch-focused) .game-dock>button:not(.depart-button)>.painted-icon{
+    width:26px;
+    height:26px;
+  }
+  .aviation-game:not(.dispatch-focused) .game-dock .depart-button{
+    height:46px;
+    min-height:46px;
+    padding:2px 3px;
+  }
+  .aviation-game:not(.dispatch-focused) .game-dock .depart-button>.painted-icon{
+    width:28px;
+    height:19px;
+  }
+}
