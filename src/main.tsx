@@ -12,5 +12,6 @@ import './ui/flight-board.css';
 import './ui/railway-inspired.css';
 import './ui/railway-inspired-fixes.css';
 import './ui/route-dispatch.css';
+import './ui/airport-mobile-game-polish.css';
 createRoot(document.getElementById('root')!).render(<StrictMode><App /><SaveConflictGuard /></StrictMode>);
 void controller.start();
