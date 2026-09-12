@@ -1,15 +1,45 @@
 import { useEffect, useRef, useState } from 'react';
 import { Application, Container, Graphics, Text } from 'pixi.js';
-import { AIRPORTS, airport } from '../core/catalog.js';
-import type { GameState } from '../core/game.js';
+import { AIRPORTS, aircraftSpecs, airport } from '../core/catalog.js';
+import type { GameState, Plane } from '../core/game.js';
 import { mapLayout, MIN_MAP_SCALE } from './map-camera.js';
 import './map-readability.css';
 import { previewDescription, type RoutePreview } from './route-preview.js';
-interface Props { game: GameState; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null }
+interface Props { game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null }
 function curve(from: string, to: string, t: number) {
   const a = airport(from), b = airport(to), cx = (a.x + b.x) / 2, cy = Math.min(a.y, b.y) - Math.min(100, Math.abs(b.x - a.x) * 0.2 + 35);
   return { x: (1-t)**2*a.x + 2*(1-t)*t*cx + t*t*b.x, y: (1-t)**2*a.y + 2*(1-t)*t*cy + t*t*b.y,
     angle: Math.atan2(2*(1-t)*(cy-a.y)+2*t*(b.y-cy), 2*(1-t)*(cx-a.x)+2*t*(b.x-cx)), cx, cy };
+}
+function drawDecorativeTerrain(terrain: Graphics) {
+  terrain.rect(0, 0, 960, 630).fill(0x79bc57);
+  terrain.rect(0, 0, 960, 630).fill({ color: 0xb5dc62, alpha: .18 });
+  terrain.poly([820,0,960,0,960,630,745,630,770,575,795,535,808,480,796,432,818,380,807,330,829,275,816,220,838,165,826,110]).fill(0x45b6df);
+  terrain.poly([834,0,960,0,960,630,760,630,783,573,806,530,821,479,812,430,833,378,823,329,844,274,831,220,851,165,841,110]).fill({ color: 0x7bd8ed, alpha: .35 });
+  terrain.moveTo(0,250).quadraticCurveTo(140,205,250,260).quadraticCurveTo(355,320,470,285).quadraticCurveTo(590,245,720,330).quadraticCurveTo(790,375,830,430).stroke({ color: 0x3b6f86, width: 25, alpha: .65 });
+  terrain.moveTo(0,250).quadraticCurveTo(140,205,250,260).quadraticCurveTo(355,320,470,285).quadraticCurveTo(590,245,720,330).quadraticCurveTo(790,375,830,430).stroke({ color: 0x35b8d4, width: 17, alpha: .96 });
+  terrain.moveTo(50,545).quadraticCurveTo(210,470,360,505).quadraticCurveTo(515,540,655,470).quadraticCurveTo(745,425,820,420).stroke({ color: 0xe6e5b6, width: 10, alpha: .75 });
+  terrain.moveTo(50,545).quadraticCurveTo(210,470,360,505).quadraticCurveTo(515,540,655,470).quadraticCurveTo(745,425,820,420).stroke({ color: 0x9f9d76, width: 2, alpha: .45 });
+  const mountains = [[185,410],[235,445],[295,405],[430,165],[475,190],[525,465],[575,440],[620,455],[705,250],[735,235]];
+  for (const [x,y] of mountains) {
+    terrain.poly([x!-24,y!+25,x!,y!-27,x!+24,y!+25]).fill(0x557a3e).stroke({ color: 0x436934, width: 2, alpha: .8 });
+    terrain.poly([x!-3,y!-20,x!,y!-27,x!+8,y!-10,x!+2,y!-13]).fill({ color: 0xf0efd0, alpha: .88 });
+    terrain.poly([x!-15,y!+18,x!,y!-12,x!+17,y!+18]).fill({ color: 0x6e934a, alpha: .7 });
+  }
+  const trees = [[105,150],[150,170],[205,135],[320,155],[365,180],[410,330],[455,350],[540,120],[575,145],[610,190],[650,390],[690,410],[725,455],[260,535],[310,520],[380,555],[500,540],[555,555]];
+  for (const [x,y] of trees) {
+    terrain.circle(x!-7,y!,8).fill({ color: 0x39783f, alpha: .72 });
+    terrain.circle(x!+5,y!-2,9).fill({ color: 0x4a9349, alpha: .78 });
+    terrain.rect(x!-2,y!+5,4,9).fill({ color: 0x6f613f, alpha: .65 });
+  }
+  for (let x = 45; x <= 760; x += 85) terrain.circle(x,85 + (x % 170) * .25,32).fill({ color: 0xe2d96c, alpha: .08 });
+}
+function drawDashedCircle(graphics: Graphics, cx: number, cy: number, radius: number) {
+  graphics.circle(cx, cy, radius).fill({ color: 0xfff6ac, alpha: .035 });
+  for (let i = 0; i < 64; i += 2) {
+    const a = i / 64 * Math.PI * 2, b = (i + 1) / 64 * Math.PI * 2;
+    graphics.moveTo(cx + Math.cos(a) * radius, cy + Math.sin(a) * radius).lineTo(cx + Math.cos(b) * radius, cy + Math.sin(b) * radius).stroke({ color: 0xfffbea, width: 2.2, alpha: .82 });
+  }
 }
 export function MapView(props: Props) {
   const host = useRef<HTMLDivElement>(null), latest = useRef(props), controls = useRef<{zoom: (factor: number) => void; reset: () => void} | null>(null);
@@ -26,24 +56,20 @@ export function MapView(props: Props) {
         const canvas = app.canvas as HTMLCanvasElement;
         canvas.setAttribute('aria-label', '机场航线示意图，可拖动、缩放或点击机场');
         canvas.setAttribute('role', 'img'); element.appendChild(canvas);
-        const world = new Container(), terrain = new Graphics(), lines = new Graphics(), nodes = new Container(), aircraft = new Container();
+        const world = new Container(), terrain = new Graphics(), lines = new Graphics(), rangeRing = new Graphics(), nodes = new Container(), aircraft = new Container();
         app.stage.addChild(world); const draft = new Graphics(), draftLabels = new Container();
-        draft.eventMode = draftLabels.eventMode = 'none';
-        world.addChild(terrain, lines, draft, nodes, draftLabels, aircraft);
-        for (let x = 0; x <= 960; x += 60) terrain.moveTo(x,0).lineTo(x,630).stroke({ color: 0x92a89c, alpha: 0.10, width: 1 });
-        for (let y = 0; y <= 630; y += 60) terrain.moveTo(0,y).lineTo(960,y).stroke({ color: 0x92a89c, alpha: 0.10, width: 1 });
-        // Original abstract terrain contours; deliberately not an administrative map.
-        for (const [cx,cy,rx,ry] of [[320,260,250,180],[570,380,270,170],[750,285,140,190]]) {
-          for (let n = 0; n < 4; n++) terrain.ellipse(cx!,cy!,rx!-n*22,ry!-n*17).stroke({color:0x99af9b,alpha:0.11,width:1.5});
-        }
-        const marks = new Map<string, { ring: Graphics; label: Text; code: Text }>();
+        draft.eventMode = draftLabels.eventMode = rangeRing.eventMode = 'none';
+        world.addChild(terrain, lines, rangeRing, draft, nodes, draftLabels, aircraft);
+        drawDecorativeTerrain(terrain);
+        const marks = new Map<string, { ring: Graphics; label: Text; code: Text; value: Text }>();
         for (const a of AIRPORTS) {
           const group = new Container(); group.position.set(a.x,a.y);
-          const ring = new Graphics(), label = new Text({text:a.city,style:{fontFamily:'system-ui, sans-serif',fontSize:18,fontWeight:'600',fill:0x365854}});
-          const code = new Text({text:a.id,style:{fontFamily:'monospace',fontSize:12,letterSpacing:2,fill:0x738a7d}});
-          label.position.set(16,-18); code.position.set(17,7); group.addChild(ring,label,code); nodes.addChild(group); marks.set(a.id,{ring,label,code});
+          const ring = new Graphics(), label = new Text({text:a.city,style:{fontFamily:'system-ui, sans-serif',fontSize:18,fontWeight:'700',fill:0x203a32}});
+          const code = new Text({text:a.id,style:{fontFamily:'monospace',fontSize:11,fontWeight:'700',letterSpacing:1,fill:0x365b53}});
+          const value = new Text({text:'',style:{fontFamily:'system-ui, sans-serif',fontSize:11,fontWeight:'700',fill:0x203a32}});
+          label.position.set(15,-23); code.position.set(16,-2); value.position.set(16,13); group.addChild(ring,label,code,value); nodes.addChild(group); marks.set(a.id,{ring,label,code,value});
         }
-        let fitScale = 1, zoom = 1, regional = false, focusedSelection = '', selectionKey = '', lastGame: GameState | null = null, snapshotAt = performance.now();
+        let fitScale = 1, zoom = 1, regional = false, focusedSelection = '', selectionKey = '', rangeKey = '', lastGame: GameState | null = null, snapshotAt = performance.now();
         const planes = new Map<string, Graphics>();
         let previewKey = '';
         const drawPreview = () => {
@@ -53,24 +79,24 @@ export function MapView(props: Props) {
           for (const child of draftLabels.removeChildren()) child.destroy();
           for (const leg of preview?.legs ?? []) {
             const a = airport(leg.from), b = airport(leg.to), c = curve(leg.from, leg.to, .5);
-            const color = leg.error ? 0xad473d : 0xa76411;
+            const color = leg.error ? 0xd23d31 : 0xffed24;
             if (leg.error) {
               for (let i = 0; i < 32; i += 2) {
                 const u = curve(leg.from, leg.to, i / 32), v = curve(leg.from, leg.to, (i + 1) / 32);
-                draft.moveTo(u.x,u.y).lineTo(v.x,v.y).stroke({color,width:4});
+                draft.moveTo(u.x,u.y).lineTo(v.x,v.y).stroke({color,width:5});
               }
             } else {
-              draft.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color:0xfff7d1,width:8});
-              draft.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color,width:4});
+              draft.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color:0x435528,width:9,alpha:.45});
+              draft.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color,width:5});
             }
             const v = curve(leg.from,leg.to,.38 + (leg.number % 3) * .11), arrow = new Graphics();
-            arrow.poly([10,0,-6,-6,-6,6]).fill(color).stroke({color:0xfff7d1,width:1});
+            arrow.poly([11,0,-7,-7,-7,7]).fill(color).stroke({color:0x3d4f29,width:2});
             arrow.position.set(v.x,v.y); arrow.rotation = v.angle; draftLabels.addChild(arrow);
           }
           for (const visit of preview?.visits ?? []) {
-            const a = airport(visit.airportId), label = new Text({text:visit.numbers.join('/'),style:{fontFamily:'system-ui, sans-serif',fontSize:16,fontWeight:'700',fill:0xfff9e5}});
-            label.anchor.set(.5); label.position.set(a.x-25,a.y-20);
-            const badge = new Graphics().roundRect(a.x-25-Math.max(13,label.width/2+5),a.y-34,Math.max(26,label.width+10),28,5).fill(0x885719).stroke({color:0xfff4ca,width:2});
+            const a = airport(visit.airportId), label = new Text({text:visit.numbers.join('/'),style:{fontFamily:'system-ui, sans-serif',fontSize:16,fontWeight:'800',fill:0x0f3c4b}});
+            label.anchor.set(.5); label.position.set(a.x-25,a.y-24);
+            const badge = new Graphics().roundRect(a.x-25-Math.max(13,label.width/2+5),a.y-38,Math.max(26,label.width+10),28,5).fill(0x55d6ec).stroke({color:0x1b5c72,width:2});
             draftLabels.addChild(badge,label);
           }
           element.setAttribute('data-preview-path', (preview?.legs ?? []).map(l => l.to).join(','));
@@ -126,7 +152,7 @@ export function MapView(props: Props) {
         canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('wheel',wheel,{passive:false});
         app.ticker.maxFPS=45;
         app.ticker.add(()=>{
-          const {game,selected}=latest.current;
+          const {game,selected,plane}=latest.current;
           drawPreview();
           if (focusedSelection !== selected) {
             focusedSelection = selected;
@@ -135,18 +161,31 @@ export function MapView(props: Props) {
           }
           if(lastGame!==game){lastGame=game;snapshotAt=performance.now();lines.clear();
             for(const r of game.routes){const a=airport(r.from),b=airport(r.to),c=curve(r.from,r.to,.5);
-              lines.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color:0x418e7d,width:2.5,alpha:.60});}
-            for(const p of game.fleet){if(!planes.has(p.id)){const g=new Graphics();g.poly([13,0,-9,-8,-5,0,-9,8]).fill(0xf8fbef).stroke({color:0x236b60,width:2});aircraft.addChild(g);planes.set(p.id,g);}}
+              lines.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color:0xf7f4dc,width:5,alpha:.52});
+              lines.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color:0x276f75,width:2.5,alpha:.82});}
+            for(const p of game.fleet){if(!planes.has(p.id)){const g=new Graphics();g.poly([14,0,-10,-8,-5,0,-10,8]).fill(0xfbf8db).stroke({color:0x143b50,width:2});aircraft.addChild(g);planes.set(p.id,g);}}
             for(const [id,g] of planes){if(!game.fleet.some(p=>p.id===id)){g.destroy();planes.delete(id);}}
           }
           const key=selected+game.airports.map(a=>`${a.id}:${a.level}`).join(',');
-          if(selectionKey!==key){selectionKey=key;for(const a of AIRPORTS){const m=marks.get(a.id)!,open=game.airports.some(x=>x.id===a.id),active=selected===a.id;
-            m.ring.clear();if(active)m.ring.circle(0,0,20).fill({color:0xd8ad65,alpha:.16}).circle(0,0,18).stroke({color:0xb58c4b,width:1.5});
-            m.ring.circle(0,0,open?8:6).fill(open?0x347c6d:0xc2cfc2).stroke({color:open?0xf5f5ea:0x8fa294,width:2});
-            m.label.alpha=open?1:.65;m.code.alpha=open?.9:.6;
+          if(selectionKey!==key){selectionKey=key;for(const a of AIRPORTS){const m=marks.get(a.id)!,state=game.airports.find(x=>x.id===a.id),open=Boolean(state),active=selected===a.id;
+            m.ring.clear();if(active)m.ring.circle(0,0,25).fill({color:0xfff27a,alpha:.18}).circle(0,0,23).stroke({color:0xffec3a,width:3});
+            m.ring.roundRect(-7,-13,14,16,3).fill(open?0xd8f4ef:0xd8ddd3).stroke({color:open?0x1f7784:0x65736e,width:2});
+            m.ring.poly([-11,3,0,-5,11,3,11,9,-11,9]).fill(open?0x4ac3d7:0xaab7ae).stroke({color:open?0x1b6576:0x65736e,width:2});
+            m.value.text=open?`${state!.level}级机场`:a.price?`解锁 ¥${Math.round(a.price/1000)}k`:'待解锁';
+            m.label.alpha=open?1:.68;m.code.alpha=open?.95:.62;m.value.alpha=open?.95:.66;
           }}
+          const selectedPlane = plane ? game.fleet.find(item => item.id === plane.id) : undefined;
+          const nextRangeKey = selectedPlane ? `${selectedPlane.id}:${selectedPlane.airportId}:${aircraftSpecs(selectedPlane).range}:${selectedPlane.flight ? 'flight' : 'ground'}` : '';
+          if(rangeKey!==nextRangeKey){rangeKey=nextRangeKey;rangeRing.clear();
+            if(selectedPlane && !selectedPlane.flight){const a=airport(selectedPlane.airportId), radius=Math.min(300,145+aircraftSpecs(selectedPlane).range/35);drawDashedCircle(rangeRing,a.x,a.y,radius);rangeRing.circle(a.x,a.y,36).stroke({color:0xfffbd0,width:3,alpha:.88});}
+            element.setAttribute('data-range-plane', selectedPlane?.id ?? '');
+          }
           const visualTime=game.simTime+Math.min(1,(performance.now()-snapshotAt)/1000);
-          for(const p of game.fleet){const g=planes.get(p.id)!;g.visible=Boolean(p.flight);if(p.flight){const f=p.flight,t=Math.max(0,Math.min(1,(visualTime-f.departAt)/(f.arriveAt-f.departAt))),v=curve(f.from,f.to,t);g.position.set(v.x,v.y);g.rotation=v.angle;}}
+          for(const p of game.fleet){const g=planes.get(p.id)!;
+            if(p.flight){g.visible=true;const f=p.flight,t=Math.max(0,Math.min(1,(visualTime-f.departAt)/(f.arriveAt-f.departAt))),v=curve(f.from,f.to,t);g.position.set(v.x,v.y);g.rotation=v.angle;}
+            else if(selectedPlane?.id===p.id){const a=airport(p.airportId);g.visible=true;g.position.set(a.x,a.y-28);g.rotation=-Math.PI/2;}
+            else g.visible=false;
+          }
         });
         dispose=()=>{controls.current=null;observer.disconnect();canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);canvas.removeEventListener('wheel',wheel);};
         setStatus('ready');
@@ -158,10 +197,10 @@ export function MapView(props: Props) {
     <div className="map-canvas" ref={host} data-testid="map-canvas" data-renderer={status}/>
     <p id="route-preview-description" className="sr-only" data-testid="route-preview" data-legs={props.preview?.legs.length ?? 0}>{previewDescription(props.preview)}</p>
     {Boolean(props.preview?.legs.length) && <div className="route-preview-key">路线草稿 · {props.preview!.legs.length} 段 · 箭头为方向{props.preview!.legs.some(l => l.error) ? ' · 虚线段不可飞' : ' · 未确认不扣费'}</div>}
-    <div className={`map-caption${props.preview?.legs.length ? ' with-preview' : ''}`}>{compact ? <span className="map-hint">航线地图 · 拖拽查看城市</span> : <><span className="eyebrow">ROUTE NETWORK / 航线网络</span><h2>让每座城市，彼此更近。</h2><p>选择机场，规划下一段旅程。</p></>}</div>
+    <div className={`map-caption${props.preview?.legs.length ? ' with-preview' : ''}`}>{compact ? <span className="map-hint">航线地图 · 拖拽查看城市</span> : <><span className="eyebrow">ROUTE NETWORK / 航线网络</span><h2>选择城市，规划下一段航程。</h2><p>黄色航迹仅为草稿，确认起飞后才进入经营状态。</p></>}</div>
     {status==='fallback'&&<div className="map-fallback" role="status">地图渲染不可用。仍可通过下方机场列表进行全部经营操作。</div>}
     <div className="map-legend"><span><i className="dot"/>已解锁 {props.game.airports.length}</span><span><i className="dot muted"/>待拓展 {AIRPORTS.length-props.game.airports.length}</span></div>
-    <div className="map-controls"><button aria-label="放大地图" onClick={()=>controls.current?.zoom(1.25)}>＋</button><button aria-label="缩小地图" onClick={()=>controls.current?.zoom(.8)}>−</button><button aria-label="重置地图视角" onClick={()=>controls.current?.reset()}>⌖</button></div>
+    <div className="map-controls"><button className="map-zoom-in" aria-label="放大地图" onClick={()=>controls.current?.zoom(1.25)}><span aria-hidden="true">＋</span><em aria-hidden="true">放大</em></button><button className="map-zoom-out" aria-label="缩小地图" onClick={()=>controls.current?.zoom(.8)}><span aria-hidden="true">−</span><em aria-hidden="true">缩小</em></button><button className="map-reset" aria-label="重置地图视角" onClick={()=>controls.current?.reset()}><span aria-hidden="true">⌖</span><em aria-hidden="true">复位</em></button></div>
     <small className="map-disclaimer">原创示意航网 · 非导航地图</small>
   </section>;
 }
