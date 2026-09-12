@@ -1,3 +1,4 @@
+import { selectCity, routeDetails, launchRoute, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from '@playwright/test';
 import { GameCore } from '../src/core/game.js';
 async function ready(page: Page) {await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('airport-scene')).toBeVisible();}
@@ -5,12 +6,12 @@ async function dismissReport(page: Page) {const button=page.getByRole('button',{
 test('automatic return, stop after current flight, and reload do not duplicate income',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});await ready(page);
   await page.getByRole('button',{name:'同目的地装载',exact:true}).click();await page.getByRole('button',{name:'选择航线起飞',exact:true}).click();
-  const select=page.getByLabel('选择机场',{exact:true});await select.selectOption('PEK');await select.selectOption('PVG');
-  await page.getByLabel('自动往返').check();await page.getByTestId('dispatch').click();
+  await selectCity(page, 'PEK');await selectCity(page, 'PVG');
+  await routeDetails(page);await page.getByRole('checkbox',{name:/自动往返/}).check();await launchRoute(page);
   await page.clock.fastForward(300_000);await expect(page.getByTestId('flights-count')).toHaveText('3 班');await dismissReport(page);
   await page.getByRole('button',{name:'停止自动往返',exact:true}).click();await page.clock.fastForward(180_000);
   await expect(page.getByTestId('flights-count')).toHaveText('4 班');await dismissReport(page);
-  await page.getByRole('button',{name:'存档设置',exact:true}).click();await page.getByRole('button',{name:'立即保存',exact:true}).click();
+  await openGlobal(page, '存档设置');await page.getByRole('button',{name:'立即保存',exact:true}).click();
   const credits=await page.getByTestId('credits').textContent();await page.reload();await expect(page.getByTestId('flights-count')).toHaveText('4 班');await expect(page.getByTestId('credits')).toHaveText(credits!);expect(errors).toEqual([]);
 });
 test('a corrupt primary recovers a verified backup instead of silently starting over',async({page})=>{

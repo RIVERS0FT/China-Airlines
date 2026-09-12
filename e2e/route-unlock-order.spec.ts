@@ -1,3 +1,4 @@
+import { selectCity, detailValue } from './dispatch-helpers.js';
 import { test, expect } from '@playwright/test';
 
 test('selecting the next city immediately after unlock retains the committed first stop', async ({ page }) => {
@@ -8,10 +9,10 @@ test('selecting the next city immediately after unlock retains the committed fir
   await page.goto('./');
   await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   await page.getByRole('button', { name: '航线地图', exact: true }).click();
-  const city = page.getByLabel('选择机场', { exact: true });
+
   await expect(page.locator('.network-controls')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /^升级机场/ })).toHaveCount(0);
-  await city.selectOption('WUH');
+  await selectCity(page, 'WUH');
   const detail = page.getByRole('dialog', { name: '机场详情', exact: true });
   await expect(detail).toBeVisible();
   await expect(detail.getByRole('button', { name: '返回航线地图', exact: true })).toBeVisible();
@@ -20,12 +21,12 @@ test('selecting the next city immediately after unlock retains the committed fir
   await expect(page.getByRole('button', { name: /^升级机场/ })).toHaveCount(0);
   // No sleep or explicit save wait: the unlock callback must append before a
   // competing city selection can replace the local route draft.
-  await city.selectOption('PVG');
+  await selectCity(page, 'PVG');
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-preview-path', 'WUH,PVG');
-  await expect(page.getByTestId('plan-summary')).toContainText('2 段');
+  await expect(await detailValue(page, 'plan-summary')).toContainText('2 段');
   await expect(page.getByTestId('credits')).toHaveText('¥ 148,000');
   await expect(page.getByTestId('plane-energy')).toHaveCount(0);
-  await expect(page.getByTestId('network-energy')).toContainText('240.00');
+  await expect(await detailValue(page, 'network-energy')).toContainText('240.00');
   await expect(page.getByTestId('flights-count')).toHaveText('0 班');
   expect(errors).toEqual([]);
 });

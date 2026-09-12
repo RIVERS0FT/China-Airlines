@@ -5,7 +5,7 @@ import type { GameState, Plane } from '../core/game.js';
 import { mapLayout, MIN_MAP_SCALE } from './map-camera.js';
 import './map-readability.css';
 import { previewDescription, type RoutePreview } from './route-preview.js';
-interface Props { game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null }
+interface Props { game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null; showOthers: boolean; onToggleOthers: () => void }
 function curve(from: string, to: string, t: number) {
   const a = airport(from), b = airport(to), cx = (a.x + b.x) / 2, cy = Math.min(a.y, b.y) - Math.min(100, Math.abs(b.x - a.x) * 0.2 + 35);
   return { x: (1-t)**2*a.x + 2*(1-t)*t*cx + t*t*b.x, y: (1-t)**2*a.y + 2*(1-t)*t*cy + t*t*b.y,
@@ -55,7 +55,7 @@ export function MapView(props: Props) {
         if (cancelled) { app.destroy(true, { children: true }); return; }
         const canvas = app.canvas as HTMLCanvasElement;
         canvas.setAttribute('aria-label', '机场航线示意图，可拖动、缩放或点击机场');
-        canvas.setAttribute('role', 'img'); element.appendChild(canvas);
+        canvas.setAttribute('role', 'img'); canvas.tabIndex = 0; element.appendChild(canvas);
         const world = new Container(), terrain = new Graphics(), lines = new Graphics(), rangeRing = new Graphics(), nodes = new Container(), aircraft = new Container();
         app.stage.addChild(world); const draft = new Graphics(), draftLabels = new Container();
         draft.eventMode = draftLabels.eventMode = rangeRing.eventMode = 'none';
@@ -104,6 +104,7 @@ export function MapView(props: Props) {
         const clamp = () => {
           const w=app.screen.width, h=app.screen.height, margin=Math.min(60, h / 3), scale=world.scale.x;
           world.x=Math.max(margin-960*scale,Math.min(w-margin,world.x)); world.y=Math.max(margin-630*scale,Math.min(h-margin,world.y));
+          element.dataset.camera = JSON.stringify({x:world.x,y:world.y,scale:world.scale.x});
         };
         const focusSelection = () => {
           const a = airport(latest.current.selected);
@@ -119,6 +120,13 @@ export function MapView(props: Props) {
           const old=world.scale.x, next=Math.max(MIN_MAP_SCALE / fitScale,Math.min(3,zoom*factor)); zoom=next;
           const scale=fitScale*next; world.position.set(x-(x-world.x)/old*scale,y-(y-world.y)/old*scale); world.scale.set(scale); clamp();
         };
+        const focusCurrent = () => {
+          const p = latest.current.plane, sprite = p && planes.get(p.id);
+          if (!sprite) return;
+          world.position.set(app.screen.width/2-sprite.x*world.scale.x,app.screen.height/2-sprite.y*world.scale.y); clamp();
+        };
+        const keydown = (event: KeyboardEvent) => { if (event.key === 'Home') { event.preventDefault(); focusCurrent(); } };
+        canvas.addEventListener('keydown',keydown);
         controls.current={zoom:(factor)=>zoomAt(factor,app.screen.width/2,app.screen.height/2),reset};
         const observer = new ResizeObserver(() => {
           const width=element.clientWidth,height=element.clientHeight;
@@ -142,8 +150,12 @@ export function MapView(props: Props) {
           const p=local(e);
           if(!drag&&!multi&&e.type!=='pointercancel'){
             const x=(p.x-world.x)/world.scale.x,y=(p.y-world.y)/world.scale.y;
+            const current = latest.current.plane && planes.get(latest.current.plane.id);
+            if (current && Math.hypot(current.x-x,current.y-y) < 18/world.scale.x) { focusCurrent(); }
+            else {
             const hit=AIRPORTS.find(a=>Math.hypot(a.x-x,a.y-y)<Math.max(22,18/world.scale.x));
             if(hit)latest.current.onSelect(hit.id);
+            }
           }
           pointers.delete(e.pointerId);if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);
           if(pointers.size===1)last=[...pointers.values()][0]!;
@@ -161,8 +173,8 @@ export function MapView(props: Props) {
           }
           if(lastGame!==game){lastGame=game;snapshotAt=performance.now();lines.clear();
             for(const r of game.routes){const a=airport(r.from),b=airport(r.to),c=curve(r.from,r.to,.5);
-              lines.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color:0xf7f4dc,width:5,alpha:.52});
-              lines.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color:0x276f75,width:2.5,alpha:.82});}
+              lines.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color:0xf7f4dc,width:4,alpha:.20});
+              lines.moveTo(a.x,a.y).quadraticCurveTo(c.cx,c.cy,b.x,b.y).stroke({color:0x276f75,width:2,alpha:.28});}
             for(const p of game.fleet){if(!planes.has(p.id)){const g=new Graphics();g.poly([14,0,-10,-8,-5,0,-10,8]).fill(0xfbf8db).stroke({color:0x143b50,width:2});aircraft.addChild(g);planes.set(p.id,g);}}
             for(const [id,g] of planes){if(!game.fleet.some(p=>p.id===id)){g.destroy();planes.delete(id);}}
           }
@@ -171,23 +183,27 @@ export function MapView(props: Props) {
             m.ring.clear();if(active)m.ring.circle(0,0,25).fill({color:0xfff27a,alpha:.18}).circle(0,0,23).stroke({color:0xffec3a,width:3});
             m.ring.roundRect(-7,-13,14,16,3).fill(open?0xd8f4ef:0xd8ddd3).stroke({color:open?0x1f7784:0x65736e,width:2});
             m.ring.poly([-11,3,0,-5,11,3,11,9,-11,9]).fill(open?0x4ac3d7:0xaab7ae).stroke({color:open?0x1b6576:0x65736e,width:2});
-            m.value.text=open?`${state!.level}级机场`:a.price?`解锁 ¥${Math.round(a.price/1000)}k`:'待解锁';
+            m.code.visible=false; m.value.position.set(16,0);
+            m.value.text=open?`${state!.level}级`:'未解锁';
             m.label.alpha=open?1:.68;m.code.alpha=open?.95:.62;m.value.alpha=open?.95:.66;
           }}
           const selectedPlane = plane ? game.fleet.find(item => item.id === plane.id) : undefined;
-          const nextRangeKey = selectedPlane ? `${selectedPlane.id}:${selectedPlane.airportId}:${aircraftSpecs(selectedPlane).range}:${selectedPlane.flight ? 'flight' : 'ground'}` : '';
+          const rangeOrigin = latest.current.preview?.legs.at(-1)?.to ?? selectedPlane?.airportId;
+          const nextRangeKey = selectedPlane ? `${selectedPlane.id}:${rangeOrigin}:${aircraftSpecs(selectedPlane).range}:${selectedPlane.flight ? 'flight' : 'ground'}` : '';
           if(rangeKey!==nextRangeKey){rangeKey=nextRangeKey;rangeRing.clear();
-            if(selectedPlane && !selectedPlane.flight){const a=airport(selectedPlane.airportId), radius=Math.min(300,145+aircraftSpecs(selectedPlane).range/35);drawDashedCircle(rangeRing,a.x,a.y,radius);rangeRing.circle(a.x,a.y,36).stroke({color:0xfffbd0,width:3,alpha:.88});}
+            if(selectedPlane && !selectedPlane.flight){const a=airport(rangeOrigin!), radius=Math.min(300,145+aircraftSpecs(selectedPlane).range/35);drawDashedCircle(rangeRing,a.x,a.y,radius);rangeRing.circle(a.x,a.y,36).stroke({color:0xfffbd0,width:3,alpha:.88});}
             element.setAttribute('data-range-plane', selectedPlane?.id ?? '');
+            element.setAttribute('data-range-origin', rangeOrigin ?? '');
           }
           const visualTime=game.simTime+Math.min(1,(performance.now()-snapshotAt)/1000);
           for(const p of game.fleet){const g=planes.get(p.id)!;
-            if(p.flight){g.visible=true;const f=p.flight,t=Math.max(0,Math.min(1,(visualTime-f.departAt)/(f.arriveAt-f.departAt))),v=curve(f.from,f.to,t);g.position.set(v.x,v.y);g.rotation=v.angle;}
+            if(p.flight){g.visible=latest.current.showOthers || selectedPlane?.id===p.id;const f=p.flight,t=Math.max(0,Math.min(1,(visualTime-f.departAt)/(f.arriveAt-f.departAt))),v=curve(f.from,f.to,t);g.position.set(v.x,v.y);g.rotation=v.angle;}
             else if(selectedPlane?.id===p.id){const a=airport(p.airportId);g.visible=true;g.position.set(a.x,a.y-28);g.rotation=-Math.PI/2;}
             else g.visible=false;
           }
+          element.dataset.visiblePlanes = [...planes].filter(([,g]) => g.visible).map(([id]) => id).join(',');
         });
-        dispose=()=>{controls.current=null;observer.disconnect();canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);canvas.removeEventListener('wheel',wheel);};
+        dispose=()=>{controls.current=null;observer.disconnect();canvas.removeEventListener('keydown',keydown);canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);canvas.removeEventListener('wheel',wheel);};
         setStatus('ready');
       } catch { if(!cancelled)setStatus('fallback'); }
     })();
@@ -196,11 +212,9 @@ export function MapView(props: Props) {
   return <section className={`map-area${compact ? ' is-compact' : ''}`} aria-label="航线地图" aria-describedby="route-preview-description">
     <div className="map-canvas" ref={host} data-testid="map-canvas" data-renderer={status}/>
     <p id="route-preview-description" className="sr-only" data-testid="route-preview" data-legs={props.preview?.legs.length ?? 0}>{previewDescription(props.preview)}</p>
-    {Boolean(props.preview?.legs.length) && <div className="route-preview-key">路线草稿 · {props.preview!.legs.length} 段 · 箭头为方向{props.preview!.legs.some(l => l.error) ? ' · 虚线段不可飞' : ' · 未确认不扣费'}</div>}
-    <div className={`map-caption${props.preview?.legs.length ? ' with-preview' : ''}`}>{compact ? <span className="map-hint">航线地图 · 拖拽查看城市</span> : <><span className="eyebrow">ROUTE NETWORK / 航线网络</span><h2>选择城市，规划下一段航程。</h2><p>黄色航迹仅为草稿，确认起飞后才进入经营状态。</p></>}</div>
-    {status==='fallback'&&<div className="map-fallback" role="status">地图渲染不可用。仍可通过下方机场列表进行全部经营操作。</div>}
-    <div className="map-legend"><span><i className="dot"/>已解锁 {props.game.airports.length}</span><span><i className="dot muted"/>待拓展 {AIRPORTS.length-props.game.airports.length}</span></div>
-    <div className="map-controls"><button className="map-zoom-in" aria-label="放大地图" onClick={()=>controls.current?.zoom(1.25)}><span aria-hidden="true">＋</span><em aria-hidden="true">放大</em></button><button className="map-zoom-out" aria-label="缩小地图" onClick={()=>controls.current?.zoom(.8)}><span aria-hidden="true">−</span><em aria-hidden="true">缩小</em></button><button className="map-reset" aria-label="重置地图视角" onClick={()=>controls.current?.reset()}><span aria-hidden="true">⌖</span><em aria-hidden="true">复位</em></button></div>
-    <small className="map-disclaimer">原创示意航网 · 非导航地图</small>
+    {status==='fallback' && <div className="map-fallback" role="status">地图不可用，请点击顶部「目的地」选择城市。</div>}
+    <button className="map-plane-toggle" aria-label={props.showOthers ? '隐藏其他飞机' : '显示其他飞机'} aria-pressed={!props.showOthers} onClick={props.onToggleOthers}><span>{props.showOthers ? '隐藏' : '显示'}</span><strong>其他飞机</strong></button>
+    <div className="map-controls"><button className="map-zoom-in" aria-label="放大地图" disabled={status !== 'ready'} onClick={()=>controls.current?.zoom(1.25)}><span aria-hidden="true">＋</span></button><button className="map-zoom-out" aria-label="缩小地图" disabled={status !== 'ready'} onClick={()=>controls.current?.zoom(.8)}><span aria-hidden="true">−</span></button></div>
+    <small className="map-disclaimer">游戏示意图 · 非导航地图</small>
   </section>;
 }
