@@ -1,3 +1,4 @@
+import { openGlobal } from './dispatch-helpers.js';
 import { test, expect } from '@playwright/test';
 
 test('tutorial feedback does not obscure or crop loading controls', async ({ page }) => {
@@ -6,7 +7,7 @@ test('tutorial feedback does not obscure or crop loading controls', async ({ pag
   await page.setViewportSize({ width: 844, height: 390 });
   await page.goto('./');
   await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
-  await page.getByRole('button', { name: '操作帮助', exact: true }).click();
+  await openGlobal(page, '操作帮助');
   await page.getByRole('button', { name: '开始分步引导', exact: true }).click();
   await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step', 'load');
   await expect(page.locator('.toast')).toHaveCount(0);

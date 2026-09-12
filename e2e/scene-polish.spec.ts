@@ -1,3 +1,4 @@
+import { selectCity, detailValue, launchRoute } from './dispatch-helpers.js';
 import { test, expect, type Page } from '@playwright/test';
 let errors: string[];
 test.beforeEach(async ({ page }) => { errors = []; page.on('pageerror', e => errors.push(e.message)); });
@@ -7,10 +8,10 @@ async function ready(page: Page) {
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
 }
 async function chooseShanghai(page: Page) {
-  const select = page.getByLabel('选择机场', { exact:true });
-  await select.selectOption('PEK');
-  await select.selectOption('PVG');
-  await expect(page.getByTestId('plan-summary')).toContainText('1 段');
+
+  await selectCity(page, 'PEK');
+  await selectCity(page, 'PVG');
+  await expect(await detailValue(page, 'plan-summary')).toContainText('1 段');
 }
 for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
   test(`loading queue scroll, keyboard and filter bounds at ${width}`, async ({ page }) => {
@@ -50,8 +51,8 @@ for (const [width, height] of [[1440,900],[844,390]]) {
     await expect(canvas).toHaveAttribute('data-renderer','ready');
     await expect(canvas).toHaveAttribute('data-preview-path','');
     await expect(page.getByTestId('route-preview')).toContainText('尚未选择路线城市');
-    await expect(page.getByTestId('route-instruction')).toContainText('城市管理按需打开');
-    await page.getByLabel('选择机场', { exact:true }).selectOption('WUH');
+    await expect(page.getByLabel('选择机场', { exact: true })).toHaveCount(0);
+    await selectCity(page, 'WUH');
     await expect(canvas).toHaveAttribute('data-preview-path','');
     const detail = page.getByRole('dialog', { name:'机场详情', exact:true });
     await expect(detail).toBeVisible();
@@ -61,18 +62,18 @@ for (const [width, height] of [[1440,900],[844,390]]) {
     await expect(page.getByTestId('credits')).toHaveText('¥ 148,000');
     await expect(canvas).toHaveAttribute('data-preview-path','WUH');
     const money = await page.getByTestId('credits').textContent();
-    await page.getByLabel('选择机场', { exact:true }).selectOption('PEK');
-    await page.getByLabel('选择机场', { exact:true }).selectOption('PVG');
+    await selectCity(page, 'PEK');
+    await selectCity(page, 'PVG');
     await expect(canvas).toHaveAttribute('data-preview-path','WUH,PEK,PVG');
     await expect(page.getByTestId('route-preview')).toHaveAttribute('data-legs','3');
     await expect(page.getByTestId('route-preview')).toContainText('2. 武汉→北京');
     await expect(page.getByTestId('credits')).toHaveText(money!);
     await page.screenshot({ path:`artifacts/route-preview-${width}.png` });
-    await page.getByRole('button', { name:'撤销末段', exact:true }).click();
+    await page.getByRole('button', { name:'路线后退', exact:true }).click();
     await expect(canvas).toHaveAttribute('data-preview-path','WUH,PEK');
-    await page.getByRole('button', { name:'清空路线', exact:true }).click();
+    await page.getByRole('button', { name:'路线撤销', exact:true }).click();
     await expect(canvas).toHaveAttribute('data-preview-path','');
-    await page.getByLabel('选择机场', { exact:true }).selectOption('URC');
+    await selectCity(page, 'URC');
     await expect(canvas).toHaveAttribute('data-preview-path','');
     const lockedDetail = page.getByRole('dialog', { name:'机场详情', exact:true });
     await expect(lockedDetail).toBeVisible();
@@ -85,7 +86,7 @@ for (const [width, height] of [[1440,900],[844,390]]) {
 }
 test('in-flight manifest explains why unload is unavailable', async ({ page }) => {
   await ready(page); await page.getByRole('button', { name:'同目的地装载', exact:true }).click();
-  await page.getByRole('button', { name:'选择航线起飞', exact:true }).click();await chooseShanghai(page);await page.getByTestId('dispatch').click();
+  await page.getByRole('button', { name:'选择航线起飞', exact:true }).click();await chooseShanghai(page);await launchRoute(page);
   const job = page.getByTestId('loaded-order').first();
   await expect(job).toBeDisabled(); await expect(job.locator('.job-state')).toHaveText('飞行中，不能装卸');
   await expect(page.getByRole('button', { name:'同目的地装载', exact:true })).toHaveCount(0);

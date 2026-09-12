@@ -1,3 +1,4 @@
+import { selectCity, inspectCity, routeDetails, launchRoute, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from '@playwright/test';
 let errors: string[];
 test.beforeEach(async ({ page }) => { errors = []; page.on('pageerror', e => errors.push(e.message)); });
@@ -7,16 +8,16 @@ async function ready(page: Page) {
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
 }
 async function detail(page: Page, city: string) {
-  await page.getByRole('button', { name: '机场目录', exact: true }).click();
+  await openGlobal(page, '机场目录');
   await page.getByRole('button', { name: `查看${city}机场`, exact: true }).click();
   await expect(page.getByRole('dialog', { name: '机场详情', exact: true })).toBeVisible();
 }
 async function chooseCityAfterDifferentValue(page: Page, cityId: string, differentId: string) {
-  const select = page.getByLabel('选择机场', { exact:true });
-  await select.selectOption(differentId);
+
+  await selectCity(page, differentId);
   const dialog = page.getByRole('dialog', { name:'机场详情', exact:true });
   if (await dialog.isVisible()) await dialog.getByRole('button', { name:'返回航线地图', exact:true }).click();
-  await select.selectOption(cityId);
+  await selectCity(page, cityId);
 }
 for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
   test(`empty-airport browsing is read-only and leaves aircraft elsewhere at ${width}`, async ({ page }) => {
@@ -45,7 +46,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
   });
 }
 test('airport search, locked information, unlock and upgrade use existing commands', async ({ page }) => {
-  await ready(page); await page.getByRole('button', { name: '机场目录', exact: true }).click();
+  await ready(page); await openGlobal(page, '机场目录');
   await page.getByLabel('搜索机场', { exact: true }).fill(' pVg ');
   await expect(page.getByRole('listitem')).toHaveCount(1);
   await page.getByLabel('搜索机场', { exact: true }).fill('不存在');
@@ -69,7 +70,7 @@ test('airport search, locked information, unlock and upgrade use existing comman
 test('purchase into an empty inspected airport enables only local aircraft loading and departure', async ({ page }) => {
   await ready(page); await detail(page, '上海');
   await page.getByRole('button', { name: '进入候机大厅', exact: true }).click();
-  await page.getByRole('button', { name: '飞机商店', exact: true }).click();
+  await openGlobal(page, '飞机商店');
   await expect(page.getByLabel('交付机场', { exact: true })).toHaveValue('PVG');
   await page.getByRole('button', { name: '购买云雀 70', exact: true }).click();
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
@@ -79,8 +80,8 @@ test('purchase into an empty inspected airport enables only local aircraft loadi
   await expect(page.getByTestId('onboard-count')).not.toHaveText('0');
   await page.getByRole('button', { name: '选择航线起飞', exact: true }).click();
   await chooseCityAfterDifferentValue(page, 'PEK', 'WUH');
-  await expect(page.locator('.network-summary')).toContainText('上海 → 北京');
-  await page.getByTestId('dispatch').click();
+  await expect((await routeDetails(page)).locator('.dispatch-route-title')).toContainText('上海 → 北京');
+  await launchRoute(page);
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
   await page.getByRole('button', { name: '上一架飞机', exact: true }).click();
   await expect(page.locator('.plane-status')).toContainText('AC0001');
@@ -90,7 +91,7 @@ test('purchase into an empty inspected airport enables only local aircraft loadi
 test('incoming and outbound boards track real arrival while pinned to an airport', async ({ page }) => {
   await ready(page); await page.getByRole('button', { name: '同目的地装载', exact: true }).click();
   await page.getByRole('button', { name: '选择航线起飞', exact: true }).click();
-  await chooseCityAfterDifferentValue(page, 'PVG', 'WUH'); await page.getByTestId('dispatch').click();
+  await chooseCityAfterDifferentValue(page, 'PVG', 'WUH'); await launchRoute(page);
   await detail(page, '北京');
   await expect(page.getByTestId('airport-parked').getByRole('listitem')).toHaveCount(0);
   await expect(page.getByTestId('airport-outgoing').getByRole('listitem')).toHaveCount(1);
@@ -113,7 +114,7 @@ test('opening airport details from a map preserves a click-order draft', async (
   await chooseCityAfterDifferentValue(page, 'PVG', 'WUH');
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-preview-path', 'PVG');
   const money = await page.getByTestId('credits').textContent();
-  await page.getByRole('button', { name: '查看上海机场详情', exact: true }).click();
+  await inspectCity(page, '查看上海机场详情');
   await expect(page.getByRole('dialog', { name: '机场详情' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-preview-path', 'PVG');
@@ -124,6 +125,6 @@ test('route planning from an empty airport uses the selected aircraft real origi
   await page.getByRole('button', { name: '进入候机大厅', exact: true }).click();
   await page.getByRole('button', { name: '航线地图', exact: true }).click();
   await chooseCityAfterDifferentValue(page, 'PVG', 'WUH');
-  await expect(page.locator('.network-summary')).toContainText('北京 → 上海');
+  await expect((await routeDetails(page)).locator('.dispatch-route-title')).toContainText('北京 → 上海');
   await expect(page.getByTestId('flights-count')).toHaveText('0 班');
 });
