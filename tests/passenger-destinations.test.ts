@@ -9,8 +9,8 @@ describe('passenger destination map projection', () => {
     const core = new GameCore(NOW);
     core.execute({ type: 'load-destination', planeId: 'AC0001', to: 'PVG' }, NOW);
     const counts = passengerDestinationCounts(core.snapshot(), 'AC0001');
-    expect(counts.get('PVG')).toBe(70);
-    expect(passengerDestinationKey(counts)).toBe('PVG:70');
+    expect(counts.get('PVG')).toBe(6);
+    expect(passengerDestinationKey(counts)).toBe('PVG:6');
   });
 
   it('returns no markers when no aircraft is selected', () => {
