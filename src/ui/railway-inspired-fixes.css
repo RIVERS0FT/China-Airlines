@@ -1,0 +1,10 @@
+/* Interaction corrections for the scene-first airport layout. */
+.aviation-game:not(.dispatch-focused) .airport-titlebar>*{pointer-events:none}
+.aviation-game:not(.dispatch-focused) .airport-titlebar>button{pointer-events:auto}
+
+/* Keep the queue's next button entirely outside the floated departure action. */
+.aviation-game:not(.dispatch-focused) .order-window{padding-right:154px}
+
+@media(max-height:600px) and (orientation:landscape){
+  .aviation-game:not(.dispatch-focused) .order-window{padding-right:92px}
+}
