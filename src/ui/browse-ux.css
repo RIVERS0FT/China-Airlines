@@ -1,0 +1,29 @@
+/* Browsing-only affordances. Do not change the independent dispatch map layout. */
+.game-modal,.dispatch-dialog{overscroll-behavior:contain;scroll-padding-top:72px}
+.game-modal>header{position:sticky;top:0;z-index:5}
+.game-modal>header button{min-width:44px;min-height:44px;flex-shrink:0}
+.game-modal .airport-directory button,.game-modal .fleet-operations button{min-height:44px}
+.game-modal .browse-search-field{display:flex;flex-direction:column;gap:6px;flex:1 1 250px;min-width:0}
+.game-modal .browse-search-field>label{display:block;font-size:13px;line-height:1.5}
+.game-modal .browse-search-control{display:flex;align-items:stretch;gap:6px;min-width:0}
+.game-modal .browse-search-control input{flex:1;min-width:0;width:100%;max-width:none;min-height:44px;margin:0;padding:9px 12px;border:1px solid #799ca9;border-radius:6px;background:#fffef2;color:#294e62;font-size:16px}
+.game-modal .browse-search-control>button{flex:0 0 auto;min-width:52px;min-height:44px;padding:6px 10px}
+.game-modal .browse-result-summary{font-size:13px;line-height:1.6;color:#405f67;margin:12px 0;font-variant-numeric:tabular-nums}
+.game-modal .browse-empty-actions{display:flex;gap:8px;flex-wrap:wrap}
+.game-modal .flight-search-controls{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px;margin:12px 0}
+.game-modal .flight-extra-filter{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:150px}
+.game-modal .flight-extra-filter select{min-height:44px;max-width:100%;padding:8px;border:1px solid #799ca9;border-radius:6px;color:#294e62;background:#fffef2;font-size:16px}
+.game-modal .flight-card[data-current=true]{border-color:#316d89;box-shadow:inset 4px 0 #316d89}
+.game-modal .flight-clock,.game-modal .flight-money{font-variant-numeric:tabular-nums}
+.game-modal .airport-card:focus-visible,.game-modal .fleet-operations button:focus-visible,.dispatch-dialog button:focus-visible{outline:3px solid #995018;outline-offset:2px}
+@media(max-width:750px){
+ .game-modal .airport-directory-tools{align-items:stretch}
+ .game-modal .airport-directory-tools .browse-search-field{flex-basis:100%}
+ .game-modal .flight-search-controls{gap:8px}
+ .game-modal .flight-search-controls .browse-search-field{flex-basis:240px}
+ .game-modal .flight-extra-filter{flex:1 1 160px}
+}
+@media(prefers-reduced-motion:reduce){
+ .game-modal button,.dispatch-dialog button{transition:none}
+ .game-modal button:active:not(:disabled),.dispatch-dialog button:active:not(:disabled){transform:none}
+}
