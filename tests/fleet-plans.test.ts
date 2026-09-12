@@ -124,7 +124,7 @@ describe('finite multi-stop plans',()=>{
 });
 describe('v1/v2 migration and v3 save validation',()=>{
   it('migrates fixed v2 in-flight data without repricing or resetting time',()=>{
-    const c=new GameCore(NOW,legacyV2),s=c.snapshot();expect(s.version).toBe(5);expect(s.orders).toEqual(legacyV2.orders);
+    const c=new GameCore(NOW,legacyV2),s=c.snapshot();expect(s.version).toBe(6);expect(s.orders).toEqual(legacyV2.orders);
     expect(s.lastWallTime).toBe(legacyV2.lastWallTime);expect(s.fleet[0]!.flight).toEqual(legacyV2.fleet[0]!.flight);
     expect(s.fleet[0]!.upgrades).toEqual(emptyUpgrades());expect(validateSave(s)).toEqual(s);
   });

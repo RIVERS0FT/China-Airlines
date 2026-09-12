@@ -1,0 +1,12 @@
+.aviation-game .route-dispatch-view .map-area.globe-area{background:radial-gradient(ellipse at 50% 45%,#23546a,#142e40 65%,#102332);isolation:isolate}
+.globe-area .map-canvas{touch-action:none;user-select:none}
+.globe-area canvas{cursor:grab}.globe-area canvas:active{cursor:grabbing}
+.globe-hint{position:absolute;top:16px;left:18px;display:flex;flex-direction:column;gap:5px;pointer-events:none;color:#d3e9e9;font-size:12px;letter-spacing:1px}
+.globe-hint strong{font-size:19px;color:#f5e8bb}
+.dispatch-world-search{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin:12px 0}
+.dispatch-world-search label{display:flex;flex-direction:column;gap:6px;flex:1;min-width:150px;font-size:13px}
+.dispatch-dialog .dispatch-world-search input,.dispatch-dialog .dispatch-world-search select,.game-modal .airport-world-filter select{min-height:44px;padding:8px;border:1px solid #799ca9;border-radius:6px;background:#fffef2;color:#294e62;font-size:16px;max-width:100%}
+.dispatch-world-search input{width:100%;min-width:0}
+.game-modal .airport-world-filter{display:flex;align-items:center;gap:10px;font-size:13px;margin:8px 0}
+.game-modal .airport-world-filter select{min-width:145px}
+@media(max-height:600px){.globe-hint{top:10px;left:12px;font-size:10px}.globe-hint strong{font-size:15px}.dispatch-world-search{margin:8px 0;gap:8px}}

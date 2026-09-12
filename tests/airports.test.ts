@@ -17,13 +17,13 @@ describe('read-only airport views', () => {
     expect(a.orders).toBe(12); expect(a.passengers).toBe(140); expect(a.cargo).toBe(4);
     expect(a.transfers).toBe(0); expect(a.destinations).toHaveLength(1);
     expect(a.parked.map(p => p.id)).toEqual(['AC0001']);
-    expect(airportDirectory(state, 'all', '')).toHaveLength(12);
+    expect(airportDirectory(state, 'all', '')).toHaveLength(50);
     expect(state).toEqual(original);
   });
   it('filters owned/unopened airports and matches trimmed city, code and region', () => {
     const s = new GameCore(NOW).snapshot();
     expect(airportDirectory(s, 'open', '')).toHaveLength(2);
-    expect(airportDirectory(s, 'locked', '')).toHaveLength(10);
+    expect(airportDirectory(s, 'locked', '')).toHaveLength(48);
     for (const text of ['上海', ' pVg ', '华东']) expect(airportDirectory(s, 'open', text).map(a => a.id)).toEqual(['PVG']);
     expect(airportDirectory(s, 'locked', 'PVG')).toHaveLength(0);
     expect(airportDirectory(s, 'all', '不存在')).toHaveLength(0);

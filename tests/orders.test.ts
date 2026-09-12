@@ -62,7 +62,7 @@ describe('persistent passenger and cargo orders', () => {
 });
 describe('save v2 and legacy migration',()=>{
   it('migrates a fixed v1 flight fixture without changing money or locked revenue',()=>{
-    const c=new GameCore(NOW,legacy),s=c.snapshot();expect(s.version).toBe(5);expect(s.credits).toBe(legacy.credits);expect(s.fleet.map(({upgrades: _u,itinerary: _i,dispatcher: _d,energy: _e,...p})=>p)).toEqual(legacy.fleet);
+    const c=new GameCore(NOW,legacy),s=c.snapshot();expect(s.version).toBe(6);expect(s.credits).toBe(legacy.credits);expect(s.fleet.map(({upgrades: _u,itinerary: _i,dispatcher: _d,energy: _e,...p})=>p)).toEqual(legacy.fleet);
     expect(s.orders.filter(o=>o.location==='AC0001').reduce((n,o)=>n+o.reward,0)).toBe(legacy.fleet[0]!.flight!.revenue);
     c.tick(NOW+legacy.fleet[0]!.flight!.arriveAt*1000);expect(c.snapshot().stats.revenue).toBe(legacy.fleet[0]!.flight!.revenue);expect(()=>validateSave(c.snapshot())).not.toThrow();
   });
