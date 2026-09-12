@@ -53,6 +53,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     expect(dispatchBounds).not.toBeNull();
     expect(mapBounds!.height).toBeGreaterThanOrEqual(viewport.height * 0.4);
     expect(zoomBounds!.x + zoomBounds!.width).toBeLessThan(undoBounds!.x);
+    expect(Math.abs((zoomBounds!.y + zoomBounds!.height) - (undoBounds!.y + undoBounds!.height))).toBeLessThanOrEqual(6);
     expect(undoBounds!.x).toBeLessThan(clearBounds!.x);
     expect(clearBounds!.x).toBeLessThan(cancelBounds!.x);
     expect(Math.abs(undoBounds!.y - cancelBounds!.y)).toBeLessThanOrEqual(4);
