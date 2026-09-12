@@ -19,6 +19,11 @@ export interface AircraftModel {
   kind: AircraftKind; seats: number; cargo: number; range: number; speed: number;
   price: number; level: number; costKm: number;
 }
+/** New games start with this small-capacity aircraft. It is not part of the shop catalog. */
+export const STARTER_MODEL: AircraftModel = {
+  id: 'starter-lark', family: 'lark', name: '云雀 6', role: '初始轻型客货机', kind: 'mixed',
+  seats: 6, cargo: 1, range: 1600, speed: 650, price: 60000, level: 1, costKm: 2
+};
 export const MODELS: readonly AircraftModel[] = [
   { id: 'lark', family: 'lark', name: '云雀 70', role: '支线客货机', kind: 'mixed', seats: 70, cargo: 2, range: 1600, speed: 650, price: 85000, level: 1, costKm: 2 },
   { id: 'swallow', family: 'swallow', name: '海燕 160', role: '中程客货机', kind: 'mixed', seats: 160, cargo: 6, range: 4200, speed: 820, price: 280000, level: 2, costKm: 4 },
@@ -37,7 +42,7 @@ export type Upgrades = Record<UpgradeKey, number>;
 export const emptyUpgrades = (): Upgrades => ({ capacity: 0, engine: 0, range: 0, efficiency: 0 });
 export function aircraftSpecs(p: { modelId: string; upgrades: Upgrades }) {
   const m = model(p.modelId), u = p.upgrades;
-  return { ...m, seats: Math.floor(m.seats * (1 + u.capacity * .1)),
+  return { ...m, seats: m.seats + Math.ceil(m.seats * .1) * u.capacity,
     cargo: m.cargo + Math.ceil(m.cargo * .1) * u.capacity,
     range: Math.round(m.range * (1 + u.range * .1)),
     speed: Math.round(m.speed * (1 + u.engine * .05)),
@@ -58,7 +63,7 @@ export const airport = (id: string) => {
   return result;
 };
 export const model = (id: string) => {
-  const result = MODELS.find(m => m.id === id);
+  const result = id === STARTER_MODEL.id ? STARTER_MODEL : MODELS.find(m => m.id === id);
   if (!result) throw new Error('未知机型');
   return result;
 };
