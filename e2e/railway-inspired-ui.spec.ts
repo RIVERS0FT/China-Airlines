@@ -13,7 +13,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     const title = page.locator('.airport-titlebar');
     const orders = page.locator('.apron-queue');
     const dock = page.locator('.game-dock');
-    const depart = page.getByRole('button', { name: '选择航线起飞', exact: true });
+    const depart = page.getByRole('button', { name: '制定路线', exact: true });
 
     await expect(hud).toBeVisible();
     await expect(scene).toBeVisible();
@@ -35,11 +35,15 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     expect(titleBox.y + titleBox.height).toBeLessThanOrEqual(sceneBox.y + sceneBox.height + 1);
     expect(sceneBox.y + sceneBox.height).toBeLessThanOrEqual(orderBox.y + 1);
 
-    // The primary departure action floats over the platform area above the launcher dock.
+    // User-selected placement: the departure action is anchored to the bottom right.
     expect(departBox.width).toBeGreaterThanOrEqual(44);
     expect(departBox.height).toBeGreaterThanOrEqual(44);
-    expect(departBox.y).toBeLessThan(dockBox.y);
-    expect(departBox.y + departBox.height).toBeLessThanOrEqual(dockBox.y + 1);
+    expect(departBox.y).toBeGreaterThanOrEqual(dockBox.y);
+    expect(departBox.y).toBeGreaterThanOrEqual(orderBox.y + orderBox.height);
+    const nextBox = (await page.getByRole('button', { name: '下一组客货', exact: true }).boundingBox())!;
+    expect(viewport.width - nextBox.x - nextBox.width).toBeLessThanOrEqual(16);
+    expect(departBox.y + departBox.height).toBeLessThanOrEqual(dockBox.y + dockBox.height);
+    expect(viewport.height - departBox.y - departBox.height).toBeLessThanOrEqual(16);
     expect(departBox.x + departBox.width).toBeLessThanOrEqual(viewport.width + 1);
 
     for (const name of ['机场装载', '航线地图', '机场目录', '机队管理', '飞机商店', '运营任务']) {

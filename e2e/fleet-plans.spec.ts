@@ -7,8 +7,8 @@ test.beforeEach(async({page})=>{ errors=[];page.on('pageerror',e=>errors.push(e.
 test.afterEach(()=>expect(errors).toEqual([]));
 async function ready(page:Page){await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');}
 async function plan(page:Page){
-  await page.getByRole('button',{name:'同目的地装载',exact:true}).click();
-  await page.getByRole('button',{name:'选择航线起飞',exact:true}).click();
+  await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
+  await page.getByRole('button',{name:'制定路线',exact:true}).click();
   await expect(page.getByRole('button',{name:'选择目的城市',exact:true})).toBeVisible();
   await selectCity(page, 'WUH');
   const detail=page.getByRole('dialog',{name:'机场详情',exact:true});
@@ -27,7 +27,7 @@ test('specialist purchase, real cargo loading, workshop retrofit and hangar expa
   await page.getByRole('button',{name:'购买云雀 8F',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   await page.getByRole('button',{name:'关闭飞机商店'}).click();await page.getByRole('button',{name:'下一架飞机'}).click();
   await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 0 人');
-  await page.getByRole('button',{name:'同目的地装载',exact:true}).click();await expect(page.getByTestId('onboard-count')).toHaveText('4');
+  await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await expect(page.getByTestId('loaded-order')).toHaveCount(4);
   await openGlobal(page, '机队管理');
   await page.getByRole('button',{name:/云雀 8F.*AC0002/}).click();
   await page.getByRole('button',{name:'升级发动机',exact:true}).click();await expect(page.getByTestId('upgrade-engine')).toContainText('Lv.1');
@@ -41,14 +41,14 @@ test('click-order route executes two legs, survives reload and does not pay twic
   await launchRoute(page);await expect(page.getByTestId('active-plan')).toContainText('上海');
   await page.reload();await expect(page.getByTestId('active-plan')).toContainText('上海');
   await page.clock.fastForward(220000);await expect(page.getByTestId('flights-count')).toHaveText('2 班');
-  await expect(page.getByTestId('onboard-count')).toHaveText('0');const credits=await page.getByTestId('credits').textContent();
+  await expect(page.getByTestId('loaded-order')).toHaveCount(0);const credits=await page.getByTestId('credits').textContent();
   await page.reload();await expect(page.getByTestId('flights-count')).toHaveText('2 班');await expect(page.getByTestId('credits')).toHaveText(credits!);
 });
 test('cancel plan in flight only removes onward destinations',async({page})=>{
   await ready(page);await plan(page);await launchRoute(page);
   await page.getByRole('button',{name:'取消剩余计划',exact:true}).click();await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
   await page.clock.fastForward(200000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');
-  await expect(page.locator('.gate-sign')).toContainText('武汉');await expect(page.getByTestId('onboard-count')).not.toHaveText('0');
+  await expect(page.locator('.gate-sign')).toContainText('武汉');await expect(page.getByTestId('loaded-order')).not.toHaveCount(0);
 });
 test('v2 import preserves manifest and exports v4 upgrade fields',async({page})=>{
   const previousPlane = v2.fleet[0];

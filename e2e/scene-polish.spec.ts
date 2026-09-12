@@ -16,17 +16,24 @@ async function chooseShanghai(page: Page) {
 for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
   test(`loading queue scroll, keyboard and filter bounds at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width: width!, height: height! }); await ready(page);
-    const queue = page.getByRole('region', { name:'候运客货列表', exact:true });
+    const queue = page.getByRole('region', { name:'客货列表', exact:true });
+    expect(await queue.evaluate(el => getComputedStyle(el).scrollbarWidth)).toBe('none');
     const prev = page.getByRole('button', { name:'上一组客货', exact:true });
     const next = page.getByRole('button', { name:'下一组客货', exact:true });
     await expect(prev).toBeDisabled(); await expect(next).toBeEnabled();
     await next.click(); await expect.poll(() => queue.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
     await queue.focus(); await page.keyboard.press('Home'); await expect(prev).toBeDisabled();
     await page.keyboard.press('End'); await expect(next).toBeDisabled();
-    await page.getByLabel('客货分类', { exact:true }).selectOption('cargo');
-    await expect(page.getByTestId('waiting-order')).toHaveCount(4);
-    await expect(prev).toBeDisabled(); await expect(next).toBeDisabled();
-    await page.getByLabel('客货分类', { exact:true }).selectOption('all');
+    await page.keyboard.press('Home'); await expect(prev).toBeDisabled();
+    await expect(page.locator('.order-toolbar')).toHaveCount(0);
+    const first = page.getByTestId('waiting-order').first();
+    const id = await first.getAttribute('data-order-id');
+    const position = await first.boundingBox();
+    await first.click();
+    const loaded = page.locator(`[data-order-id="${id}"]`);
+    await expect(loaded.locator('.job-state')).toHaveText('已装机 · 点击卸载');
+    expect((await loaded.boundingBox())!.x).toBeCloseTo(position!.x, 0);
+    await loaded.click();
     await expect(page.getByTestId('waiting-order')).toHaveCount(12);
     await expect(prev).toBeDisabled(); await expect(next).toBeEnabled();
     const card = page.getByTestId('waiting-order').first(), label = card.locator('.job-state');
@@ -84,16 +91,19 @@ for (const [width, height] of [[1440,900],[844,390]]) {
     await expect(page.getByTestId('flights-count')).toHaveText('0 班');
   });
 }
-test('in-flight manifest explains why unload is unavailable', async ({ page }) => {
-  await ready(page); await page.getByRole('button', { name:'同目的地装载', exact:true }).click();
-  await page.getByRole('button', { name:'选择航线起飞', exact:true }).click();await chooseShanghai(page);await launchRoute(page);
-  const job = page.getByTestId('loaded-order').first();
-  await expect(job).toBeDisabled(); await expect(job.locator('.job-state')).toHaveText('飞行中，不能装卸');
-  await expect(page.getByRole('button', { name:'同目的地装载', exact:true })).toHaveCount(0);
+test('flight hides loading area and restores it after arrival', async ({ page }) => {
+  await ready(page); await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
+  await page.getByRole('button', { name:'制定路线', exact:true }).click();await chooseShanghai(page);await launchRoute(page);
+  await expect(page.locator('.apron-queue')).toHaveCount(0);
+  await expect(page.getByTestId('loaded-order')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^同目的地装载：/ }).first()).toHaveCount(0);
   await expect(page.getByRole('group', { name:'当前航班收支', exact:true })).toBeVisible();
   const cost = await page.getByTestId('flight-cost').textContent();
   const revenue = await page.getByTestId('flight-revenue').textContent();
-  await page.reload(); await expect(page.getByTestId('loaded-order').first().locator('.job-state')).toHaveText('飞行中，不能装卸');
+  await page.reload(); await expect(page.locator('.apron-queue')).toHaveCount(0);
   await expect(page.getByTestId('flight-cost')).toHaveText(cost!);
   await expect(page.getByTestId('flight-revenue')).toHaveText(revenue!);
+  await page.clock.fastForward(200_000);
+  await expect(page.locator('.apron-queue')).toBeVisible();
+  await expect(page.locator('.scene-flight-summary')).toHaveCount(0);
 });

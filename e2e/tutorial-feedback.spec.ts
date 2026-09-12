@@ -18,12 +18,12 @@ test('tutorial feedback does not obscure or crop loading controls', async ({ pag
   await expect(card.locator('.job-state')).toBeInViewport();
   await page.screenshot({ path: 'artifacts/tutorial-landscape-readable.png' });
   await card.click();
-  await expect(page.getByTestId('onboard-count')).toHaveText('1');
+  await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   await page.getByRole('button', { name: '跳过引导', exact: true }).click();
   await expect(page.getByTestId('tutorial')).toHaveCount(0);
   await expect(page.locator('.toast')).toHaveCount(0);
   await page.reload();
-  await expect(page.getByTestId('onboard-count')).toHaveText('1');
+  await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   await expect(page.getByTestId('tutorial')).toHaveCount(0);
   expect(errors).toEqual([]);
 });

@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { airport, MODELS, TASKS, AIRCRAFT_KIND_LABEL, type AircraftKind } from '../core/catalog.js';
-import { taskProgress, type GameState } from '../core/game.js';
+import { guideStep } from '../core/onboarding.js';
+import { taskProgress, type GameState, type Plane } from '../core/game.js';
 import { controller, useGame } from '../runtime.js';
 import { installUpdate } from '../pwa.js';
+import { artAsset, BUTTON_ART } from './art-assets.js';
 export const money = (n: number) => `¥ ${Math.round(n).toLocaleString('zh-CN')}`;
 export const duration = (n: number) => { const s=Math.max(0,Math.ceil(n)); return s>=60?`${Math.floor(s/60)}分${String(s%60).padStart(2,'0')}秒`:`${s}秒`; };
 export const ignore = (promise: Promise<unknown>) => { void promise.catch(()=>undefined); };
 export function Icon({name}:{name:string}) {
+  const asset = BUTTON_ART[name];
+  if (asset) return <img className="icon painted-icon" width="22" height="22" src={artAsset(asset)} alt="" aria-hidden="true" draggable={false}/>;
   const paths:Record<string,string>={plane:'m21 3-5 12-6 1-4 5-2-2 3-5-5-3 1-2 7 1 8-7Z',map:'m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Zm6-3v15m6-12v15',fleet:'M4 18h16M7 14h10M12 3v10m-7-4 7-3 7 3m-11 5 4-2 4 2',shop:'M3 9h18l-2-6H5ZM5 9v12h14V9M9 21v-7h6v7',task:'M8 4H5v17h14V4h-3M8 2h8v5H8Zm0 11 2 2 5-5m-7 8h7',save:'M4 3h13l4 4v14H3V3Zm3 0v6h10V3M7 21v-8h10v8',check:'m4 12 5 5L20 6',rotate:'M7 3h10v18H7ZM3 5 1 8l2 3M21 19l2-3-2-3'};
   return <svg className="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]||paths.plane}/></svg>;
 }
@@ -46,6 +50,7 @@ export function Shop({game,busy,selected}:{game:GameState;busy:boolean;selected:
     {view.error && <p role="alert" className="workshop-feedback">{view.error}</p>}{view.notice && <p role="status" className="workshop-feedback">{view.notice}</p>}
     <p className="muted-text">3个系列，9种机型。纯客机只能装旅客，纯货机只能装货物，客货机分别使用两类容量。数值为本作配置。</p></section>;
 }
-export function Tasks({game,busy}:{game:GameState;busy:boolean}) {
-  return <section className="content-page"><div className="operations-grid"><div className="task-list">{TASKS.map(t=>{const n=taskProgress(game,t.id),claimed=game.claimedTasks.includes(t.id);return <article className="task-card" key={t.id}><div className="task-icon"><Icon name="task"/></div><div className="task-body"><h3>{t.title}</h3><p>{t.description}</p><div className="progress-track"><i style={{width:`${Math.min(100,n/t.target*100)}%`}}/></div><small>{Math.min(n,t.target)} / {t.target}</small></div><div className="task-reward"><strong>+ {money(t.reward)}</strong><button disabled={busy||claimed||n<t.target} onClick={()=>ignore(controller.command({type:'claim',taskId:t.id}))}>{claimed?'已领取':n>=t.target?'领取奖励':'进行中'}</button></div></article>;})}</div><aside className="ledger"><h3>运营日志 · 最近60条</h3>{game.log.map((entry,i)=><div className="ledger-entry" key={`${entry.at}-${i}`}><span>{entry.text}</span>{entry.amount!==0&&<strong>{entry.amount>0?'+':'−'}{money(Math.abs(entry.amount))}</strong>}</div>)}</aside></div></section>;
+export function Tasks({game,plane,busy,onNext}:{game:GameState;plane?:Plane;busy:boolean;onNext:(step:string)=>void}) {
+  const next = plane ? guideStep(game, plane, 'airport', '') : null;
+  return <section className="content-page"><div className="operations-grid"><div className="task-list">{TASKS.map(t=>{const n=taskProgress(game,t.id),claimed=game.claimedTasks.includes(t.id);return <article className="task-card" key={t.id}><div className="task-icon"><Icon name="task"/></div><div className="task-body"><h3>{t.title}</h3><p>{t.description}</p>{t.id === 'first-flight' && !claimed && next && <div className="task-next-step" data-testid="first-flight-task"><strong>{next.number}/6 · {next.title}</strong><p>{next.text.replace('客货卡片', '旅客或货物')}</p>{n < t.target && <button disabled={busy} onClick={() => onNext(next.id)}>{next.id === 'map' ? '规划首航' : next.id === 'flight' ? '查看首航航班' : '前往装载'}</button>}</div>}<div className="progress-track"><i style={{width:`${Math.min(100,n/t.target*100)}%`}}/></div><small>{Math.min(n,t.target)} / {t.target}</small></div><div className="task-reward"><strong>+ {money(t.reward)}</strong><button disabled={busy||claimed||n<t.target} onClick={()=>ignore(controller.command({type:'claim',taskId:t.id}))}>{claimed?'已领取':n>=t.target?'领取奖励':'进行中'}</button></div></article>;})}</div><aside className="ledger"><h3>运营日志 · 最近60条</h3>{game.log.map((entry,i)=><div className="ledger-entry" key={`${entry.at}-${i}`}><span>{entry.text}</span>{entry.amount!==0&&<strong>{entry.amount>0?'+':'−'}{money(Math.abs(entry.amount))}</strong>}</div>)}</aside></div></section>;
 }

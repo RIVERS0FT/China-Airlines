@@ -1,0 +1,328 @@
+[
+  {
+    "file": "aircraft-flight-v1.png",
+    "width": 1408,
+    "height": 640,
+    "bytes": 476738,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 557858
+  },
+  {
+    "file": "aircraft-v1.png",
+    "width": 1408,
+    "height": 640,
+    "bytes": 542970,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 541645
+  },
+  {
+    "file": "airport-day-v1.jpg",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 327366,
+    "mode": "RGB"
+  },
+  {
+    "file": "apron-platform-v1.jpg",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 315353,
+    "mode": "RGB"
+  },
+  {
+    "file": "baggage-trailer-v1.png",
+    "width": 384,
+    "height": 320,
+    "bytes": 71260,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 82715
+  },
+  {
+    "file": "cargo-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 67795,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 21918
+  },
+  {
+    "file": "cones-v1.png",
+    "width": 384,
+    "height": 320,
+    "bytes": 80603,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 75946
+  },
+  {
+    "file": "ground-crew-v1.png",
+    "width": 384,
+    "height": 320,
+    "bytes": 79624,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 90932
+  },
+  {
+    "file": "icon-airport-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 62509,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 35835
+  },
+  {
+    "file": "icon-coin-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 83185,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 20334
+  },
+  {
+    "file": "icon-directory-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 83049,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 19565
+  },
+  {
+    "file": "icon-energy-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 52148,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 32655
+  },
+  {
+    "file": "icon-help-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 84146,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 19819
+  },
+  {
+    "file": "icon-maintenance-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 86746,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 31078
+  },
+  {
+    "file": "icon-map-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 70951,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 30069
+  },
+  {
+    "file": "icon-plane-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 48057,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 46632
+  },
+  {
+    "file": "icon-save-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 64452,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 11274
+  },
+  {
+    "file": "icon-shop-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 65549,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 28033
+  },
+  {
+    "file": "icon-task-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 53277,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 25272
+  },
+  {
+    "file": "icon-trophy-v1.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 71965,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 31881
+  },
+  {
+    "file": "passenger-01-v1.png",
+    "width": 256,
+    "height": 320,
+    "bytes": 81108,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 48403
+  },
+  {
+    "file": "passenger-02-v1.png",
+    "width": 256,
+    "height": 320,
+    "bytes": 102025,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 41962
+  },
+  {
+    "file": "passenger-03-v1.png",
+    "width": 256,
+    "height": 320,
+    "bytes": 74040,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 53514
+  },
+  {
+    "file": "passenger-04-v1.png",
+    "width": 256,
+    "height": 320,
+    "bytes": 82859,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 47643
+  },
+  {
+    "file": "passenger-05-v1.png",
+    "width": 256,
+    "height": 320,
+    "bytes": 93855,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 46312
+  },
+  {
+    "file": "passenger-06-v1.png",
+    "width": 256,
+    "height": 320,
+    "bytes": 85580,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 45977
+  },
+  {
+    "file": "pilot-avatar-v1.png",
+    "width": 320,
+    "height": 320,
+    "bytes": 110266,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 52209
+  },
+  {
+    "file": "tug-v1.png",
+    "width": 384,
+    "height": 320,
+    "bytes": 96086,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 77438
+  }
+]
