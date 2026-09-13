@@ -48,7 +48,7 @@ test('first flight is guided through the mission without a bottom tutorial entry
   await expect(page.getByTestId('first-flight-task')).toContainText('选择旅客与货物');
   await page.getByRole('button', { name: '前往装载', exact: true }).click();
   await page.getByTestId('waiting-order').first().click();
-  await expect(page.locator('.airport-mission')).toContainText('进入航线地图');
+  await expect(page.locator('.airport-mission')).toContainText('制定首航路线');
   await page.getByRole('button', { name: '任务中心', exact: true }).click();
   await page.getByRole('button', { name: '规划首航', exact: true }).click();
   await selectCity(page, 'PEK'); await selectCity(page, 'PVG'); await launchRoute(page);
@@ -76,10 +76,10 @@ test('loading and unloading stay in the same destination group without a toolbar
   await item.click();
   const loaded = page.locator(`[data-order-id="${id}"]`);
   await expect(loaded).toHaveAttribute('data-testid', 'loaded-order');
-  await expect(loaded.locator('.job-state')).toHaveText('已装机');
+  await expect(loaded.locator('.job-state')).toHaveText('已装机 · 卸载');
   await loaded.click();
   await expect(loaded).toHaveAttribute('data-testid', 'waiting-order');
-  await expect(loaded.locator('.job-state')).toHaveText('待装机');
+  await expect(loaded.locator('.job-state')).toHaveText('装机');
   await loaded.click();
   await page.getByRole('button', { name: '查看机上客货', exact: true }).click();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);

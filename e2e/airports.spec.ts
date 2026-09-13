@@ -16,7 +16,7 @@ async function chooseCityAfterDifferentValue(page: Page, cityId: string, differe
 
   await selectCity(page, differentId);
   const dialog = page.getByRole('dialog', { name:'机场详情', exact:true });
-  if (await dialog.isVisible()) await dialog.getByRole('button', { name:'返回航线地图', exact:true }).click();
+  if (await dialog.isVisible()) await dialog.getByRole('button', { name:'返回制定路线', exact:true }).click();
   await selectCity(page, cityId);
 }
 for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
@@ -110,7 +110,7 @@ test('incoming and outbound boards track real arrival while pinned to an airport
   await expect(page.getByTestId('airport-parked').getByRole('listitem')).toHaveCount(1);
 });
 test('opening airport details from a map preserves a click-order draft', async ({ page }) => {
-  await ready(page); await page.getByRole('button', { name: '航线地图', exact: true }).click();
+  await ready(page); await page.getByRole('button', { name: '制定路线', exact: true }).click();
   await chooseCityAfterDifferentValue(page, 'PVG', 'WUH');
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-preview-path', 'PVG');
   const money = await page.getByTestId('credits').textContent();
@@ -123,7 +123,7 @@ test('opening airport details from a map preserves a click-order draft', async (
 test('route planning from an empty airport uses the selected aircraft real origin', async ({ page }) => {
   await ready(page); await detail(page, '上海');
   await page.getByRole('button', { name: '进入候机大厅', exact: true }).click();
-  await page.getByRole('button', { name: '航线地图', exact: true }).click();
+  await page.getByRole('button', { name: '当前机场详情', exact: true }).click(); await page.getByRole('button', { name: '安排飞机飞来', exact: true }).click();
   await chooseCityAfterDifferentValue(page, 'PVG', 'WUH');
   await expect((await routeDetails(page)).locator('.dispatch-route-title')).toContainText('北京 → 上海');
   await expect(page.getByTestId('flights-count')).toHaveText('0 班');

@@ -1,5 +1,5 @@
 import { displayScale } from './display-helpers.js';
-import { selectCity, inspectCity, routeDetails, detailValue, openGlobal } from './dispatch-helpers.js';
+import { selectCity, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from '@playwright/test';
 import { GameCore, planQuote, type GameState } from '../src/core/game.js';
 const NOW = Date.parse('2026-09-11T00:00:00Z'), ID = 'AC0001';
@@ -30,17 +30,22 @@ async function load(page:Page,s:GameState){
 test('active map keeps the locked route and payment while another airport is browsed',async({page})=>{
   const s=flying(),f=s.fleet[0]!.flight!;await load(page,s);
   await expect(page.getByTestId('flight-cost')).toHaveText(money(f.cost));await expect(page.getByTestId('flight-revenue')).toHaveText('¥ 0');
-  await page.getByRole('button',{name:'航线地图',exact:true}).click();
+  await page.getByRole('button',{name:'地图',exact:true}).click();
+  await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer', 'ready');
+  await page.clock.runFor(50); // Render once while the business clock is paused.
   await selectCity(page, 'URC');
-  await expect((await routeDetails(page)).locator('.dispatch-route-title')).toContainText('北京 → 武汉');
-  await expect(page.getByTestId('network-cost')).toHaveText(money(f.cost));await expect(await detailValue(page, 'network-revenue')).toHaveText('¥ 0');
-  await expect(page.getByTestId('dispatch')).toHaveCount(0);await expect(page.getByRole('button',{name:'多段计划',exact:true})).toHaveCount(0);
-  await expect(page.getByRole('button',{name:/^解锁机场/})).toHaveCount(0);
-  await inspectCity(page, '查看乌鲁木齐机场详情');
+  await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-preview-path', '');
+  await expect(page.getByTestId('network-summary')).toHaveCount(0);
+  await expect(page.getByTestId('dispatch')).toHaveCount(0);
   await expect(page.getByRole('dialog',{name:'机场详情',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:/^解锁机场/})).toBeVisible();
   await page.keyboard.press('Escape');
-  await selectCity(page, 'PVG');await expect(await detailValue(page, 'network-revenue')).toHaveText('¥ 0');
+  await selectCity(page, 'PVG');
+  await expect(page.getByTestId('airport-incoming')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: '返回航班', exact: true }).click();
+  await expect(page.getByTestId('flight-cost')).toHaveText(money(f.cost));
+  await expect(page.getByTestId('flight-revenue')).toHaveText('¥ 0');
   await expect(page.getByTestId('credits')).toHaveText(money(s.credits));await page.reload();
   await expect(page.getByTestId('flight-profit')).toHaveText(money(-f.cost));await expect(page.getByTestId('credits')).toHaveText(money(s.credits));
 });

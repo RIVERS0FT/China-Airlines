@@ -47,7 +47,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     expect(viewport.height - departBox.y - departBox.height).toBeLessThanOrEqual(16);
     expect(departBox.x + departBox.width).toBeLessThanOrEqual(viewport.width + 1);
 
-    for (const name of ['机场装载', '航线地图', '机场目录', '机队管理', '飞机商店']) {
+    for (const name of ['机场装载', '地图', '机场目录', '机队管理', '飞机商店']) {
       const button = page.getByRole('button', { name, exact: true });
       const box = (await button.boundingBox())!;
       expect(box.width).toBeGreaterThanOrEqual(44 * await displayScale(page) - .02);

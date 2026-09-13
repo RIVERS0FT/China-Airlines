@@ -8,7 +8,7 @@ import { LAND_VERTICES, LAND_FACES } from './world-land.js';
 import { previewDescription, type RoutePreview } from './route-preview.js';
 import './globe.css';
 import { passengerDestinationCounts, passengerDestinationKey } from './passenger-destinations.js';
-interface Props { game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null; showOthers: boolean; onToggleOthers: () => void }
+interface Props { planning: boolean; game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null; showOthers: boolean; onToggleOthers: () => void }
 const geography = new Map(AIRPORTS.map(a => [a.id, toVector(a)]));
 const land = LAND_VERTICES.map(([lon, lat]) => toVector({ lon, lat }));
 const arcCache = new Map<string, Vec3[]>();
@@ -61,7 +61,7 @@ export function MapView(props: Props) {
         }));
         const planes = new Map<string, Graphics>();
         const initial = latest.current.plane;
-        let camera = globeCamera(element.clientWidth, element.clientHeight, initial ? fromVector(aircraftPoint(initial, latest.current.game.simTime)) : airport(latest.current.selected));
+        let camera = globeCamera(element.clientWidth, element.clientHeight, initial && latest.current.planning ? fromVector(aircraftPoint(initial, latest.current.game.simTime)) : airport(latest.current.selected));
         let dirty = true, lastGame: GameState | null = null, focused = latest.current.selected, lastPreview = '', lastOthers = true, snapshotAt = performance.now();
         const publishCamera = () => { element.dataset.camera = JSON.stringify(camera); dirty = true; };
         const zoom = (factor: number) => { camera.scale = Math.max(1, Math.min(6, camera.scale * factor)); publishCamera(); };
@@ -159,12 +159,12 @@ export function MapView(props: Props) {
           grid.circle(cx, cy, r).stroke({ color: 0x81c8d7, width: 1.5, alpha: .65 });
         }
         function drawNetwork() {
-          const { game, selected, preview, plane } = latest.current;
+          const { game, selected, preview, plane, planning } = latest.current;
           const owned = new Map(game.airports.map(a => [a.id, a.level]));
           lines.clear(); for (const route of game.routes) path(lines, routeArc(route.from, route.to), camera, 0xc2e2dd, 1.5, .28);
-          range.clear(); const origin = preview?.legs.at(-1)?.to ?? plane?.airportId;
+          range.clear(); const origin = planning ? preview?.legs.at(-1)?.to ?? plane?.airportId : undefined;
           if (plane && !plane.flight && origin) path(range, rangePoints(airport(origin), aircraftSpecs(plane).range), camera, 0xfae5a0, 1.5, .8, true);
-          element.dataset.rangePlane = plane?.id ?? ''; element.dataset.rangeOrigin = origin ?? '';
+          element.dataset.rangePlane = planning ? plane?.id ?? '' : ''; element.dataset.rangeOrigin = origin ?? '';
           draft.clear();
           for (const leg of preview?.legs ?? []) {
             const color = leg.error ? 0xff8678 : 0xffdf64, points = routeArc(leg.from, leg.to);
@@ -176,7 +176,7 @@ export function MapView(props: Props) {
           }
           if (plane?.flight) path(draft, routeArc(plane.flight.from, plane.flight.to), camera, 0xffdf64, 2.5, .85);
           const visits = new Map(preview?.visits.map(v => [v.airportId, v.numbers.join('/')]) ?? []);
-          const passengers = passengerDestinationCounts(game, plane?.id);
+          const passengers = passengerDestinationCounts(game, planning ? plane?.id : undefined);
           element.dataset.passengerDestinations = passengerDestinationKey(passengers);
           const priority = (id: string) => id === selected ? 0 : visits.has(id) ? 1 : passengers.has(id) ? 2 : id === plane?.airportId ? 3 : owned.has(id) ? 4 : 5;
           const occupied: { x: number; y: number; w: number; h: number }[] = [];
@@ -260,10 +260,10 @@ export function MapView(props: Props) {
     })();
     return () => { cancelled = true; dispose(); if (initialized && !app.stage.destroyed) app.destroy(true, { children: true }); };
   }, []);
-  return <section className="map-area globe-area" aria-label="航线地图" aria-describedby="route-preview-description">
+  return <section className="map-area globe-area" aria-label={props.planning ? "制定路线地图" : "地图"} aria-describedby={props.planning ? "route-preview-description" : undefined}>
     <div className="map-canvas" ref={host} data-testid="map-canvas" data-projection="orthographic" data-renderer={status}/>
-    <p id="route-preview-description" className="sr-only" data-testid="route-preview" data-legs={props.preview?.legs.length ?? 0}>{previewDescription(props.preview)}</p>
-    {status === 'fallback' && <div className="map-fallback" role="status">地图不可用，请点击顶部「目的地」搜索全球机场并选择城市。</div>}
+    {props.planning && <p id="route-preview-description" className="sr-only" data-testid="route-preview" data-legs={props.preview?.legs.length ?? 0}>{previewDescription(props.preview)}</p>}
+    {status === 'fallback' && <div className="map-fallback" role="status">地图不可用，请点击顶部「{props.planning ? '目的地' : '查找城市'}」搜索全球机场并选择城市。</div>}
     <div className="globe-hint" aria-hidden="true"><strong>全球航网</strong><span>拖动旋转 · 双指缩放</span></div>
     <button className="map-plane-toggle" aria-label={props.showOthers ? '隐藏其他飞机' : '显示其他飞机'} aria-pressed={!props.showOthers} onClick={props.onToggleOthers}><span>{props.showOthers ? '隐藏' : '显示'}</span><strong>其他飞机</strong></button>
     <div className="map-controls"><button className="map-zoom-in" aria-label="放大地图" disabled={status !== 'ready'} onClick={() => controls.current?.zoom(1.25)}><span aria-hidden="true">＋</span></button><button className="map-zoom-out" aria-label="缩小地图" disabled={status !== 'ready'} onClick={() => controls.current?.zoom(.8)}><span aria-hidden="true">−</span></button></div>
