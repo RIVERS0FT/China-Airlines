@@ -9,6 +9,7 @@
 .task-center-tabs,.fleet-management-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .task-center-tabs>button,.fleet-management-tabs>button{min-height:44px;padding:7px 18px;border:2px solid #77a1b8;border-radius:7px;background:#eff8fb;color:#24566e}
 .task-center .task-center-tabs>button[aria-selected=true],.fleet-management .fleet-management-tabs>button[aria-selected=true]{background:#226b91;color:#fff;border-color:#174d6a}
+.task-center .task-center-tabs>button[aria-selected=true]:hover:not(:disabled),.fleet-management .fleet-management-tabs>button[aria-selected=true]:hover:not(:disabled){background:#226b91;color:#fff;border-color:#174d6a}
 .task-center-tabs b{margin-left:5px}
 .task-center-feedback{min-height:32px;color:#3a5969;font-size:13px}
 .task-center-feedback p{margin:4px 0 10px}
