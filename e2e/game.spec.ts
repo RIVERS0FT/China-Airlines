@@ -19,7 +19,8 @@ test('desktop loading, first flight, reward, and reload',async({page})=>{
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();await page.screenshot({path:'artifacts/desktop-flight.png'});
   await page.clock.fastForward(400_000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');
   const resume=page.getByRole('button',{name:'继续经营'});if(await resume.isVisible())await resume.click();
-  await page.getByRole('button',{name:'运营任务',exact:true}).click();await page.getByRole('button',{name:'领取奖励',exact:true}).click();
+  await page.getByRole('button',{name:'任务中心',exact:true}).click();await page.locator('[data-task-id="first-flight"]').getByRole('button',{name:'领取奖励',exact:true}).click();
+  await page.getByRole('tab',{name:/^已领取/}).click();
   await expect(page.getByRole('button',{name:'已领取',exact:true})).toBeDisabled();
   const credits=await page.getByTestId('credits').textContent();await page.reload();
   await expect(page.getByTestId('flights-count')).toHaveText('1 班');await expect(page.getByTestId('credits')).toHaveText(credits!);

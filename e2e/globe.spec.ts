@@ -89,7 +89,7 @@ test('Pacific multi-leg arcs and global selection preserve camera and read-only 
   page.once('dialog', d => void d.accept());
   await page.getByLabel('选择存档文件').setInputFiles({ name: 'global-plan.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(c.snapshot())) });
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架'); await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
-  await page.getByRole('button', { name: '航班运行表', exact: true }).click(); await page.getByRole('button', { name: '查看AC0002飞机', exact: true }).click();
+  await page.getByRole('button', { name: '机队管理概览', exact: true }).click(); await page.getByRole('button', { name: '查看AC0002飞机', exact: true }).click();await expect(page.getByRole('tab', { name: '飞机', exact: true })).toHaveAttribute('aria-selected', 'true');await page.getByRole('button', { name: '前往这架飞机', exact: true }).click();
   await page.getByRole('button', { name: '航线地图', exact: true }).click(); await selectCity(page, 'ANC'); await selectCity(page, 'YVR');
   const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-preview-path', 'ANC,YVR');
   const camera = await host.getAttribute('data-camera'), credits = await page.getByTestId('credits').textContent();

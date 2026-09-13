@@ -20,7 +20,7 @@ export function FlightMoney({ flight }: { flight: NonNullable<ReturnType<typeof 
   </div>;
 }
 
-/** A scene switcher, not another writer of economic state. */
+/** Read-only flight list inside fleet management. Selecting a row opens aircraft details. */
 export function FlightBoard({ game, selectedId, onSelect }: {
   game: GameState; selectedId?: string; onSelect: (id: string) => void;
 }) {
@@ -74,13 +74,13 @@ export function FlightBoard({ game, selectedId, onSelect }: {
           <p className="flight-load">可用能量 {energyText(p.energy.availableSeconds)} 点{p.flight ? p.energy.reservedSeconds ? '（已预留本段）' : '（旧航班免扣）' : ''}</p>
           {f ? <FlightMoney flight={f}/> : <p className="flight-ground-note">尚未起飞，不预记下一班收入或成本。</p>}
           {status.onward.length > 0 && <p className="flight-onward">后续：{status.onward.map(id => airport(id).city).join(' → ')}</p>}
-          <button type="button" className="flight-enter" onClick={() => onSelect(p.id)} aria-label={`查看${p.id}飞机`}>{f ? '查看飞行场景' : status.phase === 'ready' ? '进入机场装载' : '查看飞机状态'} →</button>
+          <button type="button" className="flight-enter" onClick={() => onSelect(p.id)} aria-label={`查看${p.id}飞机`}>查看飞机详情 →</button>
         </article>;
       })}
     </div>
     {!shown.length && <div className="flight-list-empty">
       <p>{term ? '没有匹配的飞机。可清空搜索或显示全部飞机。' : filter === 'ready' ? '暂无可立即装载的待命飞机。' : filter === 'flying' ? '当前没有飞行中的飞机。' : filter === 'all' ? '当前没有飞机。' : `当前没有处于「${phaseLabels[filter]}」状态的飞机。`}</p>
-      <button type="button" onClick={resetFilters}>显示全部飞机</button>
+      <button type="button" onClick={() => resetFilters()}>显示全部飞机</button>
     </div>}
     <p className="flight-board-note">金额来自当前航班锁定数据。成本已在起飞时扣除；仅本段到达最终目的地的订单会交付，其余继续留在机上。</p>
   </section>;

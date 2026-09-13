@@ -5,14 +5,12 @@ import {
   MATERIALS,
   WORKSHOP_MATERIALS,
   RECIPES,
-  CAREER_TASKS,
   modernModel,
   type Material,
   type Building,
 } from "../core/career-catalog.js";
 import {
   careerLevel,
-  taskValue,
   warehouseUsed,
   warehouseCapacity,
 } from "../core/career.js";
@@ -23,7 +21,6 @@ import { duration, money, ignore, Icon } from "./Panels.js";
 import "./career.css";
 
 const tabs = [
-  "经营任务",
   "机体工坊",
   "飞行团队",
   "物流园",
@@ -43,7 +40,7 @@ export function CareerHub({
   selected?: string;
   airportId: string;
 }) {
-  const [tab, setTab] = useState<Tab>("经营任务"),
+  const [tab, setTab] = useState<Tab>("机体工坊"),
     [planeId, setPlaneId] = useState(selected ?? game.fleet[0]!.id),
     [city, setCity] = useState(airportId);
   const [material, setMaterial] = useState<Material>("meal"),
@@ -149,72 +146,6 @@ export function CareerHub({
         )}
       </div>
       <div role="tabpanel" aria-label={tab} className="career-body">
-        {tab === "经营任务" && (
-          <>
-            <div className="career-quests">
-              <article>
-                <h3>七日启航礼</h3>
-                <p>
-                  第 {Math.min(c.day + 1, 7)} 天 · {5 + Math.min(c.day, 6) * 2}{" "}
-                  点券＋1张机型图纸
-                </p>
-                {action(
-                  "领取今日启航礼",
-                  { type: "career-claim", id: `checkin-${Math.min(c.day, 6)}` },
-                  c.claimed.includes(`checkin-${Math.min(c.day, 6)}`),
-                )}
-              </article>
-              <article>
-                <h3>每日运输</h3>
-                <p>已交付 {c.dailyDeliveries}/8 份 · 1,000 金币＋8 点券</p>
-                {action(
-                  "领取每日奖励",
-                  { type: "career-claim", id: `daily-${c.day}` },
-                  c.dailyDeliveries < 8 || c.claimed.includes(`daily-${c.day}`),
-                )}
-              </article>
-            </div>
-            <h3>成长任务</h3>
-            {CAREER_TASKS.map((t) => (
-              <div className="career-row" key={t.id}>
-                <div>
-                  <strong>{t.title}</strong>
-                  <small>
-                    {taskValue(game, t.metric)} / {t.target} · {money(t.gold)}＋
-                    {t.tickets} 点券
-                  </small>
-                </div>
-                {action(
-                  c.claimed.includes(t.id) ? "已领取" : "领取奖励",
-                  { type: "career-claim", id: t.id },
-                  c.claimed.includes(t.id) ||
-                    taskValue(game, t.metric) < t.target,
-                )}
-              </div>
-            ))}
-            <h3>区域运输挑战</h3>
-            <div className="career-quests">
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <article key={n}>
-                  <h4>
-                    第 {n} 区 · 运输业绩 {money(n * n * 5000)}
-                  </h4>
-                  <p>
-                    累计收入 {money(game.stats.revenue)} · 奖励{" "}
-                    {money(n * 1500)}、{n * 10} 点券、动力组件
-                  </p>
-                  {action(
-                    c.claimed.includes(`boss-${n}`) ? "已完成" : "领取挑战奖励",
-                    { type: "career-claim", id: `boss-${n}` },
-                    game.stats.revenue < n * n * 5000 ||
-                      c.claimed.includes(`boss-${n}`) ||
-                      (n > 1 && !c.claimed.includes(`boss-${n - 1}`)),
-                  )}
-                </article>
-              ))}
-            </div>
-          </>
-        )}
         {tab === "机体工坊" && (
           <>
             <label>

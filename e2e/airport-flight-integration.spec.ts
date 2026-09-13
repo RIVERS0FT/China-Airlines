@@ -37,10 +37,10 @@ test('empty-airport browsing and the running list keep independent aircraft loca
   await expect(page.getByTestId('flight-cost')).toHaveCount(0);
   await expect(page.getByTestId('waiting-order')).toHaveCount(12);
   await expect(page.getByRole('button', { name: /^同目的地装载：/ }).first()).toBeDisabled();
-  await openGlobal(page, '航班运行表');
+  await openGlobal(page, '机队管理概览');
   const row=page.locator(`[data-plane-id="${ID}"]`);
   await expect(row).toContainText('北京 → 武汉');
-  await row.getByRole('button',{name:`查看${ID}飞机`,exact:true}).click();
+  await row.getByRole('button',{name:`查看${ID}飞机`,exact:true}).click();await expect(page.getByRole('tab', { name: '飞机', exact: true })).toHaveAttribute('aria-selected', 'true');await page.getByRole('button', { name: '前往这架飞机', exact: true }).click();
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
   await expect(page.locator('.gate-sign')).toContainText('北京 → 武汉');
   await expect(page.getByRole('button',{name:/^返回所选飞机/})).toHaveCount(0);

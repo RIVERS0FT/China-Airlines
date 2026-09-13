@@ -27,3 +27,16 @@ export function orderBlockReason(game: GameState, plane: Plane | undefined, orde
   if (!specs.cargo) return '纯客机不载货';
   return total.cargo + order.amount > specs.cargo ? '剩余货舱不足' : '';
 }
+
+export type OrderState = 'loaded' | 'waiting' | 'blocked';
+/** Loaded state is independent of permission to unload (flight, service, full apron). */
+export function orderPresentation(game: GameState, plane: Plane | undefined, order: Order, busy = false) {
+  const aboard = Boolean(plane && order.location === plane.id);
+  const reason = orderBlockReason(game, plane, order, aboard);
+  const state: OrderState = aboard ? 'loaded' : reason ? 'blocked' : 'waiting';
+  return { state, aboard, reason, disabled: busy || Boolean(reason),
+    label: aboard ? '已装机' : reason ? '不可装' : '待装机',
+    action: busy ? '保存中…' : reason || (aboard ? '卸载' : '＋ 装机'),
+    transfer: !aboard && order.expiresAt === null,
+  };
+}

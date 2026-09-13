@@ -81,7 +81,7 @@ test('touching a city on the canvas selects it once and preserves automatic mode
   page.on('pageerror', error => errors.push(error.message));
   try {
     await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
-    await page.getByRole('button',{name:'机队管理',exact:true}).click();await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await page.getByRole('button',{name:'关闭我的机库'}).click();
+    await page.getByRole('button',{name:'机队管理',exact:true}).click();await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await page.getByRole('button',{name:'关闭机队管理'}).click();
     await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
     await page.getByRole('button', { name: '制定路线', exact: true }).click();
     const canvas = page.getByTestId('map-canvas');

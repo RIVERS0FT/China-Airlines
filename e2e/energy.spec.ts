@@ -46,9 +46,9 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
     await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
     await expect(page.locator('.plane-status')).toContainText('地勤补能');
     await expect(page.getByTestId('loaded-order').first()).toBeDisabled();
-    await expect(page.getByTestId('loaded-order').first().locator('.job-state')).toHaveText('地勤补能中，不能装卸');
-    await openGlobal(page, '航班运行表');await page.getByRole('button',{name:/^待命飞机/}).click();
-    await expect(page.getByTestId('flight-row')).toHaveCount(0);await page.getByRole('button',{name:'关闭航班运行表',exact:true}).click();
+    await expect(page.getByTestId('loaded-order').first().locator('.job-action')).toHaveText('地勤补能中，不能装卸');
+    await openGlobal(page, '机队管理概览');await page.getByRole('button',{name:/^待命飞机/}).click();
+    await expect(page.getByTestId('flight-row')).toHaveCount(0);await page.getByRole('button',{name:'关闭机队管理',exact:true}).click();
     await openGlobal(page, '机队管理');
     await page.clock.fastForward(119000);await expect(page.getByTestId('hangar-energy')).toHaveText('0.22 / 240 点');
     await page.clock.fastForward(1000);await expect(page.getByTestId('hangar-energy')).toHaveText('240.00 / 240 点');
