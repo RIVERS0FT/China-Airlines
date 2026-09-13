@@ -1,0 +1,21 @@
+/* Physical shell only. This file is intentionally excluded from logical CSS conversion. */
+html, body, #root { width:100%; height:100%; margin:0; overflow:hidden; }
+html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+.game-screen { position:fixed; inset:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px); overflow:hidden; }
+.game-layout { position:relative; transform-origin:top left; container:game-viewport / size; overflow:hidden; }
+.game-layout .aviation-game { width:100%; height:100%; min-width:0; min-height:0; }
+/* Native modal dialogs enter the top layer and do not inherit ancestor transforms. */
+.game-layout dialog { position:fixed; inset:auto; left:var(--game-center-x); top:var(--game-center-y); margin:0; transform:translate(-50%,-50%) scale(var(--game-scale)); transform-origin:center; max-width:calc(var(--game-width) - 24px); max-height:calc(var(--game-height) - 24px); }
+.game-layout .rotate-screen { display:none; }
+@media (orientation:portrait) { .game-layout .rotate-screen { display:flex; } }
+.display-settings { margin:0 0 22px; padding:16px; border:2px solid #94b8be; border-radius:12px; background:#eaf5f3; }
+.display-settings-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.display-settings-heading h3 { margin:0; font-size:18px; }
+.display-settings output { font-size:20px; font-weight:800; }
+.display-settings p { font-size:13px; line-height:1.65; margin:10px 0; }
+.ui-scale-slider { display:flex; align-items:center; gap:12px; margin:12px 0; }
+.ui-scale-slider input { flex:1; min-width:0; height:44px; accent-color:#287e8c; }
+.display-settings button { min-width:44px; min-height:44px; padding:7px 12px; border:1px solid #89aab3; border-radius:7px; background:#fffdf0; }
+.ui-scale-presets { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+.ui-scale-presets button[aria-pressed=true] { background:#22697c; color:white; border-color:#164d61; }
+.display-settings small { display:block; font-size:12px; line-height:1.6; }

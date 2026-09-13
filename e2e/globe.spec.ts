@@ -1,3 +1,4 @@
+import { displayScale } from './display-helpers.js';
 import { test, expect, type Page } from '@playwright/test';
 import { AIRPORTS, airport } from '../src/core/catalog.js';
 import { GameCore } from '../src/core/game.js';
@@ -55,14 +56,15 @@ test('far-side markers are not clickable and rotation/cancel never changes the d
   await page.getByRole('button', { name: '关闭选路提示', exact: true }).click();
   const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-camera', /radius/);
   const camera = JSON.parse((await host.getAttribute('data-camera'))!) as GlobeCamera, bounds = (await host.boundingBox())!;
+  const screenScale = await displayScale(page);
   const projected = AIRPORTS.map(a => ({ ...projectGeo(a, camera), id: a.id }));
-  const hidden = projected.find(a => !a.visible && a.x > 160 && a.x < bounds.width - 150 && a.y > 80 && a.y < bounds.height - 130 &&
+  const hidden = projected.find(a => !a.visible && a.x > 160 && a.x < bounds.width / screenScale - 150 && a.y > 80 && a.y < bounds.height / screenScale - 130 &&
     projected.filter(b => b.visible).every(b => Math.hypot(b.x - a.x, b.y - a.y) > 30));
-  expect(hidden).toBeDefined(); await page.mouse.click(bounds.x + hidden!.x, bounds.y + hidden!.y);
+  expect(hidden).toBeDefined(); await page.mouse.click(bounds.x + hidden!.x * screenScale, bounds.y + hidden!.y * screenScale);
   await expect(host).toHaveAttribute('data-preview-path', ''); await expect(page.getByRole('dialog')).toHaveCount(0);
   // Cancel an actual pointer stream. The later pointerup must not become a city click.
   const city = projectGeo(airport('PVG'), camera);
-  await page.mouse.move(bounds.x + city.x, bounds.y + city.y); await page.mouse.down();
+  await page.mouse.move(bounds.x + city.x * screenScale, bounds.y + city.y * screenScale); await page.mouse.down();
   await host.locator('canvas').dispatchEvent('pointercancel', { pointerId: 1, bubbles: true }); await page.mouse.up();
   await expect(host).toHaveAttribute('data-preview-path', ''); await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
 });
@@ -70,7 +72,7 @@ test('two-finger zoom never appends a destination on finger release', async ({ p
   await ready(page); await page.getByRole('button', { name: '航线地图', exact: true }).click();
   await page.getByRole('button', { name: '关闭选路提示', exact: true }).click();
   const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-camera', /radius/);
-  const old = JSON.parse((await host.getAttribute('data-camera'))!) as GlobeCamera, b = (await host.boundingBox())!, x = b.x + old.cx, y = b.y + old.cy;
+  const old = JSON.parse((await host.getAttribute('data-camera'))!) as GlobeCamera, b = (await host.boundingBox())!, x = b.x + old.cx * await displayScale(page), y = b.y + old.cy * await displayScale(page);
   const client = await page.context().newCDPSession(page);
   const touches = (gap: number) => [{ x: x - gap, y, id: 1 }, { x: x + gap, y, id: 2 }];
   await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: touches(30) });

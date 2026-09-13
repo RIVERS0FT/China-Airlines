@@ -1,21 +1,14 @@
-import { useSyncExternalStore } from 'react';
+import { useGameViewport } from './GameViewport.js';
 import { aircraftSpecs } from '../core/catalog.js';
 import { loadSummary, type GameState, type Plane } from '../core/game.js';
 import { artAsset } from './art-assets.js';
-
-const compactQuery = '(max-height:600px) and (orientation:landscape)';
-const compactScene = () => window.matchMedia(compactQuery).matches;
-function subscribeScene(listener: () => void) {
-  const media = window.matchMedia(compactQuery);
-  media.addEventListener('change', listener);
-  return () => media.removeEventListener('change', listener);
-}
 
 /** Painted scene and aircraft; capacity overlays remain read-only projections of real orders. */
 export function AviationScene({ game, plane, onCabin }: {
   game: GameState; plane?: Plane; onCabin: () => void;
 }) {
-  const compact = useSyncExternalStore(subscribeScene, compactScene, () => false);
+  const viewport = useGameViewport();
+  const compact = viewport.height <= 600 && viewport.width >= viewport.height;
   const flying = Boolean(plane?.flight);
   const total = plane ? loadSummary(game, plane.id) : { passengers: 0, cargo: 0 };
   const m = plane ? aircraftSpecs(plane) : null;

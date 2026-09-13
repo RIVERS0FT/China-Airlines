@@ -1,3 +1,4 @@
+import { clientToLogical } from './viewport.js';
 import { useEffect, useRef, useState } from 'react';
 import { Application, Container, Graphics, Text, Ticker } from 'pixi.js';
 import { AIRPORTS, aircraftSpecs, airport } from '../core/catalog.js';
@@ -71,15 +72,20 @@ export function MapView(props: Props) {
           camera.lat = point.lat; camera.lon = point.lon; publishCamera();
         };
         controls.current = { zoom };
-        const observer = new ResizeObserver(() => {
+        const resize = () => {
           const w = element.clientWidth, h = element.clientHeight;
           if (w < 1 || h < 1) return;
-          app.renderer.resize(w, h); camera = globeCamera(w, h, camera, camera.scale); publishCamera();
-        });
+          const screenScale = element.getBoundingClientRect().width / w;
+          const resolution = Math.max(.5, Math.min((window.devicePixelRatio || 1) * screenScale, 3));
+          app.renderer.resize(w, h, resolution); camera = globeCamera(w, h, camera, camera.scale); publishCamera();
+        };
+        const observer = new ResizeObserver(resize);
+        window.addEventListener('gameviewportchange', resize);
+        window.addEventListener('resize', resize);
         observer.observe(element);
         const pointers = new Map<number, { x: number; y: number }>();
         let dragged = false, multi = false, start = { x: 0, y: 0 }, last = start;
-        const local = (e: PointerEvent) => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+        const local = (e: PointerEvent) => clientToLogical(e.clientX, e.clientY, canvas.getBoundingClientRect(), element.clientWidth, element.clientHeight);
         const down = (e: PointerEvent) => {
           if (e.button !== 0) return;
           const p = local(e); pointers.set(e.pointerId, p); canvas.setPointerCapture(e.pointerId); canvas.focus({ preventScroll: true });
@@ -245,6 +251,7 @@ export function MapView(props: Props) {
         renderLoop.start();
         publishCamera();
         dispose = () => {
+          window.removeEventListener('gameviewportchange', resize); window.removeEventListener('resize', resize);
           renderLoop.destroy(); controls.current = null; observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move);
           canvas.removeEventListener('pointerup', up); canvas.removeEventListener('pointercancel', up); canvas.removeEventListener('wheel', wheel); canvas.removeEventListener('keydown', keydown);
         };
