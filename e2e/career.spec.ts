@@ -54,14 +54,13 @@ for (const [width, height] of [
     page.on("pageerror", (e) => errors.push(e.message));
     await page.setViewportSize({ width: width!, height: height! });
     await setup(page);
+    await openGlobal(page, "任务中心");
+    await page.locator('[data-task-id="checkin-0"]').getByRole("button", { name: "领取奖励", exact: true }).click();
+    await page.getByRole("tab", { name: /^已领取/ }).click();
+    await expect(page.locator('[data-task-id="checkin-0"]').getByRole("button", { name: "已领取", exact: true })).toBeDisabled();
+    await page.getByRole("button", { name: "关闭任务中心" }).click();
     await openGlobal(page, "经营中心");
-    await expect(
-      page.getByRole("dialog", { name: "公司经营中心" }),
-    ).toBeVisible();
-    await page.getByRole("button", { name: "领取今日启航礼" }).click();
-    await expect(
-      page.getByRole("button", { name: "领取今日启航礼" }),
-    ).toBeDisabled();
+    await expect(page.getByRole("dialog", { name: "公司经营中心" })).toBeVisible();
     for (const name of [
       "机体工坊",
       "飞行团队",
@@ -69,7 +68,6 @@ for (const [width, height] of [
       "物资商店",
       "航空展馆",
       "机场运营",
-      "经营任务",
     ]) {
       await page.getByRole("tab", { name, exact: true }).click();
       await expect(
@@ -100,10 +98,9 @@ for (const [width, height] of [
     expect(saved.career.claimed).toContain("checkin-0");
     expect(Object.keys(saved.career)).not.toContain("gems");
     await page.reload();
-    await openGlobal(page, "经营中心");
-    await expect(
-      page.getByRole("button", { name: "领取今日启航礼" }),
-    ).toBeDisabled();
+    await openGlobal(page, "任务中心");
+    await page.getByRole("tab", { name: /^已领取/ }).click();
+    await expect(page.locator('[data-task-id="checkin-0"]').getByRole("button", { name: "已领取", exact: true })).toBeDisabled();
     expect(errors).toEqual([]);
   });
 test("factory goods load onto a cargo plane, arrive in another city and fulfil one trade", async ({

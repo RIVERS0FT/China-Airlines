@@ -39,13 +39,17 @@ test('first flight is guided through the mission without a bottom tutorial entry
   await page.clock.install({ time: new Date('2026-09-12T00:00:00Z') });
   await page.goto('./');
   await expect(page.locator('.start-guide, .dock-status')).toHaveCount(0);
+  // Claim the initial gift, then the persistent entrance resumes the first-flight guide.
+  await page.getByRole('button', { name: '任务中心', exact: true }).click();
+  await page.locator('[data-task-id="checkin-0"]').getByRole('button', { name: '领取奖励', exact: true }).click();
+  await page.getByRole('button', { name: '关闭任务中心', exact: true }).click();
   await expect(page.locator('.airport-mission')).toContainText('选择旅客与货物');
-  await page.getByRole('button', { name: '查看当前运营任务', exact: true }).click();
+  await page.getByRole('button', { name: '任务中心', exact: true }).click();
   await expect(page.getByTestId('first-flight-task')).toContainText('选择旅客与货物');
   await page.getByRole('button', { name: '前往装载', exact: true }).click();
   await page.getByTestId('waiting-order').first().click();
   await expect(page.locator('.airport-mission')).toContainText('进入航线地图');
-  await page.getByRole('button', { name: '查看当前运营任务', exact: true }).click();
+  await page.getByRole('button', { name: '任务中心', exact: true }).click();
   await page.getByRole('button', { name: '规划首航', exact: true }).click();
   await selectCity(page, 'PEK'); await selectCity(page, 'PVG'); await launchRoute(page);
   await expect(page.locator('.airport-mission')).toContainText('观察航班到达');
@@ -55,9 +59,10 @@ test('first flight is guided through the mission without a bottom tutorial entry
   const resume = page.getByRole('button', { name: '继续经营', exact: true });
   if (await resume.isVisible()) await resume.click();
   await expect(page.locator('.airport-mission')).toContainText('领取首航奖励');
-  await page.getByRole('button', { name: '查看当前运营任务', exact: true }).click();
-  await page.getByRole('button', { name: '领取奖励', exact: true }).click();
-  await expect(page.getByRole('button', { name: '已领取', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: '任务中心', exact: true }).click();
+  await page.locator('[data-task-id="first-flight"]').getByRole('button', { name: '领取奖励', exact: true }).click();
+  await page.getByRole('tab', { name: /^已领取/ }).click();
+  await expect(page.locator('[data-task-id="first-flight"]').getByRole('button', { name: '已领取', exact: true })).toBeDisabled();
   await expect(page.getByTestId('first-flight-task')).toHaveCount(0);
 });
 
@@ -71,10 +76,10 @@ test('loading and unloading stay in the same destination group without a toolbar
   await item.click();
   const loaded = page.locator(`[data-order-id="${id}"]`);
   await expect(loaded).toHaveAttribute('data-testid', 'loaded-order');
-  await expect(loaded.locator('.job-state')).toHaveText('已装机 · 点击卸载');
+  await expect(loaded.locator('.job-state')).toHaveText('已装机');
   await loaded.click();
   await expect(loaded).toHaveAttribute('data-testid', 'waiting-order');
-  await expect(loaded.locator('.job-state')).toHaveText('中转保留 · 点击装机');
+  await expect(loaded.locator('.job-state')).toHaveText('待装机');
   await loaded.click();
   await page.getByRole('button', { name: '查看机上客货', exact: true }).click();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
@@ -97,11 +102,10 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     await page.goto('./');
     await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
     for (const [button, dialog] of [
-      ['航班运行表', '航班运行表'], ['机场目录', '机场目录'], ['机队管理', '我的机库'],
-      ['飞机商店', '飞机商店'], ['运营任务', '运营任务'], ['操作帮助', '起航指南'],
+      ['机队管理概览', '机队管理'], ['机场目录', '机场目录'], ['机队管理', '机队管理'],
+      ['飞机商店', '飞机商店'], ['任务中心', '任务中心'], ['操作帮助', '起航指南'],
       ['存档设置', '本地存档与设置'], ['当前机场详情', '机场详情'],
-      ['查看当前运营任务', '运营任务'], ['查看航班运行', '航班运行表'],
-      ['飞机改装与补能', '我的机库'], ['查看运营奖励', '运营任务'],
+
     ]) {
       const control = page.getByRole('button', { name: button!, exact: true });
       await control.click();
@@ -109,6 +113,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
       await page.keyboard.press('Escape');
       await expect(page.getByRole('dialog')).toHaveCount(0);
     }
+    await expect(page.locator('.airport-shortcuts')).toHaveCount(0);
     await expect(page.getByRole('button', { name: '显示机体客货示意', exact: true })).toHaveCount(0);
     await expect(page.locator('.cabin-overlay')).toBeVisible();
     await expect(page.locator('.airport-nameplate')).toHaveCount(0);
@@ -118,6 +123,8 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     const occupant = page.getByTestId('waiting-order').first();
     expect(await occupant.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
     expect(await occupant.evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('0px');
+    await expect(occupant).toHaveAttribute('data-load-state', 'waiting');
+    expect(await occupant.locator('.job-info').evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('2px');
     await page.screenshot({ path: `artifacts/airport-controls-${width}.png` });
   });
 }

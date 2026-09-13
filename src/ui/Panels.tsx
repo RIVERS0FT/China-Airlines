@@ -1,9 +1,8 @@
 import { DisplaySettings } from './DisplaySettings.js';
 import { careerLevel } from '../core/career.js';
 import { useEffect, useRef, useState } from 'react';
-import { airport, MODELS, TASKS, AIRCRAFT_KIND_LABEL, type AircraftKind } from '../core/catalog.js';
-import { guideStep } from '../core/onboarding.js';
-import { taskProgress, type GameState, type Plane } from '../core/game.js';
+import { airport, MODELS, AIRCRAFT_KIND_LABEL, type AircraftKind } from '../core/catalog.js';
+import { type GameState } from '../core/game.js';
 import { controller, useGame } from '../runtime.js';
 import { installUpdate } from '../pwa.js';
 import { artAsset, BUTTON_ART } from './art-assets.js';
@@ -52,8 +51,4 @@ export function Shop({game,busy,selected}:{game:GameState;busy:boolean;selected:
     <div className="shop-grid">{MODELS.filter(m=>kind==='all'||m.kind===kind).map(m=>{const level=game.airports.find(a=>a.id===to)!.level,enough=game.credits>=m.price,full=game.fleet.length>=game.hangarSlots;return <article className="aircraft-card shop-card" key={m.id} data-testid="shop-aircraft"><div className="card-top"><span className="eyebrow">{m.family.toUpperCase()}</span><span className={`type-ribbon ${m.kind}`}>{m.role}</span></div><img className="painted-aircraft" src={artAsset(m.art)} alt={m.name}/><h3>{m.name}</h3><dl className="spec-grid"><div><dt>载客</dt><dd>{m.seats}<small>人</small></dd></div><div><dt>载货</dt><dd>{m.cargo}<small>吨</small></dd></div><div><dt>航程</dt><dd>{m.range}<small>km</small></dd></div><div><dt>机场等级</dt><dd>{m.level}<small>级</small></dd></div></dl><div className="price">{money(m.price)}</div><button className="primary full" disabled={busy||!enough||level<m.level||full||careerLevel(game)<m.rank} onClick={()=>ignore(controller.command({type:'buy',modelId:m.id,airportId:to}))}>{careerLevel(game)<m.rank?`公司需达到 Lv.${m.rank}`:level<m.level?`交付机场需升至 ${m.level} 级`:full?'请先扩建机库':!enough?'运营资金不足':`购买${m.name}`}</button></article>;})}</div>
     {view.error && <p role="alert" className="workshop-feedback">{view.error}</p>}{view.notice && <p role="status" className="workshop-feedback">{view.notice}</p>}
     <p className="muted-text">4个系列，12种机型。纯客机只能装旅客，纯货机只能装货物，客货机分别使用两类容量；新机型4至18客位、3至14货位。机型价格、数值与等级为航空化配置。</p></section>;
-}
-export function Tasks({game,plane,busy,onNext}:{game:GameState;plane?:Plane;busy:boolean;onNext:(step:string)=>void}) {
-  const next = plane ? guideStep(game, plane, 'airport', '') : null;
-  return <section className="content-page"><div className="operations-grid"><div className="task-list">{TASKS.map(t=>{const n=taskProgress(game,t.id),claimed=game.claimedTasks.includes(t.id);return <article className="task-card" key={t.id}><div className="task-icon"><Icon name="task"/></div><div className="task-body"><h3>{t.title}</h3><p>{t.description}</p>{t.id === 'first-flight' && !claimed && next && <div className="task-next-step" data-testid="first-flight-task"><strong>{next.number}/6 · {next.title}</strong><p>{next.text.replace('客货卡片', '旅客或货物')}</p>{n < t.target && <button disabled={busy} onClick={() => onNext(next.id)}>{next.id === 'map' ? '规划首航' : next.id === 'flight' ? '查看首航航班' : '前往装载'}</button>}</div>}<div className="progress-track"><i style={{width:`${Math.min(100,n/t.target*100)}%`}}/></div><small>{Math.min(n,t.target)} / {t.target}</small></div><div className="task-reward"><strong>+ {money(t.reward)}</strong><button disabled={busy||claimed||n<t.target} onClick={()=>ignore(controller.command({type:'claim',taskId:t.id}))}>{claimed?'已领取':n>=t.target?'领取奖励':'进行中'}</button></div></article>;})}</div><aside className="ledger"><h3>运营日志 · 最近60条</h3>{game.log.map((entry,i)=><div className="ledger-entry" key={`${entry.at}-${i}`}><span>{entry.text}</span>{entry.amount!==0&&<strong>{entry.amount>0?'+':'−'}{money(Math.abs(entry.amount))}</strong>}</div>)}</aside></div></section>;
 }

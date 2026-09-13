@@ -31,7 +31,7 @@ for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
     const position = await first.boundingBox();
     await first.click();
     const loaded = page.locator(`[data-order-id="${id}"]`);
-    await expect(loaded.locator('.job-state')).toHaveText('已装机 · 点击卸载');
+    await expect(loaded.locator('.job-state')).toHaveText('已装机');
     expect((await loaded.boundingBox())!.x).toBeCloseTo(position!.x, 0);
     await loaded.click();
     await expect(page.getByTestId('waiting-order')).toHaveCount(12);

@@ -5,7 +5,7 @@ async function ready(page: Page) {await page.goto('./');await expect(page.getByT
 async function dismissReport(page: Page) {const button=page.getByRole('button',{name:'继续经营',exact:true});if(await button.isVisible())await button.click();}
 test('automatic return, stop after current flight, and reload do not duplicate income',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});await ready(page);
-  await openGlobal(page,'机队管理');await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await page.getByRole('button',{name:'关闭我的机库'}).click();
+  await openGlobal(page,'机队管理');await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await page.getByRole('button',{name:'关闭机队管理'}).click();
   await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await page.getByRole('button',{name:'制定路线',exact:true}).click();
   await selectCity(page, 'PEK');await selectCity(page, 'PVG');
   await routeDetails(page);await page.getByRole('checkbox',{name:/自动往返/}).check();await launchRoute(page);

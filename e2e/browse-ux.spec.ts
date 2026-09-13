@@ -98,8 +98,8 @@ test('airport detail navigation restores the scrolled card instead of jumping to
 test('fleet search combines with every ground-state filter and recovers from no results', async ({ page }) => {
   await page.setViewportSize({ width: 667, height: 375 }); await ready(page);
   const credits = await page.getByTestId('credits').textContent();
-  await page.getByRole('button', { name: '航班运行表', exact: true }).click();
-  const board = page.getByRole('dialog', { name: '航班运行表', exact: true });
+  await page.getByRole('button', { name: '机队管理概览', exact: true }).click();
+  const board = page.getByRole('dialog', { name: '机队管理', exact: true });
   await board.getByLabel('搜索飞机', { exact: true }).fill(' ac0001 ');
   await expect(board.getByTestId('flight-row')).toHaveCount(1);
   for (const phase of ['turnaround', 'service', 'automatic', 'planned']) {

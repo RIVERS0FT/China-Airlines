@@ -29,5 +29,7 @@ test('local art decodes and remains available after offline reload', async ({ pa
   await page.getByTestId('waiting-order').first().click();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   await expect(page.getByTestId('aircraft-sprite')).toHaveAttribute('href', /aircraft-light-passenger-v2\.png$/);
-  await expect(page.getByRole('navigation', { name: '主导航' }).locator('img.painted-icon')).toHaveCount(7);
+  // Task art moved to the single upper-left entrance; it remains cached offline.
+  await expect(page.getByRole('button', { name: '任务中心', exact: true }).locator('img.painted-icon')).toHaveCount(1);
+  await expect(page.getByRole('navigation', { name: '主导航' }).locator('img.painted-icon')).toHaveCount(6);
 });
