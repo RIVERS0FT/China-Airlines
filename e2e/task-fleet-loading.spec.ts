@@ -42,7 +42,8 @@ test('one task entrance claims the initial gift exactly once and retains the air
   await expect(gift.getByRole('button', { name: '已领取', exact: true })).toBeDisabled();
   const selectedTab = page.getByRole('tab', { name: /^已领取/ });
   await selectedTab.hover();
-  expect(await selectedTab.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(34, 107, 145)');
+  // Check the final color, not an intermediate frame of the existing CSS transition.
+  await expect(selectedTab).toHaveCSS('background-color', 'rgb(34, 107, 145)');
   await page.getByRole('button', { name: '关闭任务中心', exact: true }).click();
   await expect(page.locator('.plane-status')).toHaveText(selected!);
   await expect(page.getByTestId('credits')).toHaveText(credits!);
