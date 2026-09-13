@@ -64,6 +64,36 @@
 .aviation-game:not(.dispatch-focused) .apron-queue .destination-orders .job-info .cargo-service-name{position:static;grid-area:auto;font-size:10px;line-height:12px;color:#4a6575;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .aviation-game:not(.dispatch-focused) .apron-queue .destination-orders .job-card:hover:not(:disabled) .job-info{box-shadow:0 0 0 2px #ffce59}
 .aviation-game:not(.dispatch-focused) .apron-queue .destination-orders .job-card:focus-visible{outline:3px dashed #1b4c6e;outline-offset:-1px}
+
+/* Reference-style airport navigation: labels float over the icon instead of reserving a text row. */
+.aviation-game:not(.dispatch-focused) .game-dock>button{position:relative;isolation:isolate;overflow:hidden;align-items:center;justify-content:center}
+.aviation-game:not(.dispatch-focused) .game-dock>button:not(.depart-button){padding:1px 3px}
+.aviation-game:not(.dispatch-focused) .game-dock>button:not(.depart-button)>.painted-icon{
+  width:60px;height:60px;object-fit:contain;transform:translateY(-3px);filter:drop-shadow(0 2px 1px #173a52aa)
+}
+.aviation-game:not(.dispatch-focused) .game-dock>button>span{
+  position:absolute;left:50%;bottom:5px;z-index:3;transform:translateX(-50%);pointer-events:none;
+  max-width:calc(100% - 6px);padding:1px 3px;overflow:hidden;white-space:nowrap;text-overflow:clip;
+  border-radius:4px;background:linear-gradient(180deg,#123b5900,#123b5999);
+  color:#fff0a4;font-size:14px;font-weight:900;line-height:17px;letter-spacing:.02em;
+  text-shadow:-1px -1px 0 #18384e,1px -1px 0 #18384e,-1px 1px 0 #18384e,1px 1px 0 #18384e,0 2px 1px #102c40
+}
+.aviation-game:not(.dispatch-focused) .game-dock>button.active>.painted-icon{filter:drop-shadow(0 0 4px #ffe47c) drop-shadow(0 2px 1px #173a52aa)}
+.aviation-game:not(.dispatch-focused) .game-dock .depart-button{
+  position:relative;flex:0 0 118px;width:118px;min-width:118px;height:78px;min-height:78px;margin-left:auto;
+  padding:1px 3px;align-items:center;justify-content:center;overflow:hidden
+}
+.aviation-game:not(.dispatch-focused) .game-dock .depart-button>.painted-icon{
+  display:block;width:78px;height:56px;object-fit:contain;transform:translateY(-5px);filter:drop-shadow(0 3px 2px #6b421d66)
+}
+.aviation-game:not(.dispatch-focused) .game-dock .depart-button>span{bottom:5px;font-size:17px;line-height:20px;color:#fff2a5;text-shadow:-1px -1px 0 #754615,1px -1px 0 #754615,-1px 1px 0 #754615,1px 1px 0 #754615,0 2px 1px #57330f}
+.aviation-game:not(.dispatch-focused) .game-dock .airport-departure-reason{
+  position:absolute;top:3px;right:3px;bottom:auto;left:auto;z-index:4;transform:none;max-width:calc(100% - 6px);
+  padding:1px 4px;border:1px solid #9e6a28;border-radius:4px;background:#fff0bded;color:#6a4518;
+  font-size:9px;font-weight:800;line-height:11px;text-align:right;text-shadow:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none
+}
+.aviation-game:not(.dispatch-focused) .game-dock .depart-button:has(.airport-departure-reason:not(:empty))>.painted-icon{display:block}
+
 @media(max-height:600px) and (orientation:landscape){
   .airport-mission .mission-status{font-size:10px;line-height:16px;padding:0 4px}
   .task-center .task-card{grid-template-columns:28px minmax(0,1fr) 145px;padding:9px;gap:8px}
@@ -77,4 +107,10 @@
   .aviation-game .job-card .job-marker{width:21px;height:21px;top:0;font-size:15px}
   .job-marker svg{width:14px;height:14px}
   .aviation-game .job-card .job-transfer-tag{top:0;font-size:9px;padding:1px 3px}
+  .aviation-game:not(.dispatch-focused) .game-dock>button:not(.depart-button)>.painted-icon{width:40px;height:40px;transform:translateY(-2px)}
+  .aviation-game:not(.dispatch-focused) .game-dock>button>span{bottom:2px;padding:0 2px;font-size:11px;line-height:13px}
+  .aviation-game:not(.dispatch-focused) .game-dock .depart-button{flex-basis:90px;width:90px;min-width:90px;padding:1px 2px}
+  .aviation-game:not(.dispatch-focused) .game-dock .depart-button>.painted-icon{width:50px;height:35px;transform:translateY(-4px)}
+  .aviation-game:not(.dispatch-focused) .game-dock .depart-button>span{bottom:2px;font-size:12px;line-height:14px}
+  .aviation-game:not(.dispatch-focused) .game-dock .airport-departure-reason{top:1px;right:1px;max-width:calc(100% - 2px);padding:0 2px;font-size:8px;line-height:9px}
 }
