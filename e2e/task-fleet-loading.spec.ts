@@ -128,3 +128,29 @@ test('pointer drag cannot load an order and does not swallow a subsequent keyboa
   await page.getByTestId('loaded-order').click();
   await expect(page.getByTestId('loaded-order')).toHaveCount(0);
 });
+
+for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`airport dock labels float over their icons at ${width}`, async ({ page }) => {
+  await page.setViewportSize({ width: width!, height: height! });
+  await setup(page);
+  const dock = page.getByRole('navigation', { name: '主导航', exact: true });
+  const names = ['机场装载', '航线地图', '机场目录', '机队管理', '飞机商店'];
+  let ordinaryWidth = 0, ordinaryIconWidth = 0;
+  for (const name of names) {
+    const button = dock.getByRole('button', { name, exact: true });
+    const icon = button.locator(':scope > .painted-icon'), label = button.locator(':scope > span');
+    const buttonBox = (await button.boundingBox())!, iconBox = (await icon.boundingBox())!, labelBox = (await label.boundingBox())!;
+    expect(await label.evaluate(el => getComputedStyle(el).position)).toBe('absolute');
+    expect(labelBox.y).toBeLessThan(iconBox.y + iconBox.height - 1);
+    expect(labelBox.y + labelBox.height).toBeLessThanOrEqual(buttonBox.y + buttonBox.height + 1);
+    expect(labelBox.x).toBeGreaterThanOrEqual(buttonBox.x - 1);
+    expect(labelBox.x + labelBox.width).toBeLessThanOrEqual(buttonBox.x + buttonBox.width + 1);
+    ordinaryWidth ||= buttonBox.width; ordinaryIconWidth ||= iconBox.width;
+  }
+  const depart = dock.getByRole('button', { name: '制定路线', exact: true });
+  const departBox = (await depart.boundingBox())!, departIcon = (await depart.locator(':scope > .painted-icon').boundingBox())!, departLabel = (await depart.locator(':scope > span').boundingBox())!;
+  expect(departBox.width).toBeGreaterThan(ordinaryWidth * 1.2);
+  expect(departIcon.width).toBeGreaterThan(ordinaryIconWidth);
+  expect(departLabel.y).toBeLessThan(departIcon.y + departIcon.height - 1);
+  await page.screenshot({ path: `artifacts/airport-floating-dock-${width}.png` });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
