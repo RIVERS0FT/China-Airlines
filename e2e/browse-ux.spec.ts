@@ -1,3 +1,4 @@
+import { displayScale } from './display-helpers.js';
 import { expect, test, type Page } from '@playwright/test';
 import { routeDetails, selectCity } from './dispatch-helpers.js';
 
@@ -40,7 +41,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
     const targets = directory.locator(':scope > header button, .airport-directory-tools button, .airport-directory-tools input');
     for (const target of await targets.all()) {
       const box = await target.boundingBox();
-      expect(box).not.toBeNull(); expect(box!.height).toBeGreaterThanOrEqual(44);
+      expect(box).not.toBeNull(); expect(box!.height).toBeGreaterThanOrEqual(44 * await displayScale(page) - .02);
     }
     expect(await directory.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

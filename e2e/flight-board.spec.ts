@@ -1,3 +1,4 @@
+import { displayScale } from './display-helpers.js';
 import { selectCity, inspectCity, routeDetails, detailValue, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from '@playwright/test';
 import { GameCore, planQuote, type GameState } from '../src/core/game.js';
@@ -88,8 +89,8 @@ for(const viewport of [{width:1440,height:900},{width:844,height:390},{width:667
   const row=page.getByTestId('flight-row').first();
   await expect(page.getByRole('group',{name:'运行状态筛选'})).toBeInViewport();
   const box=await row.boundingBox();expect(box).not.toBeNull();
-  expect(box!.width).toBeGreaterThan(viewport.width>=1000 ? 350 : 250);
-  expect(box!.height).toBeGreaterThan(200);
+  expect(box!.width).toBeGreaterThan(350 * await displayScale(page));
+  expect(box!.height).toBeGreaterThan(200 * await displayScale(page));
   expect(await page.locator('.fleet-operations').evaluate(el=>getComputedStyle(el).display)).toBe('block');
   expect(await page.locator('.flight-list').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
   if(viewport.width>=1000)await expect(row.getByRole('group',{name:'当前航班收支'})).toBeInViewport();

@@ -1,3 +1,4 @@
+import { displayScale } from './display-helpers.js';
 import { test, expect } from '@playwright/test';
 import { selectCity, routeDetails, closeRouteDetails, launchRoute } from './dispatch-helpers.js';
 
@@ -30,7 +31,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
       const button = page.getByRole('button', { name, exact: true });
       await expect(button).toBeInViewport();
       const box = (await button.boundingBox())!;
-      expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
+      expect(box.width).toBeGreaterThanOrEqual(44 * await displayScale(page) - .02); expect(box.height).toBeGreaterThanOrEqual(44 * await displayScale(page) - .02);
       expect(box.x).toBeGreaterThanOrEqual(map!.x); expect(box.y).toBeGreaterThanOrEqual(map!.y);
       expect(box.x + box.width).toBeLessThanOrEqual(map!.x + map!.width + 1);
       expect(box.y + box.height).toBeLessThanOrEqual(map!.y + map!.height + 1); boxes.push(box);

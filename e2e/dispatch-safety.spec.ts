@@ -1,3 +1,4 @@
+import { displayScale } from './display-helpers.js';
 import { test, expect } from '@playwright/test';
 import { GameCore } from '../src/core/game.js';
 import { selectCity } from './dispatch-helpers.js';
@@ -94,7 +95,7 @@ test('touching a city on the canvas selects it once and preserves automatic mode
       const { projectGeo } = await import('../src/ui/globe-geometry.js');
       const city = projectGeo(airport('PVG'), camera);
       expect(city.visible).toBe(true);
-      await page.touchscreen.tap(bounds.x + city.x, bounds.y + city.y);
+      await page.touchscreen.tap(bounds.x + city.x * await displayScale(page), bounds.y + city.y * await displayScale(page));
     };
     await tapShanghai(); await expect(canvas).toHaveAttribute('data-preview-path', 'PVG');
     await page.getByRole('button', { name: '查看路线', exact: true }).click();

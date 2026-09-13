@@ -1,3 +1,4 @@
+import { displayScale } from './display-helpers.js';
 import { expect, test } from '@playwright/test';
 
 async function ready(page: import('@playwright/test').Page) {
@@ -29,10 +30,10 @@ async function expectMobileHeightBudget(page: import('@playwright/test').Page, v
   expect(next).not.toBeNull();
   expect(loading).not.toBeNull();
   expect(launch).not.toBeNull();
-  expect(previous!.height).toBeGreaterThanOrEqual(44);
-  expect(next!.height).toBeGreaterThanOrEqual(44);
-  expect(loading!.height).toBeGreaterThanOrEqual(44);
-  expect(launch!.height).toBeGreaterThanOrEqual(44);
+  expect(previous!.height).toBeGreaterThanOrEqual(44 * await displayScale(page) - .02);
+  expect(next!.height).toBeGreaterThanOrEqual(44 * await displayScale(page) - .02);
+  expect(loading!.height).toBeGreaterThanOrEqual(44 * await displayScale(page) - .02);
+  expect(launch!.height).toBeGreaterThanOrEqual(44 * await displayScale(page) - .02);
   expect(next!.y + next!.height).toBeLessThanOrEqual(dock!.y);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 }

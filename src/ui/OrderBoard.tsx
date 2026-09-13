@@ -57,7 +57,10 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
   useEffect(() => {
     const el = strip.current;
     const loaded = aboard ? el?.querySelector<HTMLElement>('[data-testid="loaded-order"]') : null;
-    if (el && loaded) el.scrollLeft += loaded.getBoundingClientRect().left - el.getBoundingClientRect().left;
+    if (el && loaded) {
+      const bounds = el.getBoundingClientRect();
+      el.scrollLeft += (loaded.getBoundingClientRect().left - bounds.left) * el.offsetWidth / Math.max(1, bounds.width);
+    }
     else el?.scrollTo({ left: 0, behavior: 'instant' });
     measure();
   }, [plane?.id, airportId, aboard, viewKey]);
