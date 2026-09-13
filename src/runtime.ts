@@ -75,9 +75,12 @@ class Controller {
       // Publish success only after the IndexedDB transaction commits. Otherwise an
       // immediate reload after a visible purchase can lose that purchase.
       await this.persist();
-      // The guide already provides persistent feedback. A duplicate toast obscures
-      // the passenger cards that the player is being asked to select.
-      useGame.setState({ notice: command.type === 'tutorial' ? null : this.core.snapshot().log[0]?.text ?? '操作完成' });
+      // Loading states, capacity readouts and the guide already provide feedback.
+      // Keep routine loading/transfer logs out of toasts that obscure the orders;
+      // clear any previous success notice too. Errors and recovery notices are separate.
+      const quiet = command.type === 'tutorial' || command.type === 'load'
+        || command.type === 'unload' || command.type === 'load-destination';
+      useGame.setState({ notice: quiet ? null : this.core.snapshot().log[0]?.text ?? '操作完成' });
     });
   }
   save() { return this.run(async () => { this.advance(); await this.persist(); }); }
