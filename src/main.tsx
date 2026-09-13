@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { GameViewport } from './ui/GameViewport.js';
 import { App } from './ui/App.js';
 import { SaveConflictGuard } from './ui/SaveConflictGuard.js';
 import { controller } from './runtime.js';
@@ -17,5 +18,6 @@ import './ui/airport-mobile-game-polish-fixes.css';
 import './ui/art-assets.css';
 import './ui/airport-reference.css';
 import './ui/airport-mobile-height.css';
-createRoot(document.getElementById('root')!).render(<StrictMode><App /><SaveConflictGuard /></StrictMode>);
+import './ui/game-viewport.css';
+createRoot(document.getElementById('root')!).render(<StrictMode><GameViewport><App /><SaveConflictGuard /></GameViewport></StrictMode>);
 void controller.start();

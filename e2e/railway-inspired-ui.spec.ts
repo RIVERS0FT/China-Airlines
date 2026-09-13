@@ -1,3 +1,4 @@
+import { viewportLayout } from '../src/ui/game-viewport.js';
 import { test, expect } from '@playwright/test';
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 }, { width: 667, height: 375 }]) {
@@ -5,6 +6,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.setViewportSize(viewport);
+    const target = 44 * viewportLayout(viewport.width, viewport.height).scale - .01;
     await page.goto('./');
     await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
 
@@ -36,8 +38,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     expect(sceneBox.y + sceneBox.height).toBeLessThanOrEqual(orderBox.y + 1);
 
     // User-selected placement: the departure action is anchored to the bottom right.
-    expect(departBox.width).toBeGreaterThanOrEqual(44);
-    expect(departBox.height).toBeGreaterThanOrEqual(44);
+    expect(departBox.width).toBeGreaterThanOrEqual(target);
+    expect(departBox.height).toBeGreaterThanOrEqual(target);
     expect(departBox.y).toBeGreaterThanOrEqual(dockBox.y);
     expect(departBox.y).toBeGreaterThanOrEqual(orderBox.y + orderBox.height);
     const nextBox = (await page.getByRole('button', { name: '下一组客货', exact: true }).boundingBox())!;
@@ -49,8 +51,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     for (const name of ['机场装载', '航线地图', '机场目录', '机队管理', '飞机商店', '运营任务']) {
       const button = page.getByRole('button', { name, exact: true });
       const box = (await button.boundingBox())!;
-      expect(box.width).toBeGreaterThanOrEqual(44);
-      expect(box.height).toBeGreaterThanOrEqual(44);
+      expect(box.width).toBeGreaterThanOrEqual(target);
+      expect(box.height).toBeGreaterThanOrEqual(target);
     }
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

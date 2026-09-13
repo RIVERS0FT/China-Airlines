@@ -6,6 +6,7 @@ import { controller } from '../runtime.js';
 import { loadingLock, orderBlockReason } from './order-presentation.js';
 import { money, ignore } from './Panels.js';
 import { artAsset } from './art-assets.js';
+import { logicalPoint } from './game-viewport.js';
 
 /** One decorative sprite per real order. Appearance never implies different fares or cargo rules. */
 function PassengerArt({ order }: { order: Order }) {
@@ -57,7 +58,10 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
   useEffect(() => {
     const el = strip.current;
     const loaded = aboard ? el?.querySelector<HTMLElement>('[data-testid="loaded-order"]') : null;
-    if (el && loaded) el.scrollLeft += loaded.getBoundingClientRect().left - el.getBoundingClientRect().left;
+    if (el && loaded) {
+      const bounds = el.getBoundingClientRect();
+      el.scrollLeft += logicalPoint(loaded.getBoundingClientRect().left, bounds.top, bounds, el.offsetWidth, el.offsetHeight).x;
+    }
     else el?.scrollTo({ left: 0, behavior: 'instant' });
     measure();
   }, [plane?.id, airportId, aboard, viewKey]);

@@ -6,6 +6,7 @@ import { arcPoints, fromVector, frontPolygon, frontSegment, globeCamera, greatCi
 import { LAND_VERTICES, LAND_FACES } from './world-land.js';
 import { previewDescription, type RoutePreview } from './route-preview.js';
 import './globe.css';
+import { logicalPoint } from './game-viewport.js';
 import { passengerDestinationCounts, passengerDestinationKey } from './passenger-destinations.js';
 interface Props { game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null; showOthers: boolean; onToggleOthers: () => void }
 const geography = new Map(AIRPORTS.map(a => [a.id, toVector(a)]));
@@ -79,7 +80,7 @@ export function MapView(props: Props) {
         observer.observe(element);
         const pointers = new Map<number, { x: number; y: number }>();
         let dragged = false, multi = false, start = { x: 0, y: 0 }, last = start;
-        const local = (e: PointerEvent) => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+        const local = (e: PointerEvent) => logicalPoint(e.clientX, e.clientY, canvas.getBoundingClientRect(), app.screen.width, app.screen.height);
         const down = (e: PointerEvent) => {
           if (e.button !== 0) return;
           const p = local(e); pointers.set(e.pointerId, p); canvas.setPointerCapture(e.pointerId); canvas.focus({ preventScroll: true });

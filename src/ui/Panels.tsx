@@ -1,3 +1,4 @@
+import { UiScaleSettings } from './UiScaleSettings.js';
 import { careerLevel } from '../core/career.js';
 import { useEffect, useRef, useState } from 'react';
 import { airport, MODELS, TASKS, AIRCRAFT_KIND_LABEL, type AircraftKind } from '../core/catalog.js';
@@ -28,6 +29,7 @@ export function Settings({onClose}:{onClose:()=>void}) {
   }
   return <dialog ref={dialog} className="settings-modal" onClose={onClose} aria-labelledby="settings-title">
     <div className="modal-heading"><h2 id="settings-title">本地存档与设置</h2><button aria-label="关闭存档设置" onClick={()=>dialog.current?.close()}>×</button></div>
+    <UiScaleSettings/>
     <div className="save-summary"><Icon name="save"/><div><strong>{view.savedAt?'进度已保存在此浏览器':'尚无已确认的保存'}</strong><p>{view.savedAt?`最近保存 ${new Date(view.savedAt).toLocaleTimeString('zh-CN')}`:'读取失败时不会自动覆盖原有数据。'}</p></div></div>
     <p className="muted-text">关键经营操作后保存，每10秒自动保存。清理浏览器数据或使用隐私模式可能丢失进度，请定期导出。</p>
     <div className="settings-actions"><button className="primary" disabled={view.busy||!view.game} onClick={()=>ignore(controller.save())}>立即保存</button><button disabled={view.busy||!view.game} onClick={()=>ignore(exportSave())}>导出存档</button><button disabled={view.busy} onClick={()=>input.current?.click()}>导入存档</button><button disabled={view.busy} onClick={()=>{if(window.confirm('恢复上一份有效备份？当前进度将成为新的备份。'))ignore(controller.restoreBackup());}}>恢复上一份备份</button></div>

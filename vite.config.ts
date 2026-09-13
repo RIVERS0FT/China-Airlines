@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite';
+import { gameViewportCss } from './scripts/game-viewport-css.js';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   base: process.env.BASE_PATH || './',
+  css: { postcss: { plugins: [gameViewportCss()] } },
   plugins: [react(), VitePWA({
     registerType: 'prompt', includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png'],
     manifest: { name: '中华航空 · 航线经营', short_name: '中华航空', description: '横屏单机航空运输经营游戏',

@@ -1,0 +1,47 @@
+/* Only the outer shell uses real viewport units. UI units and breakpoints are
+ * normalized by scripts/game-viewport-css.ts, including lazy component CSS. */
+html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+#root { position: fixed; inset: 0; height: 100vh; height: 100dvh; }
+.game-viewport {
+  --game-layout-width: 1440px;
+  --game-layout-height: 900px;
+  --game-width: 1440px;
+  --game-height: 900px;
+  --game-vw: 14.4px;
+  --game-vh: 9px;
+  --game-vmin: 9px;
+  --game-vmax: 14.4px;
+  --viewport-scale: 1;
+  --ui-scale: 1;
+  --game-scale: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--game-layout-width);
+  height: var(--game-layout-height);
+  transform: scale(var(--viewport-scale));
+  transform-origin: top left;
+  container: game-viewport / size;
+  overflow: hidden;
+}
+.game-ui {
+  width: var(--game-width);
+  height: var(--game-height);
+  transform: scale(var(--ui-scale));
+  transform-origin: top left;
+}
+.game-ui > .aviation-game { width: 100%; height: 100%; min-height: 0; }
+/* Native top-layer dialogs ignore ancestor transforms. Apply the combined scale
+ * to ALL modal types (including Settings), centered in the real viewport. */
+.game-viewport dialog:modal {
+  position: fixed;
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  max-width: calc(var(--game-width) * .94);
+  max-height: calc(var(--game-height) * .9);
+  transform: translate(-50%, -50%) scale(var(--game-scale));
+  transform-origin: center;
+}

@@ -1,0 +1,8 @@
+.ui-scale-setting{margin:0 0 22px;padding:16px;border:1px solid #c1d7d1;border-radius:10px;background:#eff6ee}
+.ui-scale-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;font-weight:700}
+.ui-scale-heading output{font-variant-numeric:tabular-nums;font-size:18px}
+.ui-scale-controls{display:flex;align-items:center;gap:10px;margin:10px 0}
+.ui-scale-controls input{flex:1;min-width:0;width:100%;min-height:44px;cursor:pointer;accent-color:#236b65}
+.ui-scale-controls button{flex-shrink:0;min-width:44px;min-height:44px}
+.ui-scale-setting p{font-size:12px;line-height:1.6;margin:8px 0 0;color:#4c6866}
+.ui-scale-setting p[role=status]{color:#8b5021}

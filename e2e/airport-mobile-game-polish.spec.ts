@@ -1,3 +1,4 @@
+import { DESIGN_SHORT_EDGE } from '../src/ui/game-viewport.js';
 import { expect, test } from '@playwright/test';
 
 async function ready(page: import('@playwright/test').Page) {
@@ -29,10 +30,12 @@ async function expectMobileHeightBudget(page: import('@playwright/test').Page, v
   expect(next).not.toBeNull();
   expect(loading).not.toBeNull();
   expect(launch).not.toBeNull();
-  expect(previous!.height).toBeGreaterThanOrEqual(44);
-  expect(next!.height).toBeGreaterThanOrEqual(44);
-  expect(loading!.height).toBeGreaterThanOrEqual(44);
-  expect(launch!.height).toBeGreaterThanOrEqual(44);
+  // Touch targets now scale with the entire design instead of switching to mobile-only CSS.
+  const target = 44 * viewportHeight / DESIGN_SHORT_EDGE - .01;
+  expect(previous!.height).toBeGreaterThanOrEqual(target);
+  expect(next!.height).toBeGreaterThanOrEqual(target);
+  expect(loading!.height).toBeGreaterThanOrEqual(target);
+  expect(launch!.height).toBeGreaterThanOrEqual(target);
   expect(next!.y + next!.height).toBeLessThanOrEqual(dock!.y);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 }
@@ -73,7 +76,7 @@ test('844x390 landscape gives the aircraft scene the primary height share', asyn
   await page.screenshot({ path: 'artifacts/airport-mobile-game-polish-844.png', fullPage: true });
 });
 
-test('667x375 landscape keeps the same mobile height budget and touch targets', async ({ page }) => {
+test('667x375 landscape keeps the proportional height budget and design-space targets', async ({ page }) => {
   await page.setViewportSize({ width: 667, height: 375 });
   await ready(page);
 

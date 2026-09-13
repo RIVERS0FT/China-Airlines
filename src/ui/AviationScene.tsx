@@ -1,21 +1,11 @@
-import { useSyncExternalStore } from 'react';
 import { aircraftSpecs } from '../core/catalog.js';
 import { loadSummary, type GameState, type Plane } from '../core/game.js';
 import { artAsset } from './art-assets.js';
-
-const compactQuery = '(max-height:600px) and (orientation:landscape)';
-const compactScene = () => window.matchMedia(compactQuery).matches;
-function subscribeScene(listener: () => void) {
-  const media = window.matchMedia(compactQuery);
-  media.addEventListener('change', listener);
-  return () => media.removeEventListener('change', listener);
-}
 
 /** Painted scene and aircraft; capacity overlays remain read-only projections of real orders. */
 export function AviationScene({ game, plane, onCabin }: {
   game: GameState; plane?: Plane; onCabin: () => void;
 }) {
-  const compact = useSyncExternalStore(subscribeScene, compactScene, () => false);
   const flying = Boolean(plane?.flight);
   const total = plane ? loadSummary(game, plane.id) : { passengers: 0, cargo: 0 };
   const m = plane ? aircraftSpecs(plane) : null;
@@ -39,7 +29,7 @@ export function AviationScene({ game, plane, onCabin }: {
       <img className="ground-cones" src={artAsset('cones-v1.png')} alt=""/>
     </div>}
     {plane && <button className="airplane-display" onClick={onCabin} aria-label={flying ? '查看当前航班' : '查看机上客货'} data-testid="plane-art">
-      <svg viewBox={compact ? "90 50 840 280" : "0 0 1000 330"} role="img" aria-label={`${m!.name}客舱与货舱示意`}>
+      <svg viewBox="0 0 1000 330" role="img" aria-label={`${m!.name}客舱与货舱示意`}>
         {!flying && <ellipse cx="490" cy="286" rx="365" ry="15" fill="#456b78" opacity=".15"/>}
         <image data-testid="aircraft-sprite" href={artAsset(flying ? 'aircraft-flight-v1.png' : m?.art ?? 'aircraft-v1.png')} x="95" y="0" width="810" height="310"/>
         <g className="cabin-overlay" stroke="#466477" strokeWidth="1.5" strokeLinejoin="round">
