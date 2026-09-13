@@ -1,7 +1,8 @@
+import { HistoricalSession as GameCore } from '../tests/career-fixtures.js';
 import { selectCity, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
 import orderedV4 from '../tests/fixtures/v4-ordered-route.json' with { type: 'json' };
 import { test, expect, type Page } from '@playwright/test';
-import { GameCore, quote, planQuote, type GameState } from '../src/core/game.js';
+import { quote, planQuote, type GameState } from '../src/core/game.js';
 import { ENERGY_CAPACITY_SECONDS as CAP } from '../src/core/energy.js';
 import legacy from '../tests/fixtures/v4-energy-migration.json' with { type: 'json' };
 const NOW = Date.parse('2026-09-12T00:00:00Z'), ID = 'AC0001';
@@ -36,7 +37,7 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
     const service=page.getByRole('region',{name:'飞机能量管理'}); // section has an accessible name.
     await page.getByRole('button',{name:'开始地勤补能',exact:true}).scrollIntoViewIfNeeded();
     await expect(page.getByRole('button',{name:'开始地勤补能',exact:true})).toBeInViewport();
-    await expect(service).toContainText('暂定规则');
+    await expect(service).toContainText('历史机型继续按秒计量');
     await page.screenshot({path:`artifacts/energy-service-${width}.png`});
     await page.getByRole('button',{name:'开始地勤补能',exact:true}).click();await expect(page.getByTestId('energy-service-status')).toContainText('地勤补能中');
     await page.clock.fastForward(60000);await expect(page.getByTestId('hangar-energy')).toHaveText('0.22 / 240 点');

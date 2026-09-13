@@ -13,7 +13,7 @@ for (const width of [1440, 844]) {
     await page.getByRole('button', { name: '制定路线', exact: true }).click();
     await selectCity(page, 'WUH');
     await page.getByRole('button', { name: /^解锁机场/ }).click();
-    await expect(page.getByTestId('credits')).toHaveText('¥ 148,000');
+    await expect(page.getByTestId('credits')).toHaveText('¥ 10,000');
     const credits = await page.getByTestId('credits').textContent();
     await selectCity(page, 'PEK');
     await selectCity(page, 'PVG');

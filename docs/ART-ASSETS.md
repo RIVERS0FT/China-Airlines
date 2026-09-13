@@ -1,3 +1,17 @@
+> 2026-09-13 更新：本文件下方保留历史美术记录。当前规则和新增范围以 [OFFLINE-CAREER.md](OFFLINE-CAREER.md) 与 [APK-EVIDENCE.md](APK-EVIDENCE.md) 为准。
+
+## 单机经营扩展美术（v0.7.0）
+
+新增14张原创透明PNG，运行时清单共42项。两张原始图均以纯绿背景生成，再抠除背景、修正绿边并输出RGBA；没有使用参考APK中的美术。提示词见 `art/prompt-career.txt`，源图位于 `art/source/aircraft-career-green.png` 和 `art/source/career-props-green.png`，处理脚本为 `scripts/prepare-career-art.py`。
+
+| 成品 | 数量与规格 | 接入位置 |
+| --- | --- | --- |
+| `aircraft-{light,regional,heavy}-{passenger,cargo}-v2.png` | 6张，1000×450 | 主机场地面飞机、机库、飞机商店和机体工坊 |
+| `cargo-{express,cold,industrial}-v2.png` | 3张，256×256 | 候运区真实快件、冷链与工业货物 |
+| `facility-{warehouse,factory,design,research,trade}-v2.png` | 5张，384×320 | 物流园五座可点击建筑，带实际设施等级和升级操作 |
+
+所有图片走本地BASE_URL和PWA预缓存。洲际与远程共享大型剪影，混合机沿用客机剪影；空中飞行继续采用已有通用机体。并未绘制原作全部载具、活动图或独立逐机型飞行动画。
+
 # 美术资源 · 第一、二批
 
 ## 客货候运地面补充（第五批交付）

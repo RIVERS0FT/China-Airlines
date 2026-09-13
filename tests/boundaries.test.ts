@@ -3,7 +3,7 @@ import { GameCore, validateSave } from '../src/core/game.js';
 const NOW = 1_800_000_000_000;
 function routeWithTwoPlanes(): GameCore {
   const core = new GameCore(NOW);
-  core.execute({ type: 'buy', modelId: 'lark', airportId: 'PEK' }, NOW);
+  core.execute({ type: 'buy', modelId: 'swift-m', airportId: 'PEK' }, NOW);
   core.execute({ type: 'route', from: 'PEK', to: 'PVG' }, NOW);
   for (const plane of core.snapshot().fleet) {
     // v0.4 requires a real dispatcher contract on newly purchased aircraft.
@@ -30,7 +30,7 @@ describe('consistent flight state', () => {
   it('settles simultaneous flights once and preserves deterministic order', () => {
     const incremental = routeWithTwoPlanes(), batch = routeWithTwoPlanes();
     for (let seconds = 1; seconds <= 3600; seconds++) incremental.tick(NOW + seconds * 1000);
-    batch.tick(NOW + 3_600_000);expect(batch.snapshot()).toEqual(incremental.snapshot());expect(batch.snapshot().stats.flights).toBeGreaterThan(50);
+    batch.tick(NOW + 3_600_000);expect(batch.snapshot()).toEqual(incremental.snapshot());expect(batch.snapshot().stats.flights).toBe(20);
     const saved = batch.snapshot(), reloaded = new GameCore(NOW + 3_600_000, saved);
     expect(reloaded.tick(NOW + 3_600_000).flights).toBe(0);expect(reloaded.snapshot()).toEqual(saved);expect(() => validateSave(saved)).not.toThrow();
   });

@@ -51,11 +51,10 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     await expect(page.getByTestId('plan-leg')).toHaveCount(1);
     await expect(page.getByTestId('plan-summary')).toContainText('1 段');
     await expect(page.getByTestId('network-energy')).toContainText('本段需');
-    await expect(page.getByRole('checkbox',{name:/自动往返/})).toBeEnabled();
-    await page.getByRole('checkbox',{name:/自动往返/}).check();
+    await expect(page.getByRole('checkbox',{name:/自动往返/})).toBeDisabled();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('button',{name:'查看路线',exact:true})).toBeFocused();
-    await expect(page.getByTestId('auto-route-badge')).toHaveText('自动往返');
+    await expect(page.getByTestId('auto-route-badge')).toHaveCount(0);
     await expect(canvas).toHaveAttribute('data-camera',camera!);
     await expect(page.getByTestId('credits')).toHaveText(money!);
     await page.getByRole('button',{name:'隐藏其他飞机',exact:true}).click();
@@ -87,7 +86,7 @@ test('map cancellation returns to a pinned empty airport without moving the airc
   await page.getByRole('button',{name:'取消起飞',exact:true}).click();
   await expect(page.locator('.gate-sign')).toContainText('上海航空港');
   await expect(page.getByTestId('plane-art')).toHaveCount(0);
-  await expect(page.getByTestId('credits')).toHaveText('¥ 180,000');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
 });
 
 test('the city dialog remains a complete route input when WebGL is unavailable',async({page})=>{

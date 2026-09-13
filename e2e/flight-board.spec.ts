@@ -4,9 +4,9 @@ import { GameCore, planQuote, type GameState } from '../src/core/game.js';
 const NOW = Date.parse('2026-09-11T00:00:00Z'), ID = 'AC0001';
 const money = (n:number) => `¥ ${Math.round(n).toLocaleString('zh-CN')}`;
 function prepared() {
-  const c=new GameCore(NOW);
+  const c=new GameCore(NOW);c.execute({type:'hire-dispatcher',planeId:ID},NOW);
   c.execute({type:'unlock',airportId:'WUH'},NOW);
-  c.execute({type:'buy',modelId:'lark-f',airportId:'PEK'},NOW);
+  c.execute({type:'buy',modelId:'swift-f',airportId:'PEK'},NOW);
   c.execute({type:'load-destination',planeId:ID,to:'PVG'},NOW);
   c.execute({type:'open-plan-routes',planeId:ID,stops:['WUH','PVG','PEK']},NOW);
   return c;
@@ -60,7 +60,7 @@ test('a next leg appears only after departure and final delivery cannot be repea
   await page.clock.fastForward((q.legs[0]!.duration+9)*1000);
   await expect(page.getByTestId('flights-count')).toHaveText('1 班');await expect(page.getByTestId('flight-revenue')).toHaveText(money(q.legs[1]!.revenue));
   await openGlobal(page, '航班运行表');await expect(page.locator(`[data-plane-id="${ID}"] .flight-route`)).toContainText('武汉 → 上海');
-  await page.clock.fastForward(300000);await page.getByRole('button',{name:/^飞行中的飞机/}).click();await expect(page.getByTestId('flight-row')).toHaveCount(0);
+  await page.clock.fastForward(1_200_000);await page.getByRole('button',{name:/^飞行中的飞机/}).click();await expect(page.getByTestId('flight-row')).toHaveCount(0);
   await expect(page.getByText('当前没有飞行中的飞机。',{exact:true})).toBeVisible();await page.getByRole('button',{name:'显示全部飞机',exact:true}).click();await expect(page.getByTestId('flight-row')).toHaveCount(2);
   await page.getByRole('button',{name:'关闭航班运行表'}).click();const credits=money(s0.credits-q.cost+q.revenue);
   await expect(page.getByTestId('credits')).toHaveText(credits);await expect(page.getByTestId('flights-count')).toHaveText('3 班');

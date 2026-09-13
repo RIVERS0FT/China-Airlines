@@ -44,7 +44,7 @@ test('desktop airport uses the polished game hierarchy without changing real dat
   await expect(page.locator('.game-hud')).toBeVisible();
   await expect(page.locator('.gate-sign')).toContainText('北京航空港');
   await expect(page.getByTestId('waiting-order')).toHaveCount(12);
-  await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 6 人');
+  await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 3 人');
 
   const launch = page.getByRole('button', { name: '制定路线', exact: true });
   await expect(launch).toBeVisible();

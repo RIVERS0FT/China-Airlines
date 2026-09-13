@@ -13,7 +13,7 @@ describe('persistent passenger and cargo orders', () => {
   it('starts with visible supply but no invented onboard load or flight revenue', () => {
     const s = new GameCore(NOW).snapshot(); expect(waiting(s,'PEK')).toHaveLength(12); expect(manifest(s,'AC0001')).toHaveLength(0);
     expect(s.fleet[0]!.modelId).toBe(STARTER_MODEL.id);
-    expect(aircraftSpecs(s.fleet[0]!)).toMatchObject({ seats: 6, cargo: 1 });
+    expect(aircraftSpecs(s.fleet[0]!)).toMatchObject({ seats: 3, cargo: 2 });
     expect(waiting(s,'PEK').every(o => o.amount === 1)).toBe(true);
     expect(quote(s,s.fleet[0]!,'PVG').revenue).toBe(0); expect(validateSave(s)).toEqual(s);
   });
@@ -26,7 +26,7 @@ describe('persistent passenger and cargo orders', () => {
   });
   it('enforces separate small starter capacities with unit orders', () => {
     const c = new GameCore(NOW);c.execute({type:'load-destination',planeId:'AC0001',to:'PVG'},NOW);
-    expect(loadSummary(c.snapshot(),'AC0001')).toEqual({passengers:6,cargo:1});
+    expect(loadSummary(c.snapshot(),'AC0001')).toEqual({passengers:3,cargo:2});
     for(const o of waiting(c.snapshot(),'PEK'))expect(()=>c.execute({type:'load',planeId:'AC0001',orderId:o.id},NOW)).toThrow(/容量/);
   });
   it('cannot steal an order at another airport', () => {
@@ -38,7 +38,7 @@ describe('persistent passenger and cargo orders', () => {
   });
   it('pays only at final destination and transfers the same order to another plane',()=>{
     const c=new GameCore(NOW),o=waiting(c.snapshot(),'PEK')[0]!;
-    c.execute({type:'unlock',airportId:'WUH'},NOW);c.execute({type:'buy',modelId:'lark',airportId:'WUH'},NOW);
+    c.execute({type:'unlock',airportId:'WUH'},NOW);c.execute({type:'buy',modelId:'swift-m',airportId:'WUH'},NOW);
     const second=c.snapshot().fleet[1]!.id;c.execute({type:'load',planeId:'AC0001',orderId:o.id},NOW);
     send(c,'WUH');expect(c.snapshot().stats.revenue).toBe(0);expect(manifest(c.snapshot(),'AC0001')[0]!.id).toBe(o.id);
     const now=c.snapshot().lastWallTime;c.execute({type:'unload',planeId:'AC0001',orderId:o.id},now);
@@ -55,18 +55,18 @@ describe('persistent passenger and cargo orders', () => {
     for(let i=14;i<=900;i++)a.tick(NOW+i*1000);b.tick(NOW+900000);expect(a.snapshot()).toEqual(b.snapshot());expect(()=>validateSave(a.snapshot())).not.toThrow();
   });
   it('automatic dispatch waits for real supply rather than generating free flights',()=>{
-    const c=new GameCore(NOW);c.execute({type:'route',from:'PEK',to:'PVG'},NOW);const s=c.snapshot();s.orders=[];s.fleet[0]!.autoRouteId='PEK-PVG';const auto=new GameCore(NOW,s);
+    const c=new GameCore(NOW);c.execute({type:'hire-dispatcher',planeId:'AC0001'},NOW);c.execute({type:'route',from:'PEK',to:'PVG'},NOW);const s=c.snapshot();s.orders=[];s.fleet[0]!.autoRouteId='PEK-PVG';const auto=new GameCore(NOW,s);
     auto.tick(NOW+60000);expect(auto.snapshot().stats.flights).toBe(0);expect(auto.snapshot().credits).toBe(s.credits);expect(()=>validateSave(auto.snapshot())).not.toThrow();
     auto.tick(NOW+DEMAND_INTERVAL*1000);expect(auto.snapshot().fleet[0]!.flight?.passengers).toBeGreaterThan(0);expect(waiting(auto.snapshot(),'PEK').length).toBeLessThan(12);
   });
   it('rejects a manifest that cannot be served by direct automatic return',()=>{
     const c=new GameCore(NOW),o=waiting(c.snapshot(),'PEK')[0]!;c.execute({type:'unlock',airportId:'WUH'},NOW);c.execute({type:'load',planeId:'AC0001',orderId:o.id},NOW);c.execute({type:'route',from:'PEK',to:'WUH'},NOW);
-    expect(()=>c.execute({type:'dispatch',planeId:'AC0001',to:'WUH',auto:true},NOW)).toThrow(/中转/);
+    expect(()=>c.execute({type:'dispatch',planeId:'AC0001',to:'WUH',auto:true},NOW)).toThrow(/飞行员/);
   });
 });
 describe('save v2 and legacy migration',()=>{
   it('migrates a fixed v1 flight fixture without changing money or locked revenue',()=>{
-    const c=new GameCore(NOW,legacy),s=c.snapshot();expect(s.version).toBe(6);expect(s.credits).toBe(legacy.credits);expect(s.fleet.map(({upgrades: _u,itinerary: _i,dispatcher: _d,energy: _e,...p})=>p)).toEqual(legacy.fleet);
+    const c=new GameCore(NOW,legacy),s=c.snapshot();expect(s.version).toBe(7);expect(s.credits).toBe(legacy.credits);expect(s.fleet.map(({upgrades: _u,itinerary: _i,dispatcher: _d,energy: _e,tuning: _t,...p})=>p)).toEqual(legacy.fleet);
     expect(s.orders.filter(o=>o.location==='AC0001').reduce((n,o)=>n+o.reward,0)).toBe(legacy.fleet[0]!.flight!.revenue);
     c.tick(NOW+legacy.fleet[0]!.flight!.arriveAt*1000);expect(c.snapshot().stats.revenue).toBe(legacy.fleet[0]!.flight!.revenue);expect(()=>validateSave(c.snapshot())).not.toThrow();
   });

@@ -66,7 +66,7 @@ for (const [width, height] of [[1440,900],[844,390]]) {
     await detail.getByRole('button', { name:/^解锁机场/ }).click();
     // Unlocking from route planning closes the transient detail and appends the city.
     await expect(detail).toHaveCount(0);
-    await expect(page.getByTestId('credits')).toHaveText('¥ 148,000');
+    await expect(page.getByTestId('credits')).toHaveText('¥ 10,000');
     await expect(canvas).toHaveAttribute('data-preview-path','WUH');
     const money = await page.getByTestId('credits').textContent();
     await selectCity(page, 'PEK');
@@ -103,7 +103,7 @@ test('flight hides loading area and restores it after arrival', async ({ page })
   await page.reload(); await expect(page.locator('.apron-queue')).toHaveCount(0);
   await expect(page.getByTestId('flight-cost')).toHaveText(cost!);
   await expect(page.getByTestId('flight-revenue')).toHaveText(revenue!);
-  await page.clock.fastForward(200_000);
+  await page.clock.fastForward(400_000);
   await expect(page.locator('.apron-queue')).toBeVisible();
   await expect(page.locator('.scene-flight-summary')).toHaveCount(0);
 });

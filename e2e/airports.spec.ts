@@ -56,10 +56,10 @@ test('airport search, locked information, unlock and upgrade use existing comman
   await page.getByRole('button', { name: '查看武汉机场', exact: true }).click();
   await expect(page.getByRole('button', { name: '进入候机大厅' })).toHaveCount(0);
   await page.getByRole('button', { name: /^解锁机场/ }).click();
-  await expect(page.getByTestId('credits')).toHaveText('¥ 148,000');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 10,000');
   await expect(page.getByRole('button', { name: /^解锁机场/ })).toHaveCount(0);
   await page.getByRole('button', { name: /^升级机场/ }).click();
-  await expect(page.getByTestId('credits')).toHaveText('¥ 88,000');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 4,000');
   await expect(page.locator('.airport-detail-hero')).toContainText('2 级机场');
   await page.getByRole('button', { name: '进入候机大厅', exact: true }).click();
   await expect(page.locator('.gate-sign')).toContainText('武汉航空港');
@@ -72,7 +72,7 @@ test('purchase into an empty inspected airport enables only local aircraft loadi
   await page.getByRole('button', { name: '进入候机大厅', exact: true }).click();
   await openGlobal(page, '飞机商店');
   await expect(page.getByLabel('交付机场', { exact: true })).toHaveValue('PVG');
-  await page.getByRole('button', { name: '购买云雀 70', exact: true }).click();
+  await page.getByRole('button', { name: '购买雨燕 客货型', exact: true }).click();
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   await page.getByRole('button', { name: '关闭飞机商店' }).click();
   await expect(page.locator('.plane-status')).toContainText('AC0002');
@@ -100,7 +100,7 @@ test('incoming and outbound boards track real arrival while pinned to an airport
   await expect(page.getByTestId('airport-incoming').getByRole('listitem')).toHaveCount(1);
   await page.getByRole('button', { name: '进入候机大厅' }).click();
   await expect(page.getByTestId('plane-art')).toHaveCount(0);
-  await page.clock.fastForward(200000);
+  await page.clock.fastForward(400000);
   await expect(page.getByTestId('flights-count')).toHaveText('1 班');
   await expect(page.getByTestId('plane-art')).toBeVisible();
   const resume = page.getByRole('button', { name: '继续经营', exact: true });

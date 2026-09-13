@@ -9,14 +9,14 @@ test('destination stations group different destinations while preserving individ
   const orders = state.orders.filter(order => order.location === 'PEK');
   orders.forEach((order, index) => {
     order.to = index % 2 ? 'WUH' : 'PVG';
-    order.reward = orderReward(order.from, order.to, order.kind, order.amount);
+    order.reward = orderReward(order.from, order.to, order.kind, order.amount, order.service);
   });
   validateSave(state);
   await page.goto('./');
   page.on('dialog', dialog => void dialog.accept());
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
   await page.getByLabel('选择存档文件').setInputFiles({ name: 'stations.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(state)) });
-  await expect(page.getByTestId('credits')).toHaveText('¥ 148,000');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 10,000');
   await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
   await expect(page.locator('.destination-station')).toHaveCount(2);
   for (const city of ['上海', '武汉']) {
@@ -51,7 +51,7 @@ test('first flight is guided through the mission without a bottom tutorial entry
   await expect(page.locator('.airport-mission')).toContainText('观察航班到达');
   await page.reload();
   await expect(page.locator('.airport-mission')).toContainText('观察航班到达');
-  await page.clock.fastForward(200_000);
+  await page.clock.fastForward(400_000);
   const resume = page.getByRole('button', { name: '继续经营', exact: true });
   if (await resume.isVisible()) await resume.click();
   await expect(page.locator('.airport-mission')).toContainText('领取首航奖励');

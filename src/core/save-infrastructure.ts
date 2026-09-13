@@ -1,5 +1,5 @@
 import { MAX_FLEET } from './legacy.js';
-import { AIRPORTS, MODELS, STARTER_MODEL, TASKS, routeId, model } from './catalog.js';
+import { AIRPORTS, ALL_MODELS, TASKS, routeId, model } from './catalog.js';
 import type { GameState } from './game.js';
 /** v6 infrastructure validation. Older schemas keep their frozen 12-airport registry. */
 export function validateInfrastructure(s: GameState): void {
@@ -30,9 +30,9 @@ export function validateInfrastructure(s: GameState): void {
   list(s.fleet, MAX_FLEET);
   if (!s.fleet.length) fail();
   const planes = new Set<string>();
-  for (const p of s.fleet) {
+  for (const p of [...s.fleet,...s.career.stored]) {
     if (!p || typeof p.id !== 'string' || !/^AC\d{4,9}$/.test(p.id) || Number(p.id.slice(2)) < 1 ||
-      Number(p.id.slice(2)) >= s.nextId || planes.has(p.id) || (p.modelId !== STARTER_MODEL.id && !MODELS.some(m => m.id === p.modelId)) ||
+      Number(p.id.slice(2)) >= s.nextId || planes.has(p.id) || !ALL_MODELS.some(m => m.id === p.modelId) ||
       !airports.has(p.airportId) || airports.get(p.airportId)! < model(p.modelId).level) fail();
     planes.add(p.id);
   }
@@ -42,7 +42,7 @@ export function validateInfrastructure(s: GameState): void {
   if (new Set(s.claimedTasks).size !== s.claimedTasks.length) fail();
   for (const id of s.claimedTasks) {
     const t = TASKS.find(t => t.id === id);
-    if (!t || (t.metric === 'flights' ? s.stats.flights : t.metric === 'fleet' ? s.fleetPeak : s.airports.length) < t.target) fail();
+    if (!t || (t.metric === 'flights' ? s.stats.flights : t.metric === 'fleet' ? s.fleetPeak : s.career.airportPeak) < t.target) fail();
   }
   list(s.log, 60);
   for (const l of s.log) {

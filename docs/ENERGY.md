@@ -1,3 +1,5 @@
+> 2026-09-13 更新：本文件下方保留历史能量记录。当前规则和新增范围以 [OFFLINE-CAREER.md](OFFLINE-CAREER.md) 与 [APK-EVIDENCE.md](APK-EVIDENCE.md) 为准。
+
 # 基础能量与原版数值证据
 
 ## 证据边界

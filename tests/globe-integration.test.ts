@@ -1,3 +1,4 @@
+import { historicalFields } from './career-fixtures.js';
 import { describe, expect, it } from 'vitest';
 import { aircraftSpecs, MODELS } from '../src/core/catalog.js';
 import { GameCore, loadSummary, manifest, orderReward, validateSave } from '../src/core/game.js';
@@ -8,15 +9,15 @@ import unitServicing from './fixtures/v5-unit-servicing.json';
 const NOW = 1_800_000_000_000;
 
 describe('world integration keeps the shipped unit-order starter', () => {
-  it('keeps six passenger seats, one cargo slot and nine shop models across a v6 reload', () => {
+  it('keeps three passenger seats, two cargo slots and twelve models across a v7 reload', () => {
     const core = new GameCore(NOW);
     expect(core.snapshot().orders.every(o => o.amount === 1)).toBe(true);
     core.execute({ type: 'load-destination', planeId: 'AC0001', to: 'PVG' }, NOW);
     const saved = core.snapshot(), plane = saved.fleet[0]!;
-    expect(plane.modelId).toBe('starter-lark');
-    expect(aircraftSpecs(plane)).toMatchObject({ seats: 6, cargo: 1 });
-    expect(loadSummary(saved, plane.id)).toEqual({ passengers: 6, cargo: 1 });
-    expect(MODELS).toHaveLength(9);
+    expect(plane.modelId).toBe('starter-swift');
+    expect(aircraftSpecs(plane)).toMatchObject({ seats: 3, cargo: 2 });
+    expect(loadSummary(saved, plane.id)).toEqual({ passengers: 3, cargo: 2 });
+    expect(MODELS).toHaveLength(12);
     expect(MODELS.some(m => m.id === plane.modelId)).toBe(false);
     expect(new GameCore(NOW, saved).snapshot()).toEqual(saved);
   });
@@ -25,7 +26,7 @@ describe('world integration keeps the shipped unit-order starter', () => {
     const original = structuredClone(old);
     expect(validateV5(old)).toEqual(original);
     const saved = validateSave(old);
-    expect(saved).toEqual({ ...original, version: 6 });
+    expect(historicalFields(saved)).toEqual({ ...original, version: 6 });
     expect(old).toEqual(original);
     expect(validateSave(saved)).toEqual(saved);
   });
@@ -35,7 +36,7 @@ describe('world integration keeps the shipped unit-order starter', () => {
     expect(plane.modelId).toBe('lark');
     expect(aircraftSpecs(plane).seats).toBeGreaterThanOrEqual(70);
     expect(manifest(saved, plane.id).some(o => o.amount > 1)).toBe(true);
-    expect(saved.orders).toEqual(aggregated.orders);
+    expect(historicalFields(saved).orders).toEqual(aggregated.orders);
   });
 
   it('completes an imported unit-starter flight exactly once with its locked revenue', () => {

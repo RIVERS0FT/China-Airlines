@@ -1,5 +1,6 @@
+import { autoAllowed, assignedPilot } from '../core/career.js';
 import { useState } from 'react';
-import { energyDepartureReason } from '../core/energy.js';
+import { departureEnergyReason } from '../core/game.js';
 import { airport } from '../core/catalog.js';
 import { legQuote, manifest, type GameState, type Plane } from '../core/game.js';
 import { DISPATCHER_PRICE, resaleValue } from '../core/management.js';
@@ -13,9 +14,9 @@ export function AircraftService({ game, plane, busy }: { game: GameState; plane:
     .filter(id => { try { legQuote(game, plane, plane.airportId, id); return true; } catch { return false; } });
   const to = destinations.includes(selected) ? selected : destinations[0] ?? '';
   const reason = plane.energy.serviceUntil !== null ? '地勤补能中' : plane.flight ? '飞行中，请等待落地' : plane.autoRouteId ? '请先停止自动值勤' : plane.itinerary.length ? '请先取消剩余计划' : plane.readyAt > game.simTime ? '地面周转中' : '';
-  const energyReason = to ? energyDepartureReason(plane.energy, legQuote(game, plane, plane.airportId, to).duration) : '';
+  const energyReason = to ? departureEnergyReason(plane, legQuote(game, plane, plane.airportId, to).duration) : '';
   const jobs = manifest(game, plane.id);
-  const saleReason = reason || (game.fleet.length <= 1 ? '必须保留至少一架飞机' : jobs.length ? '请先卸下全部客货' : '');
+  const saleReason = reason || (assignedPilot(game,plane) ? '请先安排飞行员下岗' : '') || (game.fleet.length <= 1 ? '必须保留至少一架飞机' : jobs.length ? '请先卸下全部客货' : '');
   const incompatible = jobs.some(order => order.to !== to);
   const value = resaleValue(plane);
   function sell() {
@@ -26,13 +27,13 @@ export function AircraftService({ game, plane, busy }: { game: GameState; plane:
     <section className="crew-card" aria-label="随航调度员">
       <header><span className="crew-avatar" aria-hidden="true">调</span><div><h3>随航调度员</h3><p data-testid="crew-status">{plane.dispatcher ? plane.autoRouteId ? '已上岗 · 自动值勤' : '已雇用 · 等待安排' : '未雇用 · 手动经营'}</p></div></header>
       <p>只装真实直达客货，按机型容量装载；无订单就等待，不空飞刷收益。</p>
-      <small>一次雇用 {money(DISPATCHER_PRICE)}，无周期工资。首架及旧存档飞机保留免费调度员；新购飞机需单独雇用。</small>
-      {!plane.dispatcher ? <button disabled={busy || Boolean(reason) || game.credits < DISPATCHER_PRICE} onClick={() => ignore(controller.command({ type: 'hire-dispatcher', planeId: plane.id }))}>雇用随航调度员</button> : <>
-        {plane.autoRouteId ? <button disabled={busy} onClick={() => ignore(controller.command({ type: 'stop', planeId: plane.id }))}>停止自动值勤</button> : <div className="crew-duty-controls"><label>值勤目的地<select aria-label="值勤目的地" value={to} disabled={!destinations.length || busy || Boolean(reason)} onChange={e => setSelected(e.target.value)}>{!destinations.length && <option value="">暂无可达的已解锁机场</option>}{destinations.map(id => <option key={id} value={id}>{airport(id).city}</option>)}</select></label><button disabled={busy || Boolean(reason) || !to || incompatible || Boolean(energyReason)} onClick={() => ignore(controller.command({ type: 'start-duty', planeId: plane.id, to }))}>启动自动值勤</button></div>}
+      <small>招募 {money(DISPATCHER_PRICE)}＋3点券，含7天工资。经营中心可调岗、续付工资与训练技能；旧存档调度权限保留。</small>
+      {!plane.dispatcher ? <button disabled={busy || Boolean(reason) || game.credits < DISPATCHER_PRICE || game.career.tickets < 3 || game.career.pilots.length >= 8} onClick={() => ignore(controller.command({ type: 'hire-dispatcher', planeId: plane.id }))}>雇用随航调度员</button> : <>
+        {plane.autoRouteId ? <button disabled={busy} onClick={() => ignore(controller.command({ type: 'stop', planeId: plane.id }))}>停止自动值勤</button> : <div className="crew-duty-controls"><label>值勤目的地<select aria-label="值勤目的地" value={to} disabled={!destinations.length || busy || Boolean(reason)} onChange={e => setSelected(e.target.value)}>{!destinations.length && <option value="">暂无可达的已解锁机场</option>}{destinations.map(id => <option key={id} value={id}>{airport(id).city}</option>)}</select></label><button disabled={busy || Boolean(reason) || !to || incompatible || Boolean(energyReason) || !autoAllowed(game,plane)} onClick={() => ignore(controller.command({ type: 'start-duty', planeId: plane.id, to }))}>启动自动值勤</button></div>}
         {incompatible && !plane.autoRouteId && to && <p>机上有其他目的地订单，请先卸下或手动完成运输。</p>}
-        <button className="subtle-action" disabled={busy || Boolean(reason)} onClick={() => { if (window.confirm('解聘当前随航调度员？雇用费用不退还，重新雇用需再次付费。')) ignore(controller.command({ type: 'dismiss-dispatcher', planeId: plane.id })); }}>解聘调度员</button>
+        <button className="subtle-action" disabled={busy || Boolean(reason)} onClick={() => { if (window.confirm('解除此飞机的人员分配？可在经营中心重新安排岗位。')) ignore(controller.command({ type: 'dismiss-dispatcher', planeId: plane.id })); }}>人员下岗</button>
       </>}
-      {energyReason && !reason && <p className="service-reason">{energyReason}</p>}
+      {!autoAllowed(game,plane) && plane.dispatcher && <p className="service-reason">工资已到期，请到经营中心续付。</p>}{energyReason && !reason && <p className="service-reason">{energyReason}</p>}
       {reason && <p className="service-reason">{reason}</p>}
     </section>
     <section className="resale-card" aria-label="出售飞机">

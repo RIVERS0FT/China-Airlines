@@ -24,9 +24,9 @@ test('selecting the next city immediately after unlock retains the committed fir
   await selectCity(page, 'PVG');
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-preview-path', 'WUH,PVG');
   await expect(await detailValue(page, 'plan-summary')).toContainText('2 段');
-  await expect(page.getByTestId('credits')).toHaveText('¥ 148,000');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 10,000');
   await expect(page.getByTestId('plane-energy')).toHaveCount(0);
-  await expect(await detailValue(page, 'network-energy')).toContainText('240.00');
+  await expect(await detailValue(page, 'network-energy')).toContainText('200.00');
   await expect(page.getByTestId('flights-count')).toHaveText('0 班');
   expect(errors).toEqual([]);
 });

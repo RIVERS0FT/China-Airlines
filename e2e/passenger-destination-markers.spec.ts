@@ -10,5 +10,5 @@ test('route planning marks loaded passenger destinations on the map', async ({ p
   if (await hint.count()) await hint.click();
   const map = page.getByTestId('map-canvas');
   await expect(map).toHaveAttribute('data-renderer', 'ready');
-  await expect(map).toHaveAttribute('data-passenger-destinations', 'PVG:6');
+  await expect(map).toHaveAttribute('data-passenger-destinations', 'PVG:3');
 });

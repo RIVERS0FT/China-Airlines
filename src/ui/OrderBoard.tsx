@@ -1,3 +1,4 @@
+import { service, MATERIALS } from '../core/career-catalog.js';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { airport } from '../core/catalog.js';
 import { manifest, waiting, type Order, type GameState, type Plane } from '../core/game.js';
@@ -9,7 +10,7 @@ import { artAsset } from './art-assets.js';
 /** One decorative sprite per real order. Appearance never implies different fares or cargo rules. */
 function PassengerArt({ order }: { order: Order }) {
   const variant = Array.from(order.id).reduce((sum, char) => sum + char.charCodeAt(0), 0) % 6 + 1;
-  const file = order.kind === 'cargo' ? 'cargo-v1.png' : `passenger-${String(variant).padStart(2, '0')}-v1.png`;
+  const file = order.kind === 'cargo' ? service(order.service)?.art ?? 'cargo-v1.png' : `passenger-${String(variant).padStart(2, '0')}-v1.png`;
   return <img src={artAsset(file)} alt="" aria-hidden="true" className="job-art" draggable={false}/>;
 }
 function OrderCard({ order, aboard, reason, busy, onClick }: {
@@ -20,8 +21,8 @@ function OrderCard({ order, aboard, reason, busy, onClick }: {
     aria-label={`${aboard ? '卸下' : '装载'} ${order.id} 前往${airport(order.to).city} ${order.amount}${order.kind === 'cargo' ? '吨货物' : '位旅客'}`}
     aria-describedby={`reason-${order.id}`}>
     <PassengerArt order={order}/>
-    {order.amount > 1 && <span className="job-quantity">{`${order.kind === 'cargo' ? '历史货单' : '历史旅客组'} × ${order.amount}${order.kind === 'cargo' ? '吨' : '人'}`}</span>}
-    <strong>{money(order.reward)}</strong>
+    {order.amount > 1 && <span className="job-quantity">{`${order.kind === 'cargo' ? '货物' : '旅客组'} × ${order.amount}${order.kind === 'cargo' ? '吨' : '人'}`}</span>}
+    <strong>{order.product ? MATERIALS[order.product] : money(order.reward)}</strong><span className="cargo-service-name">{order.product ? '运输入库' : service(order.service)?.name}</span>
     <small id={`reason-${order.id}`} className="job-state">{reason || (aboard ? '已装机 · 点击卸载' : order.expiresAt === null ? '中转保留 · 点击装机' : '点击装机')}</small>
   </button>;
 }

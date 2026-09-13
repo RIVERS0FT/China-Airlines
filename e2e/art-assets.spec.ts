@@ -28,6 +28,6 @@ test('local art decodes and remains available after offline reload', async ({ pa
   expect(decoded.every(image => image.width >= 256 && image.height >= 256)).toBe(true);
   await page.getByTestId('waiting-order').first().click();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
-  await expect(page.getByTestId('aircraft-sprite')).toHaveAttribute('href', /aircraft-v1\.png$/);
+  await expect(page.getByTestId('aircraft-sprite')).toHaveAttribute('href', /aircraft-light-passenger-v2\.png$/);
   await expect(page.getByRole('navigation', { name: '主导航' }).locator('img.painted-icon')).toHaveCount(7);
 });

@@ -4,8 +4,8 @@ import { DISPATCHER_PRICE, resaleValue } from '../src/core/management.js';
 import { guideStep } from '../src/core/onboarding.js';
 import v3 from './fixtures/v3-dispatching.json';
 const NOW=1800000000000, ID='AC0001';
-function rich(){const s=new GameCore(NOW).snapshot();s.credits=10000000;return new GameCore(NOW,s);}
-function purchase(c=rich()){c.execute({type:'buy',modelId:'lark-f',airportId:'PEK'},NOW);return c;}
+function rich(){const s=new GameCore(NOW).snapshot();s.credits=10000000;s.career.tickets=1000000;s.career.xp=20000;const c=new GameCore(NOW,s);c.execute({type:'hire-dispatcher',planeId:ID},NOW);return c;}
+function purchase(c=rich()){c.execute({type:'buy',modelId:'swift-f',airportId:'PEK'},NOW);return c;}
 function unchanged(c:GameCore,action:()=>void){const before=c.snapshot();expect(action).toThrow();expect(c.snapshot()).toEqual(before);}
 
 describe('dispatcher contracts and real supply',()=>{
@@ -51,11 +51,11 @@ describe('dispatcher contracts and real supply',()=>{
 });
 describe('safe resale and lifetime fleet milestones',()=>{
   it('recovers hull and actual upgrade investment without transport income',()=>{
-    const c=purchase();c.execute({type:'retrofit',planeId:'AC0002',upgrade:'engine'},NOW);const s=c.snapshot(),value=resaleValue(s.fleet[1]!);expect(value).toBe(41340);
+    const c=purchase();c.execute({type:'retrofit',planeId:'AC0002',upgrade:'engine'},NOW);const s=c.snapshot(),value=resaleValue(s.fleet[1]!);expect(value).toBe(3366);
     c.execute({type:'sell-plane',planeId:'AC0002'},NOW);expect(c.snapshot().credits).toBe(s.credits+value);expect(c.snapshot().stats).toEqual(s.stats);expect(c.snapshot().hangarSlots).toBe(s.hangarSlots);expect(c.snapshot().orders).toEqual(s.orders);
   });
   it('rejects the last plane and repeated sale',()=>{
-    const c=rich();unchanged(c,()=>c.execute({type:'sell-plane',planeId:ID},NOW));c.execute({type:'buy',modelId:'lark',airportId:'PEK'},NOW);c.execute({type:'sell-plane',planeId:ID},NOW);
+    const c=rich();unchanged(c,()=>c.execute({type:'sell-plane',planeId:ID},NOW));c.execute({type:'buy',modelId:'swift-m',airportId:'PEK'},NOW);c.execute({type:'dismiss-dispatcher',planeId:ID},NOW);c.execute({type:'sell-plane',planeId:ID},NOW);
     unchanged(c,()=>c.execute({type:'sell-plane',planeId:ID},NOW));expect(validateSave(c.snapshot())).toEqual(c.snapshot());
   });
   it('never deletes loaded jobs on sale',()=>{
@@ -71,21 +71,21 @@ describe('safe resale and lifetime fleet milestones',()=>{
     const c=purchase();const s=c.snapshot();s.orders=[];const a=new GameCore(NOW,s);a.execute({type:'start-duty',planeId:ID,to:'PVG'},NOW);unchanged(a,()=>a.execute({type:'sell-plane',planeId:ID},NOW));
   });
   for(const claimFirst of [true,false])it(`keeps achieved fleet milestones after resale, claim before=${claimFirst}`,()=>{
-    const c=purchase();c.execute({type:'buy',modelId:'lark',airportId:'PEK'},NOW);if(claimFirst)c.execute({type:'claim',taskId:'three-planes'},NOW);
+    const c=purchase();c.execute({type:'buy',modelId:'swift-m',airportId:'PEK'},NOW);if(claimFirst)c.execute({type:'claim',taskId:'three-planes'},NOW);
     c.execute({type:'sell-plane',planeId:'AC0002'},NOW);expect(taskProgress(c.snapshot(),'three-planes')).toBe(3);const r=new GameCore(NOW,c.snapshot());
     if(!claimFirst)r.execute({type:'claim',taskId:'three-planes'},NOW);expect(validateSave(r.snapshot())).toEqual(r.snapshot());unchanged(r,()=>r.execute({type:'claim',taskId:'three-planes'},NOW));
   });
   it('never reuses plane ids or changes other crew contracts',()=>{
-    const c=purchase();c.execute({type:'sell-plane',planeId:ID},NOW);c.execute({type:'buy',modelId:'lark',airportId:'PEK'},NOW);expect(c.snapshot().fleet.map(p=>p.id)).toEqual(['AC0002','AC0003']);expect(c.snapshot().fleet.map(p=>p.dispatcher)).toEqual([false,false]);
+    const c=purchase();c.execute({type:'dismiss-dispatcher',planeId:ID},NOW);c.execute({type:'sell-plane',planeId:ID},NOW);c.execute({type:'buy',modelId:'swift-m',airportId:'PEK'},NOW);expect(c.snapshot().fleet.map(p=>p.id)).toEqual(['AC0002','AC0003']);expect(c.snapshot().fleet.map(p=>p.dispatcher)).toEqual([false,false]);
   });
   it('frees a full hangar without losing permanent capacity',()=>{
-    const c=purchase();for(let i=0;i<2;i++)c.execute({type:'buy',modelId:'lark',airportId:'PEK'},NOW);c.execute({type:'sell-plane',planeId:'AC0002'},NOW);c.execute({type:'buy',modelId:'lark',airportId:'PEK'},NOW);expect(c.snapshot().fleet.length).toBe(4);expect(c.snapshot().fleetPeak).toBe(4);
+    const c=purchase();for(let i=0;i<2;i++)c.execute({type:'buy',modelId:'swift-m',airportId:'PEK'},NOW);c.execute({type:'sell-plane',planeId:'AC0002'},NOW);c.execute({type:'buy',modelId:'swift-m',airportId:'PEK'},NOW);expect(c.snapshot().fleet.length).toBe(4);expect(c.snapshot().fleetPeak).toBe(4);
   });
 });
 describe('migration and strict invariants',()=>{
   it('preserves all v3 identities, clocks, locked flights and auto privileges',()=>{
-    const s=new GameCore(NOW,v3).snapshot();expect(s.version).toBe(6);expect(s.tutorial).toBe('skipped');expect(s.fleetPeak).toBe(v3.fleet.length);
-    expect(s.fleet.map(({dispatcher:_d,energy:_e,...p})=>p)).toEqual(v3.fleet);expect(s.orders).toEqual(v3.orders);expect(s.credits).toBe(v3.credits);expect(s.lastWallTime).toBe(v3.lastWallTime);expect(s.fleet.every(p=>p.dispatcher)).toBe(true);expect(validateSave(s)).toEqual(s);
+    const s=new GameCore(NOW,v3).snapshot();expect(s.version).toBe(7);expect(s.tutorial).toBe('skipped');expect(s.fleetPeak).toBe(v3.fleet.length);
+    expect(s.fleet.map(({dispatcher:_d,energy:_e,tuning:_t,...p})=>p)).toEqual(v3.fleet);expect(s.orders.map(({service:_s,product:_p,...o})=>o)).toEqual(v3.orders);expect(s.credits).toBe(v3.credits);expect(s.lastWallTime).toBe(v3.lastWallTime);expect(s.fleet.every(p=>p.dispatcher)).toBe(true);expect(validateSave(s)).toEqual(s);
   });
   it('imports without old wall-clock income and resumes only once',()=>{
     const c=GameCore.imported(v3,NOW+1e9);expect(c.snapshot().stats).toEqual(v3.stats);expect(c.snapshot().lastWallTime).toBe(NOW+1e9);
@@ -109,8 +109,8 @@ describe('non-destructive onboarding',()=>{
   it('requires real first-flight reward and derives steps from actual state',()=>{
     const c=new GameCore(NOW);unchanged(c,()=>c.execute({type:'tutorial',action:'finish'},NOW));c.execute({type:'tutorial',action:'start'},NOW);
     const step=()=>guideStep(c.snapshot(),c.snapshot().fleet[0]!,'airport','PVG');expect(step().id).toBe('load');c.execute({type:'load-destination',planeId:ID,to:'PVG'},NOW);expect(step().id).toBe('map');
-    c.execute({type:'dispatch',planeId:ID,to:'PVG',auto:false},NOW);expect(step().id).toBe('flight');c.tick(NOW+200000);expect(step().id).toBe('reward');c.execute({type:'claim',taskId:'first-flight'},NOW+200000);expect(step().id).toBe('done');
-    const cash=c.snapshot().credits;c.execute({type:'tutorial',action:'finish'},NOW+200000);expect(c.snapshot().credits).toBe(cash);expect(validateSave(c.snapshot())).toEqual(c.snapshot());
+    c.execute({type:'dispatch',planeId:ID,to:'PVG',auto:false},NOW);expect(step().id).toBe('flight');c.tick(NOW+400000);expect(step().id).toBe('reward');c.execute({type:'claim',taskId:'first-flight'},NOW+400000);expect(step().id).toBe('done');
+    const cash=c.snapshot().credits;c.execute({type:'tutorial',action:'finish'},NOW+400000);expect(c.snapshot().credits).toBe(cash);expect(validateSave(c.snapshot())).toEqual(c.snapshot());
   });
   it('rejects unknown tutorial operations',()=>{const c=new GameCore(NOW);unchanged(c,()=>c.execute({type:'tutorial',action:'invalid'} as never,NOW));});
 });

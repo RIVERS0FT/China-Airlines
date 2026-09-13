@@ -1,3 +1,4 @@
+import { service } from '../core/career-catalog.js';
 import { aircraftSpecs } from '../core/catalog.js';
 import { loadSummary, MAX_WAITING, waiting, type GameState, type Plane, type Order } from '../core/game.js';
 
@@ -21,6 +22,8 @@ export function orderBlockReason(game: GameState, plane: Plane | undefined, orde
     if (!specs.seats) return '纯货机不载客';
     return total.passengers + order.amount > specs.seats ? '剩余客舱不足' : '';
   }
+  const special = service(order.service)?.special;
+  if(special && special !== 'none' && plane.tuning.special !== special)return special==='cold'?'需要冷链货舱':'需要工业货舱';
   if (!specs.cargo) return '纯客机不载货';
   return total.cargo + order.amount > specs.cargo ? '剩余货舱不足' : '';
 }
