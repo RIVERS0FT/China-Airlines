@@ -40,6 +40,9 @@ test('one task entrance claims the initial gift exactly once and retains the air
   await page.keyboard.press('End');
   await expect(page.getByRole('tab', { name: /^已领取/ })).toHaveAttribute('aria-selected', 'true');
   await expect(gift.getByRole('button', { name: '已领取', exact: true })).toBeDisabled();
+  const selectedTab = page.getByRole('tab', { name: /^已领取/ });
+  await selectedTab.hover();
+  expect(await selectedTab.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(34, 107, 145)');
   await page.getByRole('button', { name: '关闭任务中心', exact: true }).click();
   await expect(page.locator('.plane-status')).toHaveText(selected!);
   await expect(page.getByTestId('credits')).toHaveText(credits!);
@@ -88,9 +91,15 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three
     if (state === 'blocked') { await expect(card).toBeDisabled(); await expect(card.locator('.job-action')).toHaveText('剩余客舱不足'); }
     else await expect(card).toBeEnabled();
     const scale = await displayScale(page), plate = (await card.locator('.job-info').boundingBox())!;
+    const figure = (await card.locator('.job-figure').boundingBox())!, art = (await card.locator('.job-art').boundingBox())!;
+    expect(art.y + art.height).toBeLessThanOrEqual(figure.y + figure.height + 1);
+    expect(figure.y + figure.height).toBeLessThanOrEqual(plate.y + 1);
+    let previousBottom = plate.y;
     for (const cls of ['.job-price', '.job-state', '.job-action']) {
       const text = (await card.locator(cls).boundingBox())!;
       expect(text.x).toBeGreaterThanOrEqual(plate.x - 1); expect(text.x + text.width).toBeLessThanOrEqual(plate.x + plate.width + 1);
+      expect(text.y).toBeGreaterThanOrEqual(previousBottom - 1);
+      previousBottom = text.y + text.height;
       expect(text.y + text.height).toBeLessThanOrEqual(plate.y + plate.height + 1);
     }
     expect(await card.locator('.job-state').evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11);
@@ -110,6 +119,8 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three
   await expect(page.locator(`[data-order-id="${blockedId}"]`)).toHaveAttribute('data-load-state', 'waiting');
   await same.click(); await expect(same).toHaveAttribute('data-load-state', 'loaded');
   await expect(page.locator(`[data-order-id="${blockedId}"]`)).toHaveAttribute('data-load-state', 'blocked');
+  const notice = page.getByRole('button', { name: '关闭提示', exact: true });
+  if (await notice.isVisible()) await notice.click();
   await board.focus(); await page.keyboard.press('Home');
   await page.screenshot({ path: `artifacts/loading-three-states-${width}.png` });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
