@@ -1,3 +1,4 @@
+import { viewportLayout } from '../src/ui/game-viewport.js';
 import { selectCity, inspectCity, routeDetails, detailValue, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from '@playwright/test';
 import { GameCore, planQuote, type GameState } from '../src/core/game.js';
@@ -88,11 +89,13 @@ for(const viewport of [{width:1440,height:900},{width:844,height:390},{width:667
   const row=page.getByTestId('flight-row').first();
   await expect(page.getByRole('group',{name:'运行状态筛选'})).toBeInViewport();
   const box=await row.boundingBox();expect(box).not.toBeNull();
-  expect(box!.width).toBeGreaterThan(viewport.width>=1000 ? 350 : 250);
-  expect(box!.height).toBeGreaterThan(200);
+  // The desktop design is now shared at every physical size.
+  const scale = viewportLayout(viewport.width, viewport.height).scale;
+  expect(box!.width / scale).toBeGreaterThan(350);
+  expect(box!.height / scale).toBeGreaterThan(200);
   expect(await page.locator('.fleet-operations').evaluate(el=>getComputedStyle(el).display)).toBe('block');
   expect(await page.locator('.flight-list').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
-  if(viewport.width>=1000)await expect(row.getByRole('group',{name:'当前航班收支'})).toBeInViewport();
+  await expect(row.getByRole('group',{name:'当前航班收支'})).toBeInViewport();
   await page.getByRole('button',{name:`查看${ID}飞机`}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:`查看${ID}飞机`})).toBeInViewport();
   await page.screenshot({path:`artifacts/fleet-board-${viewport.width}.png`});await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByRole('button',{name:'航班运行表',exact:true})).toBeFocused();

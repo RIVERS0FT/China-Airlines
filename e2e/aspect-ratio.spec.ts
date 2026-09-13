@@ -1,3 +1,4 @@
+import { expectFullyInViewport } from './layout-helpers.js';
 import { expect, test, type Page } from '@playwright/test';
 import { airport } from '../src/core/catalog.js';
 import { projectGeo, type GlobeCamera } from '../src/ui/globe-geometry.js';
@@ -45,7 +46,7 @@ for (const [width, height, factor, uiScale] of [
         await ready(page);
         await page.getByRole('button', { name: '存档设置', exact: true }).click();
         await expect(page.getByTestId('ui-scale-value')).toHaveText(`${uiScale * 100}%`);
-        await expect(page.getByRole('dialog', { name: '本地存档与设置' })).toBeInViewport({ ratio: 1 });
+        await expectFullyInViewport(page.getByRole('dialog', { name: '本地存档与设置' }));
       }
       sameProportions(await proportions(small, ['.settings-modal', '.ui-scale-controls']),
         await proportions(large, ['.settings-modal', '.ui-scale-controls']));
@@ -57,7 +58,7 @@ for (const [width, height, factor, uiScale] of [
         await expect(page.getByTestId('plane-art').locator('svg')).toHaveAttribute('viewBox', '0 0 1000 330');
         await page.screenshot({ path: `artifacts/aspect-${width}-${uiScale}-${suffix}-airport.png`, scale: 'css' });
         await page.getByRole('button', { name: '机场目录', exact: true }).click();
-        await expect(page.getByRole('dialog', { name: '机场目录', exact: true })).toBeInViewport({ ratio: 1 });
+        await expectFullyInViewport(page.getByRole('dialog', { name: '机场目录', exact: true }));
       }
       sameProportions(await proportions(small, ['.game-modal', '.airport-directory-tools']),
         await proportions(large, ['.game-modal', '.airport-directory-tools']));
@@ -72,7 +73,7 @@ for (const [width, height, factor, uiScale] of [
       for (const [page, suffix] of [[small, 'mobile'], [large, 'desktop']] as const) {
         await page.screenshot({ path: `artifacts/aspect-${width}-${uiScale}-${suffix}-map.png`, scale: 'css' });
         await page.getByRole('button', { name: '选择目的城市', exact: true }).click();
-        await expect(page.getByRole('dialog', { name: '选择城市', exact: true })).toBeInViewport({ ratio: 1 });
+        await expectFullyInViewport(page.getByRole('dialog', { name: '选择城市', exact: true }));
       }
       sameProportions(await proportions(small, ['.dispatch-dialog']), await proportions(large, ['.dispatch-dialog']));
       for (const page of [small, large]) {
@@ -128,7 +129,7 @@ test('resize, portrait and modal scaling preserve the current route and mounted 
   for (const [width, height] of [[1600, 900], [640, 360], [1920, 1080]]) {
     await page.setViewportSize({ width: width!, height: height! });
     await expect(page.getByTestId('game-viewport')).toHaveAttribute('data-scale', String(height! / 900));
-    await expect(page.getByRole('dialog', { name: '路线详情' })).toBeInViewport({ ratio: 1 });
+    await expectFullyInViewport(page.getByRole('dialog', { name: '路线详情' }));
     await expect(host).toHaveAttribute('data-camera', camera!);
     await expect(host).toHaveAttribute('data-same-node', 'yes');
   }
@@ -136,7 +137,7 @@ test('resize, portrait and modal scaling preserve the current route and mounted 
   for (const viewport of [{ width: 390, height: 844 }, { width: 1170, height: 2532 }]) {
     await page.setViewportSize(viewport);
     await expect(page.locator('.rotate-screen')).toBeVisible();
-    await expect(page.locator('.rotate-screen')).toBeInViewport({ ratio: 1 });
+    await expectFullyInViewport(page.locator('.rotate-screen'));
   }
   await page.setViewportSize({ width: 800, height: 450 });
   await expect(page.locator('.rotate-screen')).toBeHidden();

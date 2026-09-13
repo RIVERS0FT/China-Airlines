@@ -14,7 +14,10 @@ async function chooseShanghai(page: Page) {
   await expect(await detailValue(page, 'plan-summary')).toContainText('1 段');
 }
 for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
-  test(`loading queue scroll, keyboard and filter bounds at ${width}`, async ({ page }) => {
+  test(`loading queue scroll, keyboard and filter bounds at ${width}, UI 125%`, async ({ page }) => {
+    // At default zoom, all 12 initial orders fit on the wider aspect ratio.
+    // Use a real display preference to exercise overflow at every tested size.
+    await page.addInitScript(() => localStorage.setItem('china-airlines.ui-scale.v1', '1.25'));
     await page.setViewportSize({ width: width!, height: height! }); await ready(page);
     const queue = page.getByRole('region', { name:'客货列表', exact:true });
     expect(await queue.evaluate(el => getComputedStyle(el).scrollbarWidth)).toBe('none');
@@ -50,6 +53,18 @@ for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
     await page.screenshot({ path:`artifacts/loading-queue-${width}.png` });
   });
 }
+test('wide default layout disables both queue arrows when every order fits', async ({ page }) => {
+  await page.setViewportSize({ width: 844, height: 390 }); await ready(page);
+  const queue = page.getByRole('region', { name: '客货列表', exact: true });
+  await expect(page.getByTestId('waiting-order')).toHaveCount(12);
+  expect(await queue.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+  await expect(page.getByRole('button', { name: '上一组客货', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '下一组客货', exact: true })).toBeDisabled();
+  await queue.focus(); await page.keyboard.press('End');
+  expect(await queue.evaluate(el => el.scrollLeft)).toBe(0);
+  await page.keyboard.press('Home');
+  expect(await queue.evaluate(el => el.scrollLeft)).toBe(0);
+});
 for (const [width, height] of [[1440,900],[844,390]]) {
   test(`map draws numbered click-order draft and clears it at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width: width!, height: height! }); await ready(page);

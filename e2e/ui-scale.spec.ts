@@ -1,3 +1,4 @@
+import { expectFullyInViewport } from './layout-helpers.js';
 import { expect, test, type Page } from '@playwright/test';
 import { launchRoute, selectCity } from './dispatch-helpers.js';
 
@@ -38,8 +39,8 @@ for (const viewport of [{ width: 640, height: 360 }, { width: 768, height: 576 }
     expect(large.width / small.width).toBeCloseTo(2, 2);
     expect(large.height / small.height).toBeCloseTo(2, 2);
     await expect(page.getByRole('button', { name: '放大界面', exact: true })).toBeDisabled();
-    await expect(dialog).toBeInViewport({ ratio: 1 });
-    await expect(close).toBeInViewport({ ratio: 1 });
+    await expectFullyInViewport(dialog);
+    await expectFullyInViewport(close);
     await page.screenshot({ path: `artifacts/ui-scale-${viewport.width}-150-settings.png` });
     await chooseScale(page, 125);
     await expect(page.getByTestId('plane-art')).toHaveAttribute('data-same-node', 'yes');
@@ -48,7 +49,7 @@ for (const viewport of [{ width: 640, height: 360 }, { width: 768, height: 576 }
     await expect(page.getByTestId('loaded-order')).toHaveAttribute('data-order-id', order!);
     await expect(page.getByTestId('credits')).toHaveText(credits!);
     // Required controls must be fully inside the viewport, not just clipped by overflow:hidden.
-    for (const button of await page.locator('.game-dock button').all()) await expect(button).toBeInViewport({ ratio: 1 });
+    for (const button of await page.locator('.game-dock button').all()) await expectFullyInViewport(button);
     await page.screenshot({ path: `artifacts/ui-scale-${viewport.width}-125-airport.png` });
     await page.reload();
     await expect(page.getByTestId('game-viewport')).toHaveAttribute('data-ui-scale', '1.25');
@@ -73,7 +74,7 @@ test('150% UI supports loading, dispatch, route details and saved flight on smal
   await page.goto('./');
   await settings(page); await chooseScale(page, 150);
   await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
-  for (const button of await page.locator('.game-dock button').all()) await expect(button).toBeInViewport({ ratio: 1 });
+  for (const button of await page.locator('.game-dock button').all()) await expectFullyInViewport(button);
   await page.getByTestId('waiting-order').first().click();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   await page.getByTestId('loaded-order').click();
@@ -89,10 +90,10 @@ test('150% UI supports loading, dispatch, route details and saved flight on smal
   const camera = JSON.parse((await host.getAttribute('data-camera'))!) as { scale: number };
   expect(camera.scale).toBe(1);
   await page.getByRole('button', { name: '查看路线', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: '路线详情', exact: true })).toBeInViewport({ ratio: 1 });
+  await expectFullyInViewport(page.getByRole('dialog', { name: '路线详情', exact: true }));
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: '查看路线', exact: true })).toBeFocused();
-  await expect(page.getByTestId('dispatch')).toBeInViewport({ ratio: 1 });
+  await expectFullyInViewport(page.getByTestId('dispatch'));
   await page.screenshot({ path: 'artifacts/ui-scale-667-150-dispatch.png' });
   await launchRoute(page);
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();

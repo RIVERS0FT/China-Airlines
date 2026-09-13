@@ -94,7 +94,8 @@ test('touching a city on the canvas selects it once and preserves automatic mode
       const { projectGeo } = await import('../src/ui/globe-geometry.js');
       const city = projectGeo(airport('PVG'), camera);
       expect(city.visible).toBe(true);
-      await page.touchscreen.tap(bounds.x + city.x, bounds.y + city.y);
+      const logical = await canvas.evaluate(el => ({ width: el.clientWidth, height: el.clientHeight }));
+      await page.touchscreen.tap(bounds.x + city.x * bounds.width / logical.width, bounds.y + city.y * bounds.height / logical.height);
     };
     await tapShanghai(); await expect(canvas).toHaveAttribute('data-preview-path', 'PVG');
     await page.getByRole('button', { name: '查看路线', exact: true }).click();
