@@ -82,7 +82,7 @@
 }
 .aviation-game:not(.dispatch-focused) .game-dock>button.active>.painted-icon{filter:drop-shadow(0 0 4px #ffe47c) drop-shadow(0 2px 1px #173a52aa)}
 .aviation-game:not(.dispatch-focused) .game-dock .depart-button{
-  position:relative;flex:0 0 118px;width:118px;min-width:118px;height:78px;min-height:78px;margin-left:auto;
+  position:relative;inset:auto;flex:0 0 118px;width:118px;min-width:118px;margin-left:auto;
   padding:1px 3px;align-items:center;justify-content:center;overflow:hidden
 }
 .aviation-game:not(.dispatch-focused) .game-dock .depart-button>.painted-icon{
