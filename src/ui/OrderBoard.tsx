@@ -16,19 +16,17 @@ function PassengerArt({ order }: { order: Order }) {
 function OrderCard({ order, state, onClick }: {
   order: Order; state: ReturnType<typeof orderPresentation>; onClick: () => void;
 }) {
+  const type = order.product ? MATERIALS[order.product] : service(order.service)?.name;
   return <button className={`job-card order-${state.state} ${state.aboard ? 'aboard' : ''} ${order.amount > 1 ? 'legacy-quantity' : ''}`} disabled={state.disabled} onClick={onClick}
     data-testid={state.aboard ? 'loaded-order' : 'waiting-order'} data-order-id={order.id} data-load-state={state.state}
-    aria-label={`${state.aboard ? '卸下' : '装载'} ${order.id} 前往${airport(order.to).city} ${order.amount}${order.kind === 'cargo' ? '吨货物' : '位旅客'}`}
-    aria-describedby={`state-${order.id} reason-${order.id}`} title={state.reason || state.action}>
+    aria-label={`${state.aboard ? '卸下' : '装载'} ${order.id} 前往${airport(order.to).city} ${order.amount}${order.kind === 'cargo' ? '吨货物' : '位旅客'}${type ? `，${type}` : ''}${state.reason ? `，${state.reason}` : ''}${state.transfer ? '，中转客货' : ''}`}
+    aria-describedby={`price-${order.id} state-${order.id}`} title={[type, state.action, state.transfer ? '中转客货保留至交付' : ''].filter(Boolean).join(' · ')}>
     <span className="job-figure"><PassengerArt order={order}/>
-      <span className="job-marker" aria-hidden="true">{state.state === 'loaded' ? '✓' : state.state === 'waiting' ? '＋' : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg>}</span>
-      {state.transfer && <span className="job-transfer-tag">中转保留</span>}
-      {order.amount > 1 && <span className="job-quantity">{`${order.kind === 'cargo' ? '历史货单' : '历史旅客组'} × ${order.amount}${order.kind === 'cargo' ? '吨' : '人'}`}</span>}
+      {state.transfer && <span className="job-transfer-tag">中转</span>}
+      {order.amount > 1 && <span className="job-quantity">{`${order.amount}${order.kind === 'cargo' ? '吨' : '人'}`}</span>}
     </span>
-    <span className="job-info"><strong className="job-price">{order.product ? MATERIALS[order.product] : money(order.reward)}</strong>
-      <span id={`state-${order.id}`} className="job-state">{state.label}</span>
-      <span id={`reason-${order.id}`} className="job-action">{state.action}</span>
-      <span className="cargo-service-name">{order.product ? '运输入库' : service(order.service)?.name}</span>
+    <span className="job-info"><strong id={`price-${order.id}`} className="job-price">{order.product ? MATERIALS[order.product] : money(order.reward)}</strong>
+      <span id={`state-${order.id}`} className="job-state job-action">{state.caption}</span>
     </span>
   </button>;
 }
@@ -107,7 +105,7 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
           if (event.detail > 0 && gesture.current?.moved) { event.preventDefault(); event.stopPropagation(); }
         }}>
         {[...groups].map(([to, orders]) => <div className="destination-group" role="group" aria-label={`前往${airport(to).city}的客货`} key={to}>
-          <button className="destination-station" aria-label={`同目的地装载：${airport(to).city}`} disabled={busy || Boolean(lock) || !orders.some(order => order.location !== plane?.id && !orderBlockReason(game, plane, order, false))} title={lock || (orders.some(order => order.location !== plane?.id && !orderBlockReason(game, plane, order, false)) ? '装机此站牌下容量允许的待运客货' : '此目的地暂无可装载客货')} onClick={() => plane && ignore(controller.command({ type: 'load-destination', planeId: plane.id, to }))}>{airport(to).city}<small>{to} · 装机</small></button>
+          <button className="destination-station" aria-label={`同目的地装载：${airport(to).city}`} disabled={busy || Boolean(lock) || !orders.some(order => order.location !== plane?.id && !orderBlockReason(game, plane, order, false))} title={lock || (orders.some(order => order.location !== plane?.id && !orderBlockReason(game, plane, order, false)) ? '装机此站牌下容量允许的待运客货' : '此目的地暂无可装载客货')} onClick={() => plane && ignore(controller.command({ type: 'load-destination', planeId: plane.id, to }))}>{airport(to).city}<small>{to}</small></button>
           <div className="destination-orders">{orders.map(o => <OrderCard key={o.id} order={o} state={orderPresentation(game, plane, o, busy)} onClick={() => plane && ignore(controller.command({ type: o.location === plane.id ? 'unload' : 'load', planeId: plane.id, orderId: o.id }))}/>)}</div>
         </div>)}
         {!shown.length && <div className="empty-orders">暂无客货，等待下次客源补充。</div>}

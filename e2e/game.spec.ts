@@ -44,7 +44,7 @@ test('cached airport and PixiJS map start offline without external requests',asy
   await ready(page);await page.evaluate(()=>navigator.serviceWorker.ready.then(()=>true));await page.reload();
   await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller));await context.setOffline(true);await page.reload();
   await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('airport-scene')).toBeVisible();
-  await page.getByRole('button',{name:'航线地图',exact:true}).click();await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer','ready');
+  await page.getByRole('button',{name:'地图',exact:true}).click();await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer','ready');
   await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 客货型',exact:true}).click();
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   expect(requests.filter(url=>/^https?:/.test(url)&&!url.startsWith('http://127.0.0.1:4173/'))).toEqual([]);
@@ -52,7 +52,7 @@ test('cached airport and PixiJS map start offline without external requests',asy
 test('landscape touch loading and portrait prompt',async({browser,baseURL})=>{
   const context=await browser.newContext({baseURL,viewport:{width:844,height:390},deviceScaleFactor:2,isMobile:true,hasTouch:true});
   const page=await context.newPage();page.on('pageerror',e=>pageErrors.push(e.message));await ready(page);
-  await page.getByRole('button',{name:'航线地图',exact:true}).click();await selectCity(page, 'WUH');await page.getByRole('button',{name:/解锁机场/}).click();
+  await page.getByRole('button',{name:'制定路线',exact:true}).click();await selectCity(page, 'WUH');await page.getByRole('button',{name:/解锁机场/}).click();
   await expect(await detailValue(page, 'plan-summary')).toContainText('1 段');await leaveMap(page);await openGlobal(page, '机场目录');await expect(page.getByRole('button',{name:'已开放 3',exact:true})).toBeVisible();await page.getByRole('button',{name:'关闭机场目录',exact:true}).click();
   await page.getByTestId('waiting-order').first().tap();await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   await expect(page.locator('.rotate-screen')).toBeHidden();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -69,7 +69,7 @@ test('a competing tab cannot overwrite the first writer and recovery stays reach
 });
 test('captures airport, network, and collection with no overflow',async({page})=>{
   await ready(page);await page.screenshot({path:'artifacts/desktop-airport.png',fullPage:true});
-  await page.getByRole('button',{name:'航线地图',exact:true}).click();await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer','ready');await page.screenshot({path:'artifacts/desktop-map.png',fullPage:true});
+  await page.getByRole('button',{name:'地图',exact:true}).click();await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer','ready');await page.screenshot({path:'artifacts/desktop-map.png',fullPage:true});
   await openGlobal(page, '飞机商店');await expect(page.getByRole('group',{name:'机型分类'})).toBeVisible();await expect(page.getByTestId('shop-aircraft')).toHaveCount(4);
   await page.screenshot({path:'artifacts/desktop-shop.png',fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

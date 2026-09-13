@@ -29,7 +29,7 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
   test(`energy shortage, service cancellation and exact completion persist at ${width}`,async({page})=>{
     await page.setViewportSize({width,height});const s=readyState();await load(page,s);
     await expect(page.getByTestId('plane-energy')).toBeInViewport();
-    await page.getByRole('button',{name:'航线地图',exact:true}).click();await selectCity(page, 'PVG');
+    await page.getByRole('button',{name:'制定路线',exact:true}).click();await selectCity(page, 'PVG');
     await expect(await detailValue(page, 'network-energy')).toContainText('本段需');await expect(page.getByTestId('dispatch')).toBeDisabled();
     await expect(await detailValue(page, 'plan-energy')).toContainText('能量不足');
     await expect(page.getByTestId('credits')).toHaveText(money(s.credits));
@@ -46,7 +46,7 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
     await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
     await expect(page.locator('.plane-status')).toContainText('地勤补能');
     await expect(page.getByTestId('loaded-order').first()).toBeDisabled();
-    await expect(page.getByTestId('loaded-order').first().locator('.job-action')).toHaveText('地勤补能中，不能装卸');
+    await expect(page.getByTestId('loaded-order').first().locator('.job-action')).toHaveText('已装机 · 补能中');
     await openGlobal(page, '机队管理概览');await page.getByRole('button',{name:/^待命飞机/}).click();
     await expect(page.getByTestId('flight-row')).toHaveCount(0);await page.getByRole('button',{name:'关闭机队管理',exact:true}).click();
     await openGlobal(page, '机队管理');
@@ -61,7 +61,7 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
 }
 test('the exact flight budget is reserved once and survives reload and arrival',async({page})=>{
   const s=readyState(CAP),q=quote(s,s.fleet[0]!,'PVG');await load(page,s);
-  await page.getByRole('button',{name:'航线地图',exact:true}).click();await selectCity(page, 'PVG');await launchRoute(page);
+  await page.getByRole('button',{name:'制定路线',exact:true}).click();await selectCity(page, 'PVG');await launchRoute(page);
   const energy=`能量 ${((CAP-q.duration)/60).toFixed(2)} 点`;
   await expect(page.getByTestId('plane-energy')).toHaveText(energy);
   await expect(page.getByTestId('flight-cost')).toHaveText(money(q.cost));
@@ -73,7 +73,7 @@ test('the exact flight budget is reserved once and survives reload and arrival',
 test('multi-leg energy shortage stops at the hub without erasing transfer cargo',async({page})=>{
   const c=new GameCore(NOW);c.execute({type:'unlock',airportId:'WUH'},NOW);c.execute({type:'load-destination',planeId:ID,to:'PVG'},NOW);
   const s=c.snapshot(),q=planQuote(s,s.fleet[0]!,['WUH','PVG']);s.fleet[0]!.energy.availableSeconds=q.legs[0]!.duration;await load(page,s);
-  await page.getByRole('button',{name:'航线地图',exact:true}).click();
+  await page.getByRole('button',{name:'制定路线',exact:true}).click();
   await selectCity(page, 'WUH');
   await selectCity(page, 'PVG');
   await expect(await detailValue(page, 'plan-energy')).toContainText('只能覆盖部分航段');

@@ -1,4 +1,4 @@
-import { selectCity, inspectCity, routeDetails, detailValue, openGlobal } from './dispatch-helpers.js';
+import { selectCity, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from '@playwright/test';
 import { GameCore, type GameState } from '../src/core/game.js';
 const NOW = Date.parse('2026-09-11T00:00:00Z'), ID = 'AC0001';
@@ -52,17 +52,17 @@ test('empty-airport browsing and the running list keep independent aircraft loca
 
 test('airport detail inspection and incoming selection preserve the locked in-flight ledger',async({page})=>{
   const s=flying(),f=s.fleet[0]!.flight!;await load(page,s);
-  await page.getByRole('button',{name:'航线地图',exact:true}).click();
+  await page.getByRole('button',{name:'地图',exact:true}).click();
+  await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer', 'ready');
+  await page.clock.runFor(50); // Render once while the business clock is paused.
   await selectCity(page, 'PVG');
-  await inspectCity(page, '查看上海机场详情');
   await expect(page.getByRole('dialog',{name:'机场详情',exact:true})).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect((await routeDetails(page)).locator('.dispatch-route-title')).toContainText('北京 → 武汉');
-  await expect(page.getByTestId('network-cost')).toHaveText(money(f.cost));
-  await expect(await detailValue(page, 'network-revenue')).toHaveText('¥ 0');
+  await expect(page.getByTestId('network-summary')).toHaveCount(0);
+  await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-preview-path', '');
+  await expect(page.getByTestId('credits')).toHaveText(money(s.credits));
   await expect(page.getByTestId('dispatch')).toHaveCount(0);
   await selectCity(page, 'WUH');
-  await inspectCity(page, '查看武汉机场详情');
   await expect(page.getByTestId('airport-parked').getByRole('listitem')).toHaveCount(0);
   await page.getByTestId('airport-incoming').getByRole('button',{name:`查看航班${ID}`,exact:true}).click();
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();

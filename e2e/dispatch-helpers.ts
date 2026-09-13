@@ -8,7 +8,7 @@ export async function closeRouteDetails(page: Page) {
 export async function openCities(page: Page) {
   await closeRouteDetails(page);
   if (!await page.getByRole('dialog', { name: '选择城市', exact: true }).isVisible())
-    await page.getByRole('button', { name: '选择目的城市', exact: true }).click();
+    await page.getByRole('button', { name: /^(选择目的城市|查找城市)$/, exact: true }).click();
 }
 export async function selectCity(page: Page, id: string) {
   await openCities(page);
@@ -39,7 +39,7 @@ export async function launchRoute(page: Page) {
 export async function leaveMap(page: Page) {
   await closeRouteDetails(page);
   if (await page.locator('.route-dispatch-view').isVisible()) {
-    const back = page.getByRole('button', { name: /^(取消起飞|返回航班)$/, exact: true });
+    const back = page.getByRole('button', { name: /^(取消起飞|返回航班|返回机场)$/, exact: true });
     await back.click();
     // Returning can wait on the same persisted UI transition as dispatch. Always
     // settle the scene before callers assert on airport-only controls.

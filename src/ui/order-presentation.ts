@@ -29,14 +29,25 @@ export function orderBlockReason(game: GameState, plane: Plane | undefined, orde
 }
 
 export type OrderState = 'loaded' | 'waiting' | 'blocked';
+const shortLoadingReason: Record<string, string> = {
+  '地勤补能中，不能装卸': '补能中',
+  '飞行中，不能装卸': '飞行中',
+  '请先停止自动值勤': '自动值勤中',
+  '请先取消剩余计划': '执行计划中',
+  '机场候运区已满': '候运区已满',
+  '剩余客舱不足': '客舱不足',
+  '剩余货舱不足': '货舱不足',
+};
 /** Loaded state is independent of permission to unload (flight, service, full apron). */
 export function orderPresentation(game: GameState, plane: Plane | undefined, order: Order, busy = false) {
   const aboard = Boolean(plane && order.location === plane.id);
   const reason = orderBlockReason(game, plane, order, aboard);
   const state: OrderState = aboard ? 'loaded' : reason ? 'blocked' : 'waiting';
+  const action = busy ? '保存中…' : reason || (aboard ? '卸载' : '装机');
   return { state, aboard, reason, disabled: busy || Boolean(reason),
     label: aboard ? '已装机' : reason ? '不可装' : '待装机',
-    action: busy ? '保存中…' : reason || (aboard ? '卸载' : '＋ 装机'),
+    action,
+    caption: `${aboard ? '已装机 · ' : ''}${!busy && reason ? shortLoadingReason[reason] ?? reason : action}`,
     transfer: !aboard && order.expiresAt === null,
   };
 }

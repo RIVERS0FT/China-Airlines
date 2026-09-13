@@ -82,7 +82,7 @@ test('map cancellation returns to a pinned empty airport without moving the airc
   await page.getByRole('button',{name:'查看上海机场',exact:true}).click();
   await page.getByRole('button',{name:'进入候机大厅',exact:true}).click();
   await expect(page.getByTestId('plane-art')).toHaveCount(0);
-  await page.getByRole('button',{name:'航线地图',exact:true}).click(); await selectCity(page,'PVG');
+  await page.getByRole('button', { name: '当前机场详情', exact: true }).click(); await page.getByRole('button', { name: '安排飞机飞来', exact: true }).click(); await selectCity(page,'PVG');
   await routeDetails(page); await expect(page.locator('.dispatch-route-title')).toContainText('北京 → 上海'); await closeRouteDetails(page);
   await page.getByRole('button',{name:'取消起飞',exact:true}).click();
   await expect(page.locator('.gate-sign')).toContainText('上海航空港');

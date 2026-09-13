@@ -31,7 +31,7 @@ for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
     const position = await first.boundingBox();
     await first.click();
     const loaded = page.locator(`[data-order-id="${id}"]`);
-    await expect(loaded.locator('.job-state')).toHaveText('已装机');
+    await expect(loaded.locator('.job-state')).toHaveText('已装机 · 卸载');
     expect((await loaded.boundingBox())!.x).toBeCloseTo(position!.x, 0);
     await loaded.click();
     await expect(page.getByTestId('waiting-order')).toHaveCount(12);
@@ -53,7 +53,7 @@ for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
 for (const [width, height] of [[1440,900],[844,390]]) {
   test(`map draws numbered click-order draft and clears it at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width: width!, height: height! }); await ready(page);
-    await page.getByRole('button', { name:'航线地图', exact:true }).click();
+    await page.getByRole('button', { name:'制定路线', exact:true }).click();
     const canvas = page.getByTestId('map-canvas');
     await expect(canvas).toHaveAttribute('data-renderer','ready');
     await expect(canvas).toHaveAttribute('data-preview-path','');
@@ -86,7 +86,7 @@ for (const [width, height] of [[1440,900],[844,390]]) {
     await expect(lockedDetail).toBeVisible();
     await expect(page.locator('.network-controls')).toHaveCount(0);
     await expect(lockedDetail.getByRole('button', { name:/^解锁机场/ })).toBeVisible();
-    await lockedDetail.getByRole('button', { name:'返回航线地图', exact:true }).click();
+    await lockedDetail.getByRole('button', { name:'返回制定路线', exact:true }).click();
     await expect(page.getByTestId('credits')).toHaveText(money!);
     await expect(page.getByTestId('flights-count')).toHaveText('0 班');
   });

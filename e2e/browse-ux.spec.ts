@@ -124,7 +124,7 @@ test('fleet search combines with every ground-state filter and recovers from no 
 
 test('dispatch backdrop dismisses only deliberate outside clicks and preserves the map draft', async ({ page }) => {
   await page.setViewportSize({ width: 844, height: 390 }); await ready(page);
-  await page.getByRole('button', { name: '航线地图', exact: true }).click();
+  await page.getByRole('button', { name: '制定路线', exact: true }).click();
   await selectCity(page, 'PVG');
   const map = page.getByTestId('map-canvas');
   await expect(map).toHaveAttribute('data-preview-path', 'PVG');

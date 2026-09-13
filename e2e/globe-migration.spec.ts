@@ -17,10 +17,10 @@ for (const [width, height] of [[1440, 900], [667, 375]] as const) {
     await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
     await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 6 / 6 人');
     const credits = await page.getByTestId('credits').textContent();
-    await page.getByRole('button', { name: '航线地图', exact: true }).click();
+    await page.getByRole('button', { name: '地图', exact: true }).click();
     const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-renderer', 'ready');
     await page.clock.runFor(100);
-    await expect(host).toHaveAttribute('data-passenger-destinations', 'PVG:6');
+    await expect(host).toHaveAttribute('data-passenger-destinations', '');
     await expect(host).toHaveAttribute('data-projection', 'orthographic');
     await host.locator('canvas').focus(); await page.keyboard.press('ArrowRight'); await page.clock.runFor(50);
     await expect(page.getByTestId('credits')).toHaveText(credits!);

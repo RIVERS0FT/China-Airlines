@@ -21,7 +21,7 @@ test('hidden fleet markers do not hide the selected aircraft or mutate flight ac
   await page.getByLabel('选择存档文件').setInputFiles({ name: 'two-planes.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(saved)) });
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
-  await page.getByRole('button', { name: '航线地图', exact: true }).click();
+  await page.getByRole('button', { name: '地图', exact: true }).click();
   const canvas = page.getByTestId('map-canvas');
   await expect(canvas).toHaveAttribute('data-renderer', 'ready');
   await page.clock.runFor(50); // Permit a real render frame under the paused test clock.
@@ -36,10 +36,11 @@ test('hidden fleet markers do not hide the selected aircraft or mutate flight ac
   await page.clock.runFor(50); // Permit a real render frame under the paused test clock.
   await expect(canvas).toHaveAttribute('data-visible-planes', 'AC0001,AC0002');
   await expect(canvas).toHaveAttribute('data-preview-path', '');
-  await expect(page.getByTestId('network-cost')).toHaveText(`¥ ${saved.fleet[0]!.flight!.cost.toLocaleString('zh-CN')}`);
+  await expect(page.getByTestId('network-summary')).toHaveCount(0);
   await expect(page.getByTestId('credits')).toHaveText(credits);
   await page.getByRole('button', { name: '返回航班', exact: true }).click();
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
+  await expect(page.getByTestId('flight-cost')).toHaveText(`¥ ${saved.fleet[0]!.flight!.cost.toLocaleString('zh-CN')}`);
   await expect(page.getByTestId('flights-count')).toHaveText('0 班');
   expect(errors).toEqual([]);
 });
@@ -48,7 +49,7 @@ test('a real autosave write failure remains visible with a recovery entry on the
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   await page.clock.install({ time: new Date(NOW) }); await page.clock.pauseAt(new Date(NOW + 1000));
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
-  await page.getByRole('button', { name: '航线地图', exact: true }).click(); await selectCity(page, 'PVG');
+  await page.getByRole('button', { name: '制定路线', exact: true }).click(); await selectCity(page, 'PVG');
   const canvas = page.getByTestId('map-canvas');
   await expect(canvas).toHaveAttribute('data-renderer', 'ready');
   await page.clock.runFor(50); // Canvas attributes are produced by the real Pixi ticker.

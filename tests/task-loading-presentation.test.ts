@@ -71,20 +71,20 @@ describe('order state separates physical load from action permission', () => {
     const game = core.snapshot(), before = structuredClone(game), plane = game.fleet[0]!;
     const person = manifest(game, ID).find(o => o.kind === 'passengers')!, remaining = waiting(game, 'PEK').find(o => o.kind === 'passengers')!;
     expect(manifest(game, ID).filter(o => o.kind === 'passengers')).toHaveLength(aircraftSpecs(plane).seats);
-    expect(orderPresentation(game, plane, person)).toMatchObject({ state: 'loaded', disabled: false, label: '已装机', action: '卸载' });
-    expect(orderPresentation(game, plane, remaining)).toMatchObject({ state: 'blocked', disabled: true, reason: '剩余客舱不足' });
+    expect(orderPresentation(game, plane, person)).toMatchObject({ state: 'loaded', disabled: false, label: '已装机', action: '卸载', caption: '已装机 · 卸载' });
+    expect(orderPresentation(game, plane, remaining)).toMatchObject({ state: 'blocked', disabled: true, reason: '剩余客舱不足', caption: '客舱不足' });
     expect(game).toEqual(before);
     core.execute({ type: 'unload', planeId: ID, orderId: person.id }, NOW);
     const next = core.snapshot();
     expect(orderPresentation(next, next.fleet[0], remaining)).toMatchObject({ state: 'waiting', disabled: false });
     const unloaded = next.orders.find(o => o.id === person.id)!;
-    expect(orderPresentation(next, next.fleet[0], unloaded)).toMatchObject({ state: 'waiting', transfer: true, label: '待装机' });
+    expect(orderPresentation(next, next.fleet[0], unloaded)).toMatchObject({ state: 'waiting', transfer: true, label: '待装机', caption: '装机' });
     expect(orderPresentation(next, next.fleet[0], manifest(next, ID).find(o => o.kind === 'cargo')!)).toMatchObject({ state: 'loaded' });
   });
   it('retains loaded state during service, flight and a full waiting room', () => {
     const core = new GameCore(NOW); core.execute({ type: 'load-destination', planeId: ID, to: 'PVG' }, NOW);
     const game = core.snapshot(), plane = game.fleet[0]!, onboard = manifest(game, ID)[0]!;
-    expect(orderPresentation(game, { ...plane, energy: { ...plane.energy, serviceUntil: 120 } }, onboard)).toMatchObject({ state: 'loaded', disabled: true, reason: '地勤补能中，不能装卸' });
+    expect(orderPresentation(game, { ...plane, energy: { ...plane.energy, serviceUntil: 120 } }, onboard)).toMatchObject({ state: 'loaded', disabled: true, reason: '地勤补能中，不能装卸', caption: '已装机 · 补能中' });
     const crowded = { ...game, orders: [...game.orders, ...Array.from({ length: MAX_WAITING }, (_, i) => ({ ...waiting(game, 'PEK')[0]!, id: `crowd-${i}` }))] };
     expect(orderPresentation(crowded, plane, onboard)).toMatchObject({ state: 'loaded', disabled: true, reason: '机场候运区已满' });
     core.execute({ type: 'dispatch', planeId: ID, to: 'PVG', auto: false }, NOW);
@@ -93,7 +93,7 @@ describe('order state separates physical load from action permission', () => {
   });
   it('busy state never invents a capacity failure and another plane does not own the order', () => {
     const game = new GameCore(NOW).snapshot(), plane = game.fleet[0]!, order = waiting(game, 'PEK')[0]!;
-    expect(orderPresentation(game, plane, order, true)).toMatchObject({ state: 'waiting', disabled: true, action: '保存中…' });
+    expect(orderPresentation(game, plane, order, true)).toMatchObject({ state: 'waiting', disabled: true, action: '保存中…', caption: '保存中…' });
     expect(orderPresentation(game, undefined, order)).toMatchObject({ state: 'blocked', reason: '请先选择飞机' });
     expect(orderPresentation(game, plane, { ...order, location: 'AC0002', expiresAt: null })).toMatchObject({ state: 'blocked', aboard: false, reason: '订单不在当前机场' });
   });

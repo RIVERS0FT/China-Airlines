@@ -85,18 +85,18 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three
   const board = page.getByRole('region', { name: '客货列表', exact: true });
   await expect(page.locator('[data-load-state=loaded]')).toHaveCount(3);
   const plates: string[] = [];
-  for (const [state, label] of [['loaded', '已装机'], ['waiting', '待装机'], ['blocked', '不可装']]) {
+  for (const [state, label] of [['loaded', '已装机 · 卸载'], ['waiting', '装机'], ['blocked', '客舱不足']]) {
     const card = page.locator(`[data-load-state=${state}]`).first();
     await card.scrollIntoViewIfNeeded();
     await expect(card.locator('.job-state')).toHaveText(label!);
-    if (state === 'blocked') { await expect(card).toBeDisabled(); await expect(card.locator('.job-action')).toHaveText('剩余客舱不足'); }
+    if (state === 'blocked') { await expect(card).toBeDisabled(); await expect(card).toHaveAccessibleName(/剩余客舱不足/); }
     else await expect(card).toBeEnabled();
     const scale = await displayScale(page), plate = (await card.locator('.job-info').boundingBox())!;
     const figure = (await card.locator('.job-figure').boundingBox())!, art = (await card.locator('.job-art').boundingBox())!;
     expect(art.y + art.height).toBeLessThanOrEqual(figure.y + figure.height + 1);
     expect(figure.y + figure.height).toBeLessThanOrEqual(plate.y + 1);
     let previousBottom = plate.y;
-    for (const cls of ['.job-price', '.job-state', '.job-action']) {
+    for (const cls of ['.job-price', '.job-action']) {
       const text = (await card.locator(cls).boundingBox())!;
       expect(text.x).toBeGreaterThanOrEqual(plate.x - 1); expect(text.x + text.width).toBeLessThanOrEqual(plate.x + plate.width + 1);
       expect(text.y).toBeGreaterThanOrEqual(previousBottom - 1);
@@ -104,7 +104,10 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three
       expect(text.y + text.height).toBeLessThanOrEqual(plate.y + plate.height + 1);
     }
     expect(await card.locator('.job-state').evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11);
-    expect(plate.height / scale).toBeGreaterThan(55);
+    expect(plate.height / scale).toBeGreaterThanOrEqual(44);
+    expect(plate.height / scale).toBeLessThanOrEqual(70);
+    await expect(card.locator('.job-info > *')).toHaveCount(2);
+    await expect(card.locator('.job-marker, .cargo-service-name')).toHaveCount(0);
     plates.push(await card.locator('.job-info').evaluate(el => getComputedStyle(el).backgroundColor));
   }
   expect(new Set(plates).size).toBe(3);
@@ -115,7 +118,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three
   await loaded.click();
   const same = page.locator(`[data-order-id="${id}"]`);
   await expect(same).toHaveAttribute('data-load-state', 'waiting');
-  await expect(same.locator('.job-transfer-tag')).toHaveText('中转保留');
+  await expect(same.locator('.job-transfer-tag')).toHaveText('中转');
   expect(Math.abs((await same.boundingBox())!.x - before.x)).toBeLessThan(2);
   await expect(page.locator(`[data-order-id="${blockedId}"]`)).toHaveAttribute('data-load-state', 'waiting');
   await same.click(); await expect(same).toHaveAttribute('data-load-state', 'loaded');
@@ -145,7 +148,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`airpo
   await page.setViewportSize({ width: width!, height: height! });
   await setup(page);
   const dock = page.getByRole('navigation', { name: '主导航', exact: true });
-  const names = ['机场装载', '航线地图', '机场目录', '机队管理', '飞机商店'];
+  const names = ['机场装载', '地图', '机场目录', '机队管理', '飞机商店'];
   let ordinaryWidth = 0, ordinaryIconWidth = 0;
   for (const name of names) {
     const button = dock.getByRole('button', { name, exact: true });
