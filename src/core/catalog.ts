@@ -1,13 +1,13 @@
 import { AIRPORTS as DOMESTIC_AIRPORTS } from './catalog-v4.js';
 import { WORLD_AIRPORTS, type AirportDefinition } from './world-airports.js';
 // Reuse unchanged aircraft/economic fixtures. Never modify a frozen catalogue to add airports.
-export { MODELS, STARTER_MODEL, AIRCRAFT_KIND_LABEL, UPGRADE_LABEL, emptyUpgrades, aircraftSpecs, retrofitPrice,
-  hangarPrice, TASKS, model, routeId, upgradePrice } from './catalog-v5.js';
-export type { AircraftKind, AircraftModel, UpgradeKey, Upgrades } from './catalog-v5.js';
+export { MODELS, STARTER_MODEL, ALL_MODELS, AIRCRAFT_KIND_LABEL, UPGRADE_LABEL, emptyUpgrades, aircraftSpecs, retrofitPrice,
+  hangarPrice, TASKS, model, routeId, upgradePrice } from './career-catalog.js';
+export type { AircraftKind, AircraftModel, UpgradeKey, Upgrades } from './career-catalog.js';
 export { CONTINENTS, type Continent, type AirportDefinition } from './world-airports.js';
 export const AIRPORTS: readonly AirportDefinition[] = [
   ...DOMESTIC_AIRPORTS.map(a => ({ ...a, continent: '亚洲' as const })), ...WORLD_AIRPORTS
-];
+].map(a=>({...a,price:Math.round(a.price/4)}));
 export const airport = (id: string) => {
   const result = AIRPORTS.find(a => a.id === id);
   if (!result) throw new Error('未知机场');

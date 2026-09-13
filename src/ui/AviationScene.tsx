@@ -41,7 +41,7 @@ export function AviationScene({ game, plane, onCabin }: {
     {plane && <button className="airplane-display" onClick={onCabin} aria-label={flying ? '查看当前航班' : '查看机上客货'} data-testid="plane-art">
       <svg viewBox={compact ? "90 50 840 280" : "0 0 1000 330"} role="img" aria-label={`${m!.name}客舱与货舱示意`}>
         {!flying && <ellipse cx="490" cy="286" rx="365" ry="15" fill="#456b78" opacity=".15"/>}
-        <image data-testid="aircraft-sprite" href={artAsset(flying ? 'aircraft-flight-v1.png' : 'aircraft-v1.png')} x="95" y="0" width="810" height="310"/>
+        <image data-testid="aircraft-sprite" href={artAsset(flying ? 'aircraft-flight-v1.png' : m?.art ?? 'aircraft-v1.png')} x="95" y="0" width="810" height="310"/>
         <g className="cabin-overlay" stroke="#466477" strokeWidth="1.5" strokeLinejoin="round">
           <rect x="317" y="148" width="310" height="47" rx="7" fill="#f1fbfff2"/>
           <text x="329" y="163" stroke="none" fill="#214f72" fontSize="12" fontWeight="800">{m!.name} · {plane.id}　旅客 {total.passengers}/{m!.seats}</text>

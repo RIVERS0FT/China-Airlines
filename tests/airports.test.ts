@@ -75,7 +75,7 @@ describe('airport inspection is not aircraft movement', () => {
     expect(view.selected.airportId).toBe('PEK'); expect(s).toEqual(before);
   });
   it('selects only local ground planes in an inspected airport', () => {
-    const core = new GameCore(NOW); core.execute({ type: 'buy', modelId: 'lark', airportId: 'PVG' }, NOW);
+    const core = new GameCore(NOW); core.execute({ type: 'buy', modelId: 'swift-m', airportId: 'PVG' }, NOW);
     const view = airportScene(core.snapshot(), 'AC0001', 'PVG');
     expect(view.plane!.id).toBe('AC0002'); expect(view.selected.id).toBe('AC0001');
     expect(view.choices.map(p => p.id)).toEqual(['AC0002']);
@@ -93,7 +93,7 @@ describe('airport inspection is not aircraft movement', () => {
     expect(orderBlockReason(s, view.plane, waiting(s, 'PVG')[0]!, false)).toBe('地面周转中');
   });
   it('falls back safely after resale or importing an unrelated save with different selections', () => {
-    const core = new GameCore(NOW); core.execute({ type: 'buy', modelId: 'lark', airportId: 'PEK' }, NOW);
+    const core = new GameCore(NOW); core.execute({ type: 'buy', modelId: 'swift-m', airportId: 'PEK' }, NOW);
     core.execute({ type: 'sell-plane', planeId: 'AC0001' }, NOW);
     const view = airportScene(core.snapshot(), 'AC0001', 'WUH');
     expect(view.selected.id).toBe('AC0002'); expect(view.pinned).toBeNull(); expect(view.plane!.id).toBe('AC0002');

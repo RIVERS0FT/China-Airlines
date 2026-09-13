@@ -1,3 +1,5 @@
+> 2026-09-13 更新：本文件下方保留历史玩法对照记录。当前规则和新增范围以 [OFFLINE-CAREER.md](OFFLINE-CAREER.md) 与 [APK-EVIDENCE.md](APK-EVIDENCE.md) 为准。
+
 # 复刻对照清单：证据、实现、差异与验收
 
 总入口为 [REPLICA-COVERAGE.md](REPLICA-COVERAGE.md)，机场浏览边界见 [AIRPORT-BROWSING.md](AIRPORT-BROWSING.md)。本表保留运行信息修订期间的证据补充，并记录当前路线交互修订，不覆盖另一轮已记录的机场功能。

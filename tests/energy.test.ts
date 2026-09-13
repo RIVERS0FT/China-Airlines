@@ -1,6 +1,7 @@
+import { HistoricalSession as GameCore, historicalFields } from './career-fixtures.js';
 import orderedV4 from './fixtures/v4-ordered-route.json' with { type: 'json' };
 import { describe, expect, it } from 'vitest';
-import { GameCore, validateSave, quote, manifest, planQuote, type Command } from '../src/core/game.js';
+import { validateSave, quote, manifest, planQuote, type Command } from '../src/core/game.js';
 import { ENERGY_CAPACITY_SECONDS as CAP, ENERGY_SERVICE_SECONDS as SERVICE, energyRequired, energyDepartureReason, fullEnergy } from '../src/core/energy.js';
 import { flightStatus, fleetStatuses } from '../src/ui/flight-status.js';
 import { loadingLock } from '../src/ui/order-presentation.js';
@@ -30,9 +31,9 @@ describe('reference rate and safe flight reservation', () => {
     expect(()=>energyRequired(value)).toThrow('无效');
   });
   it('creates independent full budgets for initial and purchased aircraft', () => {
-    const c=prepared(); dispatch(c); c.execute({type:'buy',modelId:'lark-f',airportId:'PEK'},NOW);
+    const c=prepared(); dispatch(c); c.execute({type:'buy',modelId:'swift-f',airportId:'PEK'},NOW);
     const s=c.snapshot(); expect(s.fleet[0]!.energy.availableSeconds).toBe(CAP-amount());
-    expect(s.fleet[1]!.energy).toEqual(fullEnergy());
+    expect(s.fleet[1]!.energy).toEqual({...fullEnergy(),availableSeconds:12000});
   });
   it('reserves exact integer seconds once and does not spend them again on arrival or reload', () => {
     const c=prepared(),s0=c.snapshot(),q=quote(s0,s0.fleet[0]!,'PVG');dispatch(c);
@@ -149,8 +150,8 @@ describe('explicit ground service and event recovery', () => {
 });
 describe('strict v5 saves and legacy flight protection', () => {
   it('migrates v4 with all old money, orders, flights, clocks and upgrades untouched', () => {
-    const old=structuredClone(oldSave),s=validateSave(old);expect(s.version).toBe(6);
-    expect({...s,version:4,fleet:s.fleet.map(({energy: _e,...p})=>p)}).toEqual(old);
+    const old=structuredClone(oldSave),s=validateSave(old);expect(s.version).toBe(7);
+    expect({...historicalFields(s),version:4,fleet:historicalFields(s).fleet.map(({energy:_e,...p})=>p)}).toEqual(old);
     for(const p of s.fleet)expect(p.energy).toEqual(fullEnergy());expect(oldSave).toEqual(old);
   });
   it('does not charge a grandfathered old in-flight leg again on arrival', () => {
@@ -193,7 +194,7 @@ describe('energy with ordered-city routes', () => {
   it('accepts a real v4 route whose future legs have no operating record yet', () => {
     expect(orderedV4.routes).toHaveLength(1);expect(orderedV4.fleet[0]!.itinerary).toEqual(['PVG','PEK']);
     const s=validateSave(orderedV4);
-    expect({...s,version:4,fleet:s.fleet.map(({energy:_e,...p})=>p)}).toEqual(orderedV4);
+    expect({...historicalFields(s),version:4,fleet:historicalFields(s).fleet.map(({energy:_e,...p})=>p)}).toEqual(orderedV4);
     expect(s.fleet[0]!.energy).toEqual(fullEnergy());
   });
   it('grandfathers that first old flight, then reserves energy on the next real departure', () => {

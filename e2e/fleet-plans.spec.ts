@@ -22,32 +22,32 @@ async function plan(page:Page){
 }
 test('specialist purchase, real cargo loading, workshop retrofit and hangar expansion',async({page})=>{
   await ready(page);await openGlobal(page, '飞机商店');
-  await page.getByRole('button',{name:'纯货机',exact:true}).click();await expect(page.getByTestId('shop-aircraft')).toHaveCount(3);
+  await page.getByRole('button',{name:'纯货机',exact:true}).click();await expect(page.getByTestId('shop-aircraft')).toHaveCount(4);
   await page.screenshot({path:'artifacts/desktop-specialist-shop.png'});
-  await page.getByRole('button',{name:'购买云雀 8F',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
+  await page.getByRole('button',{name:'购买雨燕 货运型',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   await page.getByRole('button',{name:'关闭飞机商店'}).click();await page.getByRole('button',{name:'下一架飞机'}).click();
   await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 0 人');
-  await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await expect(page.getByTestId('loaded-order')).toHaveCount(4);
+  await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await expect(page.getByTestId('loaded-order')).toHaveCount(3);
   await openGlobal(page, '机队管理');
-  await page.getByRole('button',{name:/云雀 8F.*AC0002/}).click();
+  await page.getByRole('button',{name:/雨燕 货运型.*AC0002/}).click();
   await page.getByRole('button',{name:'升级发动机',exact:true}).click();await expect(page.getByTestId('upgrade-engine')).toContainText('Lv.1');
   await page.getByRole('button',{name:/^扩建 2 个机位/}).click();await expect(page.getByTestId('hangar-capacity')).toHaveText('机位 2 / 6');
   await page.screenshot({path:'artifacts/desktop-hangar.png'});
   await page.reload();await openGlobal(page, '机队管理');await expect(page.getByTestId('hangar-capacity')).toHaveText('机位 2 / 6');
-  await page.getByRole('button',{name:/云雀 8F.*AC0002/}).click();await expect(page.getByTestId('upgrade-engine')).toContainText('Lv.1');
+  await page.getByRole('button',{name:/雨燕 货运型.*AC0002/}).click();await expect(page.getByTestId('upgrade-engine')).toContainText('Lv.1');
 });
 test('click-order route executes two legs, survives reload and does not pay twice',async({page})=>{
   await ready(page);await plan(page);await page.screenshot({path:'artifacts/desktop-plan.png'});
   await launchRoute(page);await expect(page.getByTestId('active-plan')).toContainText('上海');
   await page.reload();await expect(page.getByTestId('active-plan')).toContainText('上海');
-  await page.clock.fastForward(220000);await expect(page.getByTestId('flights-count')).toHaveText('2 班');
+  await page.clock.fastForward(800000);await expect(page.getByTestId('flights-count')).toHaveText('2 班');
   await expect(page.getByTestId('loaded-order')).toHaveCount(0);const credits=await page.getByTestId('credits').textContent();
   await page.reload();await expect(page.getByTestId('flights-count')).toHaveText('2 班');await expect(page.getByTestId('credits')).toHaveText(credits!);
 });
 test('cancel plan in flight only removes onward destinations',async({page})=>{
   await ready(page);await plan(page);await launchRoute(page);
   await page.getByRole('button',{name:'取消剩余计划',exact:true}).click();await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
-  await page.clock.fastForward(200000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');
+  await page.clock.fastForward(400000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');
   await expect(page.locator('.gate-sign')).toContainText('武汉');await expect(page.getByTestId('loaded-order')).not.toHaveCount(0);
 });
 test('v2 import preserves manifest and exports v4 upgrade fields',async({page})=>{
@@ -58,7 +58,7 @@ test('v2 import preserves manifest and exports v4 upgrade fields',async({page})=
   await expect(page.getByTestId('credits')).toHaveText(`¥ ${v2.credits.toLocaleString('zh-CN')}`);
   const pending=page.waitForEvent('download');await page.getByRole('button',{name:'导出存档',exact:true}).click();
   const file=await pending,s=JSON.parse(await readFile((await file.path())!,'utf8'));
-  expect(s.version).toBe(6);expect(s.hangarSlots).toBe(4);expect(s.orders).toEqual(v2.orders);expect(s.fleet[0].flight).toEqual(previousPlane.flight);
+  expect(s.version).toBe(7);expect(s.hangarSlots).toBe(4);expect(s.orders.map(({service:_s,product:_p,...o}: import('../src/core/game.js').Order)=>o)).toEqual(v2.orders);expect(s.fleet[0].flight).toEqual(previousPlane.flight);
   expect(s.fleet[0].upgrades).toEqual({capacity:0,engine:0,range:0,efficiency:0});
 });
 test('landscape plan editor and workshop stay reachable',async({page})=>{

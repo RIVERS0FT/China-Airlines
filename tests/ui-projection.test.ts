@@ -3,7 +3,7 @@ import { GameCore, manifest, waiting, type GameState } from '../src/core/game.js
 import { routePreview, previewDescription } from '../src/ui/route-preview.js';
 import { orderBlockReason, loadingLock } from '../src/ui/order-presentation.js';
 const NOW = 1_800_000_000_000;
-function setup() { const core = new GameCore(NOW); return { core, game: core.snapshot(), plane: core.snapshot().fleet[0]! }; }
+function setup() { const funded=new GameCore(NOW).snapshot();funded.credits=100000;const core = new GameCore(NOW,funded); return { core, game: core.snapshot(), plane: core.snapshot().fleet[0]! }; }
 describe('read-only map preview', () => {
   it('labels a valid unoperated route as directly flyable without charging or writing', () => {
     const {game,plane} = setup(), before = structuredClone(game), q = routePreview(game,plane,['PVG']);
@@ -23,7 +23,7 @@ describe('read-only map preview', () => {
   it('uses current range and airport-level checks', () => {
     const {core,plane} = setup(); core.execute({type:'unlock',airportId:'URC'},NOW);
     expect(routePreview(core.snapshot(),plane,['URC']).legs[0]?.error).toContain('航程');
-    expect(routePreview(core.snapshot(),{...plane,modelId:'horizon'},['PVG']).legs[0]?.error).toContain('级');
+    expect(routePreview(core.snapshot(),{...plane,modelId:'aurora-m'},['PVG']).legs[0]?.error).toContain('级');
   });
   it('marks previously operated relations without making them a flight prerequisite', () => {
     const {core,plane} = setup(); core.execute({type:'route',from:'PEK',to:'PVG'},NOW);
@@ -40,8 +40,8 @@ describe('loading state explanations', () => {
   });
   it('explains specialist capacity rather than showing an actionable label', () => {
     const {game,plane} = setup(), cargo = game.orders.find(o=>o.kind==='cargo')!, person = game.orders.find(o=>o.kind==='passengers')!;
-    expect(orderBlockReason(game,{...plane,modelId:'lark-p'},cargo,false)).toBe('纯客机不载货');
-    expect(orderBlockReason(game,{...plane,modelId:'lark-f'},person,false)).toBe('纯货机不载客');
+    expect(orderBlockReason(game,{...plane,modelId:'swift-p'},cargo,false)).toBe('纯客机不载货');
+    expect(orderBlockReason(game,{...plane,modelId:'swift-f'},person,false)).toBe('纯货机不载客');
     expect(orderBlockReason(game,plane,person,false)).toBe('');
   });
   it('reflects loaded capacities and leaves the save unchanged', () => {

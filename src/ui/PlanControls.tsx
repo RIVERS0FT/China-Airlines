@@ -1,6 +1,7 @@
+import { autoAllowed } from '../core/career.js';
 import { useState } from 'react';
 import { airport } from '../core/catalog.js';
-import { manifest, type GameState, type Plane } from '../core/game.js';
+import { manifest, flightEnergy, type GameState, type Plane } from '../core/game.js';
 import { controller } from '../runtime.js';
 import { dispatchPresentation } from './dispatch-presentation.js';
 import { DispatchDialog } from './DispatchDialog.js';
@@ -50,9 +51,9 @@ export function PlanControls({ game, plane, stops, setStops, auto, setAuto, busy
       <div className="dispatch-detail-facts">
         <span>交付收入 <b data-testid="network-revenue">{summary ? money(summary.revenue) : '—'}</b></span>
         <span>机上客货 <b>{jobs.length} 单</b></span>
-        {plane && <span data-testid="network-energy">可用能量 {energyText(plane.energy.availableSeconds)} 点{active ? plane.energy.reservedSeconds ? ' · 当前航段已预留' : ' · 旧航班免扣' : draft && stops.length === 1 ? ` · 本段需 ${energyText(draft.legs[0]!.duration)} 点` : ''}</span>}
+        {plane && <span data-testid="network-energy">可用能量 {energyText(plane.energy.availableSeconds)} 点{active ? plane.energy.reservedSeconds ? ' · 当前航段已预留' : ' · 旧航班免扣' : draft && stops.length === 1 ? ` · 本段需 ${energyText(flightEnergy(plane,draft.legs[0]!.duration))} 点` : ''}</span>}
       </div>
-      {!active && plane && <label className="dispatch-auto-choice"><input type="checkbox" checked={auto} disabled={busy || !plane.dispatcher || stops.length !== 1} onChange={e => setAuto(e.target.checked)}/>自动往返<span>{!plane.dispatcher ? '需在机库雇用调度员' : stops.length !== 1 ? '仅单一目的城市可用' : '需全部已装客货直达'}</span></label>}
+      {!active && plane && <label className="dispatch-auto-choice"><input type="checkbox" checked={auto} disabled={busy || !autoAllowed(game,plane) || stops.length !== 1} onChange={e => setAuto(e.target.checked)}/>自动往返<span>{!autoAllowed(game,plane) ? '需分配飞行员并续付工资' : stops.length !== 1 ? '仅单一目的城市可用' : '需全部已装客货直达'}</span></label>}
       {draft && plane && <p data-testid="plan-energy">全程需 {energyText(requiredEnergy)} 点／可用 {energyText(plane.energy.availableSeconds)} 点（不含周转）。{reason || warning || '逐段预留能量，不预扣全程。'}</p>}
       {summary && <div className="dispatch-table-scroll" tabIndex={0} role="region" aria-label="航段费用明细">
         <table><caption>逐段费用与交付</caption><thead><tr><th scope="col">航段</th><th scope="col">飞行时间</th><th scope="col">运营成本</th><th scope="col">本段交付</th></tr></thead>

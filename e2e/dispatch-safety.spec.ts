@@ -7,7 +7,7 @@ const NOW = Date.parse('2026-09-12T00:00:00Z');
 test('hidden fleet markers do not hide the selected aircraft or mutate flight accounts', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   const core = new GameCore(NOW);
-  core.execute({ type: 'buy', modelId: 'lark-f', airportId: 'PEK' }, NOW);
+  core.execute({ type: 'buy', modelId: 'swift-f', airportId: 'PEK' }, NOW);
   core.execute({ type: 'load-destination', planeId: 'AC0001', to: 'PVG' }, NOW);
   core.execute({ type: 'load-destination', planeId: 'AC0002', to: 'PVG' }, NOW);
   core.execute({ type: 'dispatch', planeId: 'AC0001', to: 'PVG', auto: false }, NOW);
@@ -68,9 +68,9 @@ test('a real autosave write failure remains visible with a recovery entry on the
   await expect(page.getByRole('button', { name: '导出存档', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
   await expect(canvas).toHaveAttribute('data-preview-path', 'PVG');
-  await expect(page.getByTestId('credits')).toHaveText('¥ 180,000');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
   await page.reload(); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
-  await expect(page.getByTestId('credits')).toHaveText('¥ 180,000');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
   expect(errors).toEqual([]);
 });
 
@@ -80,6 +80,7 @@ test('touching a city on the canvas selects it once and preserves automatic mode
   page.on('pageerror', error => errors.push(error.message));
   try {
     await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
+    await page.getByRole('button',{name:'机队管理',exact:true}).click();await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await page.getByRole('button',{name:'关闭我的机库'}).click();
     await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
     await page.getByRole('button', { name: '制定路线', exact: true }).click();
     const canvas = page.getByTestId('map-canvas');
@@ -102,7 +103,7 @@ test('touching a city on the canvas selects it once and preserves automatic mode
     await tapShanghai();
     await expect(canvas).toHaveAttribute('data-preview-path', 'PVG');
     await expect(page.getByTestId('auto-route-badge')).toHaveText('自动往返');
-    await expect(page.getByTestId('credits')).toHaveText('¥ 180,000');
+    await expect(page.getByTestId('credits')).toHaveText('¥ 16,200');
     await page.getByTestId('dispatch').click();
     await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
     await expect(page.getByRole('button', { name: '停止自动往返', exact: true })).toBeVisible();

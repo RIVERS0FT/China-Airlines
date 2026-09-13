@@ -5,7 +5,7 @@ const NOW = 1_800_000_000_000, ID = 'AC0001';
 function prepared() {
   const c = new GameCore(NOW);
   c.execute({type:'unlock',airportId:'WUH'},NOW);
-  c.execute({type:'buy',modelId:'lark-f',airportId:'PEK'},NOW);
+  c.execute({type:'buy',modelId:'swift-f',airportId:'PEK'},NOW);
   c.execute({type:'load-destination',planeId:ID,to:'PVG'},NOW);
   c.execute({type:'open-plan-routes',planeId:ID,stops:['WUH','PVG','PEK']},NOW);
   return c;
@@ -72,7 +72,7 @@ describe('fleet state navigation',()=>{
   });
   it('does not invent a new flight or income while an automatic route waits',()=>{
     let s=prepared().snapshot();s.orders=[];const c=new GameCore(NOW,s);
-    c.execute({type:'start-duty',planeId:ID,to:'PVG'},NOW);s=c.snapshot();const row=flightStatus(s,s.fleet[0]!);
+    c.execute({type:'hire-dispatcher',planeId:ID},NOW);c.execute({type:'start-duty',planeId:ID,to:'PVG'},NOW);s=c.snapshot();const row=flightStatus(s,s.fleet[0]!);
     expect(row.phase).toBe('automatic');expect(row.nextEvent).toBe('下次调度检查');expect(row.flight).toBeNull();
     expect(row.remaining).toBe(s.nextDemandAt-s.simTime);expect(row.to).toBe('PVG');expect(fleetStatuses(s,'ready')).toHaveLength(1);
   });

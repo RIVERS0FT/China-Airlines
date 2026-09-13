@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { GameCore, planQuote, validateSave } from '../src/core/game.js';
+import { GameCore, flightEnergy, planQuote, validateSave } from '../src/core/game.js';
 import { dispatchPresentation } from '../src/ui/dispatch-presentation.js';
 const NOW=1_800_000_000_000,ID='AC0001';
-function prepared() { const c=new GameCore(NOW); c.execute({type:'unlock',airportId:'WUH'},NOW); c.execute({type:'load-destination',planeId:ID,to:'PVG'},NOW); return c; }
+function prepared() { const c=new GameCore(NOW); c.execute({type:'hire-dispatcher',planeId:ID},NOW); c.execute({type:'unlock',airportId:'WUH'},NOW); c.execute({type:'load-destination',planeId:ID,to:'PVG'},NOW); return c; }
 describe('minimal dispatch projection retains core rules',()=>{
  it('matches all core quote values including intermediate turnaround',()=>{
   const s=prepared().snapshot(),stops=['WUH','PVG'];
@@ -15,7 +15,7 @@ describe('minimal dispatch projection retains core rules',()=>{
  });
  it('blocks the first energy-short leg but only warns about total shortage',()=>{
   const s=prepared().snapshot(),p=s.fleet[0]!,q=planQuote(s,p,['WUH','PVG']);
-  p.energy.availableSeconds=q.legs[0]!.duration;
+  p.energy.availableSeconds=flightEnergy(p,q.legs[0]!.duration);
   expect(dispatchPresentation(s,p,['WUH','PVG'],false,false)).toMatchObject({canLaunch:true,warning:expect.stringContaining('只能覆盖部分')});
   p.energy.availableSeconds--;
   expect(dispatchPresentation(s,p,['WUH','PVG'],false,false)).toMatchObject({canLaunch:false,reason:expect.stringContaining('能量不足')});

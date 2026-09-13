@@ -12,6 +12,78 @@
     "transparentPixels": 557858
   },
   {
+    "file": "aircraft-heavy-cargo-v2.png",
+    "width": 1000,
+    "height": 450,
+    "bytes": 157724,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 359849
+  },
+  {
+    "file": "aircraft-heavy-passenger-v2.png",
+    "width": 1000,
+    "height": 450,
+    "bytes": 152708,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 361956
+  },
+  {
+    "file": "aircraft-light-cargo-v2.png",
+    "width": 1000,
+    "height": 450,
+    "bytes": 124768,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 376732
+  },
+  {
+    "file": "aircraft-light-passenger-v2.png",
+    "width": 1000,
+    "height": 450,
+    "bytes": 121233,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 388488
+  },
+  {
+    "file": "aircraft-regional-cargo-v2.png",
+    "width": 1000,
+    "height": 450,
+    "bytes": 129939,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 373241
+  },
+  {
+    "file": "aircraft-regional-passenger-v2.png",
+    "width": 1000,
+    "height": 450,
+    "bytes": 132708,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 375550
+  },
+  {
     "file": "aircraft-v1.png",
     "width": 1408,
     "height": 640,
@@ -50,6 +122,42 @@
     "transparentPixels": 82715
   },
   {
+    "file": "cargo-cold-v2.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 76167,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 29116
+  },
+  {
+    "file": "cargo-express-v2.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 67928,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 27474
+  },
+  {
+    "file": "cargo-industrial-v2.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 92672,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 29510
+  },
+  {
     "file": "cargo-v1.png",
     "width": 256,
     "height": 256,
@@ -72,6 +180,66 @@
       255
     ],
     "transparentPixels": 75946
+  },
+  {
+    "file": "facility-design-v2.png",
+    "width": 384,
+    "height": 320,
+    "bytes": 136908,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 66746
+  },
+  {
+    "file": "facility-factory-v2.png",
+    "width": 384,
+    "height": 320,
+    "bytes": 107550,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 79345
+  },
+  {
+    "file": "facility-research-v2.png",
+    "width": 384,
+    "height": 320,
+    "bytes": 126254,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 70883
+  },
+  {
+    "file": "facility-trade-v2.png",
+    "width": 384,
+    "height": 320,
+    "bytes": 138303,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 65927
+  },
+  {
+    "file": "facility-warehouse-v2.png",
+    "width": 384,
+    "height": 320,
+    "bytes": 142686,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 61796
   },
   {
     "file": "ground-crew-v1.png",

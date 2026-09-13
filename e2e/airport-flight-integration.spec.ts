@@ -6,7 +6,7 @@ const money = (n:number) => `¥ ${Math.round(n).toLocaleString('zh-CN')}`;
 function prepared() {
   const c=new GameCore(NOW);
   c.execute({type:'unlock',airportId:'WUH'},NOW);
-  c.execute({type:'buy',modelId:'lark-f',airportId:'PEK'},NOW);
+  c.execute({type:'buy',modelId:'swift-f',airportId:'PEK'},NOW);
   c.execute({type:'load-destination',planeId:ID,to:'PVG'},NOW);
   c.execute({type:'open-plan-routes',planeId:ID,stops:['WUH','PVG','PEK']},NOW);
   return c;

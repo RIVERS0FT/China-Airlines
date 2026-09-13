@@ -20,7 +20,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     await page.mouse.move(bounds.x + bounds.width * .55, bounds.y + bounds.height * .4); await page.mouse.down();
     await page.mouse.move(bounds.x + bounds.width * .7, bounds.y + bounds.height * .48, { steps: 8 }); await page.mouse.up();
     await expect(host).not.toHaveAttribute('data-camera', camera!); await expect(host).toHaveAttribute('data-preview-path', '');
-    await expect(page.getByTestId('credits')).toHaveText('¥ 180,000');
+    await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
     const frames = Number(await host.getAttribute('data-render-count'));
     await host.locator('canvas').focus(); await page.keyboard.press('Home');
     await expect.poll(async () => Number(await host.getAttribute('data-render-count'))).toBeGreaterThan(frames);
@@ -31,7 +31,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     await page.getByLabel('选择机场', { exact: true }).selectOption('ICN');
     await expect(page.getByRole('dialog', { name: '机场详情', exact: true })).toContainText('首尔');
     await page.getByRole('button', { name: /^解锁机场/ }).click();
-    await expect(host).toHaveAttribute('data-preview-path', 'ICN'); await expect(page.getByTestId('credits')).toHaveText('¥ 144,000');
+    await expect(host).toHaveAttribute('data-preview-path', 'ICN'); await expect(page.getByTestId('credits')).toHaveText('¥ 9,000');
     await expect(page.getByTestId('network-destination')).toHaveText('首尔▾');
     await expect(page.getByTestId('dispatch')).toBeEnabled();
     page.once('dialog', d => void d.accept()); await launchRoute(page);
@@ -48,7 +48,7 @@ test('global directory keeps continent and country searches across inspection', 
   await expect(page.getByTestId('airport-parked').getByRole('listitem')).toHaveCount(0);
   await page.getByRole('button', { name: '返回机场目录', exact: true }).click();
   await expect(page.getByLabel('机场世界区域', { exact: true })).toHaveValue('南美洲'); await expect(page.getByLabel('搜索机场', { exact: true })).toHaveValue('巴西');
-  await expect(page.getByTestId('credits')).toHaveText('¥ 180,000');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
 });
 test('far-side markers are not clickable and rotation/cancel never changes the draft', async ({ page }) => {
   await ready(page); await page.getByRole('button', { name: '航线地图', exact: true }).click();
@@ -64,7 +64,7 @@ test('far-side markers are not clickable and rotation/cancel never changes the d
   const city = projectGeo(airport('PVG'), camera);
   await page.mouse.move(bounds.x + city.x, bounds.y + city.y); await page.mouse.down();
   await host.locator('canvas').dispatchEvent('pointercancel', { pointerId: 1, bubbles: true }); await page.mouse.up();
-  await expect(host).toHaveAttribute('data-preview-path', ''); await expect(page.getByTestId('credits')).toHaveText('¥ 180,000');
+  await expect(host).toHaveAttribute('data-preview-path', ''); await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
 });
 test('two-finger zoom never appends a destination on finger release', async ({ page }) => {
   await ready(page); await page.getByRole('button', { name: '航线地图', exact: true }).click();
@@ -80,9 +80,9 @@ test('two-finger zoom never appends a destination on finger release', async ({ p
   await expect(host).toHaveAttribute('data-preview-path', ''); await client.detach();
 });
 test('Pacific multi-leg arcs and global selection preserve camera and read-only previews', async ({ page }) => {
-  const s = new GameCore(NOW).snapshot(); s.credits = 5000000; const c = new GameCore(NOW, s);
+  const s = new GameCore(NOW).snapshot(); s.credits = 5000000; s.career.xp=20000; const c = new GameCore(NOW, s);
   for (const id of ['NRT', 'ANC', 'YVR']) { c.execute({ type: 'unlock', airportId: id }, NOW); c.execute({ type: 'upgrade', airportId: id }, NOW); c.execute({ type: 'upgrade', airportId: id }, NOW); }
-  c.execute({ type: 'buy', modelId: 'horizon', airportId: 'NRT' }, NOW);
+  c.execute({ type: 'buy', modelId: 'aurora-m', airportId: 'NRT' }, NOW);
   await ready(page); await page.getByRole('button', { name: '存档设置', exact: true }).click();
   page.once('dialog', d => void d.accept());
   await page.getByLabel('选择存档文件').setInputFiles({ name: 'global-plan.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(c.snapshot())) });
@@ -124,5 +124,5 @@ test('an idle globe does not redraw for clock-only updates, but camera input pai
   await host.locator('canvas').focus(); await page.keyboard.press('ArrowRight'); await page.clock.runFor(50);
   expect(Number(await host.getAttribute('data-render-count'))).toBeGreaterThan(frames);
   await expect(host).toHaveAttribute('data-preview-path', '');
-  await expect(page.getByTestId('credits')).toHaveText('¥ 180,000');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
 });

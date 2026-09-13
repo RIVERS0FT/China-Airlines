@@ -1,3 +1,4 @@
+import { historicalFields } from './career-fixtures.js';
 import { describe, it, expect } from 'vitest';
 import { AIRPORTS, CONTINENTS, distance, routeId } from '../src/core/catalog.js';
 import { AIRPORTS as legacyAirports } from '../src/core/catalog-v4.js';
@@ -7,7 +8,7 @@ import { searchAirports } from '../src/ui/airport-search.js';
 import flyingV5 from './fixtures/v5-flying.json';
 import serviceV5 from './fixtures/v5-servicing.json';
 const NOW = 1_800_000_000_000;
-function funded() { const s = new GameCore(NOW).snapshot(); s.credits = 100_000_000; return new GameCore(NOW, s); }
+function funded() { const s = new GameCore(NOW).snapshot(); s.credits = 100_000_000; s.career.tickets=1000000; s.career.xp=20000; return new GameCore(NOW, s); }
 describe('global airport registry', () => {
   it('adds 38 airports, covers six continents and preserves every domestic economic value', () => {
     expect(AIRPORTS).toHaveLength(50); expect(new Set(AIRPORTS.map(a => a.id)).size).toBe(50);
@@ -16,7 +17,7 @@ describe('global airport registry', () => {
       expect(a.id).toMatch(/^[A-Z]{3}$/); expect(Math.abs(a.lat)).toBeLessThanOrEqual(90); expect(Math.abs(a.lon)).toBeLessThanOrEqual(180);
       expect(Number.isSafeInteger(a.price)).toBe(true); expect(a.price).toBeGreaterThanOrEqual(0);
     }
-    for (const a of legacyAirports) expect(AIRPORTS.find(b => b.id === a.id)).toMatchObject(a);
+    for (const a of legacyAirports) expect(AIRPORTS.find(b => b.id === a.id)).toMatchObject({...a,price:Math.round(a.price/4)});
   });
   it('every airport can be reached by a chain of existing 8000 km aircraft legs', () => {
     const visited = new Set(['PEK']);
@@ -59,7 +60,7 @@ describe('world operations and persistence', () => {
       c.execute({ type: 'unlock', airportId: id }, NOW);
       c.execute({ type: 'upgrade', airportId: id }, NOW); c.execute({ type: 'upgrade', airportId: id }, NOW);
     }
-    c.execute({ type: 'buy', modelId: 'horizon', airportId: 'NRT' }, NOW);
+    c.execute({ type: 'buy', modelId: 'aurora-m', airportId: 'NRT' }, NOW);
     const id = c.snapshot().fleet.at(-1)!.id, now = NOW + 360000;
     c.tick(now); c.execute({ type: 'load-destination', planeId: id, to: 'YVR' }, now);
     c.execute({ type: 'dispatch-plan', planeId: id, stops: ['ANC', 'YVR'] }, now);
@@ -79,7 +80,7 @@ describe('world operations and persistence', () => {
   });
   it.each([flyingV5, serviceV5])('migrates frozen v5 data with only the version changed', old => {
     expect(validateV5(old)).toEqual(old); const migrated = validateSave(old);
-    expect(migrated).toEqual({ ...old, version: 6 }); expect(validateSave(migrated)).toEqual(migrated);
+    expect(historicalFields(migrated)).toEqual({ ...old, version: 6 }); expect(validateSave(migrated)).toEqual(migrated);
   });
   it('rejects forged global v5 data and corrupt energy instead of laundering them into v6', () => {
     const old = structuredClone(flyingV5); old.airports.push({ id: 'NRT', level: 1 });

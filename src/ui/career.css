@@ -1,0 +1,423 @@
+.career-hub {
+  color: #124970;
+  background: #eef9ff;
+  min-height: 460px;
+}
+.career-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: linear-gradient(110deg, #154f99, #179cdb);
+  color: white;
+}
+.career-banner > img {
+  width: 65px;
+  height: 65px;
+  object-fit: contain;
+}
+.career-banner > div {
+  flex: 1;
+}
+.career-banner strong,
+.career-banner span,
+.career-banner small {
+  display: block;
+}
+.career-banner strong {
+  font-size: 19px;
+}
+.career-banner span {
+  font-size: 12px;
+  margin-top: 8px;
+}
+.career-banner > b {
+  font-size: 20px;
+  text-align: right;
+}
+.career-banner .icon {
+  vertical-align: middle;
+}
+.career-banner small {
+  font-size: 15px;
+  color: #ffe18b;
+  margin-top: 5px;
+}
+.career-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px;
+  overflow: auto;
+  background: #d5efff;
+}
+.career-tabs button {
+  white-space: nowrap;
+  background: #fff;
+  border: 1px solid #82bce8;
+  border-bottom: 3px solid #6da6d7;
+  border-radius: 10px;
+  padding: 10px 15px;
+  font-weight: 800;
+  color: #164e87;
+}
+.career-tabs [aria-selected="true"] {
+  background: linear-gradient(#ffef9a, #ffb83e);
+  border-color: #d68a20;
+  color: #653607;
+}
+.career-feedback {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  min-height: 35px;
+  padding: 7px 20px;
+  background: #fff7d9;
+  font-size: 13px;
+}
+.career-feedback [role="alert"] {
+  color: #a52b1f;
+}
+.career-body {
+  padding: 14px 22px 28px;
+}
+.career-body h3 {
+  margin: 18px 0 10px;
+}
+.career-body p {
+  font-size: 14px;
+  line-height: 1.65;
+}
+.career-body small {
+  display: block;
+  line-height: 1.5;
+  font-size: 12px;
+}
+.career-body button {
+  background: linear-gradient(#fff, #dff3ff);
+  border: 1px solid #7db5d9;
+  border-radius: 9px;
+  min-height: 38px;
+  padding: 7px 12px;
+  color: #145785;
+  font-weight: 700;
+  cursor: pointer;
+}
+.career-body button:disabled {
+  opacity: 0.48;
+  cursor: default;
+}
+.career-body button:focus-visible,
+.career-tabs button:focus-visible {
+  outline: 3px solid #fd9d27;
+  outline-offset: 2px;
+}
+.career-body select,
+.career-body input {
+  display: block;
+  border: 1px solid #8fb9ce;
+  border-radius: 7px;
+  min-height: 38px;
+  padding: 7px;
+  background: white;
+  color: #164465;
+  max-width: 100%;
+  width: 100%;
+}
+.career-body label {
+  font-size: 13px;
+  font-weight: 700;
+  display: block;
+  min-width: 125px;
+}
+.career-body > label {
+  max-width: 350px;
+}
+.career-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.career-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid #c5e1ec;
+  padding: 14px 0;
+}
+.career-row > div:first-child {
+  flex: 1;
+}
+.career-row h3,
+.career-row h4,
+.career-row p {
+  margin: 0 0 5px;
+}
+.career-quests {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+.career-quests article {
+  background: white;
+  border: 1px solid #b7d5e5;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 3px #cee6f3;
+}
+.career-quests h3,
+.career-quests h4 {
+  margin: 0;
+}
+.career-aircraft {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 18px 0;
+  background: linear-gradient(#d4edff, #fff);
+  border-radius: 16px;
+  padding: 12px;
+}
+.career-aircraft > img {
+  width: 46%;
+  max-height: 190px;
+  object-fit: contain;
+}
+.career-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+}
+.career-form label {
+  flex: 1;
+}
+.career-form input[type="number"] {
+  width: 85px;
+}
+.career-pilot {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: white;
+  padding: 16px;
+  margin: 14px 0;
+  border-radius: 15px;
+  border: 1px solid #bfdce9;
+}
+.career-pilot > img {
+  width: 80px;
+  height: 95px;
+  object-fit: contain;
+}
+.career-pilot > div {
+  flex: 1;
+}
+.material-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 0;
+}
+.material-strip span {
+  background: #d7eaf6;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 12px;
+  min-width: 78px;
+}
+.material-strip b {
+  display: block;
+  font-size: 19px;
+  color: #1764a3;
+  margin-top: 4px;
+}
+.logistics-scene {
+  display: flex;
+  align-items: end;
+  justify-content: space-around;
+  gap: 8px;
+  padding: 20px 12px;
+  background: linear-gradient(
+    #8bdaff 0%,
+    #d9f2ff 57%,
+    #a9dbe0 58%,
+    #d0dce1 74%,
+    #b1c3cf 75%,
+    #d8e1e9
+  );
+  border: 3px solid white;
+  border-radius: 16px;
+  box-shadow: 0 4px #95c0d8;
+  overflow: auto;
+}
+.logistics-scene button {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  min-width: 115px;
+  padding: 0;
+}
+.logistics-scene img {
+  display: block;
+  width: 100%;
+  height: 130px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 2px #3857794d);
+}
+.logistics-scene strong {
+  display: block;
+  background: #fff9e9;
+  border: 2px solid #d4a447;
+  border-radius: 7px;
+  padding: 6px 3px;
+  font-size: 13px;
+}
+.logistics-scene small {
+  background: #f5fbffcf;
+  font-size: 10px;
+  padding: 5px 0;
+}
+.museum-hall {
+  text-align: center;
+  background: linear-gradient(120deg, #fff4c9, #d4edff);
+  border: 2px solid white;
+  border-radius: 18px;
+  padding: 24px;
+}
+.museum-hall > .icon {
+  width: 75px;
+  height: 75px;
+}
+.museum-hall small {
+  margin-top: 10px;
+}
+.museum-aircraft {
+  width: 100%;
+  height: 130px;
+  object-fit: contain;
+}
+.shop-card .painted-aircraft {
+  width: 100%;
+  height: 160px;
+  object-fit: contain;
+}
+.workshop-plane .painted-aircraft {
+  width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+}
+@media (max-width: 850px) {
+  .career-banner {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .career-banner > img {
+    width: 42px;
+    height: 48px;
+  }
+  .career-banner strong {
+    font-size: 14px;
+  }
+  .career-banner span {
+    font-size: 10px;
+  }
+  .career-banner > b {
+    font-size: 14px;
+  }
+  .career-tabs {
+    padding: 8px;
+  }
+  .career-tabs button {
+    padding: 8px;
+    font-size: 12px;
+  }
+  .career-body {
+    padding: 10px 14px;
+  }
+  .career-row {
+    gap: 10px;
+  }
+  .career-actions {
+    gap: 6px;
+  }
+  .career-pilot {
+    gap: 10px;
+    padding: 10px;
+  }
+  .career-pilot > img {
+    width: 48px;
+  }
+  .career-pilot .career-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .logistics-scene img {
+    height: 95px;
+  }
+  .career-row > .career-actions {
+    max-width: 55%;
+  }
+}
+
+.logistics-scene button {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: end;
+  flex-shrink: 0;
+}
+.logistics-scene img {
+  flex-shrink: 0;
+}
+.logistics-scene strong,
+.logistics-scene small {
+  width: 100%;
+  box-sizing: border-box;
+}
+.cargo-service-name {
+  font-size: 10px;
+  color: #125d9e;
+  line-height: 1.1;
+  text-shadow: 0 1px white;
+  white-space: nowrap;
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  .career-banner {
+    padding: 5px 10px;
+  }
+  .career-banner > img {
+    height: 36px;
+    width: 36px;
+  }
+  .career-tabs {
+    padding: 6px;
+  }
+  .career-tabs button {
+    padding: 6px 8px;
+  }
+  .career-feedback {
+    min-height: 27px;
+    padding: 5px 14px;
+  }
+  .logistics-scene {
+    padding: 8px;
+  }
+  .logistics-scene img {
+    height: 70px;
+  }
+  .logistics-scene button {
+    min-width: 104px;
+  }
+  .logistics-scene strong {
+    font-size: 11px;
+    padding: 4px 2px;
+  }
+  .logistics-scene small {
+    font-size: 9px;
+    padding: 2px;
+  }
+}
