@@ -28,7 +28,11 @@ test('one task entrance claims the initial gift exactly once and retains the air
   const entry = page.getByRole('button', { name: '任务中心', exact: true });
   await expect(entry).toHaveCount(1); await expect(entry).toContainText('可领取 1');
   await expect(page.locator('.airport-shortcuts')).toHaveCount(0);
-  await expect(page.getByRole('navigation', { name: '主导航' }).getByRole('button')).toHaveCount(6);
+  const dock = page.getByRole('navigation', { name: '主导航' });
+  await expect(dock.getByRole('button')).toHaveCount(7);
+  await expect(dock.locator(':scope > button > span')).toHaveText([
+    '机场装载', '地图', '机场目录', '机队管理', '飞机商店', '经营中心', '制定路线',
+  ]);
   for (const name of ['运营任务', '奖励', '航班', '改装']) await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
   const selected = await page.locator('.plane-status').textContent(), credits = await page.getByTestId('credits').textContent();
   await entry.click();
@@ -47,9 +51,13 @@ test('one task entrance claims the initial gift exactly once and retains the air
   await page.getByRole('button', { name: '关闭任务中心', exact: true }).click();
   await expect(page.locator('.plane-status')).toHaveText(selected!);
   await expect(page.getByTestId('credits')).toHaveText(credits!);
-  await expect(page.getByRole('button', { name: '经营中心', exact: true })).toContainText('29 券');
+  // Ticket rewards update the read-only HUD balance, not the career navigation button.
+  await expect(page.getByTestId('tickets-count')).toHaveText('29 券');
+  await expect(dock.getByRole('button', { name: '经营中心', exact: true })).toHaveText('经营中心');
   await expect(entry).not.toContainText('可领取');
-  await page.reload(); await entry.click();
+  await page.reload();
+  await expect(page.getByTestId('tickets-count')).toHaveText('29 券');
+  await entry.click();
   await expect(page.getByRole('tab', { name: /^进行中/ })).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('tab', { name: /^已领取/ }).click();
   await expect(gift.getByRole('button', { name: '已领取', exact: true })).toBeDisabled();
@@ -118,13 +126,13 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three
   await loaded.click();
   const same = page.locator(`[data-order-id="${id}"]`);
   await expect(same).toHaveAttribute('data-load-state', 'waiting');
+  expect(await page.locator('.toast').allTextContents()).toEqual([]);
   await expect(same.locator('.job-transfer-tag')).toHaveText('中转');
   expect(Math.abs((await same.boundingBox())!.x - before.x)).toBeLessThan(2);
   await expect(page.locator(`[data-order-id="${blockedId}"]`)).toHaveAttribute('data-load-state', 'waiting');
   await same.click(); await expect(same).toHaveAttribute('data-load-state', 'loaded');
+  expect(await page.locator('.toast').allTextContents()).toEqual([]);
   await expect(page.locator(`[data-order-id="${blockedId}"]`)).toHaveAttribute('data-load-state', 'blocked');
-  const notice = page.getByRole('button', { name: '关闭提示', exact: true });
-  if (await notice.isVisible()) await notice.click();
   await board.focus(); await page.keyboard.press('Home');
   await page.screenshot({ path: `artifacts/loading-three-states-${width}.png` });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -148,7 +156,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`airpo
   await page.setViewportSize({ width: width!, height: height! });
   await setup(page);
   const dock = page.getByRole('navigation', { name: '主导航', exact: true });
-  const names = ['机场装载', '地图', '机场目录', '机队管理', '飞机商店'];
+  const names = ['机场装载', '地图', '机场目录', '机队管理', '飞机商店', '经营中心'];
   let ordinaryWidth = 0, ordinaryIconWidth = 0;
   for (const name of names) {
     const button = dock.getByRole('button', { name, exact: true });
