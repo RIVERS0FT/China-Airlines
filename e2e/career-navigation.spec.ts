@@ -78,6 +78,10 @@ for (const viewport of [
     await expect(organizationDialog).toBeVisible();
     await expect(organizationEntry).toHaveAttribute('aria-current', 'page');
     await expect(organizationEntry).toHaveAttribute('aria-expanded', 'true');
+    await expect(organizationDialog.getByRole('heading', { name: '组织指挥室', exact: true })).toBeVisible();
+    await expect(organizationDialog.getByRole('heading', { name: '组织架构', exact: true })).toBeVisible();
+    await expect(organizationDialog.getByRole('heading', { name: '人员档案', exact: true })).toBeVisible();
+    await expect(organizationDialog).not.toContainText(/COMPANY COMMAND|REPORTING MAP|PERSONNEL FILE/);
     await expect(organizationDialog.getByRole('region', { name: '公司组织架构树', exact: true })).toBeVisible();
     await organizationDialog.getByRole('button', { name: '关闭公司组织', exact: true }).click();
     await page.screenshot({ path: `artifacts/career-navigation-${viewport.width}.png` });
@@ -112,3 +116,15 @@ for (const key of ['Enter', 'Space']) {
     await expect(dialog).toHaveCount(0);
   });
 }
+
+test('organization section titles follow English locale without decorative subtitles', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('china-airlines:locale:v1', 'en-US'));
+  await start(page);
+  await page.getByRole('button', { name: 'Organization', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Company Organization', exact: true });
+  await expect(dialog.getByRole('heading', { name: 'Organization Command', exact: true })).toBeVisible();
+  await expect(dialog.getByRole('heading', { name: 'Grow the Team', exact: true })).toBeVisible();
+  await expect(dialog.getByRole('heading', { name: 'Organization Chart', exact: true })).toBeVisible();
+  await expect(dialog.getByRole('heading', { name: 'Personnel File', exact: true })).toBeVisible();
+  await expect(dialog).not.toContainText(/COMPANY COMMAND|REPORTING MAP|PERSONNEL FILE/);
+});

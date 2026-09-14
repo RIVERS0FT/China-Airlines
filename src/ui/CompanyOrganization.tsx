@@ -11,6 +11,7 @@ import { ignore, duration } from './Panels.js';
 import { useGameViewport } from './GameViewport.js';
 import { organizationLayout, ORG_NODE_HEIGHT, ORG_NODE_WIDTH } from './organization-layout.js';
 import { employeeDisplayName } from './organization-presentation.js';
+import { useI18n } from '../i18n/I18n.js';
 import './organization.css';
 
 function status(s: GameState, e: Employee) {
@@ -33,6 +34,7 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport }: {
   const [job, setJob] = useState('flight-specialist');
   const [collapsed, setCollapsed] = useState<Record<Department, boolean>>({ flight: false, ground: false });
   const [zoom, setZoom] = useState(1);
+  const { t } = useI18n();
   const viewport = useRef<HTMLDivElement>(null), previousCount = useRef(people.length);
   const drag = useRef<{ id: number; x: number; y: number; left: number; top: number } | null>(null);
   const { scale } = useGameViewport();
@@ -81,8 +83,7 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport }: {
   return <section className="company-organization" aria-label="公司组织管理">
     <header className="org-command-header">
       <div className="org-command-copy">
-        <span>COMPANY COMMAND</span>
-        <h3>组织指挥室</h3>
+        <h3>{t('organization.commandTitle')}</h3>
         <p>统筹飞行与地勤团队，安排汇报关系、岗位、合同与人才培养。</p>
       </div>
       <dl className="org-summary" aria-label="组织概览">
@@ -93,7 +94,7 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport }: {
       </dl>
     </header>
     <section className="org-recruit-card" aria-label="团队招募">
-      <div><strong>扩充团队</strong><small>合同预付 7 天；经理并非基础运营前提</small></div>
+      <div><h4>{t('organization.teamTitle')}</h4><small>合同预付 7 天；经理并非基础运营前提</small></div>
       <div className="org-recruit">
         <label><span className="org-sr-only">招募岗位</span><select aria-label="招募岗位" value={job} disabled={busy} onChange={e => setJob(e.target.value)}>
           <option value="flight-specialist">飞行员 · {staffIn(game, 'flight').length}/8</option>
@@ -108,7 +109,7 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport }: {
     <div className="org-workspace">
       <div className="org-tree-area">
         <header className="org-tree-heading">
-          <div><span className="org-section-kicker">REPORTING MAP</span><h4>组织架构</h4></div>
+          <h4>{t('organization.treeTitle')}</h4>
           <div className="org-view-tools" aria-label="组织树显示控制">
             {(['flight','ground'] as const).map(d => <button className={`org-department-toggle ${d}`} key={d} aria-expanded={!collapsed[d]} onClick={() => setCollapsed(old => ({ ...old, [d]: !old[d] }))}><b aria-hidden="true">{d === 'flight' ? '飞' : '勤'}</b>{collapsed[d] ? '展开' : '折叠'}{DEPARTMENTS[d]}</button>)}
             <span className="org-zoom"><button aria-label="缩小组织树" disabled={zoom <= 0.5} onClick={() => moveZoom(zoom - 0.1)}>−</button><output aria-label="组织树缩放">{Math.round(zoom * 100)}%</output><button aria-label="放大组织树" disabled={zoom >= 1.5} onClick={() => moveZoom(zoom + 0.1)}>＋</button></span>
@@ -141,7 +142,7 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport }: {
         </section>
       </div>
       <aside className="org-detail" aria-label="员工详情" aria-live="polite">
-        <span className="org-section-kicker">PERSONNEL FILE</span>
+        <h4 className="org-detail-title">{t('organization.detailTitle')}</h4>
         {selected ? <EmployeeDetail game={game} employee={selected} busy={busy} send={send} afford={afford} onPlane={onPlane} onAirport={onAirport}/> : <div className="org-empty-detail"><h3>组建第一支团队</h3><p>先招募飞行员并分配飞机，或招募地勤专员负责机场。经理并非运营前提。</p><p>员工的专业与管理能力可以分别培养，符合条件后可晋升部门经理。</p></div>}
       </aside>
     </div>

@@ -2,7 +2,7 @@
    All dimensions derive from these variables; no stacked legacy console offsets. */
 .aviation-game.dispatch-focused{border:0;border-radius:0;min-height:0}
 .aviation-game.dispatch-focused>.game-hud,.aviation-game.dispatch-focused>.game-dock{display:none}
-.aviation-game .route-dispatch-view{--bar:60px;--edge:16px;--zoom:52px;--gap:8px;--action:76px;--action-h:78px;--launch:110px;position:relative;background:#399bbf;color:#fff;height:100%;overflow:hidden}
+.aviation-game .route-dispatch-view{--bar:60px;--edge:16px;--gap:8px;--action:76px;--action-h:78px;--launch:110px;position:relative;background:#399bbf;color:#fff;height:100%;overflow:hidden}
 .aviation-game .route-dispatch-view .dispatch-readout{height:var(--bar);min-height:var(--bar);flex-shrink:0;display:grid;grid-template-columns:1.25fr 1fr 1.05fr .95fr;gap:22px;padding:6px 12px;background:linear-gradient(#505454,#303434);border:0;border-bottom:3px solid #161b1a;box-shadow:0 2px 3px #163b4540;z-index:4}
 .aviation-game .dispatch-readout .dispatch-stat{display:flex;gap:10px;align-items:center;min-width:0;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#fff;font-size:17px;text-shadow:0 1px 2px #111;white-space:nowrap}
 .dispatch-stat>span{font-weight:800;flex-shrink:0}
@@ -15,13 +15,11 @@
 .aviation-game .route-dispatch-view .network-map{position:relative;flex:1;min-height:0;background:#45b6df;overflow:hidden}
 .aviation-game .route-dispatch-view .map-area{position:absolute;inset:0;border:0;background:#45b6df}
 .aviation-game .route-dispatch-view .map-canvas{filter:saturate(1.05);width:100%;height:100%}
-.aviation-game .route-dispatch-view .map-controls{position:absolute;left:var(--edge);right:auto;top:auto;bottom:var(--edge);display:flex;flex-direction:row;gap:var(--gap);z-index:3}
-.aviation-game .route-dispatch-view .map-controls button{width:var(--zoom);height:var(--zoom);min-height:var(--zoom);padding:0;border:3px solid #22536b;border-radius:50%;background:radial-gradient(circle at 36% 30%,#f2ffff,#70d9ef 55%,#298bb4);box-shadow:inset 0 2px #fff,0 2px #183c4f;color:#174a63;font-size:36px;font-weight:900;line-height:1}
-.aviation-game .route-dispatch-view .map-plane-toggle{position:absolute;left:var(--edge);bottom:calc(var(--edge) + var(--zoom) + 14px);width:78px;min-height:60px;padding:4px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(#7fdaed,#3196bf);color:#fffce0;border:2px solid #2f6078;border-radius:6px;text-shadow:0 1px #1f4d65;z-index:3;font-size:14px}
+.aviation-game .route-dispatch-view .map-plane-toggle{position:absolute;left:var(--edge);bottom:calc(var(--edge) + var(--action-h) + 14px);width:78px;min-height:60px;padding:4px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(#7fdaed,#3196bf);color:#fffce0;border:2px solid #2f6078;border-radius:6px;text-shadow:0 1px #1f4d65;z-index:3;font-size:14px}
 .aviation-game .route-dispatch-view .map-plane-toggle strong{font-size:13px}
 .aviation-game .route-dispatch-view .map-disclaimer{top:32px;right:8px;bottom:auto;writing-mode:vertical-rl;color:#ffed64;text-shadow:0 1px 2px #214c43;font-size:11px;letter-spacing:2px;z-index:2;pointer-events:none}
 .aviation-game .route-dispatch-view .map-fallback{left:20%;right:20%;top:28%;width:auto;transform:none;background:#fff7e2ed;color:#294858;padding:14px;text-align:center;border-radius:6px}
-.aviation-game .dispatch-route-buttons{position:absolute;left:calc(var(--edge) + var(--zoom)*2 + var(--gap)*2);bottom:var(--edge);display:flex;gap:var(--gap);z-index:3}
+.aviation-game .dispatch-route-buttons{position:absolute;left:var(--edge);bottom:var(--edge);display:flex;gap:var(--gap);z-index:3}
 .aviation-game .route-dispatch-view .route-console-button{width:var(--action);height:var(--action-h);min-height:var(--action-h);display:flex;flex-direction:column;gap:3px;padding:4px;border:3px solid #326d88;border-radius:8px;background:linear-gradient(#a0ebf4,#48bbdb 54%,#298bb5);box-shadow:inset 0 2px #e0ffff,0 2px #215269;color:#fff9df;text-shadow:0 2px #27516b;font-size:18px;line-height:1.2}
 .aviation-game .route-console-button strong{font-size:23px;font-weight:600}
 .aviation-game .route-console-button:hover:not(:disabled){background:linear-gradient(#d4fafd,#68d7e8,#409ec5)}
@@ -51,14 +49,14 @@
 .dispatch-table-scroll table{border-collapse:collapse;width:100%;min-width:480px;font-size:13px;text-align:left;background:#fffcec}.dispatch-table-scroll th,.dispatch-table-scroll td{padding:9px 10px;border-bottom:1px solid #d8d9bd;white-space:nowrap}.dispatch-table-scroll thead{background:#dde9db}.dispatch-table-scroll caption{text-align:left;padding:8px 10px;font-weight:700}
 .dispatch-dialog-content .dispatch-dialog-note{font-size:12px;color:#66745c}.dispatch-detail-error{color:#994522}
 @media(max-height:600px) and (orientation:landscape){
- .aviation-game .route-dispatch-view{--bar:48px;--edge:10px;--zoom:44px;--gap:6px;--action:62px;--action-h:58px;--launch:88px}
+ .aviation-game .route-dispatch-view{--bar:48px;--edge:10px;--gap:6px;--action:62px;--action-h:58px;--launch:88px}
  .aviation-game .route-dispatch-view .dispatch-readout{padding:2px 8px;gap:12px}
  .aviation-game .dispatch-readout .dispatch-stat{font-size:13px;gap:6px;min-height:44px}
  .dispatch-stat>strong{font-size:18px;line-height:25px;padding:2px 6px}
  .aviation-game .dispatch-time:after{bottom:-10px;height:11px;left:-8px;right:-8px;border-radius:0 0 16px 16px}
  .aviation-game .route-console-button strong{font-size:18px}.aviation-game .route-dispatch-view .route-console-button{font-size:15px}
  .aviation-game .route-dispatch-button strong{font-size:16px}.aviation-game .route-dispatch-button .icon{width:32px;height:32px}
- .aviation-game .route-dispatch-view .map-plane-toggle{width:62px;min-height:44px;font-size:12px;bottom:calc(var(--edge) + var(--zoom) + 8px)}
+ .aviation-game .route-dispatch-view .map-plane-toggle{width:62px;min-height:44px;font-size:12px;bottom:calc(var(--edge) + var(--action-h) + 8px)}
  .aviation-game .route-dispatch-view .map-plane-toggle strong{font-size:11px}
  .dispatch-warning{font-size:11px;padding:4px 8px;max-width:280px}.dispatch-tip{top:20px;font-size:11px}
  .dispatch-dialog>header{padding:0 10px}.dispatch-dialog h2{font-size:17px}.dispatch-dialog-content{padding:12px}

@@ -51,7 +51,7 @@ export function FlightBoard({ game, selectedId, onSelect }: {
       <div className="browse-search-field">
         <label htmlFor={`${listId}-search`}>{ui('查找飞机')}</label>
         <div className="browse-search-control">
-          <input ref={input} id={`${listId}-search`} type="search" aria-label={ui('搜索飞机')} aria-controls={listId} placeholder={ui('编号、机型、城市或机场代码')} autoComplete="off" spellCheck={false} value={search} onChange={e => setSearch(e.target.value)}/>
+          <input ref={input} id={`${listId}-search`} type="search" aria-label={ui('搜索飞机')} aria-controls={listId} placeholder={ui('编号、机型或城市')} autoComplete="off" spellCheck={false} value={search} onChange={e => setSearch(e.target.value)}/>
           <button type="button" aria-label={ui('清空飞机搜索')} disabled={!search} onClick={clearSearch}>{ui('清空')}</button>
         </div>
       </div>

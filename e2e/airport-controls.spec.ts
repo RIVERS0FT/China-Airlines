@@ -31,7 +31,7 @@ test('destination stations group different destinations while preserving individ
   await page.getByRole('group', { name: '前往武汉的客货', exact: true }).getByTestId('waiting-order').first().click();
   await page.getByRole('button', { name: '查看机上客货', exact: true }).click();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
-  await expect(page.getByRole('group', { name: '前往武汉的客货', exact: true }).locator('.destination-station')).toContainText('武汉WUH');
+  await expect(page.getByRole('group', { name: '前往武汉的客货', exact: true }).locator('.destination-station')).toHaveText('武汉');
   await page.screenshot({ path: 'artifacts/destination-stations-loaded.png' });
 });
 
@@ -118,7 +118,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     await expect(page.locator('.cabin-overlay')).toBeVisible();
     await expect(page.locator('.airport-nameplate')).toHaveCount(0);
     await expect(page.locator('.destination-station')).toHaveCount(1);
-    await expect(page.locator('.destination-station')).toContainText('上海PVG');
+    await expect(page.locator('.destination-station')).toHaveText('上海');
     await expect(page.locator('.job-destination')).toHaveCount(0);
     const occupant = page.getByTestId('waiting-order').first();
     expect(await occupant.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
