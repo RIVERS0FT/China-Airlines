@@ -5,14 +5,20 @@ import { GameCore } from '../src/core/game.js';
 import { projectGeo, type GlobeCamera } from '../src/ui/globe-geometry.js';
 import { selectCity, launchRoute, routeDetails } from './dispatch-helpers.js';
 const NOW = Date.parse('2026-09-12T00:00:00Z');
-async function ready(page: Page) { await page.clock.install({ time: new Date(NOW) }); await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架'); }
+async function ready(page: Page, fixedBusinessTime = false) {
+  // Geometry/input checks must not race the 10s autosave disabling a button.
+  // Fixed Date still runs real rendering/timers and command persistence.
+  if (fixedBusinessTime) await page.clock.setFixedTime(new Date(NOW));
+  else await page.clock.install({ time: new Date(NOW) });
+  await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
+}
 test.beforeEach(async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message)); await page.exposeFunction('globeErrors', () => errors);
 });
 test.afterEach(async ({ page }) => expect(await page.evaluate(() => (window as unknown as { globeErrors: () => Promise<string[]> }).globeErrors())).toEqual([]));
 for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
   test(`rotatable globe and foreign unlock/flight are usable at ${width}`, async ({ page }) => {
-    await page.setViewportSize({ width: width!, height: height! }); await ready(page);
+    await page.setViewportSize({ width: width!, height: height! }); await ready(page, true);
     await page.getByRole('button', { name: '制定路线', exact: true }).click();
     const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-renderer', 'ready');
     await expect(host).toHaveAttribute('data-projection', 'orthographic'); await expect(host).toHaveAttribute('data-art-version', '2'); await expect(host).toHaveAttribute('data-camera', /radius/);
