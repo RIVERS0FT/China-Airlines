@@ -1,3 +1,4 @@
+import { migrateEmployee } from '../src/core/organization.js';
 import { describe, it, expect } from "vitest";
 import {
   GameCore,
@@ -45,7 +46,7 @@ function unchanged(c: GameCore, command: Command) {
 describe("v7 economy and historical contracts", () => {
   it("starts without gems and offers twelve distinct role models", () => {
     const s = new GameCore(NOW).snapshot();
-    expect(s.version).toBe(7);
+    expect(s.version).toBe(8);
     expect(s.credits).toBe(18000);
     expect(s.career.tickets).toBe(24);
     expect(JSON.stringify(s)).not.toMatch(/gem|diamond/);
@@ -169,7 +170,7 @@ describe("fleet, people, collections and tasks", () => {
     cmd(c, { type: "recruit-pilot" });
     cmd(c, { type: "assign-pilot", pilotId: 1, planeId: ID });
     const s = c.snapshot();
-    s.career.pilots[0]!.paidUntil = 10;
+    s.career.employees[0]!.paidUntil = 10;
     const run = new GameCore(NOW, s);
     cmd(run, { type: "start-duty", planeId: ID, to: "PVG" });
     const f = run.snapshot().fleet[0]!.flight!;
@@ -178,7 +179,7 @@ describe("fleet, people, collections and tasks", () => {
     expect(run.snapshot().fleet[0]!.autoRouteId).toBeNull();
     expect(run.snapshot().fleet[0]!.flight).toBeNull();
     cmd(run, { type: "pay-pilot", pilotId: 1 });
-    expect(run.snapshot().career.pilots[0]!.paidUntil).toBe(
+    expect(run.snapshot().career.employees[0]!.paidUntil).toBe(
       run.snapshot().simTime + 7 * 86400,
     );
   });
@@ -439,9 +440,9 @@ describe("strict expanded schema", () => {
     [
       "duplicate pilot",
       (s) => {
-        s.career.pilots = [
-          { id: 1, name: "a", paidUntil: 100, skill: 0, planeId: null },
-          { id: 1, name: "b", paidUntil: 100, skill: 0, planeId: null },
+        s.career.employees = [
+          migrateEmployee({ id: 1, name: "a", paidUntil: 100, skill: 0, planeId: null }, s.simTime),
+          migrateEmployee({ id: 1, name: "b", paidUntil: 100, skill: 0, planeId: null }, s.simTime),
         ];
         s.career.nextId = 2;
       },

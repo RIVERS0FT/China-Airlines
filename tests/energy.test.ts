@@ -150,7 +150,7 @@ describe('explicit ground service and event recovery', () => {
 });
 describe('strict v5 saves and legacy flight protection', () => {
   it('migrates v4 with all old money, orders, flights, clocks and upgrades untouched', () => {
-    const old=structuredClone(oldSave),s=validateSave(old);expect(s.version).toBe(7);
+    const old=structuredClone(oldSave),s=validateSave(old);expect(s.version).toBe(8);
     expect({...historicalFields(s),version:4,fleet:historicalFields(s).fleet.map(({energy:_e,...p})=>p)}).toEqual(old);
     for(const p of s.fleet)expect(p.energy).toEqual(fullEnergy());expect(oldSave).toEqual(old);
   });

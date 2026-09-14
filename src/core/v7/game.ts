@@ -1,6 +1,5 @@
 import { aircraftSpecs, emptyUpgrades, retrofitPrice, hangarPrice, UPGRADE_LABEL, type Upgrades, type UpgradeKey, airport, model, routeId, TASKS, upgradePrice, distance } from './catalog.js';
-import { validateSave as validateV7 } from './v7/game.js';
-import { groundServiceQuote, migrateEmployee } from './organization.js';
+import { validateSave as validateV6 } from './save-v6.js';
 export { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND } from './legacy.js';
 export type { Flight, AdvanceReport } from './legacy.js';
 import { GameCore as LegacyCore, MAX_FLEET, OFFLINE_LIMIT, TURNAROUND, type Plane as LegacyPlane, type Command as LegacyCommand, type AdvanceReport } from './legacy.js';
@@ -8,9 +7,9 @@ import { validateInfrastructure } from './save-infrastructure.js';
 import { ENERGY_SERVICE_SECONDS, type EnergyBudget } from './energy.js';
 import { resaleValue } from './management.js';
 import { modernModel, emptyTuning, upgradeLimit, upgradeTickets, service, MATERIALS, type Tuning, type Material } from './career-catalog.js';
-import { careerExecute, careerLevel, bill, consume, stock, warehouseUsed, warehouseCapacity, autoAllowed, onArrival, nextCareerEvent, advanceCareer, type Career, type CareerCommand } from './career.js';
+import { newCareer, careerExecute, careerLevel, bill, consume, stock, warehouseUsed, warehouseCapacity, autoAllowed, onArrival, nextCareerEvent, advanceCareer, type Career, type CareerCommand } from './career.js';
 import { validateCareer, validateTuning } from './save-career.js';
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 7;
 export type TutorialState = 'available' | 'active' | 'completed' | 'skipped';
 export const MAX_PLAN_LEGS = 12;
 export interface Plane extends LegacyPlane { upgrades: Upgrades; itinerary: string[]; dispatcher: boolean; energy: EnergyBudget; tuning: Tuning }
@@ -22,7 +21,7 @@ export interface Order {
   reward: number; location: string; createdAt: number; expiresAt: number | null; service: string; product: Material | null;
 }
 export interface GameState extends Omit<import('./legacy.js').GameState, 'version' | 'fleet'> {
-  version: 8; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
+  version: 7; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
 }
 export type Command = LegacyCommand | CareerCommand
   | { type: 'load' | 'unload'; planeId: string; orderId: string }
@@ -250,9 +249,8 @@ export class GameCore {
       case 'service-energy': {
         const p = planeAtGate(s, command.planeId);
         check(p.energy.availableSeconds < energyCapacity(p), '能量已满，无需补能');
-        const service = groundServiceQuote(s, p.airportId);
-        p.energy.serviceUntil = s.simTime + service.seconds;
-        note(s, `${p.id} 开始地勤补能 · ${service.seconds} 秒后补满，费用 0`); break;
+        p.energy.serviceUntil = s.simTime + ENERGY_SERVICE_SECONDS;
+        note(s, `${p.id} 开始地勤补能 · 120 秒后补满，费用 0`); break;
       }
       case 'cancel-energy-service': {
         const p = s.fleet.find(p => p.id === command.planeId); check(p, '未找到这架飞机');
@@ -262,12 +260,12 @@ export class GameCore {
       }
       case 'hire-dispatcher': {
         const p=planeAtGate(s,command.planeId); check(!p.dispatcher,'飞机已有飞行员');
-        careerExecute(s,{type:'recruit-pilot'}); careerExecute(s,{type:'assign-pilot',pilotId:s.career.employees.at(-1)!.id,planeId:p.id});
+        careerExecute(s,{type:'recruit-pilot'}); careerExecute(s,{type:'assign-pilot',pilotId:s.career.pilots.at(-1)!.id,planeId:p.id});
         note(s,'飞行员已招募并上岗，包含7天工资');break;
       }
       case 'dismiss-dispatcher': {
         const p=planeAtGate(s,command.planeId); check(p.dispatcher,'飞机没有飞行员');
-        const pilot=s.career.employees.find(c=>c.planeId===p.id); if(pilot)careerExecute(s,{type:'assign-pilot',pilotId:pilot.id,planeId:null});p.dispatcher=false;note(s,'飞行员已离开此岗位');break;
+        const pilot=s.career.pilots.find(c=>c.planeId===p.id); if(pilot)pilot.planeId=null;p.dispatcher=false;note(s,'飞行员已离开此岗位');break;
       }
       case 'start-duty': {
         const p = planeAtGate(s, command.planeId); check(autoAllowed(s,p), '请分配飞行员并续付工资');
@@ -283,7 +281,7 @@ export class GameCore {
         const p = planeAtGate(s, command.planeId);
         check(s.fleet.length > 1, '必须保留至少一架飞机');
         check(manifest(s, p.id).length === 0, '请先卸下全部客货，不能随飞机删除订单');
-        check(!s.career.employees.some(c=>c.planeId===p.id),'请先安排飞行员下岗'); const value = resaleValue(p); s.fleet = s.fleet.filter(item => item.id !== p.id); s.credits += value;
+        check(!s.career.pilots.some(c=>c.planeId===p.id),'请先安排飞行员下岗'); const value = resaleValue(p); s.fleet = s.fleet.filter(item => item.id !== p.id); s.credits += value;
         note(s, `${p.id} 已出售，机位已释放${p.dispatcher ? '，随航调度员合同已结束' : ''}`, value); break;
       }
       case 'tutorial': {
@@ -391,11 +389,11 @@ export class GameCore {
 }
 
 /** Older saves always pass their frozen validators before any migration. */
-export function migrateV7(value: unknown): GameState {
-  const old = validateV7(value), { pilots, ...career } = old.career;
-  return { ...old, version: 8, career: { ...career, employees: pilots.map(p => migrateEmployee(p, old.simTime)) } };
+export function migrateV6(value: unknown): GameState {
+  const old=validateV6(value),career=newCareer(old.simTime,old.lastWallTime);career.airportPeak=old.airports.length;
+  return {...old,version:7,career,fleet:old.fleet.map(p=>({...p,tuning:emptyTuning()})),orders:old.orders.map(o=>({...o,service:'legacy',product:null}))};
 }
-export const migrateV1=migrateV7, migrateV2=migrateV7, migrateV3=migrateV7, migrateV4=migrateV7, migrateV5=migrateV7, migrateV6=migrateV7;
+export const migrateV1=migrateV6, migrateV2=migrateV6, migrateV3=migrateV6, migrateV4=migrateV6, migrateV5=migrateV6;
 export function validateSave(value: unknown): GameState {
   const fail = (): never => { throw new Error('存档结构或经营数据无效，原进度未被覆盖'); };
   const record = (v: unknown, fields: string[]): Record<string, unknown> => {
@@ -415,7 +413,6 @@ export function validateSave(value: unknown): GameState {
   if (version === 4) return validateSave(migrateV4(value));
   if (version === 5) return validateSave(migrateV5(value));
   if (version === 6) return validateSave(migrateV6(value));
-  if (version === 7) return validateSave(migrateV7(value));
   if (version !== SAVE_VERSION) throw new Error('不支持此存档版本；请使用对应版本的游戏');
   const s = structuredClone(value) as GameState;
   record(s, ['version','credits','simTime','lastWallTime','nextId','airports','fleet','routes','stats','claimedTasks','log','orders','nextOrderId','nextDemandAt','hangarSlots','fleetPeak','tutorial','career']);

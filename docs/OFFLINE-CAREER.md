@@ -1,5 +1,7 @@
 # 单机经营扩展 · 实施设计
 
+2026-09-14增量：人员系统、组织树、合同与地勤补能效果以 [COMPANY-ORGANIZATION.md](COMPANY-ORGANIZATION.md) 为准。存档8取代本文件存档7；下文其余航空经营规则继续有效。经营中心入口现位于底部，顶部点券仅显示余额。
+
 基准：用户提供中华铁路2.0.9 APK，SHA256 a622d164a8b09e5e5d1442fdd1072a44a04b09c4572e5dae028a6ce14855f864。保留航空题材、原创美术、真实客流、球形航网与离线PWA。此次重读StaticTrainLevel、StaticCaptain、StaticActiveRule、StaticNaCargoType等包内数据。
 
 ## 明确替换的规则

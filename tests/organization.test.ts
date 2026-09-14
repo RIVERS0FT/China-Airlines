@@ -153,7 +153,7 @@ describe('ground staffing and immutable service deadlines', () => {
     expect(full.fleet[0]!.energy.serviceUntil).toBeNull(); const credits=full.credits; tick(reload,0); expect(reload.snapshot().credits).toBe(credits);
   });
   it('preserves a service already started in v7 when adding ground staff after migration', () => {
-    const old=new V7Core(NOW),s=old.snapshot();s.fleet[0]!.energy.availableSeconds-=60;const legacy=new V7Core(NOW,NOW && s);
+    const old=new V7Core(NOW),s=old.snapshot();s.fleet[0]!.energy.availableSeconds-=60;const legacy=new V7Core(NOW,s);
     legacy.execute({type:'service-energy',planeId:'AC0001'},NOW); const c=new GameCore(NOW,legacy.snapshot()); const e=recruit(c,'ground');
     cmd(c,{type:'assign-ground',employeeId:e.id,airportId:'PEK'}); expect(c.snapshot().fleet[0]!.energy.serviceUntil).toBe(120);
   });
