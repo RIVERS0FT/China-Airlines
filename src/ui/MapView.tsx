@@ -1,28 +1,42 @@
 import { clientToLogical } from './viewport.js';
 import { canPlaceMapLabel, clientBoxToMap, type MapBox } from './map-label-layout.js';
 import { useEffect, useRef, useState } from 'react';
-import { Application, Container, Graphics, Text, Ticker } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Sprite, Text, Texture, Ticker } from 'pixi.js';
 import { AIRPORTS, aircraftSpecs, airport } from '../core/catalog.js';
 import type { GameState, Plane } from '../core/game.js';
 import { arcPoints, fromVector, frontPolygon, frontSegment, globeCamera, greatCircle, projectGeo, rangePoints, screenPoint, toVector, viewVector, wrapLongitude, type GlobeCamera, type Vec3 } from './globe-geometry.js';
 import { LAND_VERTICES, LAND_FACES } from './world-land.js';
+import { aircraftPose, boundaryEdges, oceanTone, parabolicLift, parabolicRoute, terrainTone } from './globe-art.js';
 import { previewDescription, type RoutePreview } from './route-preview.js';
 import './globe.css';
 import { passengerDestinationCounts, passengerDestinationKey } from './passenger-destinations.js';
 import { useI18n } from '../i18n/I18n.js';
+import { artAsset } from './art-assets.js';
 interface Props { planning: boolean; game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null; showOthers: boolean; onToggleOthers: () => void }
 const geography = new Map(AIRPORTS.map(a => [a.id, toVector(a)]));
 const land = LAND_VERTICES.map(([lon, lat]) => toVector({ lon, lat }));
+const landCoastEdges = boundaryEdges(LAND_FACES);
 const arcCache = new Map<string, Vec3[]>();
 function routeArc(from: string, to: string) {
   const key = `${from}-${to}`;
   let points = arcCache.get(key);
-  if (!points) { points = arcPoints(airport(from), airport(to)); arcCache.set(key, points); }
+  if (!points) { points = parabolicRoute(arcPoints(airport(from), airport(to)), .1); arcCache.set(key, points); }
   return points;
+}
+function aircraftSurfacePoint(p: Plane, time: number): Vec3 {
+  const f = p.flight;
+  return f ? greatCircle(geography.get(f.from)!, geography.get(f.to)!, (time - f.departAt) / (f.arriveAt - f.departAt)) : geography.get(p.airportId)!;
 }
 function aircraftPoint(p: Plane, time: number): Vec3 {
   const f = p.flight;
-  return f ? greatCircle(geography.get(f.from)!, geography.get(f.to)!, (time - f.departAt) / (f.arriveAt - f.departAt)) : geography.get(p.airportId)!;
+  if (!f) return geography.get(p.airportId)!;
+  const progress = Math.max(0, Math.min(1, (time - f.departAt) / (f.arriveAt - f.departAt)));
+  return parabolicLift(greatCircle(geography.get(f.from)!, geography.get(f.to)!, progress), progress, .1);
+}
+function planeSize(file: string) {
+  if (file.includes('heavy')) return { width: 56, height: 25 };
+  if (file.includes('regional')) return { width: 50, height: 23 };
+  return { width: 44, height: 20 };
 }
 function path(graphics: Graphics, points: Vec3[], camera: GlobeCamera, color: number, width: number, alpha = 1, dashed = false) {
   for (let i = 1; i < points.length; i++) {
@@ -51,8 +65,9 @@ export function MapView(props: Props) {
         if (cancelled) { app.destroy(true, { children: true }); return; }
         const canvas = app.canvas as HTMLCanvasElement;
         canvas.setAttribute('role', 'img'); canvas.tabIndex = 0; element.appendChild(canvas);
-        const ocean = new Graphics(), terrain = new Graphics(), grid = new Graphics(), lines = new Graphics(), range = new Graphics(), draft = new Graphics(), nodes = new Container(), aircraft = new Container();
-        app.stage.addChild(ocean, terrain, grid, lines, range, draft, nodes, aircraft);
+        const ocean = new Graphics(), terrain = new Graphics(), coastShadow = new Graphics(), coast = new Graphics(), grid = new Graphics(), atmosphere = new Graphics();
+        const lines = new Graphics(), range = new Graphics(), draft = new Graphics(), nodes = new Container(), aircraft = new Container();
+        app.stage.addChild(ocean, terrain, coastShadow, coast, grid, atmosphere, lines, range, draft, nodes, aircraft);
         app.stage.eventMode = 'none';
         const marks = new Map(AIRPORTS.map(a => {
           const group = new Container(), ring = new Graphics();
@@ -63,16 +78,28 @@ export function MapView(props: Props) {
           group.addChild(ring, label, detail, passengerBadge, passengerText); nodes.addChild(group);
           return [a.id, { group, ring, label, detail, passengerBadge, passengerText }] as const;
         }));
-        const planes = new Map<string, Graphics>();
+        const planes = new Map<string, Sprite>(), planeTextures = new Map<string, Texture>(), pendingPlaneTextures = new Set<string>();
+        await Promise.all([...new Set(latest.current.game.fleet.map(p => aircraftSpecs(p).art))].map(async file => {
+          planeTextures.set(file, await Assets.load<Texture>(artAsset(file)));
+        }));
+        if (cancelled) { app.destroy(true, { children: true }); return; }
         const initial = latest.current.plane;
-        let camera = globeCamera(element.clientWidth, element.clientHeight, initial ? fromVector(aircraftPoint(initial, latest.current.game.simTime)) : airport(latest.current.selected));
+        let camera = globeCamera(element.clientWidth, element.clientHeight, initial ? fromVector(aircraftSurfacePoint(initial, latest.current.game.simTime)) : airport(latest.current.selected));
         let dirty = true, lastGame: GameState | null = null, focused = latest.current.selected, lastPreview = '', lastOthers = true, snapshotAt = performance.now();
+        const ensurePlaneTexture = (file: string) => {
+          if (planeTextures.has(file) || pendingPlaneTextures.has(file)) return;
+          pendingPlaneTextures.add(file);
+          void Assets.load<Texture>(artAsset(file)).then(texture => {
+            if (cancelled) return;
+            planeTextures.set(file, texture); dirty = true;
+          }).catch(() => undefined).finally(() => pendingPlaneTextures.delete(file));
+        };
         const publishCamera = () => { element.dataset.camera = JSON.stringify(camera); dirty = true; };
         const zoom = (factor: number) => { camera.scale = Math.max(1, Math.min(6, camera.scale * factor)); publishCamera(); };
         const focusCurrent = () => {
           const p = latest.current.plane;
           if (!p) return;
-          const point = fromVector(aircraftPoint(p, latest.current.game.simTime));
+          const point = fromVector(aircraftSurfacePoint(p, latest.current.game.simTime));
           camera.lat = point.lat; camera.lon = point.lon; publishCamera();
         };
         // Only painted overlays exclude labels. Empty dock space is still map.
@@ -152,10 +179,10 @@ export function MapView(props: Props) {
         canvas.addEventListener('wheel', wheel, { passive: false }); canvas.addEventListener('keydown', keydown);
         function drawGlobe() {
           const { cx, cy } = camera, r = camera.radius * camera.scale;
-          ocean.clear().circle(cx, cy, r + 10).fill({ color: 0x4eabc4, alpha: .08 }).circle(cx, cy, r + 4).fill({ color: 0x6fcad5, alpha: .15 });
-          for (let i = 24; i >= 1; i--) {
-            const t = 1 - i / 24, color = (Math.round(16 + t * 8) << 16) | (Math.round(63 + t * 43) << 8) | Math.round(86 + t * 39);
-            ocean.circle(cx, cy, r * i / 24).fill(color);
+          ocean.clear().circle(cx, cy, r + 13).fill({ color: 0x59d4df, alpha: .055 }).circle(cx, cy, r + 7).fill({ color: 0x68d4de, alpha: .12 });
+          for (let i = 36; i >= 1; i--) {
+            const t = 1 - i / 36;
+            ocean.circle(cx, cy, r * i / 36).fill(oceanTone(.12 + t * .78));
           }
           terrain.clear();
           const projected = land.map(p => viewVector(p, camera));
@@ -163,14 +190,28 @@ export function MapView(props: Props) {
             const vertices = face.map(i => projected[i]!);
             const clipped = frontPolygon(vertices);
             if (clipped.length < 3) continue;
-            const brightness = Math.max(0, Math.min(1, vertices.reduce((n, v) => n + v.z * .75 - v.x * .2 + v.y * .2, 0) / 3));
-            const color = (Math.round(70 + brightness * 67) << 16) | (Math.round(114 + brightness * 52) << 8) | Math.round(100 + brightness * 27);
-            terrain.poly(clipped.flatMap(v => { const p = screenPoint(v, camera); return [p.x, p.y]; })).fill(color);
+            const brightness = Math.max(0, Math.min(1, vertices.reduce((n, v) => n + .2 + v.z * .62 - v.x * .24 + v.y * .12, 0) / 3));
+            terrain.poly(clipped.flatMap(v => { const p = screenPoint(v, camera); return [p.x, p.y]; })).fill(terrainTone(brightness));
           }
+          coastShadow.clear(); coast.clear();
+          let visibleCoastEdges = 0;
+          for (const [from, to] of landCoastEdges) {
+            const segment = frontSegment(projected[from]!, projected[to]!);
+            if (!segment) continue;
+            const a = screenPoint(segment[0], camera), b = screenPoint(segment[1], camera);
+            coastShadow.moveTo(a.x, a.y).lineTo(b.x, b.y);
+            coast.moveTo(a.x, a.y).lineTo(b.x, b.y);
+            visibleCoastEdges += 1;
+          }
+          coastShadow.stroke({ color: 0x123b42, width: 3, alpha: .58 });
+          coast.stroke({ color: 0xc7d994, width: 1, alpha: .68 });
           grid.clear();
-          for (let lat = -60; lat <= 60; lat += 30) path(grid, Array.from({ length: 181 }, (_, i) => toVector({ lat, lon: i * 2 - 180 })), camera, 0xa4d8d8, 1, .13);
-          for (let lon = -180; lon < 180; lon += 30) path(grid, Array.from({ length: 91 }, (_, i) => toVector({ lat: i * 2 - 90, lon })), camera, 0xa4d8d8, 1, .13);
-          grid.circle(cx, cy, r).stroke({ color: 0x81c8d7, width: 1.5, alpha: .65 });
+          for (let lat = -60; lat <= 60; lat += 30) path(grid, Array.from({ length: 181 }, (_, i) => toVector({ lat, lon: i * 2 - 180 })), camera, lat === 0 ? 0xb8e1dc : 0x9acbcc, lat === 0 ? 1.25 : .8, lat === 0 ? .23 : .12);
+          for (let lon = -180; lon < 180; lon += 30) path(grid, Array.from({ length: 91 }, (_, i) => toVector({ lat: i * 2 - 90, lon })), camera, 0x9acbcc, .8, .12);
+          atmosphere.clear().circle(cx, cy, r).stroke({ color: 0x8ddbe1, width: 2, alpha: .72 });
+          atmosphere.arc(cx, cy, r - 3, Math.PI * .7, Math.PI * 1.55).stroke({ color: 0xd6f5e8, width: 4, alpha: .42 });
+          atmosphere.arc(cx, cy, r - 2, -Math.PI * .3, Math.PI * .48).stroke({ color: 0x0b2638, width: 4, alpha: .32 });
+          element.dataset.coastlineSegments = String(visibleCoastEdges);
         }
         function drawNetwork() {
           const { game, selected, preview, plane, planning } = latest.current;
@@ -254,16 +295,28 @@ export function MapView(props: Props) {
           if (!repaint && !animating) return;
           const visualTime = game.simTime + Math.min(1, Math.max(0, (performance.now() - snapshotAt) / 1000));
           for (const p of game.fleet) {
+            const file = aircraftSpecs(p).art, texture = planeTextures.get(file);
             let g = planes.get(p.id);
-            if (!g) { g = new Graphics().poly([12, 0, -8, -6, -4, 0, -8, 6]).fill(0xfff2c1).stroke({ color: 0x153e51, width: 1.5 }); aircraft.addChild(g); planes.set(p.id, g); }
+            if (g && g.label !== file) { g.destroy(); planes.delete(p.id); g = undefined; }
+            if (!g && texture) {
+              const size = planeSize(file);
+              g = new Sprite({ texture, anchor: .5, label: file }); g.width = size.width; g.height = size.height;
+              aircraft.addChild(g); planes.set(p.id, g);
+            }
+            if (!g) { ensurePlaneTexture(file); continue; }
             const v = screenPoint(viewVector(aircraftPoint(p, visualTime), camera), camera);
             g.visible = v.visible && (p.id === latest.current.plane?.id || (showOthers && Boolean(p.flight)));
-            g.position.set(v.x, v.y - (p.flight ? 0 : 23));
-            if (p.flight) { const next = screenPoint(viewVector(aircraftPoint(p, visualTime + .5), camera), camera); g.rotation = Math.atan2(next.y - v.y, next.x - v.x); }
-            else g.rotation = -Math.PI / 2;
+            g.position.set(v.x, v.y - (p.flight ? 0 : 20));
+            if (p.flight) {
+              const before = screenPoint(viewVector(aircraftPoint(p, visualTime - .5), camera), camera);
+              const after = screenPoint(viewVector(aircraftPoint(p, visualTime + .5), camera), camera);
+              const pose = aircraftPose(after.x - before.x, after.y - before.y);
+              g.scale.x = Math.abs(g.scale.x) * (pose.flipX ? -1 : 1); g.rotation = pose.rotation;
+            } else { g.scale.x = Math.abs(g.scale.x); g.rotation = 0; }
           }
           for (const [id, g] of planes) if (!game.fleet.some(p => p.id === id)) { g.destroy(); planes.delete(id); }
           element.dataset.visiblePlanes = [...planes].filter(([, g]) => g.visible).map(([id]) => id).join(',');
+          element.dataset.visiblePlaneModels = [...planes].filter(([, g]) => g.visible).map(([id, g]) => `${id}:${g.label}`).join(',');
           app.render();
           element.dataset.renderCount = String(++frames);
         });
@@ -280,7 +333,7 @@ export function MapView(props: Props) {
     return () => { cancelled = true; dispose(); if (initialized && !app.stage.destroyed) app.destroy(true, { children: true }); };
   }, []);
   return <section className="map-area globe-area" aria-label={props.planning ? i18n.t('map.routeMap') : i18n.t('map.map')} aria-describedby={props.planning ? "route-preview-description" : undefined}>
-    <div className="map-canvas" ref={host} data-testid="map-canvas" data-projection="orthographic" data-renderer={status}/>
+    <div className="map-canvas" ref={host} data-testid="map-canvas" data-projection="orthographic" data-art-version="2" data-route-visual="parabolic" data-aircraft-visual="model" data-renderer={status}/>
     {props.planning && <p id="route-preview-description" className="sr-only" data-testid="route-preview" data-legs={props.preview?.legs.length ?? 0}>{previewDescription(props.preview)}</p>}
     {status === 'fallback' && <div className="map-fallback" role="status">{i18n.t('map.fallback', { control:props.planning ? i18n.t('map.destination') : i18n.t('map.find') })}</div>}
     <div className="globe-hint" aria-hidden="true"><strong>{i18n.t('map.globeTitle')}</strong><span>{i18n.t('map.globeHint')}</span>{!props.planning && <span data-testid="map-unlocked-count">{i18n.t('map.unlocked', { open: props.game.airports.length, total: AIRPORTS.length })}</span>}</div>

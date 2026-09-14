@@ -15,7 +15,12 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     await page.setViewportSize({ width: width!, height: height! }); await ready(page);
     await page.getByRole('button', { name: '制定路线', exact: true }).click();
     const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-renderer', 'ready');
-    await expect(host).toHaveAttribute('data-projection', 'orthographic'); await expect(host).toHaveAttribute('data-camera', /radius/);
+    await expect(host).toHaveAttribute('data-projection', 'orthographic'); await expect(host).toHaveAttribute('data-art-version', '2'); await expect(host).toHaveAttribute('data-camera', /radius/);
+    await expect(host).toHaveAttribute('data-route-visual', 'parabolic'); await expect(host).toHaveAttribute('data-aircraft-visual', 'model');
+    await expect(host).toHaveAttribute('data-coastline-segments', /^[1-9]\d*$/);
+    await expect(host).toHaveAttribute('data-visible-plane-models', /AC0001:aircraft-light-passenger-v2\.png/);
+    const background = await host.evaluate(node => getComputedStyle(node.parentElement!).backgroundImage);
+    expect(background).toContain('radial-gradient'); expect(background).not.toContain('url(');
     const camera = await host.getAttribute('data-camera'), bounds = (await host.boundingBox())!;
     await page.getByRole('button', { name: '关闭选路提示', exact: true }).click();
     await page.mouse.move(bounds.x + bounds.width * .55, bounds.y + bounds.height * .4); await page.mouse.down();

@@ -1,0 +1,13 @@
+Use case: stylized-concept
+Asset type: production UI resource icon for a Chinese 2D airline management web game
+Primary request: create one unmistakable premium coupon ticket icon representing in-game 点券
+Subject: a single compact golden-yellow airline coupon ticket with rounded corners and semicircular side notches, a subtle perforation line, and a simple embossed wing emblem in the center
+Style/medium: polished hand-painted 2D mobile game icon, slightly glossy and tactile, matching a cheerful blue-and-gold aviation management interface
+Composition/framing: centered square icon, strong readable silhouette at 22px, generous transparent padding, straight-on view
+Color palette: warm ticket gold, amber edge, small cream highlight, restrained cyan-blue accent
+Constraints: genuinely transparent background; no text; no letters; no numbers; no currency symbol; no brand; no watermark; exactly one ticket; crisp clean edges
+Avoid: trophy, cup, medal, coin, banknote, realistic photo, drop-shadow rectangle, busy details
+
+Generated with the built-in image generation tool. The 1254 x 1254 RGBA source is saved as
+art/source/icon-ticket-v2-source.png. The runtime asset is cropped to its nontransparent content,
+fitted on a centered transparent square, and downsampled with Lanczos to public/art/icon-ticket-v2.png.
