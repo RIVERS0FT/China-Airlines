@@ -10,6 +10,7 @@ import { artAsset } from './art-assets.js';
 import { ignore, duration } from './Panels.js';
 import { useGameViewport } from './GameViewport.js';
 import { organizationLayout, ORG_NODE_HEIGHT, ORG_NODE_WIDTH } from './organization-layout.js';
+import { employeeDisplayName } from './organization-presentation.js';
 import './organization.css';
 
 function status(s: GameState, e: Employee) {
@@ -69,8 +70,8 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport }: {
   const node = (e: Employee, positioned = false) => <button type="button" key={e.id}
     className={`org-person${positioned ? ' org-positioned' : ''}`} data-employee-id={e.id}
     data-state={e.paidUntil <= game.simTime ? 'expired' : e.role === 'specialist' && !e.planeId && !e.airportId ? 'waiting' : 'active'}
-    aria-label={`查看${e.name} · ${roleName(e)}`} aria-pressed={selected?.id === e.id} onClick={() => setSelectedId(e.id)}>
-    <img src={artAsset('pilot-avatar-v1.png')} alt=""/><span><strong>{e.name}</strong><small>{roleName(e)}</small></span>
+    aria-label={`查看${employeeDisplayName(e)} · ${roleName(e)}`} aria-pressed={selected?.id === e.id} onClick={() => setSelectedId(e.id)}>
+    <img src={artAsset('pilot-avatar-v1.png')} alt=""/><span><strong>{employeeDisplayName(e)}</strong><small>{roleName(e)}</small></span>
     <em>{status(game, e)}</em>
   </button>;
   return <section className="company-organization" aria-label="公司组织管理">
@@ -134,17 +135,17 @@ function EmployeeDetail({ game, employee: e, busy, send, afford, onPlane, onAirp
   const promotionReason = reason || (staffIn(game, e.department, role).length >= staffLimit(e.department, role) ? '目标岗位已满' :
     role === 'manager' && (e.skill < 2 || e.management < 1) ? '晋升需要专业2级、管理1级' : '');
   return <>
-    <div className="org-detail-heading"><img src={artAsset('pilot-avatar-v1.png')} alt=""/><div><h3>{e.name}</h3><strong>{roleName(e)}</strong><small>{status(game, e)}</small></div></div>
+    <div className="org-detail-heading"><img src={artAsset('pilot-avatar-v1.png')} alt=""/><div><h3>{employeeDisplayName(e)}</h3><strong>{roleName(e)}</strong><small>{status(game, e)}</small></div></div>
     <dl className="org-attributes"><div><dt>专业</dt><dd>{e.skill}</dd></div><div><dt>管理</dt><dd>{e.management}</dd></div><div><dt>潜力上限</dt><dd>{e.potential}</dd></div></dl>
     {e.department === 'flight' && e.role === 'specialist' && <small>每级专业能力增加3%运输公司经验。个人业绩只记录有偿运输。</small>}
     {e.department === 'ground' && e.role === 'specialist' && <small>每级专业能力提升2%补能效率，仅作用于负责机场的后续服务。</small>}
     <p className="org-trait">{e.trait === 'mentor' ? '特长：善于带教（任经理后培训折扣额外5%，总折扣上限20%）' : '特长：高效执行（任经理时管理容量＋1；任地勤时补能效率额外5%，总提升上限30%）'}</p>
     {e.role === 'manager' ? <p>直属 {directReports(game, e.id).length} 人，有效管理容量 {managerCapacity(e)} 人。按员工编号覆盖前 {managerCapacity(e)} 人；超编不影响基础运营。</p> : <>
-      <label>直属上级<select aria-label={`${e.name}直属上级`} value={e.managerId ?? ''} disabled={busy} onChange={event => send({ type: 'report-to', employeeId: e.id, managerId: event.target.value ? Number(event.target.value) : null })}>
-        <option value="">玩家直管</option>{staffIn(game, e.department, 'manager').map(m => <option key={m.id} value={m.id}>{m.name} · {roleName(m)}</option>)}
+      <label>直属上级<select aria-label={`${employeeDisplayName(e)}直属上级`} value={e.managerId ?? ''} disabled={busy} onChange={event => send({ type: 'report-to', employeeId: e.id, managerId: event.target.value ? Number(event.target.value) : null })}>
+        <option value="">玩家直管</option>{staffIn(game, e.department, 'manager').map(m => <option key={m.id} value={m.id}>{employeeDisplayName(m)} · {roleName(m)}</option>)}
       </select></label>
-      <small>{manager ? `${manager.name}的管理效果生效` : e.managerId !== null ? '经理合同到期或超出管理容量，基础运营不受影响' : '直接向玩家汇报，不要求聘请经理'}</small>
-      <label>工作岗位<select aria-label={`${e.name}岗位`} disabled={busy || Boolean(reason)} value={(e.department === 'flight' ? e.planeId : e.airportId) ?? ''} onChange={event => send(e.department === 'flight' ? { type: 'assign-pilot', pilotId: e.id, planeId: event.target.value || null } : { type: 'assign-ground', employeeId: e.id, airportId: event.target.value || null })}>
+      <small>{manager ? `${employeeDisplayName(manager)}的管理效果生效` : e.managerId !== null ? '经理合同到期或超出管理容量，基础运营不受影响' : '直接向玩家汇报，不要求聘请经理'}</small>
+      <label>工作岗位<select aria-label={`${employeeDisplayName(e)}岗位`} disabled={busy || Boolean(reason)} value={(e.department === 'flight' ? e.planeId : e.airportId) ?? ''} onChange={event => send(e.department === 'flight' ? { type: 'assign-pilot', pilotId: e.id, planeId: event.target.value || null } : { type: 'assign-ground', employeeId: e.id, airportId: event.target.value || null })}>
         <option value="">待分配</option>{e.department === 'flight' ? game.fleet.map(p => <option key={p.id} value={p.id} disabled={game.career.employees.some(other => other.id !== e.id && other.planeId === p.id) || Boolean(p.flight || p.autoRouteId || p.itinerary.length || p.energy.serviceUntil !== null || p.readyAt > game.simTime)}>{p.id} · {aircraftSpecs(p).name}</option>) : game.airports.map(a => <option key={a.id} value={a.id} disabled={game.career.employees.some(other => other.id !== e.id && other.airportId === a.id)}>{airport(a.id).city}</option>)}
       </select></label>
       {e.airportId && <small>该机场下次补能 {groundServiceQuote(game, e.airportId).seconds} 秒；已开始的服务不变。</small>}

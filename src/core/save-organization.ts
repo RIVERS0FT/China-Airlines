@@ -16,7 +16,8 @@ export function validateEmployees(s: GameState): void {
     record(e, ['id','name','planeId','paidUntil','skill','department','role','managerId','airportId','management','potential','trait','joinedAt','flights','deliveries','history']);
     num(e.id); num(e.paidUntil, 1e12, false); num(e.potential, 10); num(e.skill, e.potential); num(e.management, e.potential);
     num(e.flights, s.stats.flights); num(e.deliveries, s.stats.passengers + s.stats.cargo);
-    if (e.id < 1 || e.id >= s.career.nextId || ids.has(e.id) || typeof e.name !== 'string' || !e.name.trim() || e.name.length > 12 ||
+    // v7 accepted any 1–12-character name; preserve that contract without normalizing saved identities.
+    if (e.id < 1 || e.id >= s.career.nextId || ids.has(e.id) || typeof e.name !== 'string' || e.name.length < 1 || e.name.length > 12 ||
       e.potential < 6 || !['flight','ground'].includes(e.department) || !['specialist','manager'].includes(e.role) || !['mentor','efficient'].includes(e.trait)) fail();
     ids.add(e.id);
     if (e.joinedAt !== null) num(e.joinedAt, s.simTime, false);
