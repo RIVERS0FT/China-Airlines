@@ -23,9 +23,11 @@ describe('historical employee names', () => {
     expect(old).toEqual(before);
     expect(current.career.employees[0]).toMatchObject(old.career.pilots[0]!);
     const { version: oldVersion, career: oldCareer, ...oldBusiness } = old;
-    const { version: currentVersion, career: currentCareer, ...currentBusiness } = current;
-    expect(oldVersion).toBe(7); expect(currentVersion).toBe(8);
+    const { version: currentVersion, career: currentCareer, talent, ...currentBusiness } = current;
+    expect(oldVersion).toBe(7); expect(currentVersion).toBe(9);
     expect(currentBusiness).toEqual(oldBusiness);
+    expect(talent).toMatchObject({ startedAt: old.simTime, mentoring: [], milestones: [], deferred: [] });
+    expect(talent.candidates).toHaveLength(12);
     const { pilots, ...oldCareerFields } = oldCareer;
     const { employees, ...currentCareerFields } = currentCareer;
     expect(employees).toHaveLength(pilots.length);

@@ -26,7 +26,7 @@ import { useI18n } from '../i18n/I18n.js';
 
 type Screen = 'airport' | 'map';
 type MapMode = 'browse' | 'dispatch';
-type ModalName = 'career' | 'organization' | 'shop' | 'fleet' | 'tasks' | 'settings' | 'help' | 'airports' | 'airport-detail';
+type ModalName = 'career' | 'shop' | 'fleet' | 'tasks' | 'settings' | 'help' | 'airports' | 'airport-detail';
 const PLAYING_KEY = 'china-airlines:playing:v1';
 const SCREEN_KEY = 'china-airlines:screen:v1';
 const sessionValue = (key: string) => { try { return sessionStorage.getItem(key); } catch { return null; } };
@@ -50,6 +50,8 @@ export function App() {
   const [mapMode, setMapMode] = useState<MapMode>('browse');
   const [destination, setDestination] = useState('PEK'), [aboard, setAboard] = useState(false);
   const [orderViewKey, setOrderViewKey] = useState(0);
+  const [organizationOpen, setOrganizationOpen] = useState(false);
+  const [organizationTarget, setOrganizationTarget] = useState<{ id: number | null; training: boolean }>({ id: null, training: false });
   const [modal, setModal] = useState<ModalName | null>(null);
   const [fleetTab, setFleetTab] = useState<FleetTab>('planes');
   const [browsedAirport, setBrowsedAirport] = useState<string | null>(null);
@@ -75,8 +77,9 @@ export function App() {
     try { sessionStorage.setItem(PLAYING_KEY, 'true'); sessionStorage.setItem(SCREEN_KEY, screen); } catch { /* Session-only convenience; gameplay does not depend on it. */ }
   }, [playing, screen]);
 
+  function openOrganization(id: number | null = null, training = false) { setOrganizationTarget({ id, training }); setOrganizationOpen(true); setModal(null); }
   function openFleet(tab: FleetTab = 'planes') { setFleetTab(tab); setModal('fleet'); }
-  function selectPlane(id: string) { setPlaneId(id); setBrowsedAirport(null); setScreen('airport'); setAboard(false); setModal(null); }
+  function selectPlane(id: string) { setOrganizationOpen(false); setPlaneId(id); setBrowsedAirport(null); setScreen('airport'); setAboard(false); setModal(null); }
   function showOrders(onboard: boolean) { setAboard(onboard); setOrderViewKey(key => key + 1); }
   function cycle(dir: number) {
     if (!context || !plane || !context.choices.length) return;
@@ -90,10 +93,12 @@ export function App() {
   }
   function closeModal() { routeUnlockResume.current = null; setModal(null); }
   function visitAirport(id: string) {
+    setOrganizationOpen(false);
     if (!game?.airports.some(item => item.id === id)) return;
     setBrowsedAirport(id); setScreen('airport'); setAboard(false); setModal(null);
   }
   function showMap(target?: string, mode: MapMode = 'dispatch') {
+    setOrganizationOpen(false);
     // Use an actual aircraft, never treat an empty airport as its departure point.
     if (!context) return;
     if (screen !== 'map') mapReturn.current = { planeId, browsedAirport, aboard };
@@ -103,6 +108,7 @@ export function App() {
     setBrowsedAirport(null); setScreen('map'); setModal(null);
   }
   function returnFromMap() {
+    setOrganizationOpen(false);
     const previous = mapReturn.current;
     mapReturn.current = null; routeUnlockResume.current = null;
     if (previous) {
@@ -129,7 +135,7 @@ export function App() {
     : plane.energy.serviceUntil !== null ? t('airport.servicing') : cooling ? t('airport.turnaround') : '';
   const city = (id: string) => airportName(id, airport(id).city);
   const modalTitles: Record<ModalName, string> = {
-    career:t('modal.career'), organization:t('modal.organization'), shop:t('modal.shop'), fleet:t('modal.fleet'), tasks:t('modal.tasks'), settings:t('common.settings'),
+    career:t('modal.career'), shop:t('modal.shop'), fleet:t('modal.fleet'), tasks:t('modal.tasks'), settings:t('common.settings'),
     help:t('modal.help'), airports:t('modal.airports'), 'airport-detail':t('modal.airportDetails')
   };
 
@@ -141,7 +147,7 @@ export function App() {
   </>;
 
   return <>
-    <div className={`aviation-game ${isDispatch ? 'dispatch-focused' : ''} ${isBrowseMap ? 'map-browse' : ''} ${screen === 'airport' && game?.tutorial === 'active' && plane && !modal ? 'training-active' : ''}`}>
+    <div className={`aviation-game ${isDispatch ? 'dispatch-focused' : ''} ${isBrowseMap && !organizationOpen ? 'map-browse' : ''} ${screen === 'airport' && game?.tutorial === 'active' && plane && !modal && !organizationOpen ? 'training-active' : ''}`}>
       <header className="game-hud" hidden={isDispatch}>
         <div className="game-brand"><span className="pilot-badge"><Icon name="pilot"/></span><div><h1>{t('app.name')}</h1><small>{t('hud.company', { level: game ? careerLevel(game) : 1 })}</small></div></div>
         <div className="resource"><Icon name="coin"/><span><small>{t('hud.credits')}</small><strong data-testid="credits">{money(game?.credits ?? 0)}</strong></span></div>
@@ -151,11 +157,11 @@ export function App() {
         <button aria-label={t('hud.save')} onClick={() => setModal('settings')}><Icon name="save"/><span>{view.busy ? t('common.saving') : view.error ? t('common.attention') : t('common.saved')}</span></button>
       </header>
 
-      {screen === 'airport' && game && plane && game.tutorial === 'active' && !modal && <Tutorial game={game} plane={plane} screen={screen} destination={to} busy={view.busy} onLocate={target => {
+      {screen === 'airport' && game && plane && game.tutorial === 'active' && !modal && !organizationOpen && <Tutorial game={game} plane={plane} screen={screen} destination={to} busy={view.busy} onLocate={target => {
         if (target === 'tasks') setModal('tasks'); else if (target === 'map') showMap(); else { setScreen('airport'); setAboard(false); }
       }}/>}
 
-      {!game ? <main className="startup"><h2>{view.booting ? t('start.loading') : t('startup.missing')}</h2><p>{view.error}</p><button onClick={() => setModal('settings')}>{t('startup.recover')}</button></main> : <main className="game-workspace">
+      {!game ? <main className="startup"><h2>{view.booting ? t('start.loading') : t('startup.missing')}</h2><p>{view.error}</p><button onClick={() => setModal('settings')}>{t('startup.recover')}</button></main> : <main className="game-workspace" style={{ display: organizationOpen ? 'none' : undefined }}>
         {screen === 'map' ? <Network key={`${plane?.id}-${mapMode}`} mode={mapMode} onInspect={(id, afterUnlock) => inspectAirport(id, afterUnlock, 'map')} game={game} plane={plane} destination={destination} setDestination={setDestination} onReturn={returnFromMap} onDepart={() => { mapReturn.current = null; setScreen('airport'); setAboard(true); }} busy={view.busy}/> : <>
           <div className="airport-titlebar">
             <button className="airport-info-trigger" aria-label={t('airport.currentDetails')} onClick={() => inspectAirport(current, undefined, 'close')} title={t('airport.detailsHint')}>{t('airport.details')}</button>
@@ -177,32 +183,33 @@ export function App() {
         </>}
       </main>}
 
+      {game && organizationOpen && <main className="organization-workspace"><CompanyOrganization game={game} busy={view.busy} initialEmployeeId={organizationTarget.id} initialTraining={organizationTarget.training} onClose={() => setOrganizationOpen(false)} onPlane={selectPlane} onAirport={visitAirport}/></main>}
+
       {!isDispatch && game && <nav className="game-dock" aria-label={t('nav.main')}>
-        <button className={isBrowseMap ? 'active' : ''} onClick={() => showMap(undefined, 'browse')}><Icon name="map"/><span>{t('nav.map')}</span></button>
-        <button className={screen === 'airport' ? 'active' : ''} onClick={() => screen === 'map' ? returnFromMap() : showOrders(false)}><Icon name="airport"/><span>{t('nav.airport')}</span></button>
+        <button className={isBrowseMap && !organizationOpen ? 'active' : ''} onClick={() => showMap(undefined, 'browse')}><Icon name="map"/><span>{t('nav.map')}</span></button>
+        <button className={screen === 'airport' && !organizationOpen ? 'active' : ''} onClick={() => { setOrganizationOpen(false); if (screen === 'map') returnFromMap(); else showOrders(false); }}><Icon name="airport"/><span>{t('nav.airport')}</span></button>
         <button onClick={() => setModal('airports')}><Icon name="directory"/><span>{t('nav.directory')}</span></button>
         <button onClick={() => openFleet()}><Icon name="plane"/><span>{t('nav.fleet')}</span></button>
         <button onClick={() => setModal('shop')}><Icon name="shop"/><span>{t('nav.shop')}</span></button>
-        <button type="button" className={modal === 'organization' ? 'active' : ''} aria-current={modal === 'organization' ? 'page' : undefined} aria-haspopup="dialog" aria-expanded={modal === 'organization'} onClick={() => setModal('organization')}><Icon name="pilot"/><span>{t('nav.organization')}</span></button>
+        <button type="button" className={organizationOpen ? 'active' : ''} aria-current={organizationOpen ? 'page' : undefined} onClick={() => openOrganization()}><Icon name="pilot"/><span>{t('nav.organization')}</span></button>
         <button type="button" aria-haspopup="dialog" onClick={() => setModal('career')}><Icon name="trophy"/><span>{t('nav.career')}</span></button>
-        {screen === 'airport' && <button className="gold-button depart-button" aria-label={t('nav.dispatch')} aria-describedby="airport-departure-reason" title={departureReason || t('airport.routeHint')} disabled={!plane || view.busy || Boolean(flight) || Boolean(cooling) || plane?.energy.serviceUntil !== null} onClick={() => showMap()}><Icon name="plane"/><span>{t('nav.dispatch')}</span><small id="airport-departure-reason" className="airport-departure-reason">{departureReason}</small></button>}
+        {screen === 'airport' && !organizationOpen && <button className="gold-button depart-button" aria-label={t('nav.dispatch')} aria-describedby="airport-departure-reason" title={departureReason || t('airport.routeHint')} disabled={!plane || view.busy || Boolean(flight) || Boolean(cooling) || plane?.energy.serviceUntil !== null} onClick={() => showMap()}><Icon name="plane"/><span>{t('nav.dispatch')}</span><small id="airport-departure-reason" className="airport-departure-reason">{departureReason}</small></button>}
       </nav>}
     </div>
 
     {modal === 'settings' && <Settings onClose={() => setModal(null)}/>}
-    {game && modal && modal !== 'settings' && <Modal key={modal} title={modalTitles[modal]} className={modal === 'organization' ? 'organization-modal' : ''} onClose={closeModal}>
+    {game && modal && modal !== 'settings' && <Modal key={modal} title={modalTitles[modal]} onClose={closeModal}>
       {modal === 'career' ? <CareerHub game={game} busy={view.busy} selected={plane?.id ?? context?.selected.id} airportId={current}/>
-        : modal === 'organization' ? <CompanyOrganization game={game} busy={view.busy} onPlane={id => { selectPlane(id); setModal(null); }} onAirport={id => { visitAirport(id); setModal(null); }}/>
         : modal === 'airports' ? <AirportDirectory game={game} onInspect={id => inspectAirport(id, undefined, 'directory')}/>
         : modal === 'airport-detail' ? <AirportDetails game={game} id={detailAirport} busy={view.busy} backLabel={detailBack === 'directory' ? (locale === 'zh-CN' ? '返回机场目录' : 'Back to Directory') : detailBack === 'map' ? (mapMode === 'browse' ? (locale === 'zh-CN' ? '返回地图' : 'Back to Map') : (locale === 'zh-CN' ? '返回制定路线' : 'Back to Route Plan')) : (locale === 'zh-CN' ? '返回机场装载' : 'Back to Airport')} onBack={() => { routeUnlockResume.current = null; if (detailBack === 'directory') setModal('airports'); else setModal(null); }} onUnlocked={() => { const resume = routeUnlockResume.current; routeUnlockResume.current = null; if (resume) { setModal(null); resume(); } }} onVisit={visitAirport} onPlane={selectPlane} onRoute={id => showMap(id)}/>
         : modal === 'shop' ? <Shop game={game} busy={view.busy} selected={current}/>
-        : modal === 'tasks' ? <TaskCenter game={game} plane={plane ?? context?.selected} busy={view.busy} onNext={step => { if (step === 'map') showMap(); else if (step === 'flight') openFleet('flights'); else { if (context) selectPlane((plane ?? context.selected).id); showOrders(false); } }}/>
-        : modal === 'fleet' ? <FleetManagement game={game} busy={view.busy} selectedPlaneId={plane?.id ?? context?.selected.id} initialTab={fleetTab} onSelect={selectPlane}/>
+        : modal === 'tasks' ? <TaskCenter onEmployee={(id, training) => openOrganization(id, training)} game={game} plane={plane ?? context?.selected} busy={view.busy} onNext={step => { if (step === 'map') showMap(); else if (step === 'flight') openFleet('flights'); else { if (context) selectPlane((plane ?? context.selected).id); showOrders(false); } }}/>
+        : modal === 'fleet' ? <FleetManagement onEmployee={id => openOrganization(id)} game={game} busy={view.busy} selectedPlaneId={plane?.id ?? context?.selected.id} initialTab={fleetTab} onSelect={selectPlane}/>
         : <HelpContent busy={view.busy} onStart={() => { ignore(act({ type:'tutorial', action:'start' }).then(() => { setModal(null); setBrowsedAirport(null); setScreen('airport'); })); }}/>}
     </Modal>}
-    {view.notice && !modal && !isDispatch && <div className="toast" role="status"><Icon name="check"/><span>{text(view.notice)}</span><button aria-label={t('common.closeNotice')} onClick={() => useGame.setState({ notice:null })}>×</button></div>}
-    {view.error && game && !modal && !view.blocked && <div className="error-toast" role="alert"><span>{text(view.error)}</span>{isDispatch && <button onClick={() => setModal('settings')}>{t('map.settings')}</button>}<button onClick={() => useGame.setState({ error:null })}>{t('common.close')}</button></div>}
-    {view.report && !modal && !isDispatch && <div className="return-report" role="status"><h3>{view.report.clockBack ? t('status.clockBack') : t('status.offlineReport')}</h3><p>{t('status.offlineSummary', { elapsed:duration(view.report.elapsed), flights:view.report.flights, profit:money(view.report.profit) })}</p>{view.report.capped && <p>{t('status.offlineCap')}</p>}<button className="primary" onClick={() => useGame.setState({ report:null })}>{t('status.continue')}</button></div>}
+    {view.notice && !modal && !isDispatch && !organizationOpen && <div className="toast" role="status"><Icon name="check"/><span>{text(view.notice)}</span><button aria-label={t('common.closeNotice')} onClick={() => useGame.setState({ notice:null })}>×</button></div>}
+    {view.error && game && !modal && !view.blocked && !organizationOpen && <div className="error-toast" role="alert"><span>{text(view.error)}</span>{isDispatch && <button onClick={() => setModal('settings')}>{t('map.settings')}</button>}<button onClick={() => useGame.setState({ error:null })}>{t('common.close')}</button></div>}
+    {view.report && !modal && !isDispatch && !organizationOpen && <div className="return-report" role="status"><h3>{view.report.clockBack ? t('status.clockBack') : t('status.offlineReport')}</h3><p>{t('status.offlineSummary', { elapsed:duration(view.report.elapsed), flights:view.report.flights, profit:money(view.report.profit) })}</p>{view.report.capped && <p>{t('status.offlineCap')}</p>}<button className="primary" onClick={() => useGame.setState({ report:null })}>{t('status.continue')}</button></div>}
     {view.updateAvailable && !modal && !isDispatch && <button className="update-notice" onClick={() => setModal('settings')}>{t('status.update')}</button>}
     {view.blocked && <div className="blocking-screen" role="alert"><h2>{t('status.blocked')}</h2><p>{t('status.blockedText')}</p><button className="primary" onClick={() => location.reload()}>{t('status.reload')}</button></div>}
     <div className="rotate-screen"><Icon name="rotate"/><h2>{t('rotate.title')}</h2><p>{t('rotate.subtitle')}</p></div>

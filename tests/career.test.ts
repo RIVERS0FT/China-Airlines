@@ -46,7 +46,7 @@ function unchanged(c: GameCore, command: Command) {
 describe("v7 economy and historical contracts", () => {
   it("starts without gems and offers twelve distinct role models", () => {
     const s = new GameCore(NOW).snapshot();
-    expect(s.version).toBe(8);
+    expect(s.version).toBe(9);
     expect(s.credits).toBe(18000);
     expect(s.career.tickets).toBe(24);
     expect(JSON.stringify(s)).not.toMatch(/gem|diamond/);

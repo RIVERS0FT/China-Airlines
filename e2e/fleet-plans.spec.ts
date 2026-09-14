@@ -58,7 +58,7 @@ test('v2 import preserves manifest and exports v4 upgrade fields',async({page})=
   await expect(page.getByTestId('credits')).toHaveText(`¥ ${v2.credits.toLocaleString('zh-CN')}`);
   const pending=page.waitForEvent('download');await page.getByRole('button',{name:'导出存档',exact:true}).click();
   const file=await pending,s=JSON.parse(await readFile((await file.path())!,'utf8'));
-  expect(s.version).toBe(8);expect(s.hangarSlots).toBe(4);expect(s.orders.map(({service:_s,product:_p,...o}: import('../src/core/game.js').Order)=>o)).toEqual(v2.orders);expect(s.fleet[0].flight).toEqual(previousPlane.flight);
+  expect(s.version).toBe(9);expect(s.hangarSlots).toBe(4);expect(s.orders.map(({service:_s,product:_p,...o}: import('../src/core/game.js').Order)=>o)).toEqual(v2.orders);expect(s.fleet[0].flight).toEqual(previousPlane.flight);
   expect(s.fleet[0].upgrades).toEqual({capacity:0,engine:0,range:0,efficiency:0});
 });
 test('landscape plan editor and workshop stay reachable',async({page})=>{
