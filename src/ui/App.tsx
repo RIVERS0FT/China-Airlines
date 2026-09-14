@@ -141,7 +141,7 @@ export function App() {
 
   return <>
     <div className={`aviation-game ${isDispatch ? 'dispatch-focused' : ''} ${isBrowseMap ? 'map-browse' : ''} ${screen === 'airport' && game?.tutorial === 'active' && plane && !modal ? 'training-active' : ''}`}>
-      <header className="game-hud" hidden={screen === 'map'}>
+      <header className="game-hud" hidden={isDispatch}>
         <div className="game-brand"><span className="pilot-badge"><Icon name="pilot"/></span><div><h1>{t('app.name')}</h1><small>{t('hud.company', { level: game ? careerLevel(game) : 1 })}</small></div></div>
         <div className="resource"><Icon name="coin"/><span><small>{t('hud.credits')}</small><strong data-testid="credits">{money(game?.credits ?? 0)}</strong></span></div>
         <button className="resource fleet-status-button" aria-label={t('hud.fleetOpen')} disabled={!game} onClick={() => openFleet('flights')}><Icon name="fleet"/><span><small>{t('hud.fleet')}</small><strong data-testid="fleet-count">{t('common.aircraftCount', { count: game?.fleet.length ?? 0 })}</strong></span></button>
@@ -155,7 +155,7 @@ export function App() {
       }}/>}
 
       {!game ? <main className="startup"><h2>{view.booting ? t('start.loading') : t('startup.missing')}</h2><p>{view.error}</p><button onClick={() => setModal('settings')}>{t('startup.recover')}</button></main> : <main className="game-workspace">
-        {screen === 'map' ? <Network key={`${plane?.id}-${mapMode}`} mode={mapMode} onInspect={(id, afterUnlock) => inspectAirport(id, afterUnlock, 'map')} game={game} plane={plane} destination={destination} setDestination={setDestination} onReturn={returnFromMap} onSettings={() => setModal('settings')} onDepart={() => { mapReturn.current = null; setScreen('airport'); setAboard(true); }} busy={view.busy}/> : <>
+        {screen === 'map' ? <Network key={`${plane?.id}-${mapMode}`} mode={mapMode} onInspect={(id, afterUnlock) => inspectAirport(id, afterUnlock, 'map')} game={game} plane={plane} destination={destination} setDestination={setDestination} onReturn={returnFromMap} onDepart={() => { mapReturn.current = null; setScreen('airport'); setAboard(true); }} busy={view.busy}/> : <>
           <div className="airport-titlebar">
             <button className="airport-info-trigger" aria-label={t('airport.currentDetails')} onClick={() => inspectAirport(current, undefined, 'close')} title={t('airport.detailsHint')}>{t('airport.details')}</button>
             <div className="gate-sign"><b>{flight ? t('airport.flight') : '01'}</b><div><strong>{flight ? t('flight.route', { from:city(flight.from), to:city(flight.to) }) : t('airport.name', { city:city(current) })}</strong><small>{current} · {t('common.level', { value:game.airports.find(item => item.id === current)?.level ?? 0 })}</small></div></div>

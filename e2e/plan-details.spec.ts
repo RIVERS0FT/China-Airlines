@@ -21,10 +21,13 @@ for (const width of [1440, 844]) {
     await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer', 'ready');
     const mapBounds = await page.locator('.network-map').boundingBox();
     expect(mapBounds?.height ?? 0).toBeGreaterThanOrEqual(width === 844 ? 160 : 90);
-    for (const label of ['放大地图', '缩小地图']) {
-      await expect(page.getByRole('button', { name: label, exact: true })).toBeInViewport();
-      await page.getByRole('button', { name: label, exact: true }).click();
-    }
+    await expect(page.locator('.map-controls')).toHaveCount(0);
+    const globe = page.getByTestId('map-canvas');
+    const cameraBeforeZoom = await globe.getAttribute('data-camera');
+    await globe.locator('canvas').focus(); await page.keyboard.press('+');
+    await expect(globe).not.toHaveAttribute('data-camera', cameraBeforeZoom!);
+    await page.keyboard.press('-');
+    await expect(globe).toHaveAttribute('data-camera', cameraBeforeZoom!);
     if (width === 844) {
       await expect(page.getByRole('img', { name: /机场航线示意图，当前选择上海/ })).toBeVisible();
       await page.screenshot({ path: 'artifacts/landscape-map-readable.png' });

@@ -43,7 +43,7 @@ test('active map keeps the locked route and payment while another airport is bro
   await selectCity(page, 'PVG');
   await expect(page.getByTestId('airport-incoming')).toHaveCount(1);
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: '返回航班', exact: true }).click();
+  await page.getByRole('button', { name: '机场装载', exact: true }).click();
   await expect(page.getByTestId('flight-cost')).toHaveText(money(f.cost));
   await expect(page.getByTestId('flight-revenue')).toHaveText('¥ 0');
   await expect(page.getByTestId('credits')).toHaveText(money(s.credits));await page.reload();

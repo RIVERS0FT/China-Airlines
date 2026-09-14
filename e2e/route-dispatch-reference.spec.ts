@@ -25,7 +25,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     await expect(page.getByTestId('network-energy')).toHaveCount(0);
     const map = await page.locator('.network-map').boundingBox();
     expect(map!.height).toBeGreaterThanOrEqual(viewport.height * .85);
-    const controls = ['放大地图','缩小地图','路线后退','路线撤销','取消起飞','查看路线','检票起飞','隐藏其他飞机'];
+    const controls = ['路线后退','路线撤销','取消起飞','查看路线','检票起飞','隐藏其他飞机'];
     const boxes = [];
     for (const name of controls) {
       const button = page.getByRole('button', { name, exact: true });
@@ -41,7 +41,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
       expect(a.x+a.width<=b.x || b.x+b.width<=a.x || a.y+a.height<=b.y || b.y+b.height<=a.y).toBe(true);
     }
     const before = await canvas.getAttribute('data-camera');
-    await page.getByRole('button',{name:'放大地图',exact:true}).click();
+    await expect(page.locator('.map-controls')).toHaveCount(0);
+    await canvas.locator('canvas').focus(); await page.keyboard.press('+');
     await expect(canvas).not.toHaveAttribute('data-camera',before!);
     await selectCity(page, 'PVG');
     await expect(canvas).toHaveAttribute('data-preview-path', 'PVG');
