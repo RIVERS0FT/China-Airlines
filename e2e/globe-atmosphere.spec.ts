@@ -9,9 +9,10 @@ async function expectClearBackdrop(page: Page, name: string) {
   const camera = JSON.parse((await host.getAttribute('data-camera'))!) as GlobeCamera;
   const size = await host.evaluate(node => ({ width: node.clientWidth, height: node.clientHeight }));
   const r = camera.radius * camera.scale;
-  // Sample the old origin-to-highlight connector, well outside the globe/halo.
-  const sample = { x: .4 * (camera.cx + Math.cos(Math.PI * .7) * (r - 3)),
-    y: .4 * (camera.cy + Math.sin(Math.PI * .7) * (r - 3)) };
+  // The quarter-point stays on the old connector but clears the halo and the
+  // city labels protruding from the enlarged globe. Keep pixel tolerance strict.
+  const sample = { x: .25 * (camera.cx + Math.cos(Math.PI * .7) * (r - 3)),
+    y: .25 * (camera.cy + Math.sin(Math.PI * .7) * (r - 3)) };
   expect(Math.hypot(sample.x - camera.cx, sample.y - camera.cy) - 18).toBeGreaterThan(r + 35);
   expect(await host.evaluate((node, point) => {
     const rect = node.getBoundingClientRect();
