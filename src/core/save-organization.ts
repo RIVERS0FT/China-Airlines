@@ -16,7 +16,7 @@ export function validateEmployees(s: GameState): void {
   for (const e of all) {
     record(e, ['id','name','department','role','planeId','airportId','paidUntil','skill','management','potential','trait','joinedAt','flights','deliveries','history']);
     number(e.id); if (e.id < 1 || e.id >= s.career.nextId || ids.has(e.id)) fail(); ids.add(e.id);
-    if (typeof e.name !== 'string' || !e.name.trim() || e.name.length > 12 ||
+    if (typeof e.name !== 'string' || !e.name.length || (e.joinedAt !== null && !e.name.trim()) || e.name.length > 12 ||
       typeof e.department !== 'string' || !Object.hasOwn(DEPARTMENTS, e.department) || !['staff','manager'].includes(e.role) || typeof e.trait !== 'string' || !Object.hasOwn(TRAITS, e.trait)) fail();
     number(e.potential, 10); if (e.potential < 8) fail();
     number(e.skill, e.potential); number(e.management, e.potential); number(e.paidUntil, 1e12, false);
@@ -68,7 +68,7 @@ export function validateFlightStaffing(s: GameState): void {
     if (typeof lock.mentor !== 'boolean') fail();
     if (!m) {
       if (lock.management !== 0 || lock.workload !== 0 || lock.mentor) fail();
-    } else if (!p || p.id === m.id || lock.management < 1 || lock.management > m.management ||
+    } else if (!p || p.paidUntil <= flight.departAt || p.id === m.id || lock.management < 1 || lock.management > m.management ||
       lock.workload < 1 || lock.mentor !== (m.trait === 'mentor') || m.paidUntil <= flight.departAt) fail();
     if (p && p.planeId !== s.fleet.find(p => p.flight?.id === flight.id)?.id) fail();
   }
