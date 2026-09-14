@@ -53,7 +53,8 @@ jobs:
           test "$tree" = c49532406c515f5e7e2d04b7e97840d105123742
           test "$(git rev-parse "$tree:src/core/v7")" = c4332f13a047d81c22ddcd853f026edbcff614ae
           git restore --staged .github/company-organization-edits.json .github/workflows/apply-company-organization.yml
-          git diff --cached --check
+          # Historical v7 bytes, including its existing final blank line, are frozen by the tree hash above.
+          git diff --cached --check -- . ':(exclude)src/core/v7/**'
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'feat: integrate organization tree, unified employees and frozen v7 migration'
