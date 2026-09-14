@@ -1,4 +1,5 @@
 import { CareerHub } from './CareerHub.js';
+import { CompanyOrganization } from './CompanyOrganization.js';
 import { careerLevel } from '../core/career.js';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { airport, aircraftSpecs } from '../core/catalog.js';
@@ -25,18 +26,18 @@ import { useI18n } from '../i18n/I18n.js';
 
 type Screen = 'airport' | 'map';
 type MapMode = 'browse' | 'dispatch';
-type ModalName = 'career' | 'shop' | 'fleet' | 'tasks' | 'settings' | 'help' | 'airports' | 'airport-detail';
+type ModalName = 'career' | 'organization' | 'shop' | 'fleet' | 'tasks' | 'settings' | 'help' | 'airports' | 'airport-detail';
 const PLAYING_KEY = 'china-airlines:playing:v1';
 const SCREEN_KEY = 'china-airlines:screen:v1';
 const sessionValue = (key: string) => { try { return sessionStorage.getItem(key); } catch { return null; } };
 
 const act = (command: Command) => controller.command(command);
 
-function Modal({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
+function Modal({ title, children, onClose, className = '' }: { title: string; children: ReactNode; onClose: () => void; className?: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   const { t } = useI18n();
   useEffect(() => { const dialog = ref.current!; dialog.showModal(); return () => { if (dialog.open) dialog.close(); }; }, []);
-  return <dialog ref={ref} className="game-modal" aria-label={title} onClose={onClose}>
+  return <dialog ref={ref} className={`game-modal ${className}`.trim()} aria-label={title} onClose={onClose}>
     <header><h2>{title}</h2><button onClick={() => ref.current?.close()} aria-label={t('modal.close', { title })}>×</button></header>{children}
   </dialog>;
 }
@@ -128,7 +129,7 @@ export function App() {
     : plane.energy.serviceUntil !== null ? t('airport.servicing') : cooling ? t('airport.turnaround') : '';
   const city = (id: string) => airportName(id, airport(id).city);
   const modalTitles: Record<ModalName, string> = {
-    career:t('modal.career'), shop:t('modal.shop'), fleet:t('modal.fleet'), tasks:t('modal.tasks'), settings:t('common.settings'),
+    career:t('modal.career'), organization:t('modal.organization'), shop:t('modal.shop'), fleet:t('modal.fleet'), tasks:t('modal.tasks'), settings:t('common.settings'),
     help:t('modal.help'), airports:t('modal.airports'), 'airport-detail':t('modal.airportDetails')
   };
 
@@ -182,14 +183,16 @@ export function App() {
         <button onClick={() => setModal('airports')}><Icon name="directory"/><span>{t('nav.directory')}</span></button>
         <button onClick={() => openFleet()}><Icon name="plane"/><span>{t('nav.fleet')}</span></button>
         <button onClick={() => setModal('shop')}><Icon name="shop"/><span>{t('nav.shop')}</span></button>
+        <button type="button" className={modal === 'organization' ? 'active' : ''} aria-current={modal === 'organization' ? 'page' : undefined} aria-haspopup="dialog" aria-expanded={modal === 'organization'} onClick={() => setModal('organization')}><Icon name="pilot"/><span>{t('nav.organization')}</span></button>
         <button type="button" aria-haspopup="dialog" onClick={() => setModal('career')}><Icon name="trophy"/><span>{t('nav.career')}</span></button>
         {screen === 'airport' && <button className="gold-button depart-button" aria-label={t('nav.dispatch')} aria-describedby="airport-departure-reason" title={departureReason || t('airport.routeHint')} disabled={!plane || view.busy || Boolean(flight) || Boolean(cooling) || plane?.energy.serviceUntil !== null} onClick={() => showMap()}><Icon name="plane"/><span>{t('nav.dispatch')}</span><small id="airport-departure-reason" className="airport-departure-reason">{departureReason}</small></button>}
       </nav>}
     </div>
 
     {modal === 'settings' && <Settings onClose={() => setModal(null)}/>}
-    {game && modal && modal !== 'settings' && <Modal key={modal} title={modalTitles[modal]} onClose={closeModal}>
-      {modal === 'career' ? <CareerHub game={game} busy={view.busy} selected={plane?.id ?? context?.selected.id} airportId={current} onPlane={id => { selectPlane(id); setModal(null); }} onAirport={id => { visitAirport(id); setModal(null); }}/>
+    {game && modal && modal !== 'settings' && <Modal key={modal} title={modalTitles[modal]} className={modal === 'organization' ? 'organization-modal' : ''} onClose={closeModal}>
+      {modal === 'career' ? <CareerHub game={game} busy={view.busy} selected={plane?.id ?? context?.selected.id} airportId={current}/>
+        : modal === 'organization' ? <CompanyOrganization game={game} busy={view.busy} onPlane={id => { selectPlane(id); setModal(null); }} onAirport={id => { visitAirport(id); setModal(null); }}/>
         : modal === 'airports' ? <AirportDirectory game={game} onInspect={id => inspectAirport(id, undefined, 'directory')}/>
         : modal === 'airport-detail' ? <AirportDetails game={game} id={detailAirport} busy={view.busy} backLabel={detailBack === 'directory' ? (locale === 'zh-CN' ? '返回机场目录' : 'Back to Directory') : detailBack === 'map' ? (mapMode === 'browse' ? (locale === 'zh-CN' ? '返回地图' : 'Back to Map') : (locale === 'zh-CN' ? '返回制定路线' : 'Back to Route Plan')) : (locale === 'zh-CN' ? '返回机场装载' : 'Back to Airport')} onBack={() => { routeUnlockResume.current = null; if (detailBack === 'directory') setModal('airports'); else setModal(null); }} onUnlocked={() => { const resume = routeUnlockResume.current; routeUnlockResume.current = null; if (resume) { setModal(null); resume(); } }} onVisit={visitAirport} onPlane={selectPlane} onRoute={id => showMap(id)}/>
         : modal === 'shop' ? <Shop game={game} busy={view.busy} selected={current}/>
@@ -209,5 +212,5 @@ export function App() {
 function HelpContent({ busy, onStart }: { busy: boolean; onStart: () => void }) {
   const { locale } = useI18n();
   if (locale === 'en-US') return <div className="help-content"><button className="start-guide-help" disabled={busy} onClick={onStart}>Start Guided Tutorial</button><h3>Load, plan, fly, and grow your airline network.</h3><p>1. Select real passengers or cargo at the airport. Capacity and restrictions are always checked by the simulation.</p><p>Use Map to browse cities and unlock airports. Use Plan Route from the airport to build an ordered route and review time, cost, revenue, and energy.</p><p>Orders pay only when they reach their final destination. Transfer orders stay aboard or at an airport until another aircraft carries them onward.</p><p>Tasks are available from the airport scene. Flights, upgrades, energy service, staffing, aircraft, and company facilities are available from their corresponding navigation entries.</p><small>Aircraft and economic values are game configurations. The world map is not navigation or administrative-boundary data.</small></div>;
-  return <div className="help-content"><button className="start-guide-help" disabled={busy} onClick={onStart}>开始分步引导</button><h3>装载、规划、起飞，经营你的航空网络。</h3><p>① 点击下方旅客或货物装机；点击目的地站牌可装载同站客货，只取当前机场的真实订单，容量不足时跳过整单。</p><p>「地图」用于查看全球城市和解锁机场；「制定路线」用于按顺序选择城市并核对用时、成本、收益和能量。</p><p>到达最终目的地才交付并付款；其他订单留在机上。周转结束后可卸至机场，再让另一架飞机装载中转。</p><p>任务与奖励从机场场景左上角进入；航班、改装与补能在「机队管理」中查看，经营与设施从底部「经营中心」进入。</p><small>机型和经营参数均为游戏化配置；世界地图不是导航或行政边界资料。</small></div>;
+  return <div className="help-content"><button className="start-guide-help" disabled={busy} onClick={onStart}>开始分步引导</button><h3>装载、规划、起飞，经营你的航空网络。</h3><p>① 点击下方旅客或货物装机；点击目的地站牌可装载同站客货，只取当前机场的真实订单，容量不足时跳过整单。</p><p>「地图」用于查看全球城市和解锁机场；「制定路线」用于按顺序选择城市并核对用时、成本、收益和能量。</p><p>到达最终目的地才交付并付款；其他订单留在机上。周转结束后可卸至机场，再让另一架飞机装载中转。</p><p>任务与奖励从机场场景左上角进入；航班、改装与补能在「机队管理」中查看，员工与汇报关系进入「公司组织」，其余经营与设施进入「经营中心」。</p><small>机型和经营参数均为游戏化配置；世界地图不是导航或行政边界资料。</small></div>;
 }

@@ -14,7 +14,7 @@ test('title enters the map, keeps Map leftmost, and switches the core flow to En
 
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer', 'ready');
   const labels = await page.locator('.game-dock>button>span').allTextContents();
-  expect(labels.slice(0, 6)).toEqual(['Map', 'Airport', 'Directory', 'Fleet', 'Aircraft Shop', 'Operations']);
+  expect(labels.slice(0, 7)).toEqual(['Map', 'Airport', 'Directory', 'Fleet', 'Aircraft Shop', 'Organization', 'Operations']);
   await expect(page.locator('.game-dock>button').first()).toHaveClass(/active/);
 
   await page.getByRole('button', { name: 'Find City', exact: true }).click();

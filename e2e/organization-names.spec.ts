@@ -27,8 +27,8 @@ for (const [width, height] of [[1440, 900], [667, 375]] as const) {
     await expect(page.locator('.settings-modal')).toContainText('存档导入成功');
     await page.getByRole('button', { name: '关闭存档设置' }).click();
     const openOrganization = async () => {
-      await openGlobal(page, '经营中心');
-      await page.getByRole('tab', { name: '公司组织', exact: true }).click();
+      await openGlobal(page, '公司组织');
+      await expect(page.getByRole('dialog', { name: '公司组织', exact: true })).toBeVisible();
       await expect(page.getByRole('region', { name: '公司组织架构树', exact: true })).toBeVisible();
     };
     await openOrganization();
@@ -55,7 +55,7 @@ for (const [width, height] of [[1440, 900], [667, 375]] as const) {
     await page.getByRole('button', { name: '查看员工 #1 · 飞行员', exact: true }).click();
     await expect(page.getByLabel('员工 #1直属上级', { exact: true })).toHaveValue('2');
     await expect(page.getByLabel('员工 #1岗位', { exact: true })).toHaveValue('AC0001');
-    await page.getByRole('button', { name: '关闭公司经营中心' }).click();
+    await page.getByRole('button', { name: '关闭公司组织' }).click();
     await openGlobal(page, '存档设置');
     const pending = page.waitForEvent('download');
     await page.getByRole('button', { name: '导出存档', exact: true }).click();

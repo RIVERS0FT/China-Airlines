@@ -41,6 +41,9 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport }: {
   const [department, role] = job.split('-') as [Department, EmployeeRole];
   const price = employmentPrice({ department, role }, true);
   const vacancies = staffIn(game, department, role).length < staffLimit(department, role);
+  const assigned = people.filter(e => e.role === 'specialist' && Boolean(e.planeId || e.airportId)).length;
+  const managers = people.filter(e => e.role === 'manager').length;
+  const expired = people.filter(e => e.paidUntil <= game.simTime).length;
   const send = (command: Command) => ignore(controller.command(command));
   const afford = (cost: { gold: number; tickets: number }) => game.credits >= cost.gold && game.career.tickets >= cost.tickets;
   useEffect(() => {
@@ -69,14 +72,28 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport }: {
   }
   const node = (e: Employee, positioned = false) => <button type="button" key={e.id}
     className={`org-person${positioned ? ' org-positioned' : ''}`} data-employee-id={e.id}
+    data-department={e.department}
     data-state={e.paidUntil <= game.simTime ? 'expired' : e.role === 'specialist' && !e.planeId && !e.airportId ? 'waiting' : 'active'}
     aria-label={`查看${employeeDisplayName(e)} · ${roleName(e)}`} aria-pressed={selected?.id === e.id} onClick={() => setSelectedId(e.id)}>
     <img src={artAsset('pilot-avatar-v1.png')} alt=""/><span><strong>{employeeDisplayName(e)}</strong><small>{roleName(e)}</small></span>
     <em>{status(game, e)}</em>
   </button>;
   return <section className="company-organization" aria-label="公司组织管理">
-    <div className="org-toolbar">
-      <div><h3>公司组织</h3><small>{people.length} 名员工 · 飞行与地勤 · 玩家可直接管理</small></div>
+    <header className="org-command-header">
+      <div className="org-command-copy">
+        <span>COMPANY COMMAND</span>
+        <h3>组织指挥室</h3>
+        <p>统筹飞行与地勤团队，安排汇报关系、岗位、合同与人才培养。</p>
+      </div>
+      <dl className="org-summary" aria-label="组织概览">
+        <div><dt>团队规模</dt><dd>{people.length}<small>/14 人</small></dd></div>
+        <div><dt>已分配</dt><dd>{assigned}<small>名专员</small></dd></div>
+        <div><dt>部门经理</dt><dd>{managers}<small>/2 人</small></dd></div>
+        <div data-attention={expired > 0}><dt>待续约</dt><dd>{expired}<small>份合同</small></dd></div>
+      </dl>
+    </header>
+    <section className="org-recruit-card" aria-label="团队招募">
+      <div><strong>扩充团队</strong><small>合同预付 7 天；经理并非基础运营前提</small></div>
       <div className="org-recruit">
         <label><span className="org-sr-only">招募岗位</span><select aria-label="招募岗位" value={job} disabled={busy} onChange={e => setJob(e.target.value)}>
           <option value="flight-specialist">飞行员 · {staffIn(game, 'flight').length}/8</option>
@@ -87,14 +104,17 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport }: {
         <button disabled={busy || !vacancies || !afford(price)} onClick={() => send({ type: 'recruit-employee', department, role })}>招募{roleName({department, role})}</button>
         <small>{price.gold.toLocaleString('zh-CN')}金币＋{price.tickets}券 · 含7天工资{!vacancies ? ' · 岗位已满' : !afford(price) ? ' · 资金不足' : ''}</small>
       </div>
-    </div>
+    </section>
     <div className="org-workspace">
       <div className="org-tree-area">
-        <div className="org-view-tools" aria-label="组织树显示控制">
-          {(['flight','ground'] as const).map(d => <button key={d} aria-expanded={!collapsed[d]} onClick={() => setCollapsed(old => ({ ...old, [d]: !old[d] }))}>{collapsed[d] ? '展开' : '折叠'}{DEPARTMENTS[d]}</button>)}
-          <span className="org-zoom"><button aria-label="缩小组织树" disabled={zoom <= 0.5} onClick={() => moveZoom(zoom - 0.1)}>−</button><output aria-label="组织树缩放">{Math.round(zoom * 100)}%</output><button aria-label="放大组织树" disabled={zoom >= 1.5} onClick={() => moveZoom(zoom + 0.1)}>＋</button></span>
-          <button onClick={() => { setZoom(1); if (viewport.current) { viewport.current.scrollTop = 0; viewport.current.scrollLeft = 0; } }}>复位</button>
-        </div>
+        <header className="org-tree-heading">
+          <div><span className="org-section-kicker">REPORTING MAP</span><h4>组织架构</h4></div>
+          <div className="org-view-tools" aria-label="组织树显示控制">
+            {(['flight','ground'] as const).map(d => <button className={`org-department-toggle ${d}`} key={d} aria-expanded={!collapsed[d]} onClick={() => setCollapsed(old => ({ ...old, [d]: !old[d] }))}><b aria-hidden="true">{d === 'flight' ? '飞' : '勤'}</b>{collapsed[d] ? '展开' : '折叠'}{DEPARTMENTS[d]}</button>)}
+            <span className="org-zoom"><button aria-label="缩小组织树" disabled={zoom <= 0.5} onClick={() => moveZoom(zoom - 0.1)}>−</button><output aria-label="组织树缩放">{Math.round(zoom * 100)}%</output><button aria-label="放大组织树" disabled={zoom >= 1.5} onClick={() => moveZoom(zoom + 0.1)}>＋</button></span>
+            <button onClick={() => { setZoom(1); if (viewport.current) { viewport.current.scrollTop = 0; viewport.current.scrollLeft = 0; } }}>复位</button>
+          </div>
+        </header>
         <div ref={viewport} className="org-scroll" role="region" aria-label="公司组织架构树" tabIndex={0}
           onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerEnd} onPointerCancel={pointerEnd} onLostPointerCapture={() => { drag.current = null; }}
           onKeyDown={e => {
@@ -111,7 +131,7 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport }: {
               </svg>
               <div className="org-founder" style={{ left: 278, top: 12 }}><span>总</span><div><strong>创始人 / 总经理</strong><small>玩家 · 公司负责人</small></div></div>
               {layout.nodes.map(n => <div key={n.employee.id} className="org-node-position" style={{ left: n.x, top: n.y, width: ORG_NODE_WIDTH, height: ORG_NODE_HEIGHT }}>{node(n.employee, true)}</div>)}
-              {layout.vacant.map(v => <button key={v.department} className="org-vacancy" style={{ left: v.x, top: v.y, width: ORG_NODE_WIDTH, height: ORG_NODE_HEIGHT }} onClick={() => setJob(`${v.department}-manager`)}><strong>＋ 待任命</strong><small>{DEPARTMENTS[v.department]}经理</small><small>非必需岗位</small></button>)}
+              {layout.vacant.map(v => <button key={v.department} className="org-vacancy" data-department={v.department} aria-label={`选择${DEPARTMENTS[v.department]}经理空缺并准备招募`} style={{ left: v.x, top: v.y, width: ORG_NODE_WIDTH, height: ORG_NODE_HEIGHT }} onClick={() => setJob(`${v.department}-manager`)}><strong>＋ 待任命</strong><small>{DEPARTMENTS[v.department]}经理</small><small>非必需岗位</small></button>)}
             </div>
           </div>
         </div>
@@ -121,6 +141,7 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport }: {
         </section>
       </div>
       <aside className="org-detail" aria-label="员工详情" aria-live="polite">
+        <span className="org-section-kicker">PERSONNEL FILE</span>
         {selected ? <EmployeeDetail game={game} employee={selected} busy={busy} send={send} afford={afford} onPlane={onPlane} onAirport={onAirport}/> : <div className="org-empty-detail"><h3>组建第一支团队</h3><p>先招募飞行员并分配飞机，或招募地勤专员负责机场。经理并非运营前提。</p><p>员工的专业与管理能力可以分别培养，符合条件后可晋升部门经理。</p></div>}
       </aside>
     </div>
