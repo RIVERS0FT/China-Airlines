@@ -19,7 +19,7 @@ describe('frozen v7 migration and unified employee identity', () => {
     old.execute({ type: 'recruit-pilot' }, NOW); old.execute({ type: 'assign-pilot', pilotId: 1, planeId: 'AC0001' }, NOW);
     old.execute({ type: 'train-pilot', pilotId: 1 }, NOW); old.execute({ type: 'start-duty', planeId: 'AC0001', to: 'PVG' }, NOW);
     const saved = old.snapshot(), s = parseSave(JSON.stringify(saved));
-    expect(s.version).toBe(8); expect(s.credits).toBe(saved.credits); expect(s.fleet).toEqual(saved.fleet); expect(s.orders).toEqual(saved.orders);
+    expect(s.version).toBe(9); expect(s.credits).toBe(saved.credits); expect(s.fleet).toEqual(saved.fleet); expect(s.orders).toEqual(saved.orders);
     const { pilots, ...oldCareer } = saved.career, { employees, ...newCareer } = s.career;
     expect(newCareer).toEqual(oldCareer); expect(employees).toHaveLength(pilots.length);
     expect(employees[0]).toMatchObject(pilots[0]!); expect(employees[0]!.potential).toBe(10); expect(employees[0]!.joinedAt).toBeNull();

@@ -28,13 +28,15 @@ for (const [width, height] of [[1440, 900], [667, 375]] as const) {
     await page.getByRole('button', { name: '关闭存档设置' }).click();
     const openOrganization = async () => {
       await openGlobal(page, '公司组织');
-      await expect(page.getByRole('dialog', { name: '公司组织', exact: true })).toBeVisible();
+      await expect(page.locator('.organization-workspace')).toBeVisible();
       await expect(page.getByRole('region', { name: '公司组织架构树', exact: true })).toBeVisible();
     };
     await openOrganization();
     const detail = page.getByRole('complementary', { name: '员工详情' });
+    await page.locator('.org-pending > summary').click();
     await page.getByRole('button', { name: '查看员工 #2 · 飞行员', exact: true }).click();
     await expect(detail.getByRole('heading', { name: '员工 #2', exact: true })).toBeVisible();
+    await detail.getByRole('tab',{name:'培养',exact:true}).click();
     await detail.getByRole('button', { name: /^管理培训/ }).click();
     page.once('dialog', dialog => void dialog.accept());
     await detail.getByRole('button', { name: '晋升部门经理', exact: true }).click();
@@ -61,7 +63,7 @@ for (const [width, height] of [[1440, 900], [667, 375]] as const) {
     await page.getByRole('button', { name: '导出存档', exact: true }).click();
     const download = await pending;
     const exported = JSON.parse(await readFile((await download.path())!, 'utf8')) as GameState;
-    expect(exported.version).toBe(8);
+    expect(exported.version).toBe(9);
     expect(exported.career.employees.map(employee => employee.name)).toEqual(names);
     expect(exported.career.employees.map(employee => employee.id)).toEqual([1, 2]);
     expect(exported.career.employees[0]!.planeId).toBe('AC0001');

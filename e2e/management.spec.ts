@@ -56,7 +56,7 @@ test('v3 automatic flight migrates without changed manifest or extra money',asyn
   await ready(page);page.on('dialog',d=>void d.accept());await openGlobal(page, '存档设置');
   await page.getByLabel('选择存档文件').setInputFiles({name:'v3.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(legacy))});await expect(page.getByTestId('credits')).toHaveText(`¥ ${legacy.credits.toLocaleString('zh-CN')}`);
   const pending=page.waitForEvent('download');await page.getByRole('button',{name:'导出存档',exact:true}).click();const download=await pending,path=await download.path();expect(path).not.toBeNull();const s=JSON.parse(await readFile(path!,'utf8'));
-  expect(s.version).toBe(8);expect(s.orders.map(({service:_s,product:_p,...o}: import('../src/core/game.js').Order)=>o)).toEqual(legacy.orders);expect(s.fleet[0].flight).toEqual(legacy.fleet[0]!.flight);expect(s.fleet.every((p:{dispatcher:boolean})=>p.dispatcher)).toBe(true);expect(s.tutorial).toBe('skipped');
+  expect(s.version).toBe(9);expect(s.orders.map(({service:_s,product:_p,...o}: import('../src/core/game.js').Order)=>o)).toEqual(legacy.orders);expect(s.fleet[0].flight).toEqual(legacy.fleet[0]!.flight);expect(s.fleet.every((p:{dispatcher:boolean})=>p.dispatcher)).toBe(true);expect(s.tutorial).toBe('skipped');
 });
 for(const width of [1440,844])test(`guided real first flight persists at ${width}`,async({page})=>{
   await page.setViewportSize({width,height:width===1440?900:390});await ready(page);await openGlobal(page, '操作帮助');await page.getByRole('button',{name:'开始分步引导',exact:true}).click();

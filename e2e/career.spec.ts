@@ -60,7 +60,8 @@ for (const [width, height] of [
     await expect(page.locator('[data-task-id="checkin-0"]').getByRole("button", { name: "已领取", exact: true })).toBeDisabled();
     await page.getByRole("button", { name: "关闭任务中心" }).click();
     await openGlobal(page, "公司组织");
-    await expect(page.getByRole("dialog", { name: "公司组织", exact: true })).toBeVisible();
+    await expect(page.locator('.organization-workspace')).toBeVisible();
+    await page.getByRole("button", { name: "招募", exact:true }).click();
     await page.getByRole("button", { name: "招募飞行员" }).click();
     await page.getByLabel("林航岗位").selectOption("AC0001");
     await expect(page.getByLabel("林航岗位")).toHaveValue("AC0001");
@@ -94,7 +95,7 @@ for (const [width, height] of [
     expect(decoded).toBe(true);
     await page.screenshot({ path: `artifacts/career-logistics-${width}.png` });
     const saved = await exportState(page);
-    expect(saved.version).toBe(8);
+    expect(saved.version).toBe(9);
     expect(saved.career.employees[0]?.planeId).toBe("AC0001");
     expect(saved.career.claimed).toContain("checkin-0");
     expect(Object.keys(saved.career)).not.toContain("gems");

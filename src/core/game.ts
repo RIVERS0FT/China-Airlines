@@ -1,6 +1,7 @@
 import { aircraftSpecs, emptyUpgrades, retrofitPrice, hangarPrice, UPGRADE_LABEL, type Upgrades, type UpgradeKey, airport, model, routeId, TASKS, upgradePrice, distance } from './catalog.js';
-import { validateSave as validateV7 } from './v7/game.js';
-import { groundServiceQuote, migrateEmployee } from './organization.js';
+import { validateSave as validateV8 } from './v8/game.js';
+import { createTalent, recordTalentArrival, recordTalentCommand, talentExecute, validateTalent, type TalentState, type TalentCommand } from './talent.js';
+import { groundServiceQuote } from './organization.js';
 export { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND } from './legacy.js';
 export type { Flight, AdvanceReport } from './legacy.js';
 import { GameCore as LegacyCore, MAX_FLEET, OFFLINE_LIMIT, TURNAROUND, type Plane as LegacyPlane, type Command as LegacyCommand, type AdvanceReport } from './legacy.js';
@@ -10,7 +11,7 @@ import { resaleValue } from './management.js';
 import { modernModel, emptyTuning, upgradeLimit, upgradeTickets, service, MATERIALS, type Tuning, type Material } from './career-catalog.js';
 import { careerExecute, careerLevel, bill, consume, stock, warehouseUsed, warehouseCapacity, autoAllowed, onArrival, nextCareerEvent, advanceCareer, type Career, type CareerCommand } from './career.js';
 import { validateCareer, validateTuning } from './save-career.js';
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 export type TutorialState = 'available' | 'active' | 'completed' | 'skipped';
 export const MAX_PLAN_LEGS = 12;
 export interface Plane extends LegacyPlane { upgrades: Upgrades; itinerary: string[]; dispatcher: boolean; energy: EnergyBudget; tuning: Tuning }
@@ -22,9 +23,9 @@ export interface Order {
   reward: number; location: string; createdAt: number; expiresAt: number | null; service: string; product: Material | null;
 }
 export interface GameState extends Omit<import('./legacy.js').GameState, 'version' | 'fleet'> {
-  version: 8; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
+  version: 9; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
 }
-export type Command = LegacyCommand | CareerCommand
+export type Command = LegacyCommand | CareerCommand | TalentCommand
   | { type: 'load' | 'unload'; planeId: string; orderId: string }
   | { type: 'load-destination'; planeId: string; to: string }
   | { type: 'retrofit'; planeId: string; upgrade: UpgradeKey }
@@ -177,6 +178,7 @@ function arrive(s: GameState, p: Plane) {
   s.credits += f.revenue; s.stats.revenue += f.revenue; s.stats.flights++;
   for (const o of delivered) s.stats[o.kind] += o.amount;
   onArrival(s,p,delivered);
+  recordTalentArrival(s, p.id, delivered.some(o => o.reward > 0 && o.product === null));
   note(s, `${p.id} 抵达${airport(f.to).city} · 交付 ${delivered.length} 单`, f.revenue);
 }
 function advance(s: GameState, now: number): AdvanceReport {
@@ -247,6 +249,8 @@ export class GameCore {
   execute(command: Command, now: number) {
     this.tick(now); const s = this.snapshot();
     switch (command.type) {
+      case 'hire-candidate':
+      case 'defer-company-affair': { note(s, talentExecute(s, command)); break; }
       case 'service-energy': {
         const p = planeAtGate(s, command.planeId);
         check(p.energy.availableSeconds < energyCapacity(p), '能量已满，无需补能');
@@ -386,16 +390,17 @@ export class GameCore {
       default: { const message=careerExecute(s,command);check(message,'未知经营命令');note(s,message); }
 
     }
+    recordTalentCommand(s, this.state, command);
     this.state = s;
   }
 }
 
 /** Older saves always pass their frozen validators before any migration. */
-export function migrateV7(value: unknown): GameState {
-  const old = validateV7(value), { pilots, ...career } = old.career;
-  return { ...old, version: 8, career: { ...career, employees: pilots.map(p => migrateEmployee(p, old.simTime)) } };
+export function migrateV8(value: unknown): GameState {
+  const old = validateV8(value);
+  return { ...old, version: 9, talent: createTalent(old.career.seed, old.simTime) };
 }
-export const migrateV1=migrateV7, migrateV2=migrateV7, migrateV3=migrateV7, migrateV4=migrateV7, migrateV5=migrateV7, migrateV6=migrateV7;
+export const migrateV1=migrateV8, migrateV2=migrateV8, migrateV3=migrateV8, migrateV4=migrateV8, migrateV5=migrateV8, migrateV6=migrateV8, migrateV7=migrateV8;
 export function validateSave(value: unknown): GameState {
   const fail = (): never => { throw new Error('存档结构或经营数据无效，原进度未被覆盖'); };
   const record = (v: unknown, fields: string[]): Record<string, unknown> => {
@@ -416,9 +421,10 @@ export function validateSave(value: unknown): GameState {
   if (version === 5) return validateSave(migrateV5(value));
   if (version === 6) return validateSave(migrateV6(value));
   if (version === 7) return validateSave(migrateV7(value));
+  if (version === 8) return validateSave(migrateV8(value));
   if (version !== SAVE_VERSION) throw new Error('不支持此存档版本；请使用对应版本的游戏');
   const s = structuredClone(value) as GameState;
-  record(s, ['version','credits','simTime','lastWallTime','nextId','airports','fleet','routes','stats','claimedTasks','log','orders','nextOrderId','nextDemandAt','hangarSlots','fleetPeak','tutorial','career']);
+  record(s, ['version','credits','simTime','lastWallTime','nextId','airports','fleet','routes','stats','claimedTasks','log','orders','nextOrderId','nextDemandAt','hangarSlots','fleetPeak','tutorial','career','talent']);
   number(s.simTime, 1e12, false); number(s.nextDemandAt, 1e12, false); number(s.nextOrderId);
   if (s.nextOrderId < 1 || s.nextDemandAt <= s.simTime || s.nextDemandAt > s.simTime + DEMAND_INTERVAL) fail();
   number(s.hangarSlots, MAX_FLEET);
@@ -434,6 +440,7 @@ export function validateSave(value: unknown): GameState {
     if (task.metric === 'fleet' && s.fleetPeak < task.target) fail();
   }
   validateCareer(s);
+  validateTalent(s);
   validateInfrastructure(s);
   // v6 validates the expanded registry directly; never relax frozen legacy schemas.
   for (const p of [...s.fleet,...s.career.stored]) {

@@ -1,3 +1,5 @@
+import { CompanyAffairs } from './CompanyAffairs.js';
+import { companyAffairs } from '../core/talent.js';
 import { useRef, useState } from 'react';
 import { guideStep } from '../core/onboarding.js';
 import type { GameState, Plane } from '../core/game.js';
@@ -7,11 +9,11 @@ import { taskItems, type TaskState } from './task-presentation.js';
 import { useI18n } from '../i18n/I18n.js';
 
 const labels: Record<TaskState, string> = { claimable: '可领取', active: '进行中', claimed: '已领取' };
-export function TaskCenter({ game, plane, busy, onNext }: {
-  game: GameState; plane?: Plane; busy: boolean; onNext: (step: string) => void;
+export function TaskCenter({ game, plane, busy, onNext, onEmployee }: {
+  game: GameState; plane?: Plane; busy: boolean; onNext: (step: string) => void; onEmployee?: (id: number, training: boolean) => void;
 }) {
   const items = taskItems(game), view = useGame();
-  const { ui, text } = useI18n();
+  const { ui, text, locale } = useI18n();
   const [filter, setFilter] = useState<TaskState>(() => items.some(t => t.state === 'claimable') ? 'claimable' : 'active');
   const tabs = useRef<HTMLDivElement>(null);
   const next = plane ? guideStep(game, plane, 'airport', '') : null;
@@ -42,6 +44,7 @@ export function TaskCenter({ game, plane, busy, onNext }: {
       </article>)}
       {!shown.length && <p className="task-center-empty">{ui(filter === 'claimable' ? '暂无可领取奖励。完成任务后可在这里领取。' : filter === 'active' ? '当前任务已完成，可查看已领取记录。' : '尚无已领取的奖励记录。')}</p>}
     </div>
+    {onEmployee && <details className="task-company-affairs"><summary>{locale === 'en-US' ? 'Company Affairs' : '公司事务'} · {companyAffairs(game).length}</summary><CompanyAffairs game={game} busy={busy} onEmployee={onEmployee}/></details>}
     <details className="task-center-log"><summary>{ui('运营日志 · 最近60条')}</summary><div className="ledger">{game.log.map((entry, i) => <div className="ledger-entry" key={`${entry.at}-${i}`}><span>{text(entry.text)}</span>{entry.amount !== 0 && <strong>{entry.amount > 0 ? '+' : '−'}{money(Math.abs(entry.amount))}</strong>}</div>)}</div></details>
   </section>;
 }

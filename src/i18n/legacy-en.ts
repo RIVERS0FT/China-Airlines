@@ -3,6 +3,13 @@ import type { Locale } from './I18n.js';
 // Transitional catalogue for pre-i18n screens. Chinese source strings are stable
 // keys; adding a locale only requires another table, not changes to game state.
 const en: Readonly<Record<string, string>> = {
+  '候选人已入职，包含7天合同':'Candidate hired with a seven-day contract',
+  '候选人已入职或不在名单中':'Candidate was already hired or is no longer listed',
+  '候选人编号已达上限':'Candidate identifier limit reached',
+  '事务条件已改变，请重新查看公司事务':'The situation changed. Review company affairs again.',
+  '这项事务已暂缓':'This affair has already been deferred',
+  '事务已暂缓，经营照常进行':'Affair deferred; operations continue normally',
+  '存档人才培养数据无效，原进度未被覆盖':'Invalid talent data. Your existing progress has not been overwritten',
   '机场筛选':'Airport filters', '已开放 {count}':'Open {count}', '未开放 {count}':'Locked {count}', '全部 {count}':'All {count}',
   '查找机场':'Find Airport', '搜索机场':'Search airports', '城市或区域':'City or region', '清空机场搜索':'Clear airport search', '清空':'Clear',
   '世界区域':'World Region', '机场世界区域':'Airport world region', '全球全部区域':'All Regions',
