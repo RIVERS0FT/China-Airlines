@@ -11,26 +11,8 @@
 .game-modal .airport-world-filter select{min-width:145px}
 @media(max-height:600px){.globe-hint{top:10px;left:12px;font-size:10px}.globe-hint strong{font-size:15px}.dispatch-world-search{margin:8px 0;gap:8px}}
 
-/* Browsing cities has its own navigation and never displays dispatch controls. */
-.world-map-toolbar{height:60px;flex:0 0 60px;display:flex;align-items:center;gap:16px;padding:6px 16px;background:linear-gradient(#326b82,#224d64);border-bottom:2px solid #122f40;z-index:4}
-.world-map-toolbar h2{display:flex;align-items:baseline;gap:16px;flex:1;margin:0;color:#fff2c2;font-size:23px;white-space:nowrap}
-.world-map-toolbar h2 small{font-size:13px;color:#e0edef;font-weight:500}
-.world-map-toolbar button{min-height:44px;padding:6px 16px;font-size:15px;white-space:nowrap}
-.world-map-toolbar .language-picker{flex:0 0 auto;background:#173e55;padding:2px}
-.world-map-toolbar .language-picker button{min-height:40px;padding:5px 9px;border-width:1px;font-size:12px;box-shadow:none}
-.world-map-funds{color:#ffe58a;font-size:18px;white-space:nowrap}
+/* Browse guidance is decorative and never intercepts map gestures. */
 .world-map-guide{position:absolute;right:26px;bottom:20px;margin:0;padding:8px 12px;border-radius:6px;background:#183d51dc;color:#e7f2ed;font-size:13px;pointer-events:none}
-@media (max-width:900px){
-  .world-map-toolbar{gap:8px;padding:6px 10px}
-  .world-map-toolbar h2{gap:8px;font-size:20px}
-  .world-map-toolbar h2 small{font-size:12px}
-  .world-map-toolbar button{padding:6px 10px;font-size:14px}
-  .world-map-funds{font-size:15px}
-}
 @media (max-width:720px) and (orientation:landscape){
-  .world-map-toolbar{height:50px;flex-basis:50px;gap:4px;padding:3px 5px}
-  .world-map-toolbar h2{font-size:16px;gap:5px;min-width:0}.world-map-toolbar h2 small{font-size:8px;white-space:normal;line-height:1.1}
-  .world-map-funds{font-size:11px}.world-map-toolbar>button{min-height:40px;padding:3px 6px;font-size:10px}
-  .world-map-toolbar .language-picker button{min-height:38px;padding:3px 5px;font-size:9px}
   .world-map-guide{right:8px;bottom:8px;font-size:9px;padding:5px 7px}
 }

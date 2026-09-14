@@ -1,19 +1,20 @@
 import { searchAirports, type ContinentFilter } from './airport-search.js';
 import { useState } from 'react';
-import { AIRPORTS, CONTINENTS, airport } from '../core/catalog.js';
+import { CONTINENTS, airport } from '../core/catalog.js';
 import { MAX_PLAN_LEGS, type GameState, type Plane } from '../core/game.js';
 import { MapView } from './MapView.js';
 import { PlanControls } from './PlanControls.js';
 import { DispatchDialog } from './DispatchDialog.js';
 import { dispatchPresentation } from './dispatch-presentation.js';
 import { routePreview } from './route-preview.js';
-import { LanguagePicker, useI18n } from '../i18n/I18n.js';
+import { useI18n } from '../i18n/I18n.js';
+import './map-browse.css';
 
 let tipSeen = false;
-export function Network({ game, plane, destination, setDestination, onReturn, onSettings, onDepart, onInspect, busy, mode }: {
+export function Network({ game, plane, destination, setDestination, onReturn, onDepart, onInspect, busy, mode }: {
   game: GameState; plane?: Plane; destination: string; setDestination: (id: string) => void;
   mode: 'browse' | 'dispatch';
-  onReturn: () => void; onSettings: () => void; onDepart: () => void; onInspect: (id: string, afterUnlock?: () => void) => void; busy: boolean;
+  onReturn: () => void; onDepart: () => void; onInspect: (id: string, afterUnlock?: () => void) => void; busy: boolean;
 }) {
   const { t, money: formatMoney, duration: formatDuration, airportName, continentName } = useI18n();
   const [stops, setStops] = useState<string[]>([]), [auto, setAuto] = useState(false);
@@ -51,13 +52,7 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
   const destinationText = active ? city(active.to) : stops.length ? city(stops.at(-1)!) : '—';
   const timeText = active ? formatDuration(active.remaining) : summary ? formatDuration(summary.duration) : '—';
   return <section className={`network-view route-dispatch-view ${browsing ? 'world-map-view' : ''}`} aria-label={browsing ? t('map.a11yBrowse') : inFlight ? t('map.a11yFlight') : t('map.a11yPlan')}>
-    {browsing ? <header className="world-map-toolbar">
-      <button type="button" onClick={onReturn}>{plane?.flight ? t('map.returnFlight') : t('map.returnAirport')}</button>
-      <h2>{t('map.title')} <small>{t('map.unlocked', { open:game.airports.length, total:AIRPORTS.length })}</small></h2>
-      <strong className="world-map-funds">{formatMoney(game.credits)}</strong>
-      <button className="primary" aria-haspopup="dialog" onClick={() => { setCitySearch(''); setContinent('all'); setCitiesOpen(true); }}>{t('map.find')}</button>
-      <LanguagePicker compact/><button type="button" onClick={onSettings}>{t('common.settings')}</button>
-    </header> : <div className="dispatch-readout" data-testid="network-summary">
+    {!browsing && <div className="dispatch-readout" data-testid="network-summary">
       <button className="dispatch-stat dispatch-destination" aria-label={t('map.selectDestination')} aria-haspopup="dialog" onClick={() => { dismissTip(); setCitySearch(''); setContinent('all'); setCitiesOpen(true); }}>
         <span>{t('map.destination')}</span><strong data-testid="network-destination">{destinationText}<i aria-hidden="true">▾</i></strong>
       </button>
@@ -66,7 +61,8 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
       <div className="dispatch-stat dispatch-cost"><span>{t('map.cost')}</span><strong data-testid="network-cost">{summary ? formatMoney(summary.cost) : stops.length ? '—' : formatMoney(0)}</strong></div>
     </div>}
     <div className="network-map">
-      <MapView game={game} plane={plane} selected={destination} onSelect={chooseAirport} preview={preview} planning={!browsing} showOthers={showOthers} onToggleOthers={() => { dismissTip(); setShowOthers(value => !value); }}/>
+      <MapView game={game} plane={plane} selected={destination} onSelect={chooseAirport} preview={preview} planning={!browsing} showOthers={browsing || showOthers} onToggleOthers={() => { dismissTip(); setShowOthers(value => !value); }}/>
+      {browsing && <button type="button" className="world-map-search" aria-haspopup="dialog" onClick={() => { setCitySearch(''); setContinent('all'); setCitiesOpen(true); }}>{t('map.find')}</button>}
       {browsing && <p className="world-map-guide">{t('map.guide')}</p>}
       {!browsing && tip && !active && <div className="dispatch-tip" role="status"><span>{t('map.routeTip')}</span><button aria-label={t('map.closeTip')} onClick={dismissTip}>×</button></div>}
       {!browsing && <PlanControls game={game} plane={plane} stops={stops} setStops={value => { dismissTip(); setStops(value); if (value.length !== 1) setAuto(false); }} auto={auto} setAuto={setAuto} busy={busy} onDepart={onDepart} onCancel={onReturn} onDetails={dismissTip}/>}

@@ -1,4 +1,5 @@
 import { clientToLogical } from './viewport.js';
+import { canPlaceMapLabel, clientBoxToMap, type MapBox } from './map-label-layout.js';
 import { useEffect, useRef, useState } from 'react';
 import { Application, Container, Graphics, Text, Ticker } from 'pixi.js';
 import { AIRPORTS, aircraftSpecs, airport } from '../core/catalog.js';
@@ -37,7 +38,6 @@ export function MapView(props: Props) {
   const i18n = useI18n();
   const host = useRef<HTMLDivElement>(null), latest = useRef(props);
   const latestI18n = useRef(i18n);
-  const controls = useRef<{ zoom: (factor: number) => void } | null>(null);
   const [status, setStatus] = useState('loading');
   latest.current = props;
   latestI18n.current = i18n;
@@ -75,11 +75,18 @@ export function MapView(props: Props) {
           const point = fromVector(aircraftPoint(p, latest.current.game.simTime));
           camera.lat = point.lat; camera.lon = point.lon; publishCamera();
         };
-        controls.current = { zoom };
+        // Only painted overlays exclude labels. Empty dock space is still map.
+        const overlayElements = latest.current.planning ? [] : [...(element.closest('.aviation-game')?.querySelectorAll<HTMLElement>(
+          '.game-dock > button, .world-map-search, .world-map-guide, .globe-hint, .map-disclaimer'
+        ) ?? [])];
+        let labelExclusions: MapBox[] = [];
         const resize = () => {
           const w = element.clientWidth, h = element.clientHeight;
           if (w < 1 || h < 1) return;
-          const screenScale = element.getBoundingClientRect().width / w;
+          const bounds = element.getBoundingClientRect();
+          labelExclusions = overlayElements.filter(node => node.isConnected && node.getClientRects().length > 0)
+            .map(node => clientBoxToMap(node.getBoundingClientRect(), bounds, w, h));
+          const screenScale = bounds.width / w;
           const resolution = Math.max(.5, Math.min((window.devicePixelRatio || 1) * screenScale, 3));
           app.renderer.resize(w, h, resolution); camera = globeCamera(w, h, camera, camera.scale); publishCamera();
         };
@@ -87,6 +94,9 @@ export function MapView(props: Props) {
         window.addEventListener('gameviewportchange', resize);
         window.addEventListener('resize', resize);
         observer.observe(element);
+        overlayElements.forEach(node => observer.observe(node));
+        const dock = element.closest('.aviation-game')?.querySelector('.game-dock');
+        if (dock && !latest.current.planning) observer.observe(dock);
         const pointers = new Map<number, { x: number; y: number }>();
         let dragged = false, multi = false, start = { x: 0, y: 0 }, last = start;
         const local = (e: PointerEvent) => clientToLogical(e.clientX, e.clientY, canvas.getBoundingClientRect(), element.clientWidth, element.clientHeight);
@@ -183,7 +193,10 @@ export function MapView(props: Props) {
           const passengers = passengerDestinationCounts(game, planning ? plane?.id : undefined);
           element.dataset.passengerDestinations = passengerDestinationKey(passengers);
           const priority = (id: string) => id === selected ? 0 : visits.has(id) ? 1 : passengers.has(id) ? 2 : id === plane?.airportId ? 3 : owned.has(id) ? 4 : 5;
-          const occupied: { x: number; y: number; w: number; h: number }[] = [];
+          const occupied: MapBox[] = [];
+          const labels: (MapBox & { id: string })[] = [];
+          // Dispatch retains space for its route console; browsing has no bottom strip.
+          const labelHeight = planning ? app.screen.height - (app.screen.height < 600 ? 78 : 110) : app.screen.height;
           const visible: string[] = [];
           for (const a of [...AIRPORTS].sort((a, b) => priority(a.id) - priority(b.id))) {
             const m = marks.get(a.id)!, p = projectGeo(a, camera), open = owned.has(a.id), active = selected === a.id;
@@ -202,19 +215,20 @@ export function MapView(props: Props) {
             let placed = false;
             for (const [dx, dy] of [[12, -20], [-w - 10, -20], [-w / 2, -h - 9], [-w / 2, 12]]) {
               const box = { x: p.x + dx!, y: p.y + dy!, w, h };
-              if (box.x < 5 || box.x + w > app.screen.width - 5 || box.y < 5 || box.y + h > app.screen.height - (app.screen.height < 600 ? 83 : 115)) continue;
-              if (occupied.some(b => box.x < b.x + b.w + 4 && box.x + w + 4 > b.x && box.y < b.y + b.h + 3 && box.y + h + 3 > b.y)) continue;
+              if (!canPlaceMapLabel(box, app.screen.width, labelHeight, labelExclusions, occupied)) continue;
               m.label.position.set(dx!, dy!); m.detail.position.set(dx!, dy! + 20);
               if (passengerCount) {
                 m.passengerBadge.roundRect(dx!, dy! + 36, m.passengerText.width + 10, 18, 4).fill(0xffe565).stroke({ color: 0x765618, width: 1 });
                 m.passengerText.position.set(dx! + 5, dy! + 37);
               }
-              occupied.push(box); placed = true; break;
+              occupied.push(box); labels.push({ id: a.id, ...box }); placed = true; break;
             }
             m.label.visible = m.detail.visible = placed;
             m.passengerBadge.visible = m.passengerText.visible = placed && passengerCount > 0;
           }
           element.dataset.visibleAirports = visible.join(',');
+          element.dataset.labelBoxes = JSON.stringify(labels);
+          element.dataset.labelExclusions = JSON.stringify(labelExclusions);
           element.dataset.previewPath = (preview?.legs ?? []).map(l => l.to).join(',');
           canvas.setAttribute('aria-label', latestI18n.current.t('map.globeA11y', { city:latestI18n.current.airportName(selected, airport(selected).city) }));
         }
@@ -257,7 +271,7 @@ export function MapView(props: Props) {
         publishCamera();
         dispose = () => {
           window.removeEventListener('gameviewportchange', resize); window.removeEventListener('resize', resize);
-          renderLoop.destroy(); controls.current = null; observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move);
+          renderLoop.destroy(); observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move);
           canvas.removeEventListener('pointerup', up); canvas.removeEventListener('pointercancel', up); canvas.removeEventListener('wheel', wheel); canvas.removeEventListener('keydown', keydown);
         };
         setStatus('ready');
@@ -269,9 +283,8 @@ export function MapView(props: Props) {
     <div className="map-canvas" ref={host} data-testid="map-canvas" data-projection="orthographic" data-renderer={status}/>
     {props.planning && <p id="route-preview-description" className="sr-only" data-testid="route-preview" data-legs={props.preview?.legs.length ?? 0}>{previewDescription(props.preview)}</p>}
     {status === 'fallback' && <div className="map-fallback" role="status">{i18n.t('map.fallback', { control:props.planning ? i18n.t('map.destination') : i18n.t('map.find') })}</div>}
-    <div className="globe-hint" aria-hidden="true"><strong>{i18n.t('map.globeTitle')}</strong><span>{i18n.t('map.globeHint')}</span></div>
-    <button className="map-plane-toggle" aria-label={props.showOthers ? i18n.t('map.hideOthers') : i18n.t('map.showOthers')} aria-pressed={!props.showOthers} onClick={props.onToggleOthers}><span>{props.showOthers ? i18n.t('map.hide') : i18n.t('map.show')}</span><strong>{i18n.t('map.otherAircraft')}</strong></button>
-    <div className="map-controls"><button className="map-zoom-in" aria-label={i18n.t('map.zoomIn')} disabled={status !== 'ready'} onClick={() => controls.current?.zoom(1.25)}><span aria-hidden="true">＋</span></button><button className="map-zoom-out" aria-label={i18n.t('map.zoomOut')} disabled={status !== 'ready'} onClick={() => controls.current?.zoom(.8)}><span aria-hidden="true">−</span></button></div>
+    <div className="globe-hint" aria-hidden="true"><strong>{i18n.t('map.globeTitle')}</strong><span>{i18n.t('map.globeHint')}</span>{!props.planning && <span data-testid="map-unlocked-count">{i18n.t('map.unlocked', { open: props.game.airports.length, total: AIRPORTS.length })}</span>}</div>
+    {props.planning && <button className="map-plane-toggle" aria-label={props.showOthers ? i18n.t('map.hideOthers') : i18n.t('map.showOthers')} aria-pressed={!props.showOthers} onClick={props.onToggleOthers}><span>{props.showOthers ? i18n.t('map.hide') : i18n.t('map.show')}</span><strong>{i18n.t('map.otherAircraft')}</strong></button>}
     <small className="map-disclaimer">{i18n.t('map.disclaimer')}</small>
   </section>;
 }

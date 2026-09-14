@@ -26,8 +26,22 @@ test('hidden fleet markers do not hide the selected aircraft or mutate flight ac
   await expect(canvas).toHaveAttribute('data-renderer', 'ready');
   await page.clock.runFor(50); // Permit a real render frame under the paused test clock.
   await expect(canvas).toHaveAttribute('data-visible-planes', 'AC0001,AC0002');
-  await expect(page.getByRole('button', { name: '返回航班', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '机场装载', exact: true })).toBeVisible();
+  await expect(page.locator('.map-plane-toggle')).toHaveCount(0);
   await expect(page.getByRole('button', { name: '取消起飞', exact: true })).toHaveCount(0);
+  await expect(canvas).toHaveAttribute('data-preview-path', '');
+  await expect(page.getByTestId('network-summary')).toHaveCount(0);
+  await expect(page.getByTestId('credits')).toHaveText(credits);
+  await page.getByRole('button', { name: '机场装载', exact: true }).click();
+  await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
+  await expect(page.getByTestId('flight-cost')).toHaveText(`¥ ${saved.fleet[0]!.flight!.cost.toLocaleString('zh-CN')}`);
+  await expect(page.getByTestId('flights-count')).toHaveText('0 班');
+  // The same display-only toggle remains available in the actual dispatch view.
+  await page.getByRole('button', { name: '当前机场详情', exact: true }).click();
+  await page.getByRole('button', { name: '安排飞机飞来', exact: true }).click();
+  await expect(page.getByRole('button', { name: '返回航班', exact: true })).toBeVisible();
+  await expect(canvas).toHaveAttribute('data-renderer', 'ready');
+  await page.clock.runFor(50);
   await page.getByRole('button', { name: '隐藏其他飞机', exact: true }).click();
   await page.clock.runFor(50);
   await expect(canvas).toHaveAttribute('data-visible-planes', 'AC0001');
@@ -35,13 +49,14 @@ test('hidden fleet markers do not hide the selected aircraft or mutate flight ac
   await expect(canvas).toHaveAttribute('data-renderer', 'ready');
   await page.clock.runFor(50); // Permit a real render frame under the paused test clock.
   await expect(canvas).toHaveAttribute('data-visible-planes', 'AC0001,AC0002');
-  await expect(canvas).toHaveAttribute('data-preview-path', '');
-  await expect(page.getByTestId('network-summary')).toHaveCount(0);
   await expect(page.getByTestId('credits')).toHaveText(credits);
   await page.getByRole('button', { name: '返回航班', exact: true }).click();
-  await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
-  await expect(page.getByTestId('flight-cost')).toHaveText(`¥ ${saved.fleet[0]!.flight!.cost.toLocaleString('zh-CN')}`);
-  await expect(page.getByTestId('flights-count')).toHaveText('0 班');
+  await page.getByRole('button', { name: '地图', exact: true }).click();
+  await expect(canvas).toHaveAttribute('data-renderer', 'ready');
+  await page.clock.runFor(50);
+  await expect(canvas).toHaveAttribute('data-visible-planes', 'AC0001,AC0002');
+  await expect(page.locator('.map-plane-toggle')).toHaveCount(0);
+
   expect(errors).toEqual([]);
 });
 

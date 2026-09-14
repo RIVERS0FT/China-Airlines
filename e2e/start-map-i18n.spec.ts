@@ -33,7 +33,7 @@ test('an in-flight scene animates visually and respects reduced motion', async (
 
   await page.goto('./');
   await page.getByRole('button', { name: '进入游戏', exact: true }).click();
-  await page.getByRole('button', { name: '设置', exact: true }).click();
+  await page.getByRole('button', { name: '存档设置', exact: true }).click();
   page.once('dialog', dialog => void dialog.accept());
   await page.getByLabel('选择存档文件').setInputFiles({ name: 'flying.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(core.snapshot())) });
   await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
@@ -58,7 +58,8 @@ for (const viewport of [{ width: 844, height: 390 }, { width: 667, height: 375 }
     await page.getByRole('button', { name: 'Enter Game', exact: true }).click();
     await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer', 'ready');
     await expect(page.getByRole('button', { name: 'Operations', exact: true })).toBeInViewport();
-    expect(await page.locator('.world-map-toolbar').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+    await expect(page.locator('.world-map-toolbar')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Find City', exact: true })).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `artifacts/start-map-en-${viewport.width}.png` });
   });
