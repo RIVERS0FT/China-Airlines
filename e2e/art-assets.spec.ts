@@ -30,9 +30,10 @@ test('local art decodes and remains available after offline reload', async ({ pa
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   expect(await page.locator('.toast').allTextContents()).toEqual([]);
   await expect(page.getByTestId('aircraft-sprite')).toHaveAttribute('href', /aircraft-light-passenger-v2\.png$/);
-  // Task art stays at the upper-left entrance; career is now the sixth ordinary dock entry.
+  // Task art stays at the upper-left entrance; organization has its own painted dock entry.
   await expect(page.getByRole('button', { name: '任务中心', exact: true }).locator('img.painted-icon')).toHaveCount(1);
   const dock = page.getByRole('navigation', { name: '主导航' });
-  await expect(dock.locator('img.painted-icon')).toHaveCount(7);
+  await expect(dock.locator('img.painted-icon')).toHaveCount(8);
+  await expect(dock.getByRole('button', { name: '公司组织', exact: true }).locator('img.painted-icon')).toHaveCount(1);
   await expect(dock.getByRole('button', { name: '经营中心', exact: true }).locator('img.painted-icon')).toHaveCount(1);
 });

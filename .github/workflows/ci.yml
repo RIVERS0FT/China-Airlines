@@ -1,11 +1,8 @@
-name: Verify and package
+name: Verify
 on:
-  push:
-    branches: ['feat/**']
   pull_request:
     branches: [main]
   workflow_dispatch:
-  workflow_call:
 permissions:
   contents: read
 concurrency:
@@ -22,6 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
       - name: Install exact locked dependencies
         run: npm ci
       - name: Audit development and runtime dependencies
@@ -51,22 +49,11 @@ jobs:
         env:
           BASE_PATH: /China-Airlines/
         run: npm run test:e2e
-      - name: Preserve the tested Pages build
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-      - name: Package portable static build and source
-        run: |
-          npm run build
-          git archive --format=zip --prefix=China-Airlines/ HEAD > artifacts/china-airlines-source.zip
-          (cd dist && zip -qr ../artifacts/china-airlines-web.zip .)
-          printf 'Validated source commit: %s\n' "$(git rev-parse HEAD)" > artifacts/BUILD.txt
-          (cd artifacts && sha256sum china-airlines-source.zip china-airlines-web.zip > SHA256SUMS.txt)
-      - name: Upload delivery and browser evidence
+      - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: china-airlines-delivery
+          name: china-airlines-verification
           path: |
             artifacts/
             playwright-report/

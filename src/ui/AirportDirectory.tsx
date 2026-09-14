@@ -58,7 +58,7 @@ export function AirportDirectory({ game, onInspect }: { game: GameState; onInspe
       <div className="browse-search-field">
         <label htmlFor={`${listId}-search`}>{ui('查找机场')}</label>
         <div className="browse-search-control">
-          <input ref={input} id={`${listId}-search`} type="search" aria-label={ui('搜索机场')} aria-controls={listId} placeholder={ui('城市、机场代码或区域')} autoComplete="off" spellCheck={false} value={search} onChange={e => changeSearch(e.target.value)}/>
+          <input ref={input} id={`${listId}-search`} type="search" aria-label={ui('搜索机场')} aria-controls={listId} placeholder={ui('城市或区域')} autoComplete="off" spellCheck={false} value={search} onChange={e => changeSearch(e.target.value)}/>
           <button type="button" aria-label={ui('清空机场搜索')} disabled={!search} onClick={clearSearch}>{ui('清空')}</button>
         </div>
       </div>
@@ -72,7 +72,7 @@ export function AirportDirectory({ game, onInspect }: { game: GameState; onInspe
     </p>
     <div id={listId} className="airport-cards" role="list" aria-label={ui('机场列表')}>
       {rows.map(a => <div role="listitem" key={a.id}><button type="button" className={`airport-card${a.level ? '' : ' is-locked'}`} data-airport-id={a.id} data-testid={`airport-card-${a.id}`} onClick={() => inspect(a.id)} aria-label={ui('查看{city}机场',{city:airportName(a.id,a.city)})}>
-        <span className="airport-code-badge">{a.id}</span><span className="airport-card-title"><strong>{t('airport.name',{city:airportName(a.id,a.city)})}</strong><small>{continentName(a.continent)} · {airportRegion(a.id,a.region)} · {a.level ? t('common.level', {value:a.level}) : ui('未开放')}</small></span>
+        <span className="airport-card-title"><strong>{t('airport.name',{city:airportName(a.id,a.city)})}</strong><small>{continentName(a.continent)} · {airportRegion(a.id,a.region)} · {a.level ? t('common.level', {value:a.level}) : ui('未开放')}</small></span>
         {a.level ? <span className="airport-card-facts"><span>{ui('候运 {passengers} 人 / {cargo} 吨 · 中转 {transfers} 单',{passengers:a.passengers,cargo:a.cargo,transfers:a.transfers})}</span><span>{ui('停靠 {parked} 架 · 飞来 {incoming} 班',{parked:a.parked.length,incoming:a.incoming.length})}</span></span>
           : <span className="airport-card-facts">{ui('解锁费用 {price}',{price:money(a.price)})}<small>{ui('未开放机场没有候运客货')}</small></span>}
         <span className="airport-card-link">{ui('查看机场 ›')}</span>

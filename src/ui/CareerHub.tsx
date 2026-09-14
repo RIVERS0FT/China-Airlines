@@ -1,4 +1,3 @@
-import { CompanyOrganization } from './CompanyOrganization.js';
 import { useState, type ReactNode } from "react";
 import { aircraftSpecs, airport, MODELS } from "../core/catalog.js";
 import {
@@ -24,7 +23,6 @@ import { useI18n } from "../i18n/I18n.js";
 
 const tabs = [
   "机体工坊",
-  "公司组织",
   "物流园",
   "物资商店",
   "航空展馆",
@@ -36,15 +34,11 @@ export function CareerHub({
   busy,
   selected,
   airportId,
-  onPlane,
-  onAirport,
 }: {
   game: GameState;
   busy: boolean;
   selected?: string;
   airportId: string;
-  onPlane?: (id: string) => void;
-  onAirport?: (id: string) => void;
 }) {
   const [tab, setTab] = useState<Tab>("机体工坊"),
     [planeId, setPlaneId] = useState(selected ?? game.fleet[0]!.id),
@@ -288,7 +282,6 @@ export function CareerHub({
             ))}
           </>
         )}
-        {tab === "公司组织" && <CompanyOrganization game={game} busy={busy} onPlane={onPlane} onAirport={onAirport}/>}
         {tab === "物流园" && (
           <>
             <div className="logistics-scene" aria-label="物流园设施">

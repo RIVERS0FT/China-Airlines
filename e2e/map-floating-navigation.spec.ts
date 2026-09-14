@@ -27,7 +27,7 @@ for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 100], [667, 37
     await expect(nav).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await expect(nav).toHaveCSS('box-shadow', 'none');
     await expect(nav).toHaveCSS('border-top-width', '0px');
-    await expect(nav.locator('button')).toHaveCount(6);
+    await expect(nav.locator('button')).toHaveCount(7);
 
     const scale = await displayScale(page), box = (await map.boundingBox())!;
     const hud = (await page.locator('.game-hud').boundingBox())!;
@@ -57,7 +57,7 @@ for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 100], [667, 37
     const layout = await map.evaluate(element => ({ width: element.clientWidth, height: element.clientHeight }));
     const labels = JSON.parse((await map.getAttribute('data-label-boxes'))!) as (MapBox & { id: string })[];
     const exclusions = JSON.parse((await map.getAttribute('data-label-exclusions'))!) as MapBox[];
-    expect(exclusions.length).toBeGreaterThanOrEqual(6);
+    expect(exclusions.length).toBeGreaterThanOrEqual(7);
     expect(labels.some(label => label.y + label.h > layout.height - 83)).toBe(true);
     for (const label of labels) {
       expect(label.x).toBeGreaterThanOrEqual(5);

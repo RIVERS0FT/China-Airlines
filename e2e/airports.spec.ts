@@ -19,6 +19,18 @@ async function chooseCityAfterDifferentValue(page: Page, cityId: string, differe
   if (await dialog.isVisible()) await dialog.getByRole('button', { name:'返回制定路线', exact:true }).click();
   await selectCity(page, cityId);
 }
+test('airport abbreviations stay hidden from visible airport surfaces', async ({ page }) => {
+  await ready(page);
+  await expect(page.locator('.gate-sign')).not.toContainText(/\bPEK\b/);
+  await expect(page.locator('.destination-station').first()).not.toContainText(/\bPVG\b/);
+  await openGlobal(page, '机场目录');
+  const directory = page.getByRole('dialog', { name: '机场目录', exact: true });
+  await directory.getByRole('button', { name: /^全部/ }).click();
+  await expect(directory.getByTestId('airport-card-PEK')).not.toContainText(/\bPEK\b/);
+  await expect(directory.getByTestId('airport-card-PVG')).not.toContainText(/\bPVG\b/);
+  await directory.getByRole('button', { name: '查看上海机场', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '机场详情', exact: true })).not.toContainText(/\bPVG\b/);
+});
 for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
   test(`empty-airport browsing is read-only and leaves aircraft elsewhere at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width, height }); await ready(page);

@@ -47,7 +47,7 @@ for (const [width, height] of [
   [844, 390],
   [667, 375],
 ])
-  test(`career tabs, daily claim, crew and original art remain usable at ${width}`, async ({
+  test(`career tabs, organization, daily claim and original art remain usable at ${width}`, async ({
     page,
   }) => {
     const errors: string[] = [];
@@ -59,11 +59,16 @@ for (const [width, height] of [
     await page.getByRole("tab", { name: /^已领取/ }).click();
     await expect(page.locator('[data-task-id="checkin-0"]').getByRole("button", { name: "已领取", exact: true })).toBeDisabled();
     await page.getByRole("button", { name: "关闭任务中心" }).click();
+    await openGlobal(page, "公司组织");
+    await expect(page.getByRole("dialog", { name: "公司组织", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "招募飞行员" }).click();
+    await page.getByLabel("林航岗位").selectOption("AC0001");
+    await expect(page.getByLabel("林航岗位")).toHaveValue("AC0001");
+    await page.getByRole("button", { name: "关闭公司组织" }).click();
     await openGlobal(page, "经营中心");
     await expect(page.getByRole("dialog", { name: "公司经营中心" })).toBeVisible();
     for (const name of [
       "机体工坊",
-      "公司组织",
       "物流园",
       "物资商店",
       "航空展馆",
@@ -79,10 +84,6 @@ for (const [width, height] of [
         ),
       ).toBe(true);
     }
-    await page.getByRole("tab", { name: "公司组织" }).click();
-    await page.getByRole("button", { name: "招募飞行员" }).click();
-    await page.getByLabel("林航岗位").selectOption("AC0001");
-    await expect(page.getByLabel("林航岗位")).toHaveValue("AC0001");
     await page.getByRole("tab", { name: "物流园" }).click();
     const decoded = await page
       .locator(".logistics-scene img")

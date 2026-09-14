@@ -75,7 +75,7 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
       </div>
       {!cities.length && <p role="status">{t('map.noResults')}<button onClick={() => { setCitySearch(''); setContinent('all'); }}>{t('map.clearFilters')}</button></p>}
       <label className="dispatch-city-field">{browsing || active ? t('map.browseCity') : t('map.addCity')}<select autoFocus aria-label={t('map.selectAirport')} disabled={busy} value="" onChange={e => chooseAirport(e.target.value)}>
-        <option value="" disabled>{t('map.chooseCity')}</option>{cities.map(item => <option value={item.id} key={item.id}>{airportName(item.id, item.city)} · {item.id} · {continentName(item.continent)}{game.airports.some(x => x.id === item.id) ? '' : ` · ${t('map.locked')}`}</option>)}
+        <option value="" disabled>{t('map.chooseCity')}</option>{cities.map(item => <option value={item.id} key={item.id}>{airportName(item.id, item.city)} · {continentName(item.continent)}{game.airports.some(x => x.id === item.id) ? '' : ` · ${t('map.locked')}`}</option>)}
       </select></label>
       {!browsing && <><button className="dispatch-inspect" disabled={busy} aria-label={t('map.inspect', { city:city(destination) })} onClick={inspectSelected}>{t('map.inspect', { city:city(destination) })}</button>
       <p className="dispatch-dialog-note">{t('map.catalogNote')}</p></>}

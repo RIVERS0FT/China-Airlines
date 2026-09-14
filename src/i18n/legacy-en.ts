@@ -4,7 +4,7 @@ import type { Locale } from './I18n.js';
 // keys; adding a locale only requires another table, not changes to game state.
 const en: Readonly<Record<string, string>> = {
   '机场筛选':'Airport filters', '已开放 {count}':'Open {count}', '未开放 {count}':'Locked {count}', '全部 {count}':'All {count}',
-  '查找机场':'Find Airport', '搜索机场':'Search airports', '城市、机场代码或区域':'City, airport code, or region', '清空机场搜索':'Clear airport search', '清空':'Clear',
+  '查找机场':'Find Airport', '搜索机场':'Search airports', '城市或区域':'City or region', '清空机场搜索':'Clear airport search', '清空':'Clear',
   '世界区域':'World Region', '机场世界区域':'Airport world region', '全球全部区域':'All Regions',
   '先查看各地客货与停靠飞机，再决定去哪里装载。不必先把飞机飞到该机场。':'Review waiting traffic and parked aircraft before choosing where to load. Your aircraft does not need to fly there first.',
   '找到 {count} 座{kind}机场':'Found {count} {kind} airports', '没有符合条件的机场。更换筛选或清除搜索后重试。':'No airports match. Change the filters or clear the search.',
@@ -26,7 +26,7 @@ const en: Readonly<Record<string, string>> = {
   '飞机':'Aircraft', '航班':'Flights', '机队管理栏目':'Fleet management tabs',
   '全部飞机':'All Aircraft', '待命飞机':'Ready Aircraft', '飞行中的飞机':'Aircraft in Flight', '地面周转':'Turnaround', '地勤补能':'Energy Service', '计划周转':'Planned Turnaround',
   '机队运行清单':'Fleet operations list', '运行状态筛选':'Operating status filters', '待命不包含周转、补能或自动值勤中的飞机。':'Ready excludes aircraft in turnaround, energy service, or auto duty.',
-  '查找飞机':'Find Aircraft', '搜索飞机':'Search aircraft', '编号、机型、城市或机场代码':'ID, model, city, or airport code', '清空飞机搜索':'Clear aircraft search',
+  '查找飞机':'Find Aircraft', '搜索飞机':'Search aircraft', '编号、机型或城市':'ID, model, or city', '清空飞机搜索':'Clear aircraft search',
   '更多运行状态':'More statuses', '选择其他状态':'Choose another status', '显示 {shown} / {all} 架飞机 · {status}':'Showing {shown} / {all} aircraft · {status}', '全部状态':'All statuses',
   '当前查看':'Currently viewed', '航空港':'Airport', '地面状态':'Ground', '可进入机场继续装载':'Ready to enter the airport and load',
   '{time} 后{event}':'{event} in {time}', '机上 {orders} 单 · 旅客 {passengers} 人 · 货物 {cargo} 吨':'Onboard: {orders} orders · {passengers} passengers · {cargo} t',

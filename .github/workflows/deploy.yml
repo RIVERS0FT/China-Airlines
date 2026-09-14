@@ -9,11 +9,30 @@ concurrency:
   group: pages
   cancel-in-progress: false
 jobs:
-  verify:
-    uses: ./.github/workflows/ci.yml
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact locked dependencies
+        run: npm ci
+      - name: Build GitHub Pages
+        env:
+          BASE_PATH: /China-Airlines/
+        run: npm run build
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
   deploy:
     if: github.ref == 'refs/heads/main'
-    needs: verify
+    needs: build
     permissions:
       contents: read
       pages: write
@@ -24,9 +43,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # Use the tested artifact from the verification job; do not rebuild for release.
+      # PR verification is the merge gate. Main builds the deterministic Pages artifact once.
       # Existing site configuration is required. Never enable billing or change visibility.
       - uses: actions/configure-pages@v5
-      - name: Deploy tested Pages artifact
+      - name: Deploy Pages artifact
         id: deployment
         uses: actions/deploy-pages@v4

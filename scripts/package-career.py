@@ -1,5 +1,5 @@
 """Package the reviewed workspace and both tested static build roots.
-Run after root verification, copy dist to artifacts/root-build-v7, then build and
+Run after root verification, copy dist to artifacts/root-build-v8, then build and
 verify BASE_PATH=/China-Airlines/. Never includes the reference APK or user saves.
 """
 from pathlib import Path
@@ -28,20 +28,20 @@ def package(name,entries):
 files=subprocess.check_output(['git','ls-files','-z','--cached','--others','--exclude-standard'],cwd=ROOT).decode().split('\0')
 source=[(ROOT/file,'China-Airlines/'+file) for file in sorted(set(files)) if file and (ROOT/file).is_file()]
 assert not any('/node_modules/' in name or '/.git/' in name or '/.env' in name or '/artifacts/' in name or Path(name).suffix in ['.apk','.so','.dex','.keystore','.jks'] for _,name in source)
-archives=[package('china-airlines-source-v7.zip',source)]
-for name,folder in [('china-airlines-web-v7.zip','artifacts/root-build-v7'),('china-airlines-pages-v7.zip','dist')]:
+archives=[package('china-airlines-source-v8.zip',source)]
+for name,folder in [('china-airlines-web-v8.zip','artifacts/root-build-v8'),('china-airlines-pages-v8.zip','artifacts/pages-build-v8')]:
     base=ROOT/folder
     assert (base/'index.html').is_file() and (base/'sw.js').is_file()
     archives.append(package(name,[(path,path.relative_to(base).as_posix()) for path in sorted(base.rglob('*')) if path.is_file()]))
-(DEST/'SHA256SUMS-v7.txt').write_text(''.join(hashlib.sha256(path.read_bytes()).hexdigest()+'  '+path.name+'\n' for path in archives),encoding='utf-8')
+(DEST/'SHA256SUMS-v8.txt').write_text(''.join(hashlib.sha256(path.read_bytes()).hexdigest()+'  '+path.name+'\n' for path in archives),encoding='utf-8')
 source_digest=hashlib.sha256()
 for path,name in source:
     source_digest.update(name.encode('utf-8')+b'\0'+hashlib.sha256(path.read_bytes()).digest())
 def git(*args):
     return subprocess.check_output(['git',*args],cwd=ROOT).decode().strip()
 metadata={
-    'version':'0.7.0',
-    'save_version':7,
+    'version':'0.8.0',
+    'save_version':8,
     'database_schema_version':1,
     'created_at_utc':datetime.now(timezone.utc).isoformat(),
     'branch':git('branch','--show-current'),
@@ -49,10 +49,14 @@ metadata={
     'includes_uncommitted_workspace':bool(git('status','--porcelain')),
     'source_files':len(source),
     'source_tree_sha256':source_digest.hexdigest(),
-    'tests':{'unit':units['numPassedTests'],'root_browser':101,'pages_browser':101},
+    'tests':{
+        'unit':units['numPassedTests'],
+        'root_browser':json.loads((ROOT/'artifacts/browser-root.json').read_text(encoding='utf-8'))['stats']['expected'],
+        'pages_browser':json.loads((ROOT/'artifacts/browser-subpath.json').read_text(encoding='utf-8'))['stats']['expected'],
+    },
     'pages_base_path':'/China-Airlines/',
     'deployment_performed':False,
     'archives':{path.name:{'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()} for path in archives},
 }
-(DEST/'BUILD-v7.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+(DEST/'BUILD-v8.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 for path in archives:print(f'{path.name}: {path.stat().st_size} bytes')

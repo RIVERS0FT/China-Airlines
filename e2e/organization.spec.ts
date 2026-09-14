@@ -13,16 +13,18 @@ async function start(page: Page, saved?: unknown) {
   await expect(page.locator('.settings-modal')).toContainText('存档导入成功');
   await page.getByRole('button',{name:'关闭存档设置'}).click(); await openOrganization(page);
 }
-async function openOrganization(page:Page) { await openGlobal(page,'经营中心'); await page.getByRole('tab',{name:'公司组织',exact:true}).click(); await expect(page.getByRole('region',{name:'公司组织架构树',exact:true})).toBeVisible(); }
+async function openOrganization(page:Page) { await openGlobal(page,'公司组织'); await expect(page.getByRole('dialog',{name:'公司组织',exact:true})).toBeVisible(); await expect(page.getByRole('region',{name:'公司组织架构树',exact:true})).toBeVisible(); }
 async function recruit(page:Page,job:string,name:string) { await page.getByLabel('招募岗位',{exact:true}).selectOption(job); await page.getByRole('button',{name:`招募${name}`,exact:true}).click(); }
 async function exportState(page:Page) {
-  await page.getByRole('button',{name:'关闭公司经营中心'}).click(); await openGlobal(page,'存档设置'); const pending=page.waitForEvent('download');
+  await page.getByRole('button',{name:'关闭公司组织'}).click(); await openGlobal(page,'存档设置'); const pending=page.waitForEvent('download');
   await page.getByRole('button',{name:'导出存档',exact:true}).click(); const download=await pending;
   const saved=JSON.parse(await readFile((await download.path())!,'utf8')) as GameState;
   await page.getByRole('button',{name:'关闭存档设置'}).click(); return saved;
 }
 for (const [width,height] of [[1440,900],[844,390],[667,375]] as const) test(`company reporting, staffing and training persist at ${width}`,async({page})=>{
   const errors:string[]=[]; page.on('pageerror', e=>errors.push(e.message)); await page.setViewportSize({width,height}); await start(page);
+  const recruitTarget=page.getByRole('button',{name:'招募飞行员',exact:true});
+  expect(await recruitTarget.evaluate((element)=>Number.parseFloat(getComputedStyle(element).minHeight))).toBeGreaterThanOrEqual(44);
   await recruit(page,'flight-specialist','飞行员'); await page.getByLabel('林航岗位').selectOption('AC0001');
   await recruit(page,'ground-specialist','地勤专员'); await page.getByLabel('顾川岗位').selectOption('PEK');
   await recruit(page,'flight-manager','飞行部经理');

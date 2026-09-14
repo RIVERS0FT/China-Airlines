@@ -29,9 +29,9 @@ test('one task entrance claims the initial gift exactly once and retains the air
   await expect(entry).toHaveCount(1); await expect(entry).toContainText('可领取 1');
   await expect(page.locator('.airport-shortcuts')).toHaveCount(0);
   const dock = page.getByRole('navigation', { name: '主导航' });
-  await expect(dock.getByRole('button')).toHaveCount(7);
+  await expect(dock.getByRole('button')).toHaveCount(8);
   await expect(dock.locator(':scope > button > span')).toHaveText([
-    '地图', '机场装载', '机场目录', '机队管理', '飞机商店', '经营中心', '制定路线',
+    '地图', '机场装载', '机场目录', '机队管理', '飞机商店', '公司组织', '经营中心', '制定路线',
   ]);
   for (const name of ['运营任务', '奖励', '航班', '改装']) await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
   const selected = await page.locator('.plane-status').textContent(), credits = await page.getByTestId('credits').textContent();
@@ -156,13 +156,13 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`airpo
   await page.setViewportSize({ width: width!, height: height! });
   await setup(page);
   const dock = page.getByRole('navigation', { name: '主导航', exact: true });
-  const names = ['地图', '机场装载', '机场目录', '机队管理', '飞机商店', '经营中心'];
+  const names = ['地图', '机场装载', '机场目录', '机队管理', '飞机商店', '公司组织', '经营中心'];
   let ordinaryWidth = 0, ordinaryIconWidth = 0;
   for (const name of names) {
     const button = dock.getByRole('button', { name, exact: true });
     const icon = button.locator(':scope > .painted-icon'), label = button.locator(':scope > span');
     const buttonBox = (await button.boundingBox())!, iconBox = (await icon.boundingBox())!, labelBox = (await label.boundingBox())!;
-    expect(await label.evaluate(el => getComputedStyle(el).position)).toBe('absolute');
+    expect(await label.evaluate(el => getComputedStyle(el).position), `${name} label should overlay its icon`).toBe('absolute');
     expect(labelBox.y).toBeLessThan(iconBox.y + iconBox.height - 1);
     expect(labelBox.y + labelBox.height).toBeLessThanOrEqual(buttonBox.y + buttonBox.height + 1);
     expect(labelBox.x).toBeGreaterThanOrEqual(buttonBox.x - 1);
