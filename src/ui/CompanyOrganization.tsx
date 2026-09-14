@@ -38,7 +38,7 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport, onClose, i
   const [job,setJob]=useState('flight-specialist'), [candidateId,setCandidateId]=useState<number|null>(null);
   const [filter,setFilter]=useState<Department|'all'>('all');
   const [collapsed,setCollapsed]=useState<Record<Department,boolean>>({flight:false,ground:false});
-  const [pendingOpen,setPendingOpen]=useState(false), [zoom,setZoom]=useState(1);
+  const [pendingOpen,setPendingOpen]=useState(false), [zoom,setZoom]=useState(.8);
   const viewport=useRef<HTMLDivElement>(null), previousCount=useRef(people.length);
   const drag=useRef<{id:number;x:number;y:number;left:number;top:number}|null>(null);
   const {scale}=useGameViewport();
@@ -114,12 +114,12 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport, onClose, i
         </div><details className="org-view-menu"><summary>{say('视图','View')}</summary><div className="org-view-tools" aria-label={say('组织树显示控制','Organization view controls')}>
           {(['flight','ground'] as const).map(d=><button key={d} aria-expanded={!collapsed[d]} onClick={()=>setCollapsed(old=>({...old,[d]:!old[d]}))}>{say(`${collapsed[d]?'展开':'折叠'}${d==='flight'?'飞行部':'地勤部'}`,`${collapsed[d]?'Expand':'Collapse'} ${d==='flight'?'Flight':'Ground'}`)}</button>)}
           <span className="org-zoom"><button aria-label={say('缩小组织树','Zoom out organization')} disabled={zoom<=.5} onClick={()=>setZoom(z=>Math.max(.5,Math.round((z-.1)*10)/10))}>−</button><output aria-label={say('组织树缩放','Organization zoom')}>{Math.round(zoom*100)}%</output><button aria-label={say('放大组织树','Zoom in organization')} disabled={zoom>=1.5} onClick={()=>setZoom(z=>Math.min(1.5,Math.round((z+.1)*10)/10))}>＋</button></span>
-          <button onClick={()=>{setZoom(1);if(viewport.current){viewport.current.scrollTop=0;viewport.current.scrollLeft=0;}}}>{say('复位','Reset')}</button>
+          <button onClick={()=>{setZoom(.8);if(viewport.current){viewport.current.scrollTop=0;viewport.current.scrollLeft=0;}}}>{say('复位','Reset')}</button>
         </div></details></div>
         <div ref={viewport} className="org-scroll" role="region" aria-label={say('公司组织架构树','Company Organization Tree')} tabIndex={0}
           onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerEnd} onPointerCancel={pointerEnd} onLostPointerCapture={()=>{drag.current=null;}}
           onKeyDown={e=>{if(e.target!==e.currentTarget)return;const steps:Record<string,[number,number]>={ArrowDown:[0,60],ArrowUp:[0,-60],ArrowLeft:[-60,0],ArrowRight:[60,0]};const step=steps[e.key];if(step){e.preventDefault();e.currentTarget.scrollLeft+=step[0];e.currentTarget.scrollTop+=step[1];}if(e.key==='Home'){e.preventDefault();e.currentTarget.scrollTop=0;e.currentTarget.scrollLeft=0;}}}>
-          <div className="org-scaled-extent" style={{width:layout.width*zoom,height:layout.height*zoom}}><div className="org-canvas" style={{width:layout.width,height:layout.height,transform:`scale(${zoom})`}}>
+          <div className="org-scaled-extent" style={{width:layout.width*zoom,height:layout.height*zoom}}><div className="org-canvas" style={{width:layout.width,height:layout.height,left:'50%',transform:`scale(${zoom}) translateX(-50%)`}}>
             <svg className="org-connections" width={layout.width} height={layout.height} aria-hidden="true">{layout.edges.map((edge,i)=><path key={i} d={edge.path} className={edge.direct?'org-direct-link':''}/>)}{layout.labels.map((label,i)=><text key={i} x={label.x} y={label.y} textAnchor="middle">{!en?label.text:label.text==='飞行部'?'Flight':label.text==='地勤部'?'Ground':label.text.startsWith('已折叠')?'Team collapsed':'Player managed · manager optional'}</text>)}</svg>
             <div className="org-founder" style={{left:layout.founder.x,top:layout.founder.y}}><span className="org-founder-seal">{say('总','HQ')}</span><strong>{say('创始人 / 总经理','Founder / CEO')}</strong><small>{say('玩家 · 公司负责人','You · company lead')}</small></div>
             {layout.nodes.map(n=><div key={n.employee.id} className="org-node-position" style={{left:n.x,top:n.y,width:ORG_NODE_WIDTH,height:ORG_NODE_HEIGHT}}>{node(n.employee)}</div>)}
@@ -127,7 +127,7 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport, onClose, i
           </div></div>
         </div>
         <p className="org-legend">{say('实线：经理直属；虚线：玩家直管。拖动空白或用方向键浏览。','Solid: manager reports. Dashed: player managed. Drag empty space or use arrow keys.')}</p>
-        <details className="org-pending" open={pendingOpen} onToggle={e=>setPendingOpen(e.currentTarget.open)}><summary>{say('待分配人员','Unassigned staff')} · {layout.pending.length}</summary><div>{layout.pending.length?layout.pending.map(node):<small>{say('暂无待分配人员','No unassigned staff')}</small>}</div></details>
+        {layout.pending.length>0&&<details className="org-pending" open={pendingOpen} onToggle={e=>setPendingOpen(e.currentTarget.open)}><summary>{say('待分配人员','Unassigned staff')} · {layout.pending.length}</summary><div>{layout.pending.length?layout.pending.map(node):<small>{say('暂无待分配人员','No unassigned staff')}</small>}</div></details>}
         {!people.length&&<p className="org-empty-note"><strong>{say('组建第一支团队','Build your first team')}</strong> · {say('先招募并分配岗位，随后选择专业骨干或管理培养路线。','Recruit, assign a role, then develop a specialist or future manager.')}</p>}
       </div>
       {selected&&<aside className="org-detail" aria-label={say('员工详情','Employee Details')}>

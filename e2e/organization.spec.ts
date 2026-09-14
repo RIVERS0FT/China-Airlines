@@ -32,8 +32,12 @@ for (const [width,height] of [[1440,900],[844,390],[667,375]] as const) test(`co
   const tree=page.getByRole('region',{name:'公司组织架构树',exact:true}); await page.locator('.org-view-menu > summary').click(); await page.getByRole('button',{name:'折叠飞行部',exact:true}).click();
   await expect(tree.locator('[data-employee-id="1"]')).toHaveCount(0); await page.getByRole('button',{name:'展开飞行部',exact:true}).click();
   await expect(tree.locator('[data-employee-id="1"]')).toHaveCount(1);
-  await page.getByRole('button',{name:'放大组织树'}).click(); await expect(page.getByLabel('组织树缩放')).toHaveText('110%');
-  await page.getByRole('button',{name:'复位',exact:true}).click(); await expect(page.getByLabel('组织树缩放')).toHaveText('100%');
+  await page.getByRole('button',{name:'放大组织树'}).click(); await expect(page.getByLabel('组织树缩放')).toHaveText('90%');
+  await page.getByRole('button',{name:'复位',exact:true}).click(); await expect(page.getByLabel('组织树缩放')).toHaveText('80%');
+  await page.locator('.org-view-menu > summary').click();
+  await expect(page.locator('.org-pending')).toHaveCount(0);
+  await expect(tree.locator('[data-employee-id="1"]')).toBeInViewport({ratio:1});
+  await expect(tree.locator('[data-employee-id="2"]')).toBeInViewport({ratio:1});
   await page.screenshot({path:`artifacts/company-organization-${width}.png`});
   const state=await exportState(page); expect(state.version).toBe(9); expect(state.career.employees).toHaveLength(3); expect(Object.keys(state.career)).not.toContain('pilots');
   expect(state.career.employees[0]).toMatchObject({name:'林航',planeId:'AC0001',managerId:3,skill:1}); expect(state.career.employees[1]!.airportId).toBe('PEK');
@@ -58,6 +62,7 @@ test('promotion, portrait return and 150 percent UI scale do not break staffing'
   await detail.getByRole('tab',{name:'培养',exact:true}).click();
   for(let i=0;i<2;i++)await detail.getByRole('button',{name:/^专业培训/}).click();await detail.getByRole('button',{name:/^管理培训/}).click();
   page.once('dialog',d=>void d.accept());await detail.getByRole('button',{name:'晋升部门经理',exact:true}).click();await expect(detail).toContainText('飞行部经理');
+  await expect(page.getByRole('button',{name:'查看林航 · 飞行部经理',exact:true})).toBeInViewport({ratio:1});
   await page.screenshot({path:'artifacts/company-organization-844-scale150.png'});
   const s=await exportState(page);expect(s.fleet[0]!.dispatcher).toBe(false);expect(s.career.employees[0]!.role).toBe('manager');
   await page.setViewportSize({width:390,height:844});await expect(page.locator('.rotate-screen')).toBeVisible();await page.setViewportSize({width:844,height:390});await expect(page.locator('.rotate-screen')).toBeHidden();
