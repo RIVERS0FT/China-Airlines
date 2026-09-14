@@ -2,10 +2,10 @@ import { expect, test, type Page } from './fixture.js';
 
 const NOW = Date.parse('2026-09-13T02:00:00Z');
 
-async function start(page: Page) {
+async function start(page: Page, fleetCount = '1 架') {
   await page.clock.install({ time: new Date(NOW) });
   await page.goto('./');
-  await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
+  await expect(page.getByTestId('fleet-count')).toHaveText(fleetCount);
 }
 
 for (const viewport of [
@@ -119,7 +119,7 @@ for (const key of ['Enter', 'Space']) {
 
 test('organization section titles follow English locale without decorative subtitles', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('china-airlines:locale:v1', 'en-US'));
-  await start(page);
+  await start(page, '1 aircraft');
   await page.getByRole('button', { name: 'Organization', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Company Organization', exact: true });
   await expect(dialog.getByRole('heading', { name: 'Organization Command', exact: true })).toBeVisible();
