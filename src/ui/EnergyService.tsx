@@ -1,5 +1,6 @@
+import { groundServiceSeconds } from '../core/organization.js';
 import { energyCapacity, type GameState, type Plane } from '../core/game.js';
-import { ENERGY_SECONDS_PER_POINT, ENERGY_SERVICE_SECONDS } from '../core/energy.js';
+import { ENERGY_SECONDS_PER_POINT } from '../core/energy.js';
 import { controller } from '../runtime.js';
 import { Icon, duration, ignore } from './Panels.js';
 import './energy.css';
@@ -14,6 +15,6 @@ export function EnergyService({ game, plane, busy }: { game: GameState; plane: P
     <p>新机型每整分钟消耗1点，不足一分钟至少1点；起飞预留、到达释放。历史机型继续按秒计量。</p>
     <p data-testid="energy-service-status">{servicing ? `地勤补能中 · ${duration(e.serviceUntil! - game.simTime)} 后补满` : reason || (e.availableSeconds === energyCapacity(plane) ? '能量已满' : '可安排地勤补能')}</p>
     {servicing ? <button disabled={busy} onClick={() => ignore(controller.command({ type: 'cancel-energy-service', planeId: plane.id }))}>取消地勤补能</button> : <button disabled={busy || Boolean(reason) || e.availableSeconds === energyCapacity(plane)} onClick={() => ignore(controller.command({ type: 'service-energy', planeId: plane.id }))}>开始地勤补能</button>}
-    <small>补能 {ENERGY_SERVICE_SECONDS} 秒，费用 0，完成前不增加能量；取消不补能。容量随机型与动力等级变化。营业日刷新时恢复电力；在途已预留电力不会重复赠送。</small>
+    <small>新补能 {groundServiceSeconds(game, plane.airportId)} 秒（当前地勤配置），费用 0，完成前不增加能量；取消不补能。容量随机型与动力等级变化。营业日刷新时恢复电力；在途已预留电力不会重复赠送。</small>
   </section>;
 }

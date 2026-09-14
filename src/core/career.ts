@@ -1,3 +1,4 @@
+import { activePilots, organizationExecute, recordFlightWork, type Employee, type FlightStaffing, type OrganizationCommand } from './organization.js';
 import type { GameState, Plane, Order } from "./game.js";
 import { aircraftSpecs, airport, model, emptyUpgrades } from "./catalog.js";
 import {
@@ -12,13 +13,7 @@ import {
   type Building,
 } from "./career-catalog.js";
 
-export interface Pilot {
-  id: number;
-  name: string;
-  planeId: string | null;
-  paidUntil: number;
-  skill: number;
-}
+export type Pilot = Employee;
 export interface Production {
   id: number;
   recipe: string;
@@ -37,7 +32,8 @@ export interface Career {
   inventory: Record<Material, number>;
   warehouses: Record<string, Record<Material, number>>;
   stored: Plane[];
-  pilots: Pilot[];
+  employees: Employee[];
+  flightStaffing: Record<string, FlightStaffing | null>;
   buildings: Record<Building, number>;
   production: Production[];
   claimed: string[];
@@ -57,7 +53,7 @@ export interface Career {
   licenses: string[];
   deliveredGoods: Record<string, Record<Material, number>>;
 }
-export type CareerCommand =
+export type CareerCommand = OrganizationCommand
   | { type: "career-claim"; id: string }
   | { type: "career-supply"; material: Material; count: number }
   | {
@@ -127,7 +123,8 @@ export const newCareer = (simTime: number, now: number): Career => ({
   inventory: inventory(),
   warehouses: {},
   stored: [],
-  pilots: [],
+  employees: [],
+  flightStaffing: {},
   buildings: { warehouse: 0, factory: 0, design: 0, research: 0, trade: 0 },
   production: [],
   claimed: [],
@@ -226,7 +223,7 @@ const random = (s: GameState, n: number) => {
   return s.career.seed % n;
 };
 export const assignedPilot = (s: GameState, p: Plane) =>
-  s.career.pilots.find((c) => c.planeId === p.id);
+  activePilots(s).find((c) => c.planeId === p.id);
 export function autoAllowed(s: GameState, p: Plane) {
   const pilot = assignedPilot(s, p);
   return (
@@ -234,7 +231,7 @@ export function autoAllowed(s: GameState, p: Plane) {
     (pilot ? pilot.paidUntil > s.simTime : !modernModel(p.modelId))
   );
 }
-export function onArrival(s: GameState, p: Plane, orders: Order[]) {
+export function onArrival(s: GameState, p: Plane, orders: Order[], staffing?: FlightStaffing | null) {
   const n = orders.filter((o) => !o.product).reduce((a, o) => a + o.amount, 0);
   if (n) {
     s.career.xp += Math.floor(
@@ -243,6 +240,7 @@ export function onArrival(s: GameState, p: Plane, orders: Order[]) {
           (assignedPilot(s, p)?.skill ?? 0) * 0.03 +
           s.career.achievement * 0.05),
     );
+    recordFlightWork(s, p, n, staffing);
     s.career.dailyFlights++;
     s.career.dailyDeliveries += n;
     s.career.tickets += Math.min(4, 1 + Math.floor(n / 5));
@@ -297,7 +295,7 @@ export const taskValue = (s: GameState, metric: string) =>
     deliveries: s.stats.passengers + s.stats.cargo,
     airports: s.career.airportPeak,
     flights: s.stats.flights,
-    crew: s.career.pilots.length,
+    crew: s.career.employees.filter(e => e.department === "flight").length,
     assemblies: s.career.assemblies,
     production: s.career.produced,
     museum: s.career.museum.length,
@@ -486,50 +484,21 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       p.tuning.special = command.special;
       return "专业货舱已更换";
     }
-    case "recruit-pilot": {
-      guard(c.pilots.length < 8, "人员岗位已满");
-      bill(s, 1800, 3);
-      const id = c.nextId++;
-      c.pilots.push({
-        id,
-        name: ["林航", "苏晴", "陈翼", "许岚", "周远", "陆星", "唐云", "沈宁"][
-          c.pilots.length
-        ]!,
-        planeId: null,
-        skill: 0,
-        paidUntil: s.simTime + 7 * 86400,
-      });
-      return "飞行员已入职，已含7天工资";
-    }
-    case "assign-pilot": {
-      const pilot = c.pilots.find((x) => x.id === command.pilotId);
-      guard(pilot, "未找到人员");
-      if (pilot.planeId) {
-        const prev = parked(s, pilot.planeId);
-        prev.dispatcher = false;
-      }
-      if (command.planeId) {
-        const p = parked(s, command.planeId);
-        guard(!assignedPilot(s, p) || pilot.planeId === p.id, "飞机已有飞行员");
-        p.dispatcher = true;
-      }
-      pilot.planeId = command.planeId;
-      return command.planeId ? "飞行员已上岗" : "飞行员已下岗";
-    }
+    case "recruit-pilot":
+      return organizationExecute(s, { type: 'org-recruit', department: 'flight' });
+    case "assign-pilot":
     case "pay-pilot":
     case "train-pilot": {
-      const p = c.pilots.find((x) => x.id === command.pilotId);
-      guard(p, "未找到人员");
-      if (command.type === "pay-pilot") {
-        bill(s, 600, 2);
-        p.paidUntil = Math.max(s.simTime, p.paidUntil) + 7 * 86400;
-        return "已续付7天工资";
-      }
-      guard(p.skill < 10, "技能已满级");
-      bill(s, 400 * (p.skill + 1), 3);
-      p.skill++;
-      return "调度技能提升，运输可获得额外公司经验";
+      const e = activePilots(s).find(e => e.id === command.pilotId);
+      guard(e, '未找到飞行员');
+      return organizationExecute(s, command.type === 'assign-pilot'
+        ? {type:'org-assign',employeeId:e.id,assetId:command.planeId}
+        : command.type === 'pay-pilot' ? {type:'org-renew',employeeId:e.id}
+        : {type:'org-train',employeeId:e.id,ability:'skill'});
     }
+    case 'org-recruit': case 'org-assign': case 'org-train':
+    case 'org-renew': case 'org-appoint': case 'org-demote':
+      return organizationExecute(s, command);
     case "build-facility": {
       guard(Object.hasOwn(BUILDINGS, command.building), "未知设施");
       const lv = c.buildings[command.building];
@@ -684,6 +653,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
     }
     case "close-airport": {
       const id = command.airportId;
+      guard(!c.employees.some(e => e.airportId === id), "请先调离当地地勤人员");
       guard(!["PEK", "PVG"].includes(id), "初始枢纽不能关闭");
       guard(
         s.airports.some((a) => a.id === id),

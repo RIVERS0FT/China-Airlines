@@ -1,0 +1,38 @@
+.company-organization{container:organization/inline-size;color:#203f56}
+.org-heading,.org-toolbar,.org-recruit,.org-zoom{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.org-heading{padding:0 0 14px;border-bottom:1px solid #c5d9e4}
+.org-heading h3{margin:0!important;font-size:24px;letter-spacing:2px}.org-heading p{margin:5px 0 0!important;color:#587589}
+.org-total{text-align:right}.org-total strong,.org-total span{display:block}.org-total span{font-size:12px;margin-top:6px}
+.org-toolbar{padding:12px 0;flex-wrap:wrap}.org-recruit{justify-content:flex-start}
+.org-recruit button{text-align:left!important;min-width:162px}.org-recruit small{font-weight:400;margin-top:3px}
+.org-zoom{gap:5px;flex:none}.org-zoom button{min-width:34px}.org-zoom output{font-size:13px;min-width:45px;text-align:center;font-variant-numeric:tabular-nums}
+.org-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}
+.org-map-column{min-width:0}.org-viewport{height:426px;overflow:auto;overscroll-behavior:contain;touch-action:none;border:1px solid #bed4df;border-radius:4px;background:radial-gradient(#cadce5 1px,transparent 1px) 0 0/18px 18px,#f7fbfd;cursor:grab}
+.org-viewport:active{cursor:grabbing}.org-viewport:focus-visible{outline:3px solid #347aa1;outline-offset:2px}
+.org-stage{min-width:590px;padding:24px 18px 18px;box-sizing:border-box}
+.org-founder{position:relative;display:flex;align-items:center;gap:12px;justify-content:center;width:224px;margin:0 auto 38px;padding:14px 0;background:#173e56;color:#fff;border-radius:4px}
+.org-founder>span{width:36px;height:36px;border:1px solid #a2becc;border-radius:50%;display:grid;place-items:center;font-weight:800}
+.org-founder small{color:#c4d7e4;margin-top:4px}.org-founder:after{content:"";position:absolute;left:50%;bottom:-20px;height:20px;border-left:2px solid #9db8c9}
+.org-branches{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:36px;margin:0 8px}
+.org-branches:before{content:"";position:absolute;left:25%;right:25%;top:-18px;border-top:2px solid #9db8c9}
+.org-branch{min-width:0;position:relative}.org-branch:before{content:"";position:absolute;left:50%;top:-18px;height:18px;border-left:2px solid #9db8c9}
+.org-branch>header{display:flex;align-items:center;justify-content:space-between;padding:3px 12px 9px;font-size:14px;color:#476d83}.org-branch>header button{padding:0!important;min-height:26px!important;width:26px;border:0!important;background:transparent!important}
+.company-organization .org-person{width:100%;display:flex;align-items:center;gap:10px;padding:8px 10px;text-align:left;background:#fff;border:1px solid transparent;border-bottom-color:#ccdee8;box-shadow:none;border-radius:3px;color:#213e52;min-height:75px;cursor:pointer}
+.company-organization .org-person:hover{border-color:#6c9eb9;background:#f3faff}.company-organization .org-person[aria-pressed=true]{border-color:#327797;background:#e6f4fb;box-shadow:inset 3px 0 #327797}
+.org-avatar{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#d8eaf8;font-size:22px;font-weight:700;overflow:hidden}.org-avatar img{width:38px;height:46px;object-fit:contain}.org-avatar.ground{background:#e5efdc;color:#476842}
+.org-person-copy{min-width:0;flex:1}.org-person-copy strong{display:flex;align-items:center;justify-content:space-between;gap:5px;font-size:14px}.org-person-copy strong small{font-size:10px!important;font-weight:400;color:#567085}.org-person-copy>span{font-size:11px;color:#5d7685;display:block;margin:4px 0}.org-person-copy em{font-size:10px;font-style:normal;color:#30684f}
+.org-person[data-status=待续约] em{color:#9b3c21;font-weight:800}.org-person[data-status=待分配] em{color:#687d8a}
+.company-organization .org-vacancy{display:block;width:100%;min-height:75px;background:transparent;border:1px dashed #8caeba;border-radius:3px;color:#597786;text-align:center}.org-vacancy small{margin-top:7px;font-weight:400}
+.org-capacity{font-size:11px!important;text-align:center;margin:8px 0 14px!important;color:#5b7685}.org-capacity small{color:#a05226}
+.org-workers{position:relative;display:flex;flex-direction:column;gap:9px;margin-left:12px;padding-left:14px;border-left:1px solid #9bb6c4}.org-workers>.org-person{position:relative}.org-workers>.org-person:before{content:"";position:absolute;left:-15px;top:50%;width:14px;border-top:1px solid #9bb6c4}
+.org-empty{font-size:12px!important;color:#607c8f;line-height:1.8;margin:12px 0;text-align:center}
+.org-reserve{margin-top:22px;padding-top:12px;border-top:1px dashed #acc8d7}.org-reserve h4{font-size:12px;color:#526f80;margin:0 0 12px}.org-reserve h4 span{margin-left:10px}.org-reserve>div{display:grid;grid-template-columns:1fr 1fr;gap:8px 28px;padding:0 8px}
+.org-map-note{font-size:11px!important;margin:9px 0!important;color:#58788b}.org-payroll{font-size:11px!important;border-top:1px solid #cadae4;padding-top:9px;color:#58788b}
+.org-inspector{min-width:0;max-height:508px;overflow:auto;background:white;border-top:3px solid #315e77;padding:13px 15px;border-radius:0 0 4px 4px;box-sizing:border-box}.org-inspector>header>span{font-size:11px;color:#638092}.org-inspector h3{margin:6px 0!important;font-size:23px}.org-inspector header p{font-size:12px;margin:5px 0;color:#527287}
+.org-abilities{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:16px 0}.org-abilities dt{font-size:11px;color:#67818e}.org-abilities dd{margin:4px 0 0;font-size:21px;font-weight:700}.org-abilities dd small{display:inline!important;font-size:11px!important;font-weight:400;color:#698494}.org-abilities .org-trait{font-size:14px;padding-top:4px}
+.org-effect{font-size:12px!important;line-height:1.7!important;background:#edf6f9;border-left:2px solid #74a6b8;padding:8px;color:#3f6476}
+.org-assignment select{margin-top:6px}.org-assignment small{color:#994827;font-size:11px!important}.org-jump{margin-top:7px;width:100%;text-align:left}
+.org-actions{display:flex;flex-direction:column;gap:7px;margin-top:13px}.org-actions button{width:100%;text-align:left;font-size:12px}.org-actions small{font-size:11px!important;color:#806136}
+.org-actions .org-promote{background:#244f69!important;color:#fff;border-color:#244f69}.org-history{border-top:1px solid #d6e3e9;margin-top:16px;padding-top:12px;font-size:12px}.org-history summary{cursor:pointer;font-weight:700}.org-history p{font-size:11px!important;line-height:1.65!important}.org-history ol{padding-left:14px}.org-history li{margin:10px 0;font-size:11px;line-height:1.6}.org-history time{display:block;color:#79909d;font-size:10px}.org-inspector-empty{padding:24px 2px;color:#587384}.org-inspector-empty p{font-size:12px!important}
+@container organization (max-width:740px){.org-layout{grid-template-columns:minmax(0,1fr) 244px;gap:10px}.org-inspector{padding:10px}.org-heading h3{font-size:21px}.org-recruit button{min-width:145px;font-size:12px}.org-viewport{height:386px}}
+@container organization (max-width:540px){.org-layout{grid-template-columns:1fr}.org-inspector{max-height:400px}.org-heading p{display:none}.org-viewport{height:320px}.org-recruit{flex-wrap:wrap}}

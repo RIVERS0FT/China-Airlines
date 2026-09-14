@@ -1,5 +1,4 @@
-import { validateEmployees } from './save-organization.js';
-import type { GameState, Plane } from "./game.js";
+import type { GameState, Plane } from "./types-v7.js";
 import {
   ALL_MODELS,
   MATERIALS,
@@ -8,8 +7,8 @@ import {
   CAREER_TASKS,
   modernModel,
   type Material,
-} from "./career-catalog.js";
-import { warehouseUsed, warehouseCapacity, taskValue } from "./career.js";
+} from "./career-catalog-v7.js";
+import { warehouseUsed, warehouseCapacity, taskValue } from "./career-validation-v7.js";
 
 const fail = (): never => {
   throw new Error("存档经营扩展数据无效，原进度未被覆盖");
@@ -83,8 +82,7 @@ export function validateCareer(s: GameState) {
     "inventory",
     "warehouses",
     "stored",
-    "employees",
-    "flightStaffing",
+    "pilots",
     "buildings",
     "production",
     "claimed",
@@ -143,7 +141,7 @@ export function validateCareer(s: GameState) {
     }
   }
   list(c.production, 3);
-  validateEmployees(s);
+  list(c.pilots, 8);
   list(c.stored, 64);
   list(c.museum, ALL_MODELS.length);
   unique(c.museum);
@@ -159,9 +157,22 @@ export function validateCareer(s: GameState) {
     if (id < 1 || id >= c.nextId || ids.has(id)) fail();
     ids.add(id);
   }
-  for (const e of c.employees) {
-    identity(e.id);
-    if (e.planeId !== null) planeIds.add(e.planeId);
+  for (const pilot of c.pilots) {
+    record(pilot, ["id", "name", "planeId", "paidUntil", "skill"]);
+    identity(pilot.id);
+    num(pilot.skill, 10);
+    num(pilot.paidUntil, 1e12, false);
+    if (
+      typeof pilot.name !== "string" ||
+      pilot.name.length < 1 ||
+      pilot.name.length > 12
+    )
+      fail();
+    if (pilot.planeId !== null) {
+      const p = s.fleet.find((p) => p.id === pilot.planeId);
+      if (!p || !p.dispatcher || planeIds.has(pilot.planeId)) fail();
+      planeIds.add(pilot.planeId);
+    }
   }
   for (const p of s.fleet)
     if (modernModel(p.modelId) && p.dispatcher && !planeIds.has(p.id)) fail();

@@ -28,7 +28,7 @@ for (const [width, height] of [[1440, 900], [667, 375]] as const) {
     await leaveMap(page); await page.getByRole('button', { name: '存档设置', exact: true }).click();
     const pending = page.waitForEvent('download'); await page.getByRole('button', { name: '导出存档', exact: true }).click();
     const download = await pending, saved = JSON.parse(await readFile((await download.path())!, 'utf8'));
-    expect(saved.version).toBe(7); expect(saved.fleet.map(({tuning:_t,...p}: import('../src/core/game.js').Plane)=>p)).toEqual(unitFlying.fleet);
+    expect(saved.version).toBe(8); expect(saved.fleet.map(({tuning:_t,...p}: import('../src/core/game.js').Plane)=>p)).toEqual(unitFlying.fleet);
     expect(saved.orders.map(({service:_s,product:_p,...o}: import('../src/core/game.js').Order)=>o)).toEqual(unitFlying.orders); expect(saved.credits).toBe(unitFlying.credits);
     await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
     await page.reload(); await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 6 / 6 人');
