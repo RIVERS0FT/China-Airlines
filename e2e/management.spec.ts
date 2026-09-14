@@ -1,5 +1,5 @@
 import { selectCity, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixture.js';
 import { readFile } from 'node:fs/promises';
 import type { GameState } from '../src/core/game.js';
 import legacy from '../tests/fixtures/v3-dispatching.json' with { type: 'json' };

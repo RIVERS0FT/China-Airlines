@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixture.js';
 import { readFileSync } from 'node:fs';
 const artManifest = JSON.parse(readFileSync(new URL('../art/manifest.json', import.meta.url), 'utf8')) as { file: string }[];
 

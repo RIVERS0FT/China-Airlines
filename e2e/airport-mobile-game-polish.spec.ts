@@ -1,5 +1,5 @@
 import { displayScale } from './display-helpers.js';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixture.js';
 
 async function ready(page: import('@playwright/test').Page) {
   await page.clock.install({ time: new Date('2026-09-12T00:00:00Z') });

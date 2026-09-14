@@ -1,10 +1,11 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, prepareAirportSession, type Page } from './fixture.js';
 import { airport } from '../src/core/catalog.js';
 import { projectGeo, type GlobeCamera } from '../src/ui/globe-geometry.js';
 import { UI_SCALE_KEY } from '../src/ui/viewport.js';
 import { displayScale } from './display-helpers.js';
 
 async function ready(page: Page) {
+  await prepareAirportSession(page);
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
 }
 async function dimensions(page: Page) {

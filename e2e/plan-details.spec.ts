@@ -1,5 +1,5 @@
 import { selectCity, routeDetails, closeRouteDetails } from './dispatch-helpers.js';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixture.js';
 
 for (const width of [1440, 844]) {
   test(`plan breakdown shows click-order legs without route construction at ${width}px`, async ({ page }) => {

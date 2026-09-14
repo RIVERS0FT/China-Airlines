@@ -1,5 +1,5 @@
 import { selectCity, detailValue } from './dispatch-helpers.js';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixture.js';
 
 test('selecting the next city immediately after unlock retains the committed first stop', async ({ page }) => {
   const errors: string[] = [];

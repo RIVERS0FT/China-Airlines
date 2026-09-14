@@ -1,10 +1,11 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, prepareAirportSession, type Page } from './fixture.js';
 import { airport } from '../src/core/catalog.js';
 import { projectGeo, type GlobeCamera } from '../src/ui/globe-geometry.js';
 import { displayScale } from './display-helpers.js';
 import { selectCity } from './dispatch-helpers.js';
 
 async function ready(page: Page) {
+  await prepareAirportSession(page);
   await page.clock.install({ time: new Date('2026-09-13T02:00:00Z') });
   await page.goto('./');
   await expect(page.getByTestId('fleet-count')).toHaveText('1 架');

@@ -20,6 +20,7 @@ import { controller, useGame } from "../runtime.js";
 import { artAsset } from "./art-assets.js";
 import { duration, money, ignore, Icon } from "./Panels.js";
 import "./career.css";
+import { useI18n } from "../i18n/I18n.js";
 
 const tabs = [
   "机体工坊",
@@ -54,6 +55,7 @@ export function CareerHub({
     [assembly, setAssembly] = useState("swift-f"),
     [routeName, setRouteName] = useState("常用班次"),
     [stops, setStops] = useState<string[]>([]);
+  const { ui, text, airportName, modelName } = useI18n();
   const c = game.career,
     view = useGame(),
     p = game.fleet.find((p) => p.id === planeId) ?? game.fleet[0]!,
@@ -76,7 +78,7 @@ export function CareerHub({
       disabled={busy || disabled}
       onClick={() => send(cmd)}
     >
-      {label}
+      {typeof label === "string" ? ui(label) : label}
     </button>
   );
   const citySelect = (
@@ -86,9 +88,9 @@ export function CareerHub({
     except = "",
   ) => (
     <label>
-      {label}
+      {ui(label)}
       <select
-        aria-label={label}
+        aria-label={ui(label)}
         value={value}
         onChange={(e) => change(e.target.value)}
       >
@@ -96,7 +98,7 @@ export function CareerHub({
           .filter((a) => a.id !== except)
           .map((a) => (
             <option key={a.id} value={a.id}>
-              {airport(a.id).city} · {a.level}级
+              {airportName(a.id,airport(a.id).city)} · {a.level} {ui("级")}
             </option>
           ))}
       </select>
@@ -117,19 +119,18 @@ export function CareerHub({
       <div className="career-banner">
         <img src={artAsset("pilot-avatar-v1.png")} alt="" />
         <div>
-          <strong>公司 Lv.{careerLevel(game)} · 从一架飞机到全球航网</strong>
+          <strong>{ui("公司 Lv.{level} · 从一架飞机到全球航网",{level:careerLevel(game)})}</strong>
           <span>
-            经验 {c.xp} · 营业第 {c.day + 1} 天 ·{" "}
-            {duration(c.nextDayAt - game.simTime)} 后刷新
+            {ui("经验 {xp} · 营业第 {day} 天 · {time} 后刷新",{xp:c.xp,day:c.day+1,time:duration(c.nextDayAt-game.simTime)})}
           </span>
         </div>
         <b>
           <Icon name="coin" />
           {money(game.credits)}
-          <small>点券 {c.tickets}</small>
+          <small>{ui("点券 {count}",{count:c.tickets})}</small>
         </b>
       </div>
-      <div className="career-tabs" role="tablist" aria-label="经营中心栏目">
+      <div className="career-tabs" role="tablist" aria-label={ui("经营中心栏目")}>
         {tabs.map((t) => (
           <button
             role="tab"
@@ -137,20 +138,20 @@ export function CareerHub({
             key={t}
             onClick={() => setTab(t)}
           >
-            {t}
+            {ui(t)}
           </button>
         ))}
       </div>
       <div className="career-feedback" aria-live="polite">
         {view.error ? (
-          <span role="alert">{view.error}</span>
+          <span role="alert">{text(view.error)}</span>
         ) : view.notice ? (
-          <span role="status">{view.notice}</span>
+          <span role="status">{text(view.notice)}</span>
         ) : (
-          <span>运输、收藏与生产共同推动公司成长。</span>
+          <span>{ui("运输、收藏与生产共同推动公司成长。")}</span>
         )}
       </div>
-      <div role="tabpanel" aria-label={tab} className="career-body">
+      <div role="tabpanel" aria-label={ui(tab)} className="career-body">
         {tab === "机体工坊" && (
           <>
             <label>
@@ -162,7 +163,7 @@ export function CareerHub({
               >
                 {game.fleet.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.id} · {aircraftSpecs(p).name}
+                    {p.id} · {modelName(p.modelId,aircraftSpecs(p).name)}
                   </option>
                 ))}
               </select>
@@ -170,7 +171,7 @@ export function CareerHub({
             <div className="career-aircraft">
               <img src={artAsset(m.art)} alt={m.name} />
               <div>
-                <h3>{m.name}</h3>
+                <h3>{modelName(p.modelId,m.name)}</h3>
                 <p>
                   {m.seats} 客位 / {m.cargo} 货位 · {m.energy} 电力
                 </p>

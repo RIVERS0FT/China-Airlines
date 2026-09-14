@@ -8,6 +8,7 @@ import { LAND_VERTICES, LAND_FACES } from './world-land.js';
 import { previewDescription, type RoutePreview } from './route-preview.js';
 import './globe.css';
 import { passengerDestinationCounts, passengerDestinationKey } from './passenger-destinations.js';
+import { useI18n } from '../i18n/I18n.js';
 interface Props { planning: boolean; game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null; showOthers: boolean; onToggleOthers: () => void }
 const geography = new Map(AIRPORTS.map(a => [a.id, toVector(a)]));
 const land = LAND_VERTICES.map(([lon, lat]) => toVector({ lon, lat }));
@@ -33,10 +34,13 @@ function path(graphics: Graphics, points: Vec3[], camera: GlobeCamera, color: nu
   graphics.stroke({ color, width, alpha });
 }
 export function MapView(props: Props) {
+  const i18n = useI18n();
   const host = useRef<HTMLDivElement>(null), latest = useRef(props);
+  const latestI18n = useRef(i18n);
   const controls = useRef<{ zoom: (factor: number) => void } | null>(null);
   const [status, setStatus] = useState('loading');
   latest.current = props;
+  latestI18n.current = i18n;
   useEffect(() => {
     const element = host.current!, app = new Application();
     let cancelled = false, initialized = false, dispose = () => {};
@@ -52,7 +56,7 @@ export function MapView(props: Props) {
         app.stage.eventMode = 'none';
         const marks = new Map(AIRPORTS.map(a => {
           const group = new Container(), ring = new Graphics();
-          const label = new Text({ text: a.city, style: { fontFamily: 'system-ui, sans-serif', fontSize: 15, fontWeight: '700', fill: 0xfff9de, stroke: { color: 0x133b4b, width: 3 } } });
+          const label = new Text({ text: latestI18n.current.airportName(a.id, a.city), style: { fontFamily: 'system-ui, sans-serif', fontSize: 15, fontWeight: '700', fill: 0xfff9de, stroke: { color: 0x133b4b, width: 3 } } });
           const detail = new Text({ text: '', style: { fontFamily: 'system-ui, sans-serif', fontSize: 11, fill: 0xd0e6df, stroke: { color: 0x133b4b, width: 2 } } });
           const passengerBadge = new Graphics(), passengerText = new Text({ text: '', style: { fontFamily: 'system-ui, sans-serif', fontSize: 11, fontWeight: '800', fill: 0x3f3300 } });
           passengerBadge.visible = passengerText.visible = false;
@@ -61,7 +65,7 @@ export function MapView(props: Props) {
         }));
         const planes = new Map<string, Graphics>();
         const initial = latest.current.plane;
-        let camera = globeCamera(element.clientWidth, element.clientHeight, initial && latest.current.planning ? fromVector(aircraftPoint(initial, latest.current.game.simTime)) : airport(latest.current.selected));
+        let camera = globeCamera(element.clientWidth, element.clientHeight, initial ? fromVector(aircraftPoint(initial, latest.current.game.simTime)) : airport(latest.current.selected));
         let dirty = true, lastGame: GameState | null = null, focused = latest.current.selected, lastPreview = '', lastOthers = true, snapshotAt = performance.now();
         const publishCamera = () => { element.dataset.camera = JSON.stringify(camera); dirty = true; };
         const zoom = (factor: number) => { camera.scale = Math.max(1, Math.min(6, camera.scale * factor)); publishCamera(); };
@@ -189,10 +193,10 @@ export function MapView(props: Props) {
             m.ring.clear();
             if (active) m.ring.circle(0, 0, 12).stroke({ color: 0xffdf64, width: 2 });
             m.ring.circle(0, 0, open ? 5 : 3.5).fill(open ? 0xffefbb : 0xb1cbc9).stroke({ color: 0x153e51, width: 1.5 });
-            m.label.text = `${visits.has(a.id) ? visits.get(a.id) + ' · ' : ''}${a.city}`;
-            m.detail.text = open ? `${owned.get(a.id)}级` : '未解锁';
+            m.label.text = `${visits.has(a.id) ? visits.get(a.id) + ' · ' : ''}${latestI18n.current.airportName(a.id, a.city)}`;
+            m.detail.text = open ? latestI18n.current.t('common.level', { value:owned.get(a.id)! }) : latestI18n.current.t('map.locked');
             const passengerCount = passengers.get(a.id) ?? 0;
-            m.passengerText.text = `乘客 ${passengerCount}`;
+            m.passengerText.text = latestI18n.current.t('map.passengerBadge', { count:passengerCount });
             m.passengerBadge.clear();
             const w = Math.max(m.label.width, m.detail.width, passengerCount ? m.passengerText.width + 10 : 0) + 8, h = passengerCount ? 57 : 35;
             let placed = false;
@@ -212,13 +216,13 @@ export function MapView(props: Props) {
           }
           element.dataset.visibleAirports = visible.join(',');
           element.dataset.previewPath = (preview?.legs ?? []).map(l => l.to).join(',');
-          canvas.setAttribute('aria-label', `球形机场航线示意图，当前选择${airport(selected).city}。拖动旋转，双指缩放；方向键旋转，Home定位飞机。`);
+          canvas.setAttribute('aria-label', latestI18n.current.t('map.globeA11y', { city:latestI18n.current.airportName(selected, airport(selected).city) }));
         }
         // The application renderer is demand-driven. A quiet airport must not
         // repaint a full sphere 30 times a second while the user reads a dialog.
         // Keep a lightweight private ticker for coalescing touch and snapshot updates.
         const renderLoop = new Ticker();
-        let networkKey = '', frames = 0;
+        let networkKey = '', lastLocale = latestI18n.current.locale, frames = 0;
         renderLoop.maxFPS = 30;
         renderLoop.add(() => {
           const { game, selected, preview, showOthers } = latest.current;
@@ -226,11 +230,12 @@ export function MapView(props: Props) {
           if (focused !== selected) { focused = selected; const a = airport(selected); camera.lat = a.lat; camera.lon = a.lon; publishCamera(); }
           const nextNetworkKey = gameChanged ? JSON.stringify([game.airports, game.routes, game.fleet,
             passengerDestinationKey(passengerDestinationCounts(game, latest.current.plane?.id))]) : networkKey;
-          const repaint = dirty || nextNetworkKey !== networkKey || previewKey !== lastPreview || lastOthers !== showOthers;
+          const localeChanged = lastLocale !== latestI18n.current.locale;
+          const repaint = dirty || localeChanged || nextNetworkKey !== networkKey || previewKey !== lastPreview || lastOthers !== showOthers;
           if (gameChanged) { lastGame = game; snapshotAt = performance.now(); }
           if (dirty) drawGlobe();
           if (repaint) drawNetwork();
-          dirty = false; lastPreview = previewKey; lastOthers = showOthers; networkKey = nextNetworkKey;
+          dirty = false; lastPreview = previewKey; lastOthers = showOthers; lastLocale = latestI18n.current.locale; networkKey = nextNetworkKey;
           const animating = game.fleet.some(p => p.flight && (showOthers || p.id === latest.current.plane?.id));
           if (!repaint && !animating) return;
           const visualTime = game.simTime + Math.min(1, Math.max(0, (performance.now() - snapshotAt) / 1000));
@@ -260,13 +265,13 @@ export function MapView(props: Props) {
     })();
     return () => { cancelled = true; dispose(); if (initialized && !app.stage.destroyed) app.destroy(true, { children: true }); };
   }, []);
-  return <section className="map-area globe-area" aria-label={props.planning ? "制定路线地图" : "地图"} aria-describedby={props.planning ? "route-preview-description" : undefined}>
+  return <section className="map-area globe-area" aria-label={props.planning ? i18n.t('map.routeMap') : i18n.t('map.map')} aria-describedby={props.planning ? "route-preview-description" : undefined}>
     <div className="map-canvas" ref={host} data-testid="map-canvas" data-projection="orthographic" data-renderer={status}/>
     {props.planning && <p id="route-preview-description" className="sr-only" data-testid="route-preview" data-legs={props.preview?.legs.length ?? 0}>{previewDescription(props.preview)}</p>}
-    {status === 'fallback' && <div className="map-fallback" role="status">地图不可用，请点击顶部「{props.planning ? '目的地' : '查找城市'}」搜索全球机场并选择城市。</div>}
-    <div className="globe-hint" aria-hidden="true"><strong>全球航网</strong><span>拖动旋转 · 双指缩放</span></div>
-    <button className="map-plane-toggle" aria-label={props.showOthers ? '隐藏其他飞机' : '显示其他飞机'} aria-pressed={!props.showOthers} onClick={props.onToggleOthers}><span>{props.showOthers ? '隐藏' : '显示'}</span><strong>其他飞机</strong></button>
-    <div className="map-controls"><button className="map-zoom-in" aria-label="放大地图" disabled={status !== 'ready'} onClick={() => controls.current?.zoom(1.25)}><span aria-hidden="true">＋</span></button><button className="map-zoom-out" aria-label="缩小地图" disabled={status !== 'ready'} onClick={() => controls.current?.zoom(.8)}><span aria-hidden="true">−</span></button></div>
-    <small className="map-disclaimer">游戏示意图 · 非导航地图</small>
+    {status === 'fallback' && <div className="map-fallback" role="status">{i18n.t('map.fallback', { control:props.planning ? i18n.t('map.destination') : i18n.t('map.find') })}</div>}
+    <div className="globe-hint" aria-hidden="true"><strong>{i18n.t('map.globeTitle')}</strong><span>{i18n.t('map.globeHint')}</span></div>
+    <button className="map-plane-toggle" aria-label={props.showOthers ? i18n.t('map.hideOthers') : i18n.t('map.showOthers')} aria-pressed={!props.showOthers} onClick={props.onToggleOthers}><span>{props.showOthers ? i18n.t('map.hide') : i18n.t('map.show')}</span><strong>{i18n.t('map.otherAircraft')}</strong></button>
+    <div className="map-controls"><button className="map-zoom-in" aria-label={i18n.t('map.zoomIn')} disabled={status !== 'ready'} onClick={() => controls.current?.zoom(1.25)}><span aria-hidden="true">＋</span></button><button className="map-zoom-out" aria-label={i18n.t('map.zoomOut')} disabled={status !== 'ready'} onClick={() => controls.current?.zoom(.8)}><span aria-hidden="true">−</span></button></div>
+    <small className="map-disclaimer">{i18n.t('map.disclaimer')}</small>
   </section>;
 }

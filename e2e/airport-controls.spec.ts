@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixture.js';
 import { GameCore, orderReward, validateSave } from '../src/core/game.js';
 import { selectCity, launchRoute } from './dispatch-helpers.js';
 

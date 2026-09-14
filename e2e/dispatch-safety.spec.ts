@@ -1,5 +1,5 @@
 import { displayScale } from './display-helpers.js';
-import { test, expect } from '@playwright/test';
+import { test, expect, prepareAirportSession } from './fixture.js';
 import { GameCore } from '../src/core/game.js';
 import { selectCity } from './dispatch-helpers.js';
 
@@ -79,6 +79,7 @@ test('a real autosave write failure remains visible with a recovery entry on the
 test('touching a city on the canvas selects it once and preserves automatic mode on a repeated tap', async ({ browser, baseURL }) => {
   const context = await browser.newContext({ baseURL, viewport: { width: 844, height: 390 }, hasTouch: true });
   const page = await context.newPage(), errors: string[] = [];
+  await prepareAirportSession(page);
   page.on('pageerror', error => errors.push(error.message));
   try {
     await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');

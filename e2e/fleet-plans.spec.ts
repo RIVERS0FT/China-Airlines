@@ -1,5 +1,5 @@
 import { selectCity, closeRouteDetails, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixture.js';
 import { readFile } from 'node:fs/promises';
 import v2 from '../tests/fixtures/v2-flying.json' with { type: 'json' };
 let errors: string[];

@@ -1,5 +1,5 @@
 import { displayScale } from './display-helpers.js';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixture.js';
 import { AIRPORTS, airport } from '../src/core/catalog.js';
 import { GameCore } from '../src/core/game.js';
 import { projectGeo, type GlobeCamera } from '../src/ui/globe-geometry.js';

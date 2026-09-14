@@ -1,7 +1,7 @@
 import { HistoricalSession as GameCore } from '../tests/career-fixtures.js';
 import { selectCity, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
 import orderedV4 from '../tests/fixtures/v4-ordered-route.json' with { type: 'json' };
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixture.js';
 import { quote, planQuote, type GameState } from '../src/core/game.js';
 import { ENERGY_CAPACITY_SECONDS as CAP } from '../src/core/energy.js';
 import legacy from '../tests/fixtures/v4-energy-migration.json' with { type: 'json' };

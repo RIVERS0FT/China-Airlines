@@ -1,5 +1,5 @@
 import { displayScale } from './display-helpers.js';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './fixture.js';
 import { routeDetails, selectCity } from './dispatch-helpers.js';
 
 async function ready(page: Page) {

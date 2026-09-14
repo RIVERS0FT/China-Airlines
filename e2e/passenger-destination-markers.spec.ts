@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixture.js';
 
 test('route planning marks loaded passenger destinations on the map', async ({ page }) => {
   await page.clock.install({ time: new Date('2026-09-12T00:00:00Z') });
