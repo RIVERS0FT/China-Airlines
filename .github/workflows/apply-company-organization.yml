@@ -1,0 +1,60 @@
+name: Apply organization source integration
+on:
+  push:
+    branches: [work/company-organization-20260914]
+    paths: [.github/workflows/apply-company-organization.yml]
+permissions:
+  contents: write
+jobs:
+  integrate:
+    if: github.repository == 'RIVERS0FT/China-Airlines' && github.ref == 'refs/heads/work/company-organization-20260914'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/company-organization-20260914
+          fetch-depth: 0
+      - name: Freeze the exact v7 dependency graph and apply checksum-guarded source edits
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e src/core/v7
+          mkdir -p "$RUNNER_TEMP/organization-v7"
+          git archive a3692b3a72232a674b38df66f231388f08b472db src/core | tar -x -C "$RUNNER_TEMP/organization-v7"
+          cp -a "$RUNNER_TEMP/organization-v7/src/core" src/core/v7
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          edits = json.loads(Path('.github/company-organization-edits.json').read_text())
+          candidates = {}
+          for name, change in edits.items():
+              path = Path(name)
+              assert not path.is_absolute() and '..' not in path.parts
+              assert name.startswith(('src/', 'docs/', 'tests/', 'e2e/')) or name in ('package.json', 'package-lock.json')
+              old = path.read_text(encoding='utf-8')
+              assert hashlib.sha256(old.encode()).hexdigest() == change['before'], f'Base changed: {name}'
+              last = 0
+              for start, end, text in change['edits']:
+                  assert last <= start <= end <= len(old) and isinstance(text, str)
+                  last = end
+              new = old
+              for start, end, text in reversed(change['edits']):
+                  new = new[:start] + text + new[end:]
+              assert hashlib.sha256(new.encode()).hexdigest() == change['after'], f'Patch mismatch: {name}'
+              candidates[path] = new
+          for path, new in candidates.items():
+              path.write_text(new, encoding='utf-8')
+          PY
+          git add src docs tests e2e package.json package-lock.json
+          git rm --cached .github/company-organization-edits.json .github/workflows/apply-company-organization.yml
+          tree=$(git write-tree)
+          echo "Integrated source tree: $tree"
+          test "$tree" = c49532406c515f5e7e2d04b7e97840d105123742
+          test "$(git rev-parse "$tree:src/core/v7")" = c4332f13a047d81c22ddcd853f026edbcff614ae
+          git restore --staged .github/company-organization-edits.json .github/workflows/apply-company-organization.yml
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat: integrate organization tree, unified employees and frozen v7 migration'
+          git push origin HEAD:refs/heads/work/company-organization-20260914
