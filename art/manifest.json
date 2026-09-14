@@ -386,6 +386,18 @@
     "transparentPixels": 25272
   },
   {
+    "file": "icon-ticket-v2.png",
+    "width": 256,
+    "height": 256,
+    "bytes": 49710,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 37963
+  },
+  {
     "file": "icon-trophy-v1.png",
     "width": 256,
     "height": 256,

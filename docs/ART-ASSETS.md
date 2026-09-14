@@ -1,4 +1,10 @@
-> 2026-09-13 更新：本文件下方保留历史美术记录。当前规则和新增范围以 [OFFLINE-CAREER.md](OFFLINE-CAREER.md) 与 [APK-EVIDENCE.md](APK-EVIDENCE.md) 为准。
+> 2026-09-14 更新：本文件下方保留历史美术记录。当前规则和新增范围以 [OFFLINE-CAREER.md](OFFLINE-CAREER.md) 与 [APK-EVIDENCE.md](APK-EVIDENCE.md) 为准。
+
+## 点券图标与球面美术（v0.8.0）
+
+新增 `public/art/icon-ticket-v2.png`（256×256，RGBA），运行时清单增至43项。该图使用内置 imagegen 原创生成，表现带侧边缺口、点线压纹与机翼徽记的金色票券，不含文字、货币符号、品牌或水印；用于顶部点券和帮助资源说明，原奖杯图标只继续用于经营中心。1254×1254透明原图保存为 `art/source/icon-ticket-v2-source.png`，完整提示词与缩放说明保存于 `art/prompt-ticket-v2.txt`。
+
+地图没有新增或替换背景位图。球面在 PixiJS 中程序化增加海洋色阶、陆地光照、由离线陆地三角网格边界推导的海岸双描边、赤道层级和大气明暗边缘；航线增加二次抛物线高度，地图飞机复用机型配置的 `aircraft-*-v2.png` 本地透明图，不再绘制通用三角符号。继续使用原 Natural Earth 简化网格，所有绘制随相机按需更新。该升级不改变球面投影、机场坐标、航程和命中，也不引入在线资源。
 
 ## 单机经营扩展美术（v0.7.0）
 
