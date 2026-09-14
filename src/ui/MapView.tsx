@@ -7,6 +7,7 @@ import type { GameState, Plane } from '../core/game.js';
 import { arcPoints, fromVector, frontPolygon, frontSegment, globeCamera, greatCircle, projectGeo, rangePoints, screenPoint, toVector, viewVector, wrapLongitude, type GlobeCamera, type Vec3 } from './globe-geometry.js';
 import { LAND_VERTICES, LAND_FACES } from './world-land.js';
 import { aircraftPose, boundaryEdges, oceanTone, parabolicLift, parabolicRoute, terrainTone } from './globe-art.js';
+import { drawGlobeAtmosphere } from './globe-atmosphere.js';
 import { previewDescription, type RoutePreview } from './route-preview.js';
 import './globe.css';
 import { passengerDestinationCounts, passengerDestinationKey } from './passenger-destinations.js';
@@ -208,9 +209,7 @@ export function MapView(props: Props) {
           grid.clear();
           for (let lat = -60; lat <= 60; lat += 30) path(grid, Array.from({ length: 181 }, (_, i) => toVector({ lat, lon: i * 2 - 180 })), camera, lat === 0 ? 0xb8e1dc : 0x9acbcc, lat === 0 ? 1.25 : .8, lat === 0 ? .23 : .12);
           for (let lon = -180; lon < 180; lon += 30) path(grid, Array.from({ length: 91 }, (_, i) => toVector({ lat: i * 2 - 90, lon })), camera, 0x9acbcc, .8, .12);
-          atmosphere.clear().circle(cx, cy, r).stroke({ color: 0x8ddbe1, width: 2, alpha: .72 });
-          atmosphere.arc(cx, cy, r - 3, Math.PI * .7, Math.PI * 1.55).stroke({ color: 0xd6f5e8, width: 4, alpha: .42 });
-          atmosphere.arc(cx, cy, r - 2, -Math.PI * .3, Math.PI * .48).stroke({ color: 0x0b2638, width: 4, alpha: .32 });
+          drawGlobeAtmosphere(atmosphere.context, cx, cy, r);
           element.dataset.coastlineSegments = String(visibleCoastEdges);
         }
         function drawNetwork() {
