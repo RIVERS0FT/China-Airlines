@@ -1,3 +1,4 @@
+import { CompanyOrganization } from './CompanyOrganization.js';
 import { useState, type ReactNode } from "react";
 import { aircraftSpecs, airport, MODELS } from "../core/catalog.js";
 import {
@@ -22,7 +23,7 @@ import "./career.css";
 
 const tabs = [
   "机体工坊",
-  "飞行团队",
+  "公司组织",
   "物流园",
   "物资商店",
   "航空展馆",
@@ -34,11 +35,15 @@ export function CareerHub({
   busy,
   selected,
   airportId,
+  onPlane,
+  onAirport,
 }: {
   game: GameState;
   busy: boolean;
   selected?: string;
   airportId: string;
+  onPlane?: (id: string) => void;
+  onAirport?: (id: string) => void;
 }) {
   const [tab, setTab] = useState<Tab>("机体工坊"),
     [planeId, setPlaneId] = useState(selected ?? game.fleet[0]!.id),
@@ -282,75 +287,7 @@ export function CareerHub({
             ))}
           </>
         )}
-        {tab === "飞行团队" && (
-          <>
-            <div className="career-row">
-              <div>
-                <h3>飞行团队 · {c.pilots.length}/8</h3>
-                <p>
-                  招募 1,800 金币＋3
-                  点券，含7天工资；每级技能增加3%运输经验。到期停止新自动航班，在途正常到达。
-                </p>
-              </div>
-              {action(
-                "招募飞行员",
-                { type: "recruit-pilot" },
-                c.pilots.length >= 8,
-              )}
-            </div>
-            {c.pilots.map((pilot) => (
-              <article className="career-pilot" key={pilot.id}>
-                <img src={artAsset("pilot-avatar-v1.png")} alt="" />
-                <div>
-                  <h3>
-                    {pilot.name} · 技能 Lv.{pilot.skill}
-                  </h3>
-                  <p>
-                    {pilot.paidUntil > game.simTime
-                      ? `合同剩余 ${Math.ceil((pilot.paidUntil - game.simTime) / 86400)} 天`
-                      : "工资已到期"}
-                  </p>
-                  <label>
-                    工作岗位
-                    <select
-                      aria-label={`${pilot.name}岗位`}
-                      disabled={busy}
-                      value={pilot.planeId ?? ""}
-                      onChange={(e) =>
-                        send({
-                          type: "assign-pilot",
-                          pilotId: pilot.id,
-                          planeId: e.target.value || null,
-                        })
-                      }
-                    >
-                      <option value="">待分配</option>
-                      {game.fleet.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.id} · {aircraftSpecs(p).name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <div className="career-actions">
-                  {action("续付7天 · 600金币＋2券", {
-                    type: "pay-pilot",
-                    pilotId: pilot.id,
-                  })}
-                  {action(
-                    `技能训练 · ${400 * (pilot.skill + 1)}金币＋3券`,
-                    { type: "train-pilot", pilotId: pilot.id },
-                    pilot.skill >= 10,
-                  )}
-                </div>
-              </article>
-            ))}
-            <p>
-              上岗后在机库选择值勤目的地，启动自动往返。仅装载真实候运客货，客源不足时等待。
-            </p>
-          </>
-        )}
+        {tab === "公司组织" && <CompanyOrganization game={game} busy={busy} onPlane={onPlane} onAirport={onAirport}/>}
         {tab === "物流园" && (
           <>
             <div className="logistics-scene" aria-label="物流园设施">

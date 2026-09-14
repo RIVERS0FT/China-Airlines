@@ -34,10 +34,11 @@ export function Settings({onClose}:{onClose:()=>void}) {
     <div className="settings-actions"><button className="primary" disabled={view.busy||!view.game} onClick={()=>ignore(controller.save())}>立即保存</button><button disabled={view.busy||!view.game} onClick={()=>ignore(exportSave())}>导出存档</button><button disabled={view.busy} onClick={()=>input.current?.click()}>导入存档</button><button disabled={view.busy} onClick={()=>{if(window.confirm('恢复上一份有效备份？当前进度将成为新的备份。'))ignore(controller.restoreBackup());}}>恢复上一份备份</button></div>
     <input ref={input} type="file" accept=".json,application/json" aria-label="选择存档文件" className="file-input" onChange={e=>{ignore(readFile(e.target.files?.[0]));e.target.value='';}}/>
     <section className="setting-row"><div><strong>离线运行</strong><p>{view.offlineReady?'资源缓存已就绪，可在断网后重新打开。':'首次访问需要网络；缓存完成后才能离线启动。'}</p></div></section>
-    <section className="setting-row"><div><strong>离线经营与旧存档</strong><p>最多补算8小时。导入不补算文件时间；v1—v6严格校验后迁移至v7，保留旧飞机、订单和在途收益。v7无法由旧游戏读取。</p></div></section>
+    <section className="setting-row"><div><strong>离线经营与旧存档</strong><p>最多补算8小时。导入不补算文件时间；v1—v7严格校验后迁移至v8，保留旧飞机、员工合同、订单和在途收益。v8无法由旧游戏读取。</p></div></section>
     <section className="setting-row"><div><strong>保留本地存储</strong><p>{storageMessage||'申请不能替代导出备份。'}</p></div><button onClick={()=>{if(!navigator.storage?.persist){setStorageMessage('此浏览器不支持持久存储申请。');return;}void navigator.storage.persist().then(ok=>setStorageMessage(ok?'浏览器已允许持久存储。':'浏览器暂未授予持久存储，请保留导出备份。')).catch(()=>setStorageMessage('申请失败，请保留导出备份。'));}}>申请保留</button></section>
     {view.updateAvailable&&<button className="primary full" disabled={view.busy||!view.game} onClick={()=>ignore(installUpdate())}>保存进度并更新应用</button>}
     {view.error&&<p role="alert" className="inline-error">{view.error}</p>}
+    {!view.error&&view.notice&&<p role="status" className="workshop-feedback">{view.notice}</p>}
     <div className="danger-zone"><p>虚构机型和经营参数，无账号、遥测或云存档。</p><button className="danger" disabled={view.busy} onClick={()=>{if(window.confirm('确定重新开始？当前有效进度会保留为上一份备份。'))ignore(controller.restart());}}>重新开始</button></div>
   </dialog>;
 }

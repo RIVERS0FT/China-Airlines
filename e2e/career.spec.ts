@@ -63,7 +63,7 @@ for (const [width, height] of [
     await expect(page.getByRole("dialog", { name: "公司经营中心" })).toBeVisible();
     for (const name of [
       "机体工坊",
-      "飞行团队",
+      "公司组织",
       "物流园",
       "物资商店",
       "航空展馆",
@@ -79,7 +79,7 @@ for (const [width, height] of [
         ),
       ).toBe(true);
     }
-    await page.getByRole("tab", { name: "飞行团队" }).click();
+    await page.getByRole("tab", { name: "公司组织" }).click();
     await page.getByRole("button", { name: "招募飞行员" }).click();
     await page.getByLabel("林航岗位").selectOption("AC0001");
     await expect(page.getByLabel("林航岗位")).toHaveValue("AC0001");
@@ -93,8 +93,8 @@ for (const [width, height] of [
     expect(decoded).toBe(true);
     await page.screenshot({ path: `artifacts/career-logistics-${width}.png` });
     const saved = await exportState(page);
-    expect(saved.version).toBe(7);
-    expect(saved.career.pilots[0]?.planeId).toBe("AC0001");
+    expect(saved.version).toBe(8);
+    expect(saved.career.employees[0]?.planeId).toBe("AC0001");
     expect(saved.career.claimed).toContain("checkin-0");
     expect(Object.keys(saved.career)).not.toContain("gems");
     await page.reload();
