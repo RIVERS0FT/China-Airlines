@@ -5,6 +5,9 @@ import { GameCore as V7Core } from '../src/core/v7/game.js';
 import { openGlobal } from './dispatch-helpers.js';
 import { UI_SCALE_KEY } from '../src/ui/viewport.js';
 const NOW = Date.parse('2026-09-14T02:00:00Z');
+// Fractional viewport transforms can report 0.99999988 for a fully contained node.
+// A one-millionth tolerance excludes visible clipping without demanding float32 exactness.
+const FULL_VISIBILITY = 1 - 1e-6;
 async function start(page: Page, saved?: unknown) {
   await page.clock.install({ time: new Date(NOW) }); await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   const rich = new GameCore(NOW).snapshot(); rich.credits = 1000000; rich.career.tickets = 10000;
@@ -36,8 +39,8 @@ for (const [width,height] of [[1440,900],[844,390],[667,375]] as const) test(`co
   await page.getByRole('button',{name:'复位',exact:true}).click(); await expect(page.getByLabel('组织树缩放')).toHaveText('80%');
   await page.locator('.org-view-menu > summary').click();
   await expect(page.locator('.org-pending')).toHaveCount(0);
-  await expect(tree.locator('[data-employee-id="1"]')).toBeInViewport({ratio:1});
-  await expect(tree.locator('[data-employee-id="2"]')).toBeInViewport({ratio:1});
+  await expect(tree.locator('[data-employee-id="1"]')).toBeInViewport({ratio:FULL_VISIBILITY});
+  await expect(tree.locator('[data-employee-id="2"]')).toBeInViewport({ratio:FULL_VISIBILITY});
   await page.screenshot({path:`artifacts/company-organization-${width}.png`});
   const state=await exportState(page); expect(state.version).toBe(9); expect(state.career.employees).toHaveLength(3); expect(Object.keys(state.career)).not.toContain('pilots');
   expect(state.career.employees[0]).toMatchObject({name:'林航',planeId:'AC0001',managerId:3,skill:1}); expect(state.career.employees[1]!.airportId).toBe('PEK');
@@ -62,7 +65,7 @@ test('promotion, portrait return and 150 percent UI scale do not break staffing'
   await detail.getByRole('tab',{name:'培养',exact:true}).click();
   for(let i=0;i<2;i++)await detail.getByRole('button',{name:/^专业培训/}).click();await detail.getByRole('button',{name:/^管理培训/}).click();
   page.once('dialog',d=>void d.accept());await detail.getByRole('button',{name:'晋升部门经理',exact:true}).click();await expect(detail).toContainText('飞行部经理');
-  await expect(page.getByRole('button',{name:'查看林航 · 飞行部经理',exact:true})).toBeInViewport({ratio:1});
+  await expect(page.getByRole('button',{name:'查看林航 · 飞行部经理',exact:true})).toBeInViewport({ratio:FULL_VISIBILITY});
   await page.screenshot({path:'artifacts/company-organization-844-scale150.png'});
   const s=await exportState(page);expect(s.fleet[0]!.dispatcher).toBe(false);expect(s.career.employees[0]!.role).toBe('manager');
   await page.setViewportSize({width:390,height:844});await expect(page.locator('.rotate-screen')).toBeVisible();await page.setViewportSize({width:844,height:390});await expect(page.locator('.rotate-screen')).toBeHidden();
