@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './fixture.js';
 
 const NOW = Date.parse('2026-09-13T02:00:00Z');
 
@@ -45,7 +45,7 @@ for (const viewport of [
     await expect(page.getByTestId('credits')).toHaveText(credits);
 
     await expect(dock.locator(':scope > button > span')).toHaveText([
-      '机场装载', '地图', '机场目录', '机队管理', '飞机商店', '经营中心', '制定路线',
+      '地图', '机场装载', '机场目录', '机队管理', '飞机商店', '经营中心', '制定路线',
     ]);
     await expect(entry).toBeEnabled();
     await expect(entry).toBeInViewport();

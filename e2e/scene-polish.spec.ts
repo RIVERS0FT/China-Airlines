@@ -1,5 +1,5 @@
 import { selectCity, detailValue, launchRoute } from './dispatch-helpers.js';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixture.js';
 let errors: string[];
 test.beforeEach(async ({ page }) => { errors = []; page.on('pageerror', e => errors.push(e.message)); });
 test.afterEach(() => expect(errors).toEqual([]));

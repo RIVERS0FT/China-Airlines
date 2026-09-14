@@ -1,5 +1,5 @@
 import { displayScale } from './display-helpers.js';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixture.js';
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 }, { width: 667, height: 375 }]) {
   test(`airport keeps scene-first railway-inspired hierarchy at ${viewport.width}x${viewport.height}`, async ({ page }) => {

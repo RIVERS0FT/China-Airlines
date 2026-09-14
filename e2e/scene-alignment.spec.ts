@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixture.js';
 
 test('grounded aircraft is anchored to the runway baseline on desktop', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 900 });

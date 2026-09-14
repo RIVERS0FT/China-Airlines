@@ -1,5 +1,5 @@
 import { selectCity, routeDetails, launchRoute, openGlobal } from './dispatch-helpers.js';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixture.js';
 import { GameCore } from '../src/core/game.js';
 async function ready(page: Page) {await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('airport-scene')).toBeVisible();}
 async function dismissReport(page: Page) {const button=page.getByRole('button',{name:'继续经营',exact:true});if(await button.isVisible())await button.click();}

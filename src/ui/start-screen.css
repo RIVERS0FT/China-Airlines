@@ -1,0 +1,24 @@
+.start-screen{position:relative;width:100%;height:100%;overflow:hidden;background:#19485f;color:#fff;font-family:inherit;isolation:isolate}
+.start-flight-sky{position:absolute;inset:0;width:100%;height:100%;z-index:-2}
+.start-screen::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#082e4acc 0,#0d395f73 46%,transparent 76%),linear-gradient(0deg,#072b44a8,transparent 45%);pointer-events:none}
+.start-aircraft{position:absolute;right:3%;top:13%;width:min(63%,900px);height:70%;display:grid;place-items:center;pointer-events:none;animation:start-aircraft-cruise 6s ease-in-out infinite}
+.start-aircraft img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 18px 20px #0b324766)}
+.start-utility{position:absolute;top:20px;right:24px;display:flex;align-items:center;gap:10px;z-index:2}
+.start-utility>button,.language-picker button{min-height:44px;border:1px solid #d6eef5aa;background:#153e5dcc;color:#fff;padding:7px 14px;box-shadow:0 4px 16px #082f4855}
+.language-picker{display:flex;gap:4px;padding:3px;border-radius:11px;background:#0a314b99}
+.language-picker button{box-shadow:none;background:transparent;border-color:transparent}
+.language-picker button[aria-pressed=true]{background:#f3c94c;color:#3d3211;border-color:#fff0a2}
+.language-setting{align-items:center;gap:18px}.language-setting>div{flex:1}.language-setting .language-picker{flex:0 0 auto}.language-setting .language-picker button{color:#244d65;border-color:#8db3c3;background:#f7fcf6}.language-setting .language-picker button[aria-pressed=true]{background:#f3c94c;color:#3d3211;border-color:#b48726}
+.start-panel{position:absolute;left:7%;top:50%;width:min(560px,46%);transform:translateY(-50%);display:flex;flex-direction:column;align-items:flex-start;gap:17px;text-shadow:0 3px 14px #06263e}
+.start-kicker{font-size:13px;font-weight:850;letter-spacing:4px;color:#ffe27e}
+.start-panel h1{font-size:clamp(52px,6.5vw,96px);line-height:.95;letter-spacing:.08em;color:#fff8da;white-space:nowrap}
+.start-subtitle{font-size:clamp(16px,2vw,26px);font-weight:700;line-height:1.5}
+.start-status{min-height:24px;font-size:14px;color:#e1f3f7}
+.start-error{max-width:520px;padding:9px 12px;border:1px solid #ffd0aa;background:#8d351cc7;border-radius:7px;font-size:13px;line-height:1.5}
+.start-actions{display:flex;gap:12px;align-items:center}
+.start-actions .start-enter{min-width:220px;min-height:62px;border:3px solid #9b5915;border-radius:14px;background:linear-gradient(#ffe16a,#f5a427 62%,#df7411);color:#fff;font-size:22px;font-weight:900;text-shadow:0 2px #a55212;box-shadow:inset 0 3px #fff3a0,0 5px 0 #713a0f,0 12px 25px #082c4270}
+.start-actions .start-enter:hover:not(:disabled){background:linear-gradient(#ffed8d,#ffb63f 62%,#eb841b)}
+@keyframes start-aircraft-cruise{0%,100%{transform:translate3d(0,0,0) rotate(-.5deg)}50%{transform:translate3d(-10px,-9px,0) rotate(.6deg)}}
+@media(max-height:600px) and (orientation:landscape){.start-utility{top:8px;right:10px}.start-utility>button,.language-picker button{min-height:40px;padding:5px 9px;font-size:11px}.start-panel{left:6%;gap:8px;width:48%}.start-panel h1{font-size:44px}.start-kicker{font-size:9px;letter-spacing:2px}.start-subtitle{font-size:14px}.start-status{font-size:11px;min-height:17px}.start-actions .start-enter{min-width:160px;min-height:48px;font-size:17px}.start-aircraft{right:1%;top:10%;width:62%;height:75%}}
+@media(max-width:720px) and (orientation:landscape){.start-panel h1{font-size:36px}.start-subtitle{font-size:12px}.start-aircraft{opacity:.82}.start-actions .start-enter{min-width:145px}}
+@media(prefers-reduced-motion:reduce){.start-aircraft{animation:none}.flight-clouds{animation:none!important}}

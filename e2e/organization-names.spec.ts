@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixture.js';
 import { readFile } from 'node:fs/promises';
 import type { GameState } from '../src/core/game.js';
 import { GameCore as V7Core } from '../src/core/v7/game.js';

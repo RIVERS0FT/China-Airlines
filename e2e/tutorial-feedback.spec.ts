@@ -1,5 +1,5 @@
 import { openGlobal } from './dispatch-helpers.js';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixture.js';
 
 test('tutorial feedback does not obscure or crop loading controls', async ({ page }) => {
   const errors: string[] = [];

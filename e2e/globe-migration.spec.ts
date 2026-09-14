@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixture.js';
 import { readFile } from 'node:fs/promises';
 import unitFlying from '../tests/fixtures/v5-unit-flying.json' with { type: 'json' };
 import { leaveMap } from './dispatch-helpers.js';

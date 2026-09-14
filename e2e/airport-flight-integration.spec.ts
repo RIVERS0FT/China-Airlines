@@ -1,5 +1,5 @@
 import { selectCity, openGlobal } from './dispatch-helpers.js';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixture.js';
 import { GameCore, type GameState } from '../src/core/game.js';
 const NOW = Date.parse('2026-09-11T00:00:00Z'), ID = 'AC0001';
 const money = (n:number) => `¥ ${Math.round(n).toLocaleString('zh-CN')}`;

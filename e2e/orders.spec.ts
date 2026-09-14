@@ -1,5 +1,5 @@
 import { openGlobal } from './dispatch-helpers.js';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixture.js';
 import legacy from '../tests/fixtures/v1-flying.json' with { type: 'json' };
 import { readFile } from 'node:fs/promises';
 

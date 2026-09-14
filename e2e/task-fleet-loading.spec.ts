@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixture.js';
 import { GameCore, waiting, validateSave, type GameState } from '../src/core/game.js';
 import { displayScale } from './display-helpers.js';
 const NOW = Date.parse('2026-09-13T02:00:00Z'), ID = 'AC0001';
@@ -31,7 +31,7 @@ test('one task entrance claims the initial gift exactly once and retains the air
   const dock = page.getByRole('navigation', { name: '主导航' });
   await expect(dock.getByRole('button')).toHaveCount(7);
   await expect(dock.locator(':scope > button > span')).toHaveText([
-    '机场装载', '地图', '机场目录', '机队管理', '飞机商店', '经营中心', '制定路线',
+    '地图', '机场装载', '机场目录', '机队管理', '飞机商店', '经营中心', '制定路线',
   ]);
   for (const name of ['运营任务', '奖励', '航班', '改装']) await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
   const selected = await page.locator('.plane-status').textContent(), credits = await page.getByTestId('credits').textContent();
@@ -156,7 +156,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`airpo
   await page.setViewportSize({ width: width!, height: height! });
   await setup(page);
   const dock = page.getByRole('navigation', { name: '主导航', exact: true });
-  const names = ['机场装载', '地图', '机场目录', '机队管理', '飞机商店', '经营中心'];
+  const names = ['地图', '机场装载', '机场目录', '机队管理', '飞机商店', '经营中心'];
   let ordinaryWidth = 0, ordinaryIconWidth = 0;
   for (const name of names) {
     const button = dock.getByRole('button', { name, exact: true });

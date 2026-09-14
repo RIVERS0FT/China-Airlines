@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { useI18n } from '../i18n/I18n.js';
 
 function outside(dialog: HTMLDialogElement, x: number, y: number) {
   const bounds = dialog.getBoundingClientRect();
@@ -9,6 +10,7 @@ function outside(dialog: HTMLDialogElement, x: number, y: number) {
  * supplies focus containment; closing never sends an economic command. */
 export function DispatchDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null), backdropPress = useRef(false);
+  const { t } = useI18n();
   useEffect(() => {
     const dialog = ref.current!, opener = document.activeElement as HTMLElement | null;
     dialog.showModal();
@@ -30,7 +32,7 @@ export function DispatchDialog({ title, onClose, children }: { title: string; on
       backdropPress.current = false;
       if (dismiss) onClose();
     }}>
-    <header><h2>{title}</h2><button type="button" aria-label={`关闭${title}`} onClick={onClose}>×</button></header>
+    <header><h2>{title}</h2><button type="button" aria-label={t('modal.close',{title})} onClick={onClose}>×</button></header>
     <div className="dispatch-dialog-content">{children}</div>
   </dialog>;
 }

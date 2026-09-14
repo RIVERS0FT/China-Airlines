@@ -1,10 +1,10 @@
 import { selectCity, detailValue, launchRoute, leaveMap, openGlobal } from './dispatch-helpers.js';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, prepareAirportSession, type Page } from './fixture.js';
 import { readFile } from 'node:fs/promises';
 let pageErrors:string[]=[];
 test.beforeEach(async({page})=>{pageErrors=[];page.on('pageerror',e=>pageErrors.push(e.message));});
 test.afterEach(()=>{expect(pageErrors).toEqual([]);});
-async function ready(page:Page){await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('airport-scene')).toBeVisible();}
+async function ready(page:Page){await prepareAirportSession(page);await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('airport-scene')).toBeVisible();}
 async function settings(page:Page){if(await page.locator('.game-modal').isVisible())await page.locator('.game-modal>header button').click();await openGlobal(page, '存档设置');await expect(page.getByRole('dialog')).toBeVisible();}
 async function chooseShanghai(page:Page){
 

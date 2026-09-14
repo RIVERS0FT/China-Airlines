@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from './fixture.js';
 import { readFile } from "node:fs/promises";
 import { GameCore, type GameState } from "../src/core/game.js";
 import { openGlobal, selectCity, launchRoute } from "./dispatch-helpers.js";

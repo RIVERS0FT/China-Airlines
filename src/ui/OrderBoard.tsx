@@ -6,6 +6,7 @@ import { controller } from '../runtime.js';
 import { loadingLock, orderBlockReason, orderPresentation } from './order-presentation.js';
 import { money, ignore } from './Panels.js';
 import { artAsset } from './art-assets.js';
+import { useI18n } from '../i18n/I18n.js';
 
 /** One decorative sprite per real order. Appearance never implies different fares or cargo rules. */
 function PassengerArt({ order }: { order: Order }) {
@@ -16,17 +17,18 @@ function PassengerArt({ order }: { order: Order }) {
 function OrderCard({ order, state, onClick }: {
   order: Order; state: ReturnType<typeof orderPresentation>; onClick: () => void;
 }) {
+  const { ui, airportName } = useI18n();
   const type = order.product ? MATERIALS[order.product] : service(order.service)?.name;
   return <button className={`job-card order-${state.state} ${state.aboard ? 'aboard' : ''} ${order.amount > 1 ? 'legacy-quantity' : ''}`} disabled={state.disabled} onClick={onClick}
     data-testid={state.aboard ? 'loaded-order' : 'waiting-order'} data-order-id={order.id} data-load-state={state.state}
-    aria-label={`${state.aboard ? '卸下' : '装载'} ${order.id} 前往${airport(order.to).city} ${order.amount}${order.kind === 'cargo' ? '吨货物' : '位旅客'}${type ? `，${type}` : ''}${state.reason ? `，${state.reason}` : ''}${state.transfer ? '，中转客货' : ''}`}
-    aria-describedby={`price-${order.id} state-${order.id}`} title={[type, state.action, state.transfer ? '中转客货保留至交付' : ''].filter(Boolean).join(' · ')}>
+    aria-label={`${ui(state.aboard ? '卸下' : '装载')} ${order.id} ${ui('前往{city}',{city:airportName(order.to,airport(order.to).city)})} ${ui('{count}{unit}',{count:order.amount,unit:ui(order.kind === 'cargo' ? '吨货物' : '位旅客')})}${type ? `, ${type}` : ''}${state.reason ? `, ${ui(state.reason)}` : ''}${state.transfer ? `, ${ui('中转客货')}` : ''}`}
+    aria-describedby={`price-${order.id} state-${order.id}`} title={[type, ui(state.action), state.transfer ? ui('中转客货保留至交付') : ''].filter(Boolean).join(' · ')}>
     <span className="job-figure"><PassengerArt order={order}/>
-      {state.transfer && <span className="job-transfer-tag">中转</span>}
-      {order.amount > 1 && <span className="job-quantity">{`${order.amount}${order.kind === 'cargo' ? '吨' : '人'}`}</span>}
+      {state.transfer && <span className="job-transfer-tag">{ui('中转')}</span>}
+      {order.amount > 1 && <span className="job-quantity">{ui('{count}{unit}',{count:order.amount,unit:ui(order.kind === 'cargo' ? '吨' : '人')})}</span>}
     </span>
     <span className="job-info"><strong id={`price-${order.id}`} className="job-price">{order.product ? MATERIALS[order.product] : money(order.reward)}</strong>
-      <span id={`state-${order.id}`} className="job-state job-action">{state.caption}</span>
+      <span id={`state-${order.id}`} className="job-state job-action">{ui(state.caption)}</span>
     </span>
   </button>;
 }
@@ -37,6 +39,7 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
   const strip = useRef<HTMLDivElement>(null);
   const gesture = useRef<{ x: number; y: number; scale: number; scroll: number; moved: boolean; active: boolean } | null>(null);
   const [edges, setEdges] = useState({ start: true, end: true });
+  const { ui, airportName } = useI18n();
   const onboard = plane ? manifest(game, plane.id) : [];
   const shown = [...waiting(game, airportId), ...onboard]
     .sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id, undefined, { numeric: true }));
@@ -82,10 +85,10 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
     else scroll(event.key === 'ArrowLeft' ? -1 : 1);
   }
   const lock = loadingLock(game, plane);
-  return <section className="order-board apron-queue" aria-label="客货装载区" style={{ backgroundImage: `url("${artAsset('apron-platform-v1.jpg')}")` }}>
+  return <section className="order-board apron-queue" aria-label={ui('客货装载区')} style={{ backgroundImage: `url("${artAsset('apron-platform-v1.jpg')}")` }}>
     <div className="order-window">
-      <button className="queue-arrow" aria-label="上一组客货" disabled={edges.start} onClick={() => scroll(-1)}>‹</button>
-      <div ref={strip} className="order-strip" tabIndex={0} role="region" aria-label="客货列表" onScroll={() => {
+      <button className="queue-arrow" aria-label={ui('上一组客货')} disabled={edges.start} onClick={() => scroll(-1)}>‹</button>
+      <div ref={strip} className="order-strip" tabIndex={0} role="region" aria-label={ui('客货列表')} onScroll={() => {
         const drag = gesture.current;
         if (drag?.active && Math.abs((strip.current?.scrollLeft ?? 0) - drag.scroll) > 6) drag.moved = true;
         measure();
@@ -104,13 +107,13 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
           // Keyboard clicks have detail=0 and must remain usable after a touch scroll.
           if (event.detail > 0 && gesture.current?.moved) { event.preventDefault(); event.stopPropagation(); }
         }}>
-        {[...groups].map(([to, orders]) => <div className="destination-group" role="group" aria-label={`前往${airport(to).city}的客货`} key={to}>
-          <button className="destination-station" aria-label={`同目的地装载：${airport(to).city}`} disabled={busy || Boolean(lock) || !orders.some(order => order.location !== plane?.id && !orderBlockReason(game, plane, order, false))} title={lock || (orders.some(order => order.location !== plane?.id && !orderBlockReason(game, plane, order, false)) ? '装机此站牌下容量允许的待运客货' : '此目的地暂无可装载客货')} onClick={() => plane && ignore(controller.command({ type: 'load-destination', planeId: plane.id, to }))}>{airport(to).city}<small>{to}</small></button>
+        {[...groups].map(([to, orders]) => <div className="destination-group" role="group" aria-label={ui('前往{city}的客货',{city:airportName(to,airport(to).city)})} key={to}>
+          <button className="destination-station" aria-label={ui('同目的地装载：{city}',{city:airportName(to,airport(to).city)})} disabled={busy || Boolean(lock) || !orders.some(order => order.location !== plane?.id && !orderBlockReason(game, plane, order, false))} title={ui(lock || (orders.some(order => order.location !== plane?.id && !orderBlockReason(game, plane, order, false)) ? '装机此站牌下容量允许的待运客货' : '此目的地暂无可装载客货'))} onClick={() => plane && ignore(controller.command({ type: 'load-destination', planeId: plane.id, to }))}>{airportName(to,airport(to).city)}<small>{to}</small></button>
           <div className="destination-orders">{orders.map(o => <OrderCard key={o.id} order={o} state={orderPresentation(game, plane, o, busy)} onClick={() => plane && ignore(controller.command({ type: o.location === plane.id ? 'unload' : 'load', planeId: plane.id, orderId: o.id }))}/>)}</div>
         </div>)}
-        {!shown.length && <div className="empty-orders">暂无客货，等待下次客源补充。</div>}
+        {!shown.length && <div className="empty-orders">{ui('暂无客货，等待下次客源补充。')}</div>}
       </div>
-      <button className="queue-arrow" aria-label="下一组客货" disabled={edges.end} onClick={() => scroll(1)}>›</button>
+      <button className="queue-arrow" aria-label={ui('下一组客货')} disabled={edges.end} onClick={() => scroll(1)}>›</button>
     </div>
   </section>;
 }
