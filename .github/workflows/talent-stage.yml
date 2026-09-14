@@ -6,14 +6,14 @@ permissions:
   contents: write
 jobs:
   prepare:
-    if: github.event.head_commit.message == 'chore: stage approved talent implementation'
+    if: "github.event.head_commit.message == 'chore: stage approved talent implementation'"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          fetch-depth: 2
+          fetch-depth: 0
       - name: Apply reviewed source changes on the feature branch
         run: |
           node --input-type=module <<'NODE'
@@ -27,7 +27,7 @@ jobs:
           if (createHash('sha256').update(compressed).digest('hex') !== '563deae9e4bfc31f736c7cfcf5fcc8d4f90f86f4f1d3024404f83d9706286602') throw new Error('Source transfer checksum mismatch');
           const plan = JSON.parse(brotliDecompressSync(compressed).toString('utf8'));
           const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
-          if (git('rev-parse','HEAD^') !== plan.base) throw new Error('Unexpected feature base; refusing to overwrite parallel work');
+          if (git('merge-base',plan.base,'HEAD') !== plan.base) throw new Error('Unexpected feature base; refusing to overwrite parallel work');
           if (git('rev-parse','HEAD:src/core/v8') !== 'f9488bc18353ae0aae5e54718351e3e70a29d480') throw new Error('Frozen v8 tree mismatch');
           const safe=p=>{if(p.includes('..')||!(/^(src|tests|e2e|docs)\//.test(p)||p==='README.md'))throw new Error('Unexpected path');return p;};
           fs.writeFileSync('/tmp/talent.patch',plan.patch);
