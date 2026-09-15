@@ -1,0 +1,1367 @@
+[
+  {
+    "source": "assets/static_data/StaticAchieve.js",
+    "rows": 207,
+    "sha256": "d79e45a86af819d573729f57d034f14674a6686a05e89e82189a69dd9b11fd37"
+  },
+  {
+    "source": "assets/static_data/StaticAchieveCost.js",
+    "rows": 12,
+    "sha256": "e75e88cde5bb62eef9777864424bcede3d18f39d6e90254611ee1769715e97f0"
+  },
+  {
+    "source": "assets/static_data/StaticAchieveRoom.js",
+    "rows": 3,
+    "sha256": "d15244ebd5aa27298d331ca071b98ce46098835718e53ebf4e195e6c15208c5b"
+  },
+  {
+    "source": "assets/static_data/StaticActiveRule.js",
+    "rows": 64,
+    "sha256": "e60764ffd31b30f75aef9882bdc6035767043bf28d95f6cdfb9d596c880f2d01"
+  },
+  {
+    "source": "assets/static_data/StaticAllianceDonate.js",
+    "rows": 15,
+    "sha256": "4e8a22c22b80f100545211452dd67c4b6cdecc013d3bd3202e12ba03c2063ab6"
+  },
+  {
+    "source": "assets/static_data/StaticAllianceGroupBuyCost.js",
+    "rows": 50,
+    "sha256": "acb3ccec491802d639cb057ba23b620d9346347b7e7970f00a667e44279f31e6"
+  },
+  {
+    "source": "assets/static_data/StaticAllianceGroupBuyShop.js",
+    "rows": 1,
+    "sha256": "f3ff688cfb3acbbf2f12656c193f7d5988c78162ded95d023c5ee95d48a22033"
+  },
+  {
+    "source": "assets/static_data/StaticAllianceOvosingleShop.js",
+    "rows": 112,
+    "sha256": "51ce695585081842c66f4fbd7b12d026a401631d4584894190e5c61eae2e905e"
+  },
+  {
+    "source": "assets/static_data/StaticAllianceStationFightAward.js",
+    "rows": 21,
+    "sha256": "3e3d4f350438be436264e5de927391cf8a9a44887b1936ec2c09f63f1b47af0c"
+  },
+  {
+    "source": "assets/static_data/StaticAllianceStationFightStore.js",
+    "rows": 411,
+    "sha256": "ae1643648a4de20305ffc66181fdb13b609c6c3c5bb1fe971436ca408083a988"
+  },
+  {
+    "source": "assets/static_data/StaticAllianceTaskShopTrain.js",
+    "rows": 123,
+    "sha256": "5cbfd69695f03e7e6b0f840a9b1abdf6fa86e4615f3a9512a38c61af8b71bc44"
+  },
+  {
+    "source": "assets/static_data/StaticAllianceTaskShopTrainTls.js",
+    "rows": 123,
+    "sha256": "e147780737a502627dc079330ed90c7a459105e8f6a966c69c2b102735ab7a00"
+  },
+  {
+    "source": "assets/static_data/StaticAllianceTaskTrain.js",
+    "rows": 4,
+    "sha256": "a8f4dd69a35da4b4ea348aa15a1591cd896d3cac714d8f074dc09e4d71c646a1"
+  },
+  {
+    "source": "assets/static_data/StaticAllianceTaxes.js",
+    "rows": 10,
+    "sha256": "82f35ca1571da6580c802ec57d063d3c20a19ed590e3f3b4a965cc8d42a6d860"
+  },
+  {
+    "source": "assets/static_data/StaticAward.js",
+    "rows": 12605,
+    "sha256": "0fe1a0d4dacd78812dc1e86288c3389555d893ae007ffdc8efc3993a3280524a"
+  },
+  {
+    "source": "assets/static_data/StaticBlackmarket.js",
+    "rows": 375,
+    "sha256": "0f8e1d97e3ffe2070f11065d1e35bef5e4dcbdec74b61b41fd83d7c9c434a7b1"
+  },
+  {
+    "source": "assets/static_data/StaticCaptain.js",
+    "rows": 3,
+    "sha256": "9cc73f1a46220daf65aa9740475267077065cf08fce2a514922ad4f241a0e28b"
+  },
+  {
+    "source": "assets/static_data/StaticCaptainSkill.js",
+    "rows": 7,
+    "sha256": "d5df299a44831487cfa7b9566882ba8953c84be85acbb0d3852ef69a2fbb1edb"
+  },
+  {
+    "source": "assets/static_data/StaticCaptainSkillLevel.js",
+    "rows": 120,
+    "sha256": "d2aa6730ff926c5322b1ac9325b88d8af3209ed7d1f962feee3456813d54fd93"
+  },
+  {
+    "source": "assets/static_data/StaticCaptainSlot.js",
+    "rows": 5,
+    "sha256": "e407adbbb1e8d0b8272f59998828827aed72ab89b53659d3ff4badec1320c1af"
+  },
+  {
+    "source": "assets/static_data/StaticCelebrationShop.js",
+    "rows": 56,
+    "sha256": "6b10b2f98c40eaa453a0309818abfdbaf0b9c7c52d02f2f314794ddcd9600d07"
+  },
+  {
+    "source": "assets/static_data/StaticCommodity.js",
+    "rows": 1397,
+    "sha256": "4bcc8063121076ff6b38d2bc4467f02f055a74f316daab2d552d1d84fd0049dd"
+  },
+  {
+    "source": "assets/static_data/StaticCommodityIds.js",
+    "rows": 12,
+    "sha256": "fdb54988c0b27e3e544938f751a0c0a0eff60cbfa51f2d5bdd21da57ab32b92f"
+  },
+  {
+    "source": "assets/static_data/StaticCouponTrain.js",
+    "rows": 3,
+    "sha256": "58ed6326657d780d06e44cb2b8d102751d3c80d77f9f3177c48d3730943883ad"
+  },
+  {
+    "source": "assets/static_data/StaticDailyCity.js",
+    "rows": 57,
+    "sha256": "1c3081a973343072d021ce19309f75dfd486303b0d778913057c22a6ba601499"
+  },
+  {
+    "source": "assets/static_data/StaticDailyCityAward.js",
+    "rows": 10,
+    "sha256": "7e2228c35735185437ab56b6ab623b3eb0706bc23f22ce11b06018c286c4cae4"
+  },
+  {
+    "source": "assets/static_data/StaticDailyCityScore.js",
+    "rows": 8,
+    "sha256": "4bd3fa986be5f7cf92f2f06a44d475b538744e1b83a75e15190739b1625f8c16"
+  },
+  {
+    "source": "assets/static_data/StaticDiscount.js",
+    "rows": 6,
+    "sha256": "b724b049b907ac426c81f9deffbb05c763ce8f4eb77fd7390093c5db5fd9ee2a"
+  },
+  {
+    "source": "assets/static_data/StaticErrorDefine.js",
+    "rows": 343,
+    "sha256": "bde337c2e3df387ed148b964b895791972e5482f657283d0628f410b174232a5"
+  },
+  {
+    "source": "assets/static_data/StaticEvent.js",
+    "rows": 7,
+    "sha256": "b58b68665d4f75c3b87310cbc7ca397e47ea9028f45ac9a804f725c4b82baf81"
+  },
+  {
+    "source": "assets/static_data/StaticFameStore.js",
+    "rows": 78,
+    "sha256": "efb7c6062e0de498d19b82d58d292dc3446f0169c6469f94398b888940b0cb6d"
+  },
+  {
+    "source": "assets/static_data/StaticFightGroupShop.js",
+    "rows": 98,
+    "sha256": "b108ff32ac6ad15bf03fbfa0cd9861a061c8b2f32063067d0b686a0651d1c02d"
+  },
+  {
+    "source": "assets/static_data/StaticGoods.js",
+    "rows": 104,
+    "sha256": "e2937064baac70e5f6ed223bbed5c88524e0dfcd9cf739982365bb77f6aa699c"
+  },
+  {
+    "source": "assets/static_data/StaticGuide.js",
+    "rows": 65,
+    "sha256": "5f93e21f4a1f909b756b9b24f550cc3dfc7c5187816ea466cfda75b25eb0a448"
+  },
+  {
+    "source": "assets/static_data/StaticGuideDlg.js",
+    "rows": 66,
+    "sha256": "0c1a716b8d43149edff45590d254f11c867cae4cd303ac12fce3b153573f7390"
+  },
+  {
+    "source": "assets/static_data/StaticGuideUi.js",
+    "rows": 31,
+    "sha256": "4a3be412bcf0012ce891f8d6d2e2b3b3463ec1af8ec22918cb32397ef51ebc9c"
+  },
+  {
+    "source": "assets/static_data/StaticInvest.js",
+    "rows": 24,
+    "sha256": "20f1fda137d06f3f81ca8587ae40a4f2eac19feb4fb05c232d26926728a528dd"
+  },
+  {
+    "source": "assets/static_data/StaticJinhuaLv.js",
+    "rows": 10,
+    "sha256": "a6737cbcfcf8867e4b7fa5ef554bae6bec6579091c629322c06ec984f33f13eb"
+  },
+  {
+    "source": "assets/static_data/StaticMoneyScoreShop.js",
+    "rows": 540,
+    "sha256": "c0260f7cb0d590af30c4e826f9bda52e2f9b58296a16f630969cfe8f7a6c84f3"
+  },
+  {
+    "source": "assets/static_data/StaticMuseumAward.js",
+    "rows": 20,
+    "sha256": "fee625afe52e6acb53fb378e8815026dc76048dc035478741385a19c827fba6e"
+  },
+  {
+    "source": "assets/static_data/StaticMuseumClient.js",
+    "rows": 4,
+    "sha256": "2a229c47fcfe866bf7dfe90fef7aa5151d730b9ffa5c60c801ddbf08fb527223"
+  },
+  {
+    "source": "assets/static_data/StaticMuseumTrain.js",
+    "rows": 2760,
+    "sha256": "1c28f1f973ca392a06737ca26d281903ec5c2367f832aeb4363473b5a87bead1"
+  },
+  {
+    "source": "assets/static_data/StaticNaBuildingLevelCost.js",
+    "rows": 1086,
+    "sha256": "072b44b837a1273cc242512f5a578bddc807d07bc4dfa063422fb70311b9dfd9"
+  },
+  {
+    "source": "assets/static_data/StaticNaBuildingLevelEff.js",
+    "rows": 2555,
+    "sha256": "cd99023b2dbeb2fdab5ca47b66cec2522dadbcad56668d1792b65cf5cc4d87d9"
+  },
+  {
+    "source": "assets/static_data/StaticNaBuildingLevelNeed.js",
+    "rows": 50,
+    "sha256": "713b3c8a28cd90114af2d55303261bf532ad0867c05e2123dbe857d983050551"
+  },
+  {
+    "source": "assets/static_data/StaticNaCargo.js",
+    "rows": 194,
+    "sha256": "b3460151760b8f6489bffd04935d063ee251e988a52d0c0e9af2a152169626b9"
+  },
+  {
+    "source": "assets/static_data/StaticNaCargoFresh.js",
+    "rows": 96,
+    "sha256": "5fa38e792cea3d29ae3950dbb383e743c3df898c5d3ef02849fa753c39ef831f"
+  },
+  {
+    "source": "assets/static_data/StaticNaCargoProduce.js",
+    "rows": 418,
+    "sha256": "e9d4c7c0aa8c1ce5e1e0af1cf90613f801eeae0631787ed9198bc2ce4ef7d853"
+  },
+  {
+    "source": "assets/static_data/StaticNaCargoType.js",
+    "rows": 11,
+    "sha256": "4bc4cf0754fe26d4fc5ca68326e95ae5ef4724eb6d8011ceff48d73df616310e"
+  },
+  {
+    "source": "assets/static_data/StaticNaCarriageLvup.js",
+    "rows": 9,
+    "sha256": "e869a05f36056319148b43e6495c4b3896f8f1f54a8ddf0eddcbd6eb6fee1655"
+  },
+  {
+    "source": "assets/static_data/StaticNaEff.js",
+    "rows": 8,
+    "sha256": "522c3d6c3eae00144532dcf7078a367d3eb3d6f1bd0a517c01bbaeb81ef3fae3"
+  },
+  {
+    "source": "assets/static_data/StaticNaEquipLvupCost.js",
+    "rows": 38,
+    "sha256": "468ab0b13e590f46996b538824fe15cfccda675ef105eed36a7a2031d0923631"
+  },
+  {
+    "source": "assets/static_data/StaticNaEquipProp.js",
+    "rows": 33,
+    "sha256": "d93dc1b4ba17d917ba44c212c2b2e23acd47ad768ab2dac17d000e87fe7de05b"
+  },
+  {
+    "source": "assets/static_data/StaticNaEvent.js",
+    "rows": 7,
+    "sha256": "7bffa7da5de21ccb6e54a4e5ddaecae99ef2954d0cca00863cdf682eec46d3cd"
+  },
+  {
+    "source": "assets/static_data/StaticNaHelp.js",
+    "rows": 29,
+    "sha256": "f9eae4e48eb19e84d7ff70af377122add74f7d256d61b860a1cb4651b933b615"
+  },
+  {
+    "source": "assets/static_data/StaticNaLandscape.js",
+    "rows": 29,
+    "sha256": "1b1cd121ac502c1cfb4cd7bf73b2606470ee4ae9c17befae918a885c6fa2f671"
+  },
+  {
+    "source": "assets/static_data/StaticNaLotteryCost.js",
+    "rows": 6,
+    "sha256": "c4a973530e36ceb2345b13df29c179ff93a74e738fdc0f2d0f87c8d705344fa2"
+  },
+  {
+    "source": "assets/static_data/StaticNaSellMatchShop.js",
+    "rows": 146,
+    "sha256": "5806edf07847e8c260a3caa2c5ff744ba90ec78fa3d087f2e325173e55bfeab7"
+  },
+  {
+    "source": "assets/static_data/StaticNaTask.js",
+    "rows": 398,
+    "sha256": "17782e59d4ba7f38b1d025af3e3f408b25e367bedfb8cfa6936b46f6fcff4157"
+  },
+  {
+    "source": "assets/static_data/StaticNaTaskAward.js",
+    "rows": 398,
+    "sha256": "6e534138027e65de9de9add6fbbb6c05ef24ba72c1a49226b963dd86eb7d924a"
+  },
+  {
+    "source": "assets/static_data/StaticNaTaskBuild.js",
+    "rows": 31,
+    "sha256": "8e6e91afec23b6b807818fbaa2956d7210800b3f52b7e186a30daf26e9a7a83b"
+  },
+  {
+    "source": "assets/static_data/StaticPart.js",
+    "rows": 3080,
+    "sha256": "411455d3f5164f7c6f62c345cbeccd0bba95a9c53be90d11cbee6164da79ff8e"
+  },
+  {
+    "source": "assets/static_data/StaticPos.js",
+    "rows": 4,
+    "sha256": "0f9d2cc2f99b8b28823c97ddb5b43299a2dbbfdf21adb669c94fde44706e5494"
+  },
+  {
+    "source": "assets/static_data/StaticProvince.js",
+    "rows": 30,
+    "sha256": "63def121e82146da63b92e0df595c0f8ba8fd5594f0d088233b273ef9f61e0f1"
+  },
+  {
+    "source": "assets/static_data/StaticProvinceNear.js",
+    "rows": 34,
+    "sha256": "894d3b0f2a465917f436a51660de715d5c2791c5d821d9ce94675acb5425082a"
+  },
+  {
+    "source": "assets/static_data/StaticPublicNotice.js",
+    "rows": 6,
+    "sha256": "dc8c8cccf79a4d488c3646175c73a4cdc63343f0c2b0a40c498fef82ce0060a1"
+  },
+  {
+    "source": "assets/static_data/StaticQuest.js",
+    "rows": 201,
+    "sha256": "513e62af99437a14fa69a86608c5dbb8a3263812d358dffe78e99ae3eefc82c7"
+  },
+  {
+    "source": "assets/static_data/StaticRechargeDailyShop.js",
+    "rows": 56,
+    "sha256": "5b5ad0bdfa9f11b6f31f5f64de2c51c119e37a61e0027e108e124d8d761f7b28"
+  },
+  {
+    "source": "assets/static_data/StaticRechargeShop.js",
+    "rows": 103,
+    "sha256": "88b5804269269b503223467d7e15598ad5b5ca79d890ea77db112e8bce8233be"
+  },
+  {
+    "source": "assets/static_data/StaticSevenDays.js",
+    "rows": 28,
+    "sha256": "220e75906b346e2ba2f194f4fc15c199618ba7616accf8e9738fe29aef47df7a"
+  },
+  {
+    "source": "assets/static_data/StaticSevenDaysAward.js",
+    "rows": 35,
+    "sha256": "7f028ff096dec8d1711e3f695f8b465d5b19c3ceee75eb0113a0d9f48b7a2d9a"
+  },
+  {
+    "source": "assets/static_data/StaticSound.js",
+    "rows": 28,
+    "sha256": "0b0a5ad7ef35260fc754ad58d44127f1d0ed32d304371a55dc5e11b785cc2642"
+  },
+  {
+    "source": "assets/static_data/StaticStation.js",
+    "rows": 438,
+    "sha256": "1a9ac6f8d98e5d85ca0a8784b3ab1795c96981b82d9029ea0a0f683052e07017"
+  },
+  {
+    "source": "assets/static_data/StaticStationLevel.js",
+    "rows": 4,
+    "sha256": "23bfc983aa351a81c168971ef54131ef0f18c77f68556ab9fc8642c255db5fd7"
+  },
+  {
+    "source": "assets/static_data/StaticSysOpen.js",
+    "rows": 6,
+    "sha256": "28fc0c2e01803f572857cb940f7b3ed4aefcb6660c691c68ae148591d8162f93"
+  },
+  {
+    "source": "assets/static_data/StaticSystemAnnounce.js",
+    "rows": 10,
+    "sha256": "3adaa21609c83bc3218b57eae21a6b1133ff7082c357410b4e9a099fe8daef23"
+  },
+  {
+    "source": "assets/static_data/StaticTaskAllianceTlsShop.js",
+    "rows": 121,
+    "sha256": "d582e2c9d786a1cfafcee9b49ae92a0653d87e797a7fd67c57150943e01c1db9"
+  },
+  {
+    "source": "assets/static_data/StaticTaskGiftShop.js",
+    "rows": 127,
+    "sha256": "67375b5e670cd5723a8f003e92d5b2687adf26a9f1c82d244cd009dd346e450a"
+  },
+  {
+    "source": "assets/static_data/StaticTaskShop.js",
+    "rows": 120,
+    "sha256": "c2846ca229d829bfe9619a276e687f2397daa4820c66049a01196477bcbecdcd"
+  },
+  {
+    "source": "assets/static_data/StaticToplistScoreAward.js",
+    "rows": 12,
+    "sha256": "5d81910cabadf8b023c957e1aa8a1114da847d49443a29d784c38f8adf942e2c"
+  },
+  {
+    "source": "assets/static_data/StaticTrain.js",
+    "rows": 759,
+    "sha256": "82f71eb03d9ba9722ee41e95af71ddc930da0d6ec41c2281cf96b714c0ba384f"
+  },
+  {
+    "source": "assets/static_data/StaticTrainGroupCompose.js",
+    "rows": 6,
+    "sha256": "6fb79bdccddae736a62e33cae382df5394131aa870122fa2f1852a6152a8559c"
+  },
+  {
+    "source": "assets/static_data/StaticTrainGroupComposeMaterial.js",
+    "rows": 6,
+    "sha256": "63a6f167656f6bf0a6ea8389fdfb7876341cf904950d5165f22ebfbad283f2a9"
+  },
+  {
+    "source": "assets/static_data/StaticTrainGrouptypeName.js",
+    "rows": 194,
+    "sha256": "6d240d3c1f56c02ee929fdce3189feab88a99980047c964ba18b73a47883dbb8"
+  },
+  {
+    "source": "assets/static_data/StaticTrainLevel.js",
+    "rows": 100,
+    "sha256": "ba65ded5abd05e4f6f8c250247c49a2be885238fcc151d55d6a8ff255a1cb5ca"
+  },
+  {
+    "source": "assets/static_data/StaticVip.js",
+    "rows": 9,
+    "sha256": "535ca2a740c6e9e075ce379bc8704b4971f84c3460cfa0a47729ce851a92680e"
+  },
+  {
+    "source": "assets/static_data/StaticVipGift.js",
+    "rows": 51,
+    "sha256": "0d5cadd5e1acab77e19e55440f9cabb4f375cea7f7a5bd784382eba75019a404"
+  },
+  {
+    "source": "assets/static_data/StaticWorldCelebrationShop.js",
+    "rows": 68,
+    "sha256": "28a95132329b0702c497e3d5784138e65f34f62630cf2efe9909c7f399a30d63"
+  },
+  {
+    "source": "assets/static_data/StaticZoneBuildShow.js",
+    "rows": 71,
+    "sha256": "a59b5180413dcd6e778c9e1142b5bf2574622fa0804ee19ab19df705fc1f84e1"
+  },
+  {
+    "source": "assets/static_data/StaticZoneCommon.js",
+    "rows": 1,
+    "sha256": "0cfeca141336abf4b89ca072342993813f89387c2d6497a1850bb5d4a7a4d763"
+  },
+  {
+    "source": "assets/static_data/StaticZoneOccupy.js",
+    "rows": 7,
+    "sha256": "a6909cb6657edc55dbd7b0640b1127f9eb5f28f66c7bf74af24eac6227fec1cb"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AchieveEffPanel.js",
+    "rows": 6,
+    "sha256": "1f53ec0a71d12a427dfd9888b004b0d71a58c47291b349e1c4443b89ae1a6be4"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AchieveNeedPanel.js",
+    "rows": 13,
+    "sha256": "27fc3f6edd5877d85ede22b79735a0d34e69e3be71efb1d0b3b960dbaea8fcf0"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AchieveTrainCellRenderer.js",
+    "rows": 3,
+    "sha256": "61a9ebe4155f64e6c49d1ae7acd788cab7cea7b3743b9b9e6db8caa2e6cac0b2"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AchieveTrainPanel.js",
+    "rows": 4,
+    "sha256": "fcf814629090b1b3377efe204eebdfe531e77ca3cef30d82447782c2b751c7ed"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AchieveUpgradePanel.js",
+    "rows": 18,
+    "sha256": "93674b0a9b6e1b01fe0c19a95a27f252fa3caf0ad1431749ea7a75e915aa070d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceApplicanCellRenderer.js",
+    "rows": 7,
+    "sha256": "dd81cb85c52d031b097148142abd3dd53832a2587541e46825b7107130ead083"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceApplicanListUI.js",
+    "rows": 5,
+    "sha256": "53335dc0c52f9406d200e80a0ae6adf5ad3ac2e02097cf8416c282131871ef22"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceCellRenderer.js",
+    "rows": 3,
+    "sha256": "1b713d5338195f89060a2815f32d302a2c7d05b8a52c0a6e5320852d6e1a11d4"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceCreatePanel.js",
+    "rows": 25,
+    "sha256": "d67e4a430620423de6e797eafa3a174c583f4765b341fa47387bae4f9899865a"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceDetailPanel.js",
+    "rows": 106,
+    "sha256": "e6f20528b6c971c43c8cd757df87f3515eea781afdeb3184828f3a12bb5eaffa"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceGroupBuyCellRenderer.js",
+    "rows": 7,
+    "sha256": "1d9602f7c6feeb64a9d7c62f0d2adb7631ad27111f0b79ac9162cb931b2f4057"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceGroupBuyNamelistPanel.js",
+    "rows": 1,
+    "sha256": "8de3cc8d341f5a7bce9e9a48913ab88cd0be427ad7748b424c9e7bee98b6f836"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceGroupBuyPanel.js",
+    "rows": 5,
+    "sha256": "a63c36fc7835d282a8445bd3864fd268b9024472dc39349a6a1f9656d3f65fd6"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceListUI.js",
+    "rows": 8,
+    "sha256": "b6634c2f32acba63cad99535a287433e872165c4e59faaaf25d0ad478def42d0"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceLogCellRenderer.js",
+    "rows": 5,
+    "sha256": "597c81927ce263f2b64f21e93ad35b614bb61b44fec566d3605132f3b84002c7"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceLogPanel.js",
+    "rows": 3,
+    "sha256": "184ebd39c7ceb9e78aa6a038c38b659b1e0abb52fe20b99bbd994472276a5c6d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceMemberCellRenderer.js",
+    "rows": 4,
+    "sha256": "bcd249519959dc034f10736dc363e133f4436f13c38837ac26220ed44dcdc855"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceMgr.js",
+    "rows": 4,
+    "sha256": "49e60c0a5fe3a9ea4854b891513ba043784468296e3f88b66155114217b2f9c4"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceMgrPanel.js",
+    "rows": 20,
+    "sha256": "46a3a505801a770df1c08e5d9942808af230359aec390cf9e75910c4f1e3dde6"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceOvoCellRenderer.js",
+    "rows": 3,
+    "sha256": "caa16a175fa9a2e5a9e73f8218a6dacc151dd443d3820c5d0e5db3121ae2258a"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceOvoMemberCellRenderer.js",
+    "rows": 4,
+    "sha256": "1b9fd5954166648db8d6314712278fa3883252dc2cfaaa4baac9ccd548a3bb0f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceOvoMemberPanel.js",
+    "rows": 1,
+    "sha256": "e7d3ba43600e2e5971c7ef235076dd168795ec076f3cb915219f8dfa69a3b679"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceOvoMyPanel.js",
+    "rows": 11,
+    "sha256": "ad70f36b9382334a8948625a1f8b339b387ecb951566a7ead182854d603f28a3"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceOvosingleMyPanel.js",
+    "rows": 10,
+    "sha256": "46c00e16936f234846703e6f78dd0f0fc30dc6b6ba3ccb4975e15c8a0d286da5"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceOvosingleShopPanel.js",
+    "rows": 9,
+    "sha256": "94c6f877ebb38e759526e87a59fb94eceab2ca0687a44125f26c28e04722d701"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AlliancePermissionCellRenderer.js",
+    "rows": 3,
+    "sha256": "769c6907fa3f840ab7ce496dbc13eb7af2acfce11ea7098c2e41e625dfc79937"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceReawardPanel.js",
+    "rows": 2,
+    "sha256": "6ee2b66ddad6f532e51c3c1fa8b6da69d69718cb664b56076e937451fec287f2"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceShopCellRenderer.js",
+    "rows": 8,
+    "sha256": "688f3135daeed92a5da16bc1db4c48dcff556d8f9f9b1b8e977edb3de41dc568"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceShopPermissionPanel.js",
+    "rows": 3,
+    "sha256": "d6383aa13957d551557fbf7a29c164e14ed5d483709e1cb3c1fe09f180f2351e"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceStationFightAwardPanel.js",
+    "rows": 2,
+    "sha256": "b156c77683b7d53746fe3517223bdd5da6f110d66063db3891227d1ebfc0343f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceStationFightCellRenderer.js",
+    "rows": 4,
+    "sha256": "1361d0ba476d37e50293fe68fee8c81f8b2943d2652e839e0b954c8c5bd0db5d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceStationFightMemberScoreCellRenderer.js",
+    "rows": 1,
+    "sha256": "0d60ea88009cfb232d0838197795ce9588e8ad6e904f701bf6e1fd3b542b306a"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceStationFightMemberScorePanel.js",
+    "rows": 3,
+    "sha256": "3992ece2bbb9dfa290fbee6fb3221f6555758719ad57cf2a8262d34c8395ba51"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceStationFightSendAwardPanel.js",
+    "rows": 10,
+    "sha256": "4320aa40bca339a23f093ebc89b37a33523b2d7fba817c551d23fd29df919a93"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceStationFightTeamCellRenderer.js",
+    "rows": 5,
+    "sha256": "e93b9123247583782fef742c01545965fe6d31cb50943a1456a72c9a78a96e37"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceStationFightTeamPanel.js",
+    "rows": 8,
+    "sha256": "b88ea21ae8f59592fca312aa1ab3bab1f3ebcb8cb2308aa3659d0aeffa4bd4cc"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceTaskCellRenderer.js",
+    "rows": 1,
+    "sha256": "c664bee310d41e358e34b71c0b2f6bb0b23d927368b79026acfbb9e0da69b08d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceTaskPanel.js",
+    "rows": 19,
+    "sha256": "6d4878295bf9dfaa448d46a9e00c91183136dcba52baad5eafaee0dbd2ea3994"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceTaskShopPanel.js",
+    "rows": 8,
+    "sha256": "ef480cc432622377a33faa4c486605f2ca52c4b02dae756034bd5f1b85187642"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AllianceTaskTopListAwardPanel.js",
+    "rows": 1,
+    "sha256": "299e21ed4a246c92029c8c57806a04ccb85535646b7947c5d9d2b2cec42bddf4"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AssemblePanel.js",
+    "rows": 7,
+    "sha256": "c6fce1cf043d826452fe1543f5f1dfc564d46b33c6e86f554ee2c734637e5980"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AssembleRulePanel.js",
+    "rows": 2,
+    "sha256": "728380fb0abcd49f8277e100203acd37082894b85d75cf720ee53dc622634a76"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AvatarLoader.js",
+    "rows": 26,
+    "sha256": "53292b5d426386feb0e6e5fe385f98cb7d93546b4ceb444e27b5867549dc7c4f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AwardTipsCellRenderer.js",
+    "rows": 26,
+    "sha256": "d5e90148e7088a7cf804172141b11fcfa967322e18eca72ea25c880602cfec3e"
+  },
+  {
+    "source": "assets/static_data/lang/cn/AwardTipsListUI.js",
+    "rows": 2,
+    "sha256": "fe5ae3275293bee17a9aee9205115bcb130f2bfb78e1b3cc8bee503e78573a6d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/BlackMarketCellRenderer.js",
+    "rows": 11,
+    "sha256": "ab1cd6fbd4d5f47452c7ca744a89d6ca57889eb51e576f272efbb003fa7c91ab"
+  },
+  {
+    "source": "assets/static_data/lang/cn/BlackMarketPanel.js",
+    "rows": 16,
+    "sha256": "f58495f0597b96905501af9ec1016ec8270b25405040f78d8c518005d7dd0eee"
+  },
+  {
+    "source": "assets/static_data/lang/cn/BlackMarketRulePanel.js",
+    "rows": 2,
+    "sha256": "18ee605b74f168d6a7e89b592eff21a442ccc7db25c4933cfe22b6ce087e3db0"
+  },
+  {
+    "source": "assets/static_data/lang/cn/Boss.js",
+    "rows": 2,
+    "sha256": "d99778c7ca258c82c3d901e29ebb3a3c4586dfd09a0ff9d42929dea2594d2a5a"
+  },
+  {
+    "source": "assets/static_data/lang/cn/BuyGiftPanel.js",
+    "rows": 8,
+    "sha256": "742a68d072fce8ac4798a4f37cf18ea0812d7aa67297f2d4647fbf87e0d3cd7b"
+  },
+  {
+    "source": "assets/static_data/lang/cn/BuyGoldPanel.js",
+    "rows": 23,
+    "sha256": "c7ba479965c3465ff98ee4323acc97dfca1c60725bc6c76b7e93122481e9ed10"
+  },
+  {
+    "source": "assets/static_data/lang/cn/CaptainFreeCellRenderer.js",
+    "rows": 11,
+    "sha256": "80b8633e5f870f04cf5eb3c5e4c8bcf1a26b56fef42677c8b708a6330089444f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/CaptainGaragePanel.js",
+    "rows": 43,
+    "sha256": "7460ff6b6cdb306192b6358049097dfb5f82f0ae01930d889bfc1df9780fdf90"
+  },
+  {
+    "source": "assets/static_data/lang/cn/CaptainRandomSkillPanel.js",
+    "rows": 13,
+    "sha256": "fd5f3bc2a3d20b2f96aab4e0e309833c1801a92195d6589786c6925c50417a06"
+  },
+  {
+    "source": "assets/static_data/lang/cn/CaptainRulePanel.js",
+    "rows": 2,
+    "sha256": "d0332340e265934613c35d1db8e92ab8efd965ff2015605febf943dac3ee9cc3"
+  },
+  {
+    "source": "assets/static_data/lang/cn/CaptainSetUpPanel.js",
+    "rows": 3,
+    "sha256": "459a7ba28eb4e8d22de8e428dfcabacc6ff3ceb7f97c6cc107baeb7f40f73b22"
+  },
+  {
+    "source": "assets/static_data/lang/cn/CaptainSkilListCellRenderer.js",
+    "rows": 4,
+    "sha256": "b29b6257da6936cb244b060e57222b6823316b7502ca45adf21f252197be95ea"
+  },
+  {
+    "source": "assets/static_data/lang/cn/CaptainSkillPanel.js",
+    "rows": 15,
+    "sha256": "3dcfd04a1896c29bb509279e133a899be48619d57d8b9b39752081f409ae569f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/CaptainWorkCellRenderer.js",
+    "rows": 15,
+    "sha256": "d2d94ff2d8597bb2dbc35e661be28e922cc60cee69a71b0daf684edbba8d6082"
+  },
+  {
+    "source": "assets/static_data/lang/cn/CelebrationRulePanel.js",
+    "rows": 6,
+    "sha256": "b02010e6f0954bb67179d9ab276a01eba76db63aabf27bbe5e9015a08cccf2ce"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ChatData.js",
+    "rows": 3,
+    "sha256": "01aa9dfc039a744c9b799cf5757ed8342783ce4fce46d610e072105973736a97"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ChatLstElem.js",
+    "rows": 2,
+    "sha256": "6d56d99e5cd274f9fb1c042ceb07bd5c2625572d597c40c929f2d71e6526162a"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ChatPanel.js",
+    "rows": 12,
+    "sha256": "bc9999de52a43a82cd5bdcb5c17f793b84d8dc6c969ec244a005d041665e20e8"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ChinaMap.js",
+    "rows": 5,
+    "sha256": "31d2f0f720e136458e9ec8875690de3411de2927bfb5bc191696d8e6bc3f2468"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ComposeCellRenderer.js",
+    "rows": 10,
+    "sha256": "da0aa8e861b9dc65d5a76cb96c895c0419c95685e125d5fd4b85f0bcb578d9f1"
+  },
+  {
+    "source": "assets/static_data/lang/cn/CreatePanel.js",
+    "rows": 5,
+    "sha256": "75e939bd0ff5df3c44cade39e39de010b1f1ab52e8669dc77ed8a5016f957930"
+  },
+  {
+    "source": "assets/static_data/lang/cn/DailyCityPanel.js",
+    "rows": 13,
+    "sha256": "6b2f4e82ee07229cdf5a978d927c3a0bc6c0143f866a66100f4fba134ce015c5"
+  },
+  {
+    "source": "assets/static_data/lang/cn/DailyInvitePanel.js",
+    "rows": 5,
+    "sha256": "2421bf1c6729038579a14ee1ff41827bd66afafc7effd5bda0c934b77f64016a"
+  },
+  {
+    "source": "assets/static_data/lang/cn/DailyNewsData.js",
+    "rows": 4,
+    "sha256": "ee35ce930fbbc1c7e1a3baf67d7c1eb710348d2a0302a3d70bd1f49c16607b5f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/DiscountGoodsCellRenderer.js",
+    "rows": 14,
+    "sha256": "c195ac6e4d6b61c1c77075a95962a613f1e0b01bae8e0697765707d5f0d137c9"
+  },
+  {
+    "source": "assets/static_data/lang/cn/FightGroupAwardPanel.js",
+    "rows": 1,
+    "sha256": "9dab46cb827eb2748f5ebdb30387481b4d86a1f3737abf7af3b0a758189b1e51"
+  },
+  {
+    "source": "assets/static_data/lang/cn/FightGroupPanel.js",
+    "rows": 23,
+    "sha256": "fa01ec44c527da90fe90bbcf002f0e61b3a6bc70be8108aaf40883d1afde49ab"
+  },
+  {
+    "source": "assets/static_data/lang/cn/FightGroupRoundCellRenderer.js",
+    "rows": 8,
+    "sha256": "ce15a83976777be60a2c2464c78c8227b6d1b909786f9ade9b53e4f2ebe613ec"
+  },
+  {
+    "source": "assets/static_data/lang/cn/FightGroupShopCellReneerer.js",
+    "rows": 7,
+    "sha256": "0f7edd9d56ed69f9646fe81ca4091d907203789dfab2b5916dbe97fa5adab594"
+  },
+  {
+    "source": "assets/static_data/lang/cn/FightGroupShopListUI.js",
+    "rows": 4,
+    "sha256": "18696ceb39b6647696c2952afa13d95838746ef1df7993fa6a8459cc1a004425"
+  },
+  {
+    "source": "assets/static_data/lang/cn/FightGroupTopListCellRenderer.js",
+    "rows": 5,
+    "sha256": "d61ef2e8c43bdb0c3fc479e776a4ed61163c976bf3a99cd58a1b0acc23371ee4"
+  },
+  {
+    "source": "assets/static_data/lang/cn/FightGroupTopListPanel.js",
+    "rows": 10,
+    "sha256": "f2274cd6287d07b04f9669e3aece0b6da8836f1e6558de0725457eb5c6b90bb9"
+  },
+  {
+    "source": "assets/static_data/lang/cn/FightGroupWinListCellRenderer.js",
+    "rows": 4,
+    "sha256": "7aae649b3494b801056d7f23e994a09d2e0ef710dfd58eae76bf574bf3109811"
+  },
+  {
+    "source": "assets/static_data/lang/cn/FriendGarage.js",
+    "rows": 6,
+    "sha256": "f1aeb65534f5ade340ef2990d82ef738500e351e5940b594be34cc7bb647d7ad"
+  },
+  {
+    "source": "assets/static_data/lang/cn/Func.js",
+    "rows": 111,
+    "sha256": "be54af7177730a188286c853d04b1f5683dc3a549780887cbf81597bb4eb3d33"
+  },
+  {
+    "source": "assets/static_data/lang/cn/GamePlayer.js",
+    "rows": 161,
+    "sha256": "ad4bc5fbc38a939c15bbbfaebd71d55c43aee920dcda25560a76125ebf307e36"
+  },
+  {
+    "source": "assets/static_data/lang/cn/GiftLogCellRenderer.js",
+    "rows": 3,
+    "sha256": "917875faf39eccd8ca95170e0ae9dc35f200aa12f0fc1cb481b0b55f5ff884f5"
+  },
+  {
+    "source": "assets/static_data/lang/cn/GiftLogPanel.js",
+    "rows": 3,
+    "sha256": "e80ea1feb5dc8874ea25017bba273efba63a44e51a84dd28b73ae1a374fb8340"
+  },
+  {
+    "source": "assets/static_data/lang/cn/GiftSendPanel.js",
+    "rows": 14,
+    "sha256": "614c1352ad341677ef8dcd27ea9d37f7cd9bab5754678e557b7a149741f52328"
+  },
+  {
+    "source": "assets/static_data/lang/cn/GiftShopCellRenderer.js",
+    "rows": 25,
+    "sha256": "cac7622d5eb2e3c670276b3b15d0308c5d7f506d30c5bcc4a299299c183c34c1"
+  },
+  {
+    "source": "assets/static_data/lang/cn/GjBuyTimePanel.js",
+    "rows": 5,
+    "sha256": "3bdb16d0d60accfa2fb938c2f345e32d479c65e678d1d629f6c5d7403e649213"
+  },
+  {
+    "source": "assets/static_data/lang/cn/GjTrainInfoPanel.js",
+    "rows": 9,
+    "sha256": "2a8f51db250cf38131f36a63478c7121974853923e603fcd525bd1631c972f5d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/GuidePanel.js",
+    "rows": 5,
+    "sha256": "5a4982d645ab88ef98affba0495d7c92aeb695be1e728f47b90eef9dc5fa1241"
+  },
+  {
+    "source": "assets/static_data/lang/cn/InputNumPanel.js",
+    "rows": 21,
+    "sha256": "9d8789398a8323a54dc2baa600d76d3404426cf0eec07f4d4cc3863e84d0579b"
+  },
+  {
+    "source": "assets/static_data/lang/cn/InvestPanel.js",
+    "rows": 7,
+    "sha256": "5b9ae0db3cf9b36b895fab338847a69b85b3255343ed10dea40eca944ad35b2c"
+  },
+  {
+    "source": "assets/static_data/lang/cn/LadderAwardShowPanel.js",
+    "rows": 18,
+    "sha256": "11ccd1b755daf64ff966ccd0afa32513badeef7e2f294fe678920a66a58a6e82"
+  },
+  {
+    "source": "assets/static_data/lang/cn/LadderClassUpgradePanel.js",
+    "rows": 7,
+    "sha256": "5931e345bedaed3ece885dafc5b6c569a32197aeb7b465ed17b022ed0723eb69"
+  },
+  {
+    "source": "assets/static_data/lang/cn/LadderDetailPanel.js",
+    "rows": 5,
+    "sha256": "efb4cd1f914b702fd82ddd02af01395d3aeda26e3e06c28dce4eb5dda067bade"
+  },
+  {
+    "source": "assets/static_data/lang/cn/LadderMatchCellRenderer.js",
+    "rows": 5,
+    "sha256": "7473160bc8947940d5e854bfb44128562ef465fcdae69a893229e5a22f2b587e"
+  },
+  {
+    "source": "assets/static_data/lang/cn/LadderMatchCurRoundPanel.js",
+    "rows": 14,
+    "sha256": "1a11fe39a05230497922b35e01bde46b4d8600410606793291118b4b4b03119d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/LadderMatchMain.js",
+    "rows": 15,
+    "sha256": "27f10ed96595523cb097cc35df13b3f6f98f656af9c71aa1148c61ebf8bcdc93"
+  },
+  {
+    "source": "assets/static_data/lang/cn/LadderMatchPanel.js",
+    "rows": 9,
+    "sha256": "e472705a33444b47409f37c24717f9514efdd5a77919533ada9c746625ab5b38"
+  },
+  {
+    "source": "assets/static_data/lang/cn/LadderMatchTodayOpponentPanel.js",
+    "rows": 10,
+    "sha256": "e61246c5c3ac895180cd88a043de85590d450f394b4aae5f422309e253113698"
+  },
+  {
+    "source": "assets/static_data/lang/cn/LadderRulePanel.js",
+    "rows": 7,
+    "sha256": "dde1d19a81138338e5e27b41945cbe9e124d5bfb148224f463d858429216172a"
+  },
+  {
+    "source": "assets/static_data/lang/cn/LockPanel.js",
+    "rows": 12,
+    "sha256": "97894c960d56f730db7c9de6b7e8c9a643767a764666d6562bca022f31fd6589"
+  },
+  {
+    "source": "assets/static_data/lang/cn/LotteryPanel.js",
+    "rows": 15,
+    "sha256": "27baccf3eca0be27d0f9f1895b6ede1afbe43c7cfda560aa51132bb4d8895861"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MainQuestLabel.js",
+    "rows": 5,
+    "sha256": "056bf187fd575a68304e7f1c87fb39ba93d4363720be7cf7a6b828aacb0b6348"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MarketFameCellRenderer.js",
+    "rows": 5,
+    "sha256": "0ddb70424ae46d1c4e44a687a976a4ef1e85bc8a01b227e7760a4887042eae79"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MarketListCellReneerer.js",
+    "rows": 14,
+    "sha256": "b29f8a34a41ff557f1a282056f057df253ebf2c1d7add4d25cf7d879f4e97a6b"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MarketListUI.js",
+    "rows": 22,
+    "sha256": "fe392ad2f16c3202748138e11c418b2d32e2d81e8d1f105710e2976ec3245731"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MomoOrderCellRenderer.js",
+    "rows": 4,
+    "sha256": "29f105c35b23c65933019bc93395349641204aec1bb134bd101b8fd83c12d33f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MomoOrderListUI.js",
+    "rows": 6,
+    "sha256": "1f1ae0730925e2fad32614dff237d72fba72815c8ae31be8752be6238899a76e"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MuseumAwardPanel.js",
+    "rows": 1,
+    "sha256": "d8785bb50947a4bc1fe4710839653f22486ea1315d3600b8cd7e2b634c0ae284"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MuseumCellRenderer.js",
+    "rows": 1,
+    "sha256": "8772f3480f9673bd632ecd53ecbe28e70bbd687e7534c84b679dbedda66245fa"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MuseumPanel.js",
+    "rows": 5,
+    "sha256": "9a98d0009f17b0c13434e0553228881739bb1f44e6cf81d02b2f4a8629651554"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MuseumRulePanel.js",
+    "rows": 2,
+    "sha256": "51f4d35fe54cd6e1a91587fff91f53be4942ef7451443c96c77964cf76228d94"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MuseumTrainCellRenderer.js",
+    "rows": 6,
+    "sha256": "330ec1edac128d21461eae931fa08eca6e24f6e69b3446c2128e75dc57aedfb9"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MuseumTrainPanel.js",
+    "rows": 8,
+    "sha256": "4263ac9ff1d1cdcc4a65da0ffc2f88d009c5cf3cbca35b126690f2782578210f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MuseumTrainSetPanel.js",
+    "rows": 2,
+    "sha256": "20fd2d97b97a68393228f4735a57e39ec151b2d98c3ae1a361c4a8f14cdcd8ec"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MyInput.js",
+    "rows": 1,
+    "sha256": "734d4a36e1e22923fba8c1492a108d863627a97f02443bf90dfe1f45d51253bc"
+  },
+  {
+    "source": "assets/static_data/lang/cn/MyMsgBox.js",
+    "rows": 18,
+    "sha256": "fc9831e4a46bf754f8613ef6b78ff4c7a1e0ae59bcf1bed6dbaf50b1b3d1cc60"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaBuildingLvUpCostCellRenderer.js",
+    "rows": 3,
+    "sha256": "ff429d65dcd9450b8b3f3bd80919aa8a0f3b67c0224800d50bd03b07de4404ab"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaCangKuCellRenderer.js",
+    "rows": 3,
+    "sha256": "40a2545c4a0b89f88c1e2f71bd2a1b83019052abfe87869584bf14670d7e94fc"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaCangKuLvUpPanel.js",
+    "rows": 6,
+    "sha256": "84c1aa467c264e88143fe45e724685219ad76394e24938af5b04dad327f3ba5b"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaCangKuPanel.js",
+    "rows": 5,
+    "sha256": "df023303b187c6fb15f5df05f8c32b25a8c7c0cb7ce5e74c5d76335df68510c2"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaCarriageLvUpPanel.js",
+    "rows": 8,
+    "sha256": "92e90697ecc6469a7d6efe0c00ec0a0bb978fc8d881419b25ce2ba0a82dcad3f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaFactoryLvUpPanel.js",
+    "rows": 6,
+    "sha256": "dfe74f64193cb2198023673f497a251e34e3af10edbcffd646cae5385a257561"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaFactoryPanel.js",
+    "rows": 11,
+    "sha256": "f19d2be43329a841bbb48db9a244395e43526dcab389a0e87cb6bb17430a941f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaHelpPanel.js",
+    "rows": 7,
+    "sha256": "2331e9d1bfadc262b2cdfd73ccaf483f2a20b323e679b7219a531452e564eb47"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaSellMatchShopCellRenderer.js",
+    "rows": 3,
+    "sha256": "42f6fa0c8fedaed48ce668171be46c177fa9df956bbabf2141acc4d9763607b1"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaSellMatchShopPanel.js",
+    "rows": 8,
+    "sha256": "2d518af709f9f6d8aa3d7c5e3d3982ca6bdbe8523bb61e331391cf02aa361037"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaSellMatchTlsPanel.js",
+    "rows": 7,
+    "sha256": "c237a47e707b3aeb49170fd047ea048aff1875f91429a21b214395a863b4bfd4"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaTaskBuildCellRenderer.js",
+    "rows": 2,
+    "sha256": "16069bbd3e4a6441ff84d6c3f62d7b8e2e758b9de41d00e665f2e8b938816730"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaTaskBuildPanel.js",
+    "rows": 5,
+    "sha256": "d4b2aa4ac70de9d31a64d0d72b68557f806182e47c22fd4d0eaa634761b7aeae"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaTrainCargoPanel.js",
+    "rows": 14,
+    "sha256": "ade5a1ca30cf71ba38418693a3d0f54ab092285d0e07a221c6af14bb1c5830e2"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NaXkzPanel.js",
+    "rows": 8,
+    "sha256": "44431e1cf09a7a5ef2213d42fd8c31f118ed0841bc4d718ba79934300d100ff1"
+  },
+  {
+    "source": "assets/static_data/lang/cn/NewbieGuideMgr.js",
+    "rows": 9,
+    "sha256": "344ad76d24a97037b8bf839f6e6dd2dc17bb02fde0c963b47c6a662ec45289ca"
+  },
+  {
+    "source": "assets/static_data/lang/cn/OpenStationPanel.js",
+    "rows": 13,
+    "sha256": "fce937839f76693b1f180a75b3abc5ebd5e766d5a4c2cc167bf8a590728b64c6"
+  },
+  {
+    "source": "assets/static_data/lang/cn/PHIManager.js",
+    "rows": 3,
+    "sha256": "2668402a2901375e894fd6d4b9aa79fb1c800e1f66ba68aff65473d05b9fa2fa"
+  },
+  {
+    "source": "assets/static_data/lang/cn/PublicNotice.js",
+    "rows": 5,
+    "sha256": "c6e1787c7db029e880435c7d955465a54fefca7c71a0d7d35b6589e9e344638a"
+  },
+  {
+    "source": "assets/static_data/lang/cn/QuestListCellRenderer.js",
+    "rows": 3,
+    "sha256": "297c4084d28c6d32a673311c587f056ac8e4935915a3ed41df89934a49ff35a5"
+  },
+  {
+    "source": "assets/static_data/lang/cn/QuestPanel.js",
+    "rows": 15,
+    "sha256": "98091732bb443dee7fade04541653c77a2c7c521e706e3384eabe253e89109c8"
+  },
+  {
+    "source": "assets/static_data/lang/cn/SceneStationBoard.js",
+    "rows": 2,
+    "sha256": "73b9cf68883558058fecc2a2e332913b7d34124355bf6066aabf8a252a100834"
+  },
+  {
+    "source": "assets/static_data/lang/cn/SceneStationGoods.js",
+    "rows": 6,
+    "sha256": "5770428730f7aae55f1a13e9c3eae80113d51b0d6b813851a3a1ceed4c5c7480"
+  },
+  {
+    "source": "assets/static_data/lang/cn/SceneTrain.js",
+    "rows": 1,
+    "sha256": "6d2d34a9ed13e365f412155c859770b5a11eb1054849e26bfaddcec5584c802a"
+  },
+  {
+    "source": "assets/static_data/lang/cn/StationSysPanel.js",
+    "rows": 19,
+    "sha256": "3df42600a291c2c07ecefd06eda1594d7e05f525d9ec66a25e0720d14916392e"
+  },
+  {
+    "source": "assets/static_data/lang/cn/SysAnnouncePanel.js",
+    "rows": 1,
+    "sha256": "d032b557c85d4f7ab1eb8ad84da730ef75714d9909803fcc3c0341ab44791c67"
+  },
+  {
+    "source": "assets/static_data/lang/cn/SysAnnounceSysPanel.js",
+    "rows": 1,
+    "sha256": "34a5134923b5de466af455bb95cb7ee582fc38a564349cb9e094590973fd9a44"
+  },
+  {
+    "source": "assets/static_data/lang/cn/SysSetupPanel.js",
+    "rows": 23,
+    "sha256": "2ad49ccd5edd134be5729164b939ef4b8b0799347314cdab190b574dd3a5d21f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/SystemAnnounceData.js",
+    "rows": 7,
+    "sha256": "5c2d71f874badf2c4e8276c13884deceb262f1d9d8aa0de5b7ce609f8903a03f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TaskAwardPanel.js",
+    "rows": 3,
+    "sha256": "3035106b85103fb3ff89983bd0aa187b1cb8e4a704b337b710b243624d150b43"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TaskPanel.js",
+    "rows": 23,
+    "sha256": "707a5570680ed24aeebe749874aabab534f0871c61a8445fe56a2cb084fcca47"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TaskShopListCellRenderer.js",
+    "rows": 10,
+    "sha256": "b4b04175d857a44cdf1c955fd1242bd1b859e3d42dbc3fd5fc9f63139be8a8c2"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TitleInfoPanel.js",
+    "rows": 34,
+    "sha256": "a66a50a9f60096d5132cf1c1c326477301e58969c8009a7b1ad7a97daf95c88b"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TopListAwardPanel.js",
+    "rows": 6,
+    "sha256": "b22bd66fa3bddebd17f7efded3763292a22c8ab017de9c0c8b3497a20fbb0320"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TopListCell.js",
+    "rows": 12,
+    "sha256": "53444c589e9db55dde1b7cf1e0db9a5f3568da331d6ae891c63ee7fbdc2a68f5"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ToplistPanel.js",
+    "rows": 24,
+    "sha256": "6607253ec062cc12ffc4b552a0c2e84c3b8a87393f4310495e0f525cab8c0183"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ToplistScoreAwardPanel.js",
+    "rows": 7,
+    "sha256": "6fbc86fc4af008833a7a6a6a5bf21f50bd9e9d5c1f27139e14d8677d5434583d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ToplistScoreAwardSelectPanel.js",
+    "rows": 24,
+    "sha256": "fba74c965e601ac4ed413f62839eddc65ad0861d5e8a9e47003e08f6acec3af1"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ToplistScoreRulePanel.js",
+    "rows": 3,
+    "sha256": "1306b735fc2312323ed66890eabd6eafda72f9d38799e7ad0c45e05c60e799e0"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TrainDetailPanel.js",
+    "rows": 46,
+    "sha256": "8ba750340911ba4b2118a88afb0544233dbd71c6a65d540c48440d769fba5aae"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TrainGarageListUI.js",
+    "rows": 10,
+    "sha256": "a3db9a4fe0454512522488f1aadd3a176df238d59c08f23ffb66ffe5b2c669c2"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TrainGaragePartAndTrainCellRenderer.js",
+    "rows": 20,
+    "sha256": "2597dc998a6a2c55c4ff6b4303b6fe606c1878d6729457b7f9788473702aa1fc"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TrainListCellRenderer.js",
+    "rows": 18,
+    "sha256": "3f3dcc59e9a2e9b2a058d8f1ba245a5007dc5baef095c173e2cdcbb8c55e2b3b"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TrainListSetupPanel.js",
+    "rows": 4,
+    "sha256": "6f7e10b2f994322cc14f6814219954ed499a7892e808e9ce3c5f5eb443447833"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TrainListUI.js",
+    "rows": 16,
+    "sha256": "3b46ddbdf081c46694a92e8788777dfe6e21a14875932e6c8cc342471247d07c"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TrainTipsUI.js",
+    "rows": 5,
+    "sha256": "20f9e82a219dc10816d9dbfbb6c9933b6fdb89e0307c19cf039f97cd177cd28d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/TrainUpgradePanel.js",
+    "rows": 29,
+    "sha256": "9449b460b7eb92f7bd6d252e55f1c0785fecd4e1f73ce51d99b82cd7f1e8a27a"
+  },
+  {
+    "source": "assets/static_data/lang/cn/WayPointCellRenderer.js",
+    "rows": 9,
+    "sha256": "6338828f3bbf56254c2d85b300a08c87ff1b511a8a66afa98a6a3168200d8690"
+  },
+  {
+    "source": "assets/static_data/lang/cn/WayPointPanel.js",
+    "rows": 12,
+    "sha256": "534a3fcbab9f7c204c113d27e4cd97efedc320846ac54d5c4f0f1a6debd5ecde"
+  },
+  {
+    "source": "assets/static_data/lang/cn/WayPointRulePanel.js",
+    "rows": 2,
+    "sha256": "429a9da8404d30b6ad035233d8ba6be69cea0c2f7e9b51c2926395dfcf86d07a"
+  },
+  {
+    "source": "assets/static_data/lang/cn/WelfareMainPanel.js",
+    "rows": 31,
+    "sha256": "52386261c6744010da3d7cf3836f5474371f0d69bde9fb5f41c933f6dfba1bcf"
+  },
+  {
+    "source": "assets/static_data/lang/cn/WorldCelebrationPanel.js",
+    "rows": 10,
+    "sha256": "af1b2366ef4f514de27b514492092d79b95421edd1f095592402f018a379bf40"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZcxyPanel.js",
+    "rows": 3,
+    "sha256": "1aa88c98d7bb05622bdba9f51fd097293a9a4fe55481e28a0f56d9e9c9837c51"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneBagCell.js",
+    "rows": 11,
+    "sha256": "bfe3fa8f5d8473c5aba289d15f2f01bfa0d5fb571845a7c836afb5d0955ef54d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneBagPanel.js",
+    "rows": 6,
+    "sha256": "8078fdaeddecc29ad9f143003d2b0e604c8972e0af79ccee5e7d7d463165a1d9"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneBuildCreatePanel.js",
+    "rows": 5,
+    "sha256": "286cec3f85421918bb1a660c6b9e28f18f4f0596db48b4ec7d83d787e47a92af"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneBuildLvUpPanel.js",
+    "rows": 14,
+    "sha256": "c47dc5f7c3f831587a2da033110abf210a3fe8b992a00195a1ef8443e03050a0"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneBuildingCreatePanel.js",
+    "rows": 7,
+    "sha256": "0b4c46d9ae013f04fae0b243a65c84c499cdfd492c0a835ac4060a307b2392da"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneBuildingDesignPanel.js",
+    "rows": 8,
+    "sha256": "8b1e1d439c0aac984c39a6ea40d42af7fcdf19cc5e03dd7696b11486ed7e682d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneBuildingLvEffCellRenderer.js",
+    "rows": 1,
+    "sha256": "6c5f6fbf141b839acf093ccd4b67290a1b7fe1e41152522593d4000497d07082"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneEquipPropShowPanel.js",
+    "rows": 5,
+    "sha256": "83b4bf111e1ae1f629a119285ed2208fceb3bc09543bafe16e6ef29197530c8f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneLotteryRecordCell.js",
+    "rows": 1,
+    "sha256": "3ce2ddfd06a38a7f534c870334863dee3f23280184b7bac3d1bdab3c7ab4867f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneResearchPanel.js",
+    "rows": 8,
+    "sha256": "c28756799457d2b5cc02e79a3046b2016653b674330ab3c1453ea6293ce728de"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneTradeCellRenderer.js",
+    "rows": 4,
+    "sha256": "80c27379b54a04e952a30e27eedcd967b56155f4e8fcb864fe66128257b6b59d"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneTradePanel.js",
+    "rows": 11,
+    "sha256": "3f957f66befc4b88e754b426dc7b9cd2699c40b79dbe87bb779ed69f24a3db6f"
+  },
+  {
+    "source": "assets/static_data/lang/cn/ZoneUI.js",
+    "rows": 1,
+    "sha256": "d666e8b6e8a0161e374a89cecc36a011d6c0e06a98cbfcfc6f8301bba510458e"
+  }
+]

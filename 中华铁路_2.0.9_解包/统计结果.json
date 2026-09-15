@@ -1,0 +1,71 @@
+{
+  "apk_path": "C:\\Users\\xfd027\\Downloads\\中华铁路.apk",
+  "apk_bytes": 77120729,
+  "apk_sha256": "a622d164a8b09e5e5d1442fdd1072a44a04b09c4572e5dae028a6ce14855f864",
+  "metadata": {
+    "manifest": {
+      "versionCode": 252,
+      "versionName": "2.0.9",
+      "installLocation": 0,
+      "compileSdkVersion": 30,
+      "compileSdkVersionCodename": "11",
+      "package": "com.zhuole.zhtl.ab",
+      "platformBuildVersionCode": 30,
+      "platformBuildVersionName": 11
+    },
+    "uses-sdk": {
+      "minSdkVersion": 16,
+      "targetSdkVersion": 30
+    }
+  },
+  "extracted_files": 2627,
+  "extracted_bytes": 104231251,
+  "parsed_tables": 273,
+  "vehicle_records": 759,
+  "unique_vehicle_ids": 759,
+  "unique_names": 757,
+  "transport_types": {
+    "客运型": 226,
+    "货运型": 238,
+    "客货混合型": 295
+  },
+  "raw_groups": 303,
+  "head_image_references": 306,
+  "head_image_files_in_apk": 294,
+  "missing_referenced_head_images": [
+    "t_895896897.png",
+    "t_898899900.png",
+    "t_901902903.png",
+    "t_904905906.png",
+    "t_907908909.png",
+    "t_910911912.png",
+    "t_913914915.png",
+    "t_916917918.png",
+    "t_919920921.png",
+    "t_922923924.png",
+    "t_925926927.png",
+    "t_928929930.png",
+    "t_931932933.png",
+    "t_934935936.png",
+    "t_937938939.png",
+    "t_940941942.png"
+  ],
+  "unreferenced_head_images": [
+    "t_342.png",
+    "t_343.png",
+    "t_359.png",
+    "t_360.png"
+  ],
+  "duplicate_names": {
+    "神24电力机车客运型": [
+      904,
+      906
+    ],
+    "台铁emu3000城际列车客运型": [
+      907,
+      909
+    ]
+  },
+  "grouping_caveat": "col_3 is preserved as a raw group field, not a verified real-world model family. Group 303 contains both EMDE8 and KihaE200.",
+  "verification": "All extracted files match ZIP sizes and SHA-256; all JSON exports match APK arrays; vehicle IDs are unique."
+}
