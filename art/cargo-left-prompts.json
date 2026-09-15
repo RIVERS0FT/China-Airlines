@@ -1,0 +1,30 @@
+{
+  "tool": "built-in image_gen",
+  "direction": "left in the original PNG",
+  "jobs": [
+    {
+      "id": "general",
+      "file": "cargo-v1.png",
+      "detail": "One honey-brown ordinary corrugated shipping carton with cream crossing packing tape and a small BLANK ivory label. The larger labelled front face is on the LEFT side of the image, narrower right side recedes to the RIGHT. No arrows or text.",
+      "prompt": "Production transparent PNG of one original cargo game sprite. Attached image is the identity and visual style reference; redraw consistently in polished friendly hand-painted 2D cartoon art, crisp navy-brown outlines, warm cel shading and upper-left highlights. Subject: One honey-brown ordinary corrugated shipping carton with cream crossing packing tape and a small BLANK ivory label. The larger labelled front face is on the LEFT side of the image, narrower right side recedes to the RIGHT. No arrows or text. Full silhouette, centered square composition, 8 percent transparent margin, truly transparent RGBA alpha background. NO ground, NO oval base, NO cast shadow, NO text, NO logo, NO watermark, NO checkerboard painted into background. Main direction is LEFT in the original PNG; no later mirroring. Preserve cargo type and original color palette."
+    },
+    {
+      "id": "express",
+      "file": "cargo-express-v2.png",
+      "detail": "One golden orange express shipping carton with cream tape and an orange rectangular express label. The bold white express ARROW on the visible main face MUST POINT LEFT, arrowhead LEFT, motion streaks RIGHT. The labelled main face faces toward screen LEFT. No letters or digits.",
+      "prompt": "Production transparent PNG of one original cargo game sprite. Attached image is the identity and visual style reference; redraw consistently in polished friendly hand-painted 2D cartoon art, crisp navy-brown outlines, warm cel shading and upper-left highlights. Subject: One golden orange express shipping carton with cream tape and an orange rectangular express label. The bold white express ARROW on the visible main face MUST POINT LEFT, arrowhead LEFT, motion streaks RIGHT. The labelled main face faces toward screen LEFT. No letters or digits. Full silhouette, centered square composition, 8 percent transparent margin, truly transparent RGBA alpha background. NO ground, NO oval base, NO cast shadow, NO text, NO logo, NO watermark, NO checkerboard painted into background. Main direction is LEFT in the original PNG; no later mirroring. Preserve cargo type and original color palette."
+    },
+    {
+      "id": "cold",
+      "file": "cargo-cold-v2.png",
+      "detail": "One blue refrigerated cargo crate with reinforced pale metallic corners and a clear snowflake icon on the large LEFT-facing front panel. A small refrigeration grille sits on the LEFT side of the unit so the equipment has a clear LEFTward orientation. No text or digits.",
+      "prompt": "Production transparent PNG of one original cargo game sprite. Attached image is the identity and visual style reference; redraw consistently in polished friendly hand-painted 2D cartoon art, crisp navy-brown outlines, warm cel shading and upper-left highlights. Subject: One blue refrigerated cargo crate with reinforced pale metallic corners and a clear snowflake icon on the large LEFT-facing front panel. A small refrigeration grille sits on the LEFT side of the unit so the equipment has a clear LEFTward orientation. No text or digits. Full silhouette, centered square composition, 8 percent transparent margin, truly transparent RGBA alpha background. NO ground, NO oval base, NO cast shadow, NO text, NO logo, NO watermark, NO checkerboard painted into background. Main direction is LEFT in the original PNG; no later mirroring. Preserve cargo type and original color palette."
+    },
+    {
+      "id": "industrial",
+      "file": "cargo-industrial-v2.png",
+      "detail": "One compact blue and steel aviation turbine on a small navy industrial shipping skid with gold fasteners. The circular intake and fan opening points toward SCREEN LEFT; the turbine body extends RIGHT behind it. No text or digits.",
+      "prompt": "Production transparent PNG of one original cargo game sprite. Attached image is the identity and visual style reference; redraw consistently in polished friendly hand-painted 2D cartoon art, crisp navy-brown outlines, warm cel shading and upper-left highlights. Subject: One compact blue and steel aviation turbine on a small navy industrial shipping skid with gold fasteners. The circular intake and fan opening points toward SCREEN LEFT; the turbine body extends RIGHT behind it. No text or digits. Full silhouette, centered square composition, 8 percent transparent margin, truly transparent RGBA alpha background. NO ground, NO oval base, NO cast shadow, NO text, NO logo, NO watermark, NO checkerboard painted into background. Main direction is LEFT in the original PNG; no later mirroring. Preserve cargo type and original color palette."
+    }
+  ]
+}
