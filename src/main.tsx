@@ -22,5 +22,6 @@ import './ui/airport-mobile-height.css';
 import './ui/task-fleet-loading.css';
 import './ui/viewport.css';
 import './ui/start-screen.css';
+import './ui/navigation.css';
 createRoot(document.getElementById('root')!).render(<StrictMode><I18nProvider><GameViewport><App /><SaveConflictGuard /></GameViewport></I18nProvider></StrictMode>);
 void controller.start();

@@ -1,19 +1,7 @@
-/* Browse-map chrome is painted controls only, not a second toolbar or a footer. */
-.aviation-game.map-browse{position:relative}
-.aviation-game.map-browse:not(.dispatch-focused)>.game-dock{
-  position:absolute;inset:auto auto 12px 12px;transform:none;
-  display:flex;flex:none;flex-wrap:nowrap;justify-content:flex-start;align-items:flex-end;gap:8px;
-  width:max-content;max-width:calc(100% - 24px);height:auto;min-height:0;margin:0;padding:0;
-  border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;overflow:visible;
-  pointer-events:none;
-}
-.aviation-game.map-browse:not(.dispatch-focused)>.game-dock::before,
-.aviation-game.map-browse:not(.dispatch-focused)>.game-dock::after{display:none;content:none}
-.aviation-game.map-browse:not(.dispatch-focused)>.game-dock>button{margin:0;pointer-events:auto}
+/* Browse-only search control. Shared dock geometry lives in navigation.css. */
 .aviation-game .world-map-view .world-map-search{
   position:absolute;top:16px;right:26px;z-index:3;min-height:44px;padding:8px 14px;font-size:14px;
 }
 @media(max-height:600px) and (orientation:landscape){
-  .aviation-game.map-browse:not(.dispatch-focused)>.game-dock{inset:auto auto 8px 8px;gap:5px;max-width:calc(100% - 16px)}
   .aviation-game .world-map-view .world-map-search{top:10px;right:20px;font-size:12px;padding:6px 10px}
 }
