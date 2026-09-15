@@ -45,10 +45,6 @@ export function Settings({onClose}:{onClose:()=>void}) {
     <div className="danger-zone"><p>{t('settings.privacy')}</p><button className="danger" disabled={view.busy} onClick={()=>{if(window.confirm(t('settings.restartConfirm')))ignore(controller.restart());}}>{t('settings.restart')}</button></div>
   </dialog>;
 }
-export function PlaneArt({variant,cargo=false}:{variant:number;cargo?:boolean}) {
-  const {ui}=useI18n();
-  return <svg className="plane-art" viewBox="0 0 360 160" role="img" aria-label={ui('原创虚构飞机')}><ellipse cx="180" cy="135" rx="132" ry="7" fill="#42607b" opacity=".1"/><g stroke="#4c7287" strokeWidth="2"><path d="m48 104 36-34h175l28-44h19l-1 49 25 25-47 20H88Z" fill="#fffbed"/><path d="m260 74 27-48h19l-1 49Z" fill={['#318dc0','#55a58f','#de934b'][variant % 3]}/><path d="m145 103 56 29h50l-52-30" fill="#cddddd"/><path d="m49 104 280-4-46 20H88Z" fill="#7dbdd4" stroke="none"/><path d="m150 103 62 32h42l-49-32" fill="#d9e3e0"/><path d="m69 88 17-12h18v14Z" fill="#40657c"/></g>{cargo ? <rect x="132" y="80" width="75" height="21" rx="3" fill="#dbc393" stroke="#826d4d" strokeWidth="2"/> : <path d="M126 86h112" stroke="#346280" strokeWidth="5" strokeDasharray="5 9"/>}</svg>;
-}
 export function Shop({game,busy,selected}:{game:GameState;busy:boolean;selected:string}) {
   const [delivery,setDelivery]=useState(selected), [kind,setKind]=useState<AircraftKind | 'all'>('mixed');
   const to=game.airports.some(a=>a.id===delivery)?delivery:'PEK', view=useGame();

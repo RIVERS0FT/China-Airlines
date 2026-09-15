@@ -40,7 +40,7 @@ test('an in-flight scene animates visually and respects reduced motion', async (
   await page.getByRole('button', { name: '机场装载', exact: true }).click();
 
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
-  await expect(page.getByTestId('aircraft-sprite')).toHaveAttribute('href', /aircraft-flight-v1\.png/);
+  await expect(page.getByTestId('aircraft-sprite')).toHaveAttribute('href', /aircraft-starter-swift-exterior-v4\.png/);
   await expect(page.locator('.is-flying .airplane-display>svg')).toHaveCSS('animation-name', 'flight-aircraft-cruise');
   await expect(page.locator('.is-flying .flight-clouds-near')).toHaveCSS('animation-name', 'flight-cloud-drift');
 

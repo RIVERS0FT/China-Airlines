@@ -12,6 +12,8 @@ describe('reference cargo categories are decoration', () => {
       const order = { id: `JB${id}`, service, product: null };
       const art = cargoAppearance(order);
       seen.add(art.key);
+      expect(art.cabinVisualScale).toBeGreaterThanOrEqual(.68);
+      expect(art.cabinVisualScale).toBeLessThanOrEqual(.88);
       expect(cargoAppearance(JSON.parse(JSON.stringify(order)))).toEqual(art);
     }
     expect(seen.size).toBe(24);

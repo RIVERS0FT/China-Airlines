@@ -1,0 +1,10 @@
+Use case: stylized-concept
+Asset type: game UI bust portrait atlas
+Primary request: a transparent-background sprite sheet containing 12 original cartoon bust portraits for an aviation business game, arranged in a strict 3 columns by 4 rows grid
+Subject: diverse adult professional bust portraits, head and shoulders, facing slightly toward viewer. Rows 1 and 2 are airline pilots in dark navy uniforms with gold shoulder accents and varied aviator styling. Rows 3 and 4 are airport ground staff in teal uniforms with practical caps, headsets, scarves, badges or work jackets. Six pilot portraits and six ground-staff portraits total, each visibly unique in face shape, age, hair, skin tone, accessories and pose, but consistently friendly, confident and professional
+Style/medium: polished 2D cartoon game illustration, clean vector-like shapes, soft shading, no photorealism
+Composition/framing: equal rectangular cells, one centered bust per cell, substantial even margins, no touching neighboring portraits, no grid lines, no labels, no background scenery; heads upright and consistently scaled
+Color palette: deep navy, crisp white, gold accents for flight staff; teal, khaki and safety-orange accents for ground staff; varied natural skin and hair colors
+Text (verbatim): none
+Constraints: fully transparent background, high contrast against light and dark UI, no duplicate faces, no photographic realism, no visible corporate logos or real airline branding, no watermark, no text
+Avoid: full body figures, objects outside each cell, decorative frame, grid lines, background texture, grotesque features, minors, text

@@ -99,7 +99,8 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport, onClose, i
         </select></label>
         <p>{say('名单随存档保留，刷新不重抽；仅录用后补充对应空位。经理不是基础运营的前提。','Candidates persist across reloads. Only a hired candidate is replaced. Managers are optional for basic operations.')}</p>
         <div className="org-candidates" role="group" aria-label={say('候选名单','Candidate shortlist')}>{candidates.map(c=><button className="org-candidate" type="button" key={c.id} aria-pressed={candidate.id===c.id} data-candidate-id={c.id} onClick={()=>setCandidateId(c.id)}>
-          <strong>{c.name}</strong><small>{roleLabel(c,en)}</small><span>{say('潜力','Potential')} <b>{c.potential}/10</b></span><span>{c.trait==='mentor'?say('善于带教','Mentor'):say('高效执行','Efficient')}</span>
+          <span className="org-candidate-heading"><EmployeePortrait id={c.id} department={c.department}/><strong>{c.name}</strong></span>
+          <small>{roleLabel(c,en)}</small><span>{say('潜力','Potential')} <b>{c.potential}/10</b></span><span>{c.trait==='mentor'?say('善于带教','Mentor'):say('高效执行','Efficient')}</span>
           <small>{c.trait==='mentor'?say('适合未来带领和培养团队','Suited to developing a future team'):say('适合执行岗位与团队覆盖','Suited to execution and team coverage')}</small>
         </button>)}</div>
         <div className="org-recruit-footer"><strong>{candidate.name} · {price.gold} {say('金币','coins')} + {price.tickets} {say('券','tickets')}</strong><span>{say('包含7天预付合同，不自动续约。','Includes a prepaid seven-day contract. No automatic renewal.')}</span>

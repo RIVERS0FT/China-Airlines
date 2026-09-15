@@ -1,7 +1,7 @@
 import { openGlobal } from './dispatch-helpers.js';
 import { test, expect } from './fixture.js';
 import legacy from '../tests/fixtures/v1-flying.json' with { type: 'json' };
-import { readFile } from 'node:fs/promises';
+import { rejectRetiredSave } from './retired-save-helpers.js';
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 }, { width: 667, height: 375 }]) {
   test(`manual loading stays quiet, persists and switches planes at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
@@ -51,11 +51,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
   });
 }
 
-test('legacy import upgrades to v4 and exports real jobs with the old locked payment',async({page})=>{
-  page.on('dialog',d=>void d.accept());await page.goto('./');await openGlobal(page, '存档设置');
-  await page.getByLabel('选择存档文件').setInputFiles({name:'v1.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(legacy))});
-  await expect(page.getByTestId('credits')).toHaveText(`¥ ${legacy.credits.toLocaleString('zh-CN')}`);
-  const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'导出存档',exact:true}).click();
-  const file=await downloaded,save=JSON.parse(await readFile((await file.path())!,'utf8'));expect(save.version).toBe(9);expect(save.fleet[0].flight.revenue).toBe(legacy.fleet[0]!.flight!.revenue);expect(save.orders.filter((o:{location:string})=>o.location==='AC0001')).toHaveLength(2);
-  await page.getByRole('button',{name:'关闭存档设置'}).click();await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
+test('retired v1 import keeps current progress through export and reload',async({page})=>{
+  await page.clock.install({time:new Date('2026-09-12T00:00:00Z')});await page.clock.pauseAt(new Date('2026-09-12T00:00:01Z'));
+  await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await rejectRetiredSave(page,legacy);
 });

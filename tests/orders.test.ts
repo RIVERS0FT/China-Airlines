@@ -64,17 +64,13 @@ describe('persistent passenger and cargo orders', () => {
     expect(()=>c.execute({type:'dispatch',planeId:'AC0001',to:'WUH',auto:true},NOW)).toThrow(/飞行员/);
   });
 });
-describe('save v2 and legacy migration',()=>{
-  it('migrates a fixed v1 flight fixture without changing money or locked revenue',()=>{
-    const c=new GameCore(NOW,legacy),s=c.snapshot();expect(s.version).toBe(9);expect(s.credits).toBe(legacy.credits);expect(s.fleet.map(({upgrades: _u,itinerary: _i,dispatcher: _d,energy: _e,tuning: _t,...p})=>p)).toEqual(legacy.fleet);
-    expect(s.orders.filter(o=>o.location==='AC0001').reduce((n,o)=>n+o.reward,0)).toBe(legacy.fleet[0]!.flight!.revenue);
-    c.tick(NOW+legacy.fleet[0]!.flight!.arriveAt*1000);expect(c.snapshot().stats.revenue).toBe(legacy.fleet[0]!.flight!.revenue);expect(()=>validateSave(c.snapshot())).not.toThrow();
+describe('current saves and retired import rejection',()=>{
+  it('rejects old v1 imports without mutating their data',()=>{
+    const before=structuredClone(legacy);expect(()=>GameCore.imported(legacy,NOW)).toThrow('不再支持');expect(legacy).toEqual(before);
   });
-  it('does not refill or migrate an already converted v2 save',()=>{
-    const s=validateSave(legacy);expect(validateSave(s)).toEqual(s);
-  });
-  it('rejects bad v1 before migration and does not advance an imported clock',()=>{
-    expect(()=>validateSave({...legacy,credits:-1})).toThrow();const c=GameCore.imported(legacy,NOW+86400000);expect(c.tick(NOW+86400000).flights).toBe(0);
+  const currentFlying=()=>{const c=new GameCore(NOW);c.execute({type:'load-destination',planeId:'AC0001',to:'PVG'},NOW);c.execute({type:'dispatch',planeId:'AC0001',to:'PVG',auto:false},NOW);return c.snapshot();};
+  it('restores a current flight without refilling or advancing an imported clock',()=>{
+    const s=currentFlying();expect(validateSave(s)).toEqual(s);const c=GameCore.imported(s,NOW+86400000);expect(c.tick(NOW+86400000).flights).toBe(0);
   });
   const mutations:[string,(s:GameState)=>void][]=[
     ['duplicated job',s=>s.orders.push(structuredClone(s.orders[0]!))],['bad location',s=>{s.orders[0]!.location='AC9999';}],
@@ -83,5 +79,5 @@ describe('save v2 and legacy migration',()=>{
     ['reused sequence',s=>{s.nextOrderId=1;}],['locked destination',s=>{s.orders[0]!.to='URC';}],
     ['unknown field',s=>{Object.assign(s.orders[0]!,{surprise:1});}],['inconsistent manifest',s=>{s.fleet[0]!.flight!.passengers++;}]
   ];
-  it.each(mutations)('rejects %s',(_name,mutate)=>{const s=validateSave(legacy);mutate(s);expect(()=>validateSave(s)).toThrow();});
+  it.each(mutations)('rejects %s',(_name,mutate)=>{const s=currentFlying();mutate(s);expect(()=>validateSave(s)).toThrow();});
 });

@@ -39,7 +39,7 @@
 .org-node-position,.org-founder { position:absolute; }
 .aviation-game .company-organization button.org-person { width:122px; height:124px; min-height:124px; display:flex; flex-direction:column; gap:2px; align-items:center; padding:2px 3px; background:transparent; border:0; border-radius:0; box-shadow:none; color:#2c4656; }
 .org-portrait-ring { position:relative; display:block; width:58px; height:58px; flex:0 0 58px; border:2px solid #8baabf; border-radius:50%; padding:3px; background:#f9fcfa; box-sizing:content-box; }
-.employee-portrait { width:100%; height:100%; display:block; border-radius:50%; }
+.employee-portrait { display:block; width:100%; height:100%; border-radius:50%; background:transparent; }
 .org-person[data-department=ground] .org-portrait-ring { border-color:#87a69b; }
 .org-person[aria-pressed=true] .org-portrait-ring { border-color:#bc8b30; box-shadow:0 0 0 3px #ead6a4; }
 .org-person[data-state=expired] .org-portrait-ring { border-color:#b36850; }
@@ -83,7 +83,10 @@
 .org-recruit { max-width:900px; margin:auto; display:flex; flex-direction:column; gap:14px; }.org-recruit>label { max-width:320px; }.org-recruit>p { color:#789095; font-size:12px; line-height:1.6; }
 .org-candidates { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
 .aviation-game .company-organization button.org-candidate { display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding:22px 18px; gap:10px; background:#fffefa; border:1px solid #cedbd6; border-radius:10px; }
-.org-candidate strong { font-size:22px; }.org-candidate small { font-size:11px; color:#7c8d88; }.org-candidate span { font-size:12px; }.org-candidate b { font-size:16px; }
+.org-candidate-heading { display:flex; align-items:center; gap:10px; min-width:0; width:100%; }
+.org-candidate-heading .employee-portrait { width:46px; height:46px; flex:0 0 46px; border:2px solid #d3e0db; border-radius:50%; }
+.org-candidate-heading strong { font-size:22px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+.org-candidate small { font-size:11px; color:#7c8d88; }.org-candidate span { font-size:12px; }.org-candidate b { font-size:16px; }
 .aviation-game .company-organization button.org-candidate[aria-pressed=true] { border:2px solid #b89a52; padding:21px 17px; background:#fff8e7; box-shadow:0 4px 14px #7e682519; }
 .org-recruit-footer { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:15px 0; border-top:1px solid #d6e0d9; }.org-recruit-footer strong { font-size:14px; }.org-recruit-footer span { font-size:11px; color:#7c908b; }.org-recruit-footer button { margin-left:auto; }
 .company-affairs,.company-chronicle { display:flex; flex-direction:column; gap:12px; font-size:12px; line-height:1.65; }

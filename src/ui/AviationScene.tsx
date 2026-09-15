@@ -29,7 +29,7 @@ export function AviationScene({ game, plane, onCabin, busy, cabinFocusKey }: {
     {plane && !flying && <CutawayCabin key={plane.id} game={game} plane={plane} busy={busy} focusKey={cabinFocusKey} onInspect={onCabin}/>}
     {plane && flying && <button className="airplane-display" onClick={onCabin} aria-label={t('flight.view')} data-testid="plane-art">
       <svg viewBox={compact ? "90 50 840 280" : "0 0 1000 330"} role="img" aria-label={t('flight.sceneLabel', { model: modelName(plane.modelId, m!.name) })}>
-        <image data-testid="aircraft-sprite" href={artAsset('aircraft-flight-v1.png')} x="95" y="0" width="810" height="310"/>
+        <image data-testid="aircraft-sprite" href={artAsset(m!.art)} x="95" y="0" width="810" height="310"/>
         <g className="cabin-overlay" stroke="#466477" strokeWidth="1.5" strokeLinejoin="round">
           <rect x="317" y="148" width="310" height="47" rx="7" fill="#f1fbfff2"/>
           <text x="329" y="163" stroke="none" fill="#214f72" fontSize="12" fontWeight="800">{modelName(plane.modelId, m!.name)} · {plane.id}　{ui('旅客 {used}/{capacity}',{used:total.passengers,capacity:m!.seats})}</text>

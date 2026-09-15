@@ -4,12 +4,12 @@ import { createTalent, recordTalentArrival, recordTalentCommand, talentExecute, 
 import { groundServiceQuote } from './organization.js';
 export { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND } from './legacy.js';
 export type { Flight, AdvanceReport } from './legacy.js';
-import { GameCore as LegacyCore, MAX_FLEET, OFFLINE_LIMIT, TURNAROUND, type Plane as LegacyPlane, type Command as LegacyCommand, type AdvanceReport } from './legacy.js';
+import { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND, type Plane as LegacyPlane, type Command as LegacyCommand, type AdvanceReport } from './legacy.js';
 import { validateInfrastructure } from './save-infrastructure.js';
 import { ENERGY_SERVICE_SECONDS, type EnergyBudget } from './energy.js';
 import { resaleValue } from './management.js';
 import { modernModel, emptyTuning, upgradeLimit, upgradeTickets, service, MATERIALS, type Tuning, type Material } from './career-catalog.js';
-import { careerExecute, careerLevel, bill, consume, stock, warehouseUsed, warehouseCapacity, autoAllowed, onArrival, nextCareerEvent, advanceCareer, type Career, type CareerCommand } from './career.js';
+import { newCareer, careerExecute, careerLevel, bill, consume, stock, warehouseUsed, warehouseCapacity, autoAllowed, onArrival, nextCareerEvent, advanceCareer, type Career, type CareerCommand } from './career.js';
 import { validateCareer, validateTuning } from './save-career.js';
 export const SAVE_VERSION = 9;
 export type TutorialState = 'available' | 'active' | 'completed' | 'skipped';
@@ -116,19 +116,15 @@ export function legQuote(s: GameState, p: Plane, from: string, to: string) {
   check(from !== to, '请选择不同的目的地'); check(a && b, '请先解锁两端机场');
   check(a!.level >= m.level && b!.level >= m.level, `该机型需要两端机场达到 ${m.level} 级`);
   const km = distance(from, to); check(km <= m.range, '航线超出这架飞机的航程');
-  if (modernModel(p.modelId)) {
-    const d = Math.floor(km / 4), factor = 2 ** p.tuning.group;
-    return { km, duration: Math.max(30, Math.floor(d * 450 / m.speed)), cost: Math.max(1, Math.floor(d * m.weight * m.speed * factor * (1 + p.upgrades.capacity) / 400000)) };
-  }
-  return { km, duration: Math.max(30, Math.ceil(km / m.speed * 45)), cost: Math.round(500 + km * m.costKm) };
+  const d = Math.floor(km / 4), factor = 2 ** p.tuning.group;
+  return { km, duration: Math.max(30, Math.floor(d * 450 / m.speed)), cost: Math.max(1, Math.floor(d * m.weight * m.speed * factor * (1 + p.upgrades.capacity) / 400000)) };
 }
-export const flightEnergy = (p: Plane, seconds: number) => modernModel(p.modelId) ? Math.max(1, Math.floor(seconds / 60)) * 60 : Math.ceil(seconds);
+export const flightEnergy = (_p: Plane, seconds: number) => Math.max(1, Math.floor(seconds / 60)) * 60;
 export const energyCapacity = (p: Plane) => aircraftSpecs(p).energy * 60;
 export const planeEnergy = (p: Plane): EnergyBudget => ({ availableSeconds: energyCapacity(p), reservedSeconds: 0, serviceUntil: null });
 export function departureEnergyReason(p: Plane, seconds: number) { return p.energy.serviceUntil !== null ? '地勤补能中，请完成或取消补能' : p.energy.availableSeconds < flightEnergy(p,seconds) ? '能量不足，请到机库补能' : ''; }
 function destinationRevenue(s: GameState, p: Plane, to: string) {
   const orders = manifest(s,p.id).filter(o=>o.to===to), base=orders.reduce((n,o)=>n+o.reward,0);
-  if (!modernModel(p.modelId)) return base;
   const m=aircraftSpecs(p), pax=orders.filter(o=>o.kind==='passengers').reduce((n,o)=>n+o.amount,0), cargo=orders.filter(o=>o.kind==='cargo').reduce((n,o)=>n+o.amount,0);
   const full=pax===m.seats&&cargo===m.cargo;
   return Math.floor(base * (full ? 1.25 : 1) * 2 ** p.tuning.group * (1 + p.tuning.evolution * .05));
@@ -234,12 +230,7 @@ function advance(s: GameState, now: number): AdvanceReport {
 export class GameCore {
   private state: GameState;
   constructor(now: number, saved?: unknown) {
-    clock(now); this.state = saved === undefined ? migrateV6(new LegacyCore(now).snapshot()) : validateSave(saved);
-    if (saved === undefined) {
-      const p=this.state.fleet[0]!; p.modelId = 'starter-swift'; p.dispatcher=false; p.energy=planeEnergy(p);
-      this.state.credits=18000; this.state.orders=[]; this.state.nextOrderId=1; replenish(this.state);
-      this.state.tutorial = 'available';
-    }
+    clock(now); this.state = saved === undefined ? newGame(now) : validateSave(saved);
   }
   snapshot(): GameState { return structuredClone(this.state); }
   tick(now: number): AdvanceReport { return advance(this.state, now); }
@@ -354,7 +345,7 @@ export class GameCore {
       case 'buy': {
         const m = model(command.modelId), a = owned(s, command.airportId);
         check(a && a.level >= m.level, `交付机场需要达到 ${m.level} 级`); check(s.fleet.length < s.hangarSlots, '机库机位不足，请先扩建机库');
-        check(modernModel(m.id), '历史机型已停售，可继续使用旧机队'); check(careerLevel(s)>=m.rank,'公司等级不足');
+        check(careerLevel(s)>=m.rank,'公司等级不足');
         spend(s, m.price); const id = `AC${String(s.nextId++).padStart(4, '0')}`;
         s.fleet.push({ id, modelId: m.id, airportId: command.airportId, readyAt: s.simTime, autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], dispatcher: false, tuning: emptyTuning(), energy: {availableSeconds:m.energy*60,reservedSeconds:0,serviceUntil:null} });
         s.fleetPeak = Math.max(s.fleetPeak, s.fleet.length);
@@ -395,12 +386,41 @@ export class GameCore {
   }
 }
 
+/** Fresh games never instantiate a retired aircraft or pass through old saves. */
+function newGame(now: number): GameState {
+  const career = newCareer(0, now);
+  const plane: Plane = { id: 'AC0001', modelId: 'starter-swift', airportId: 'PEK', readyAt: 0,
+    autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], dispatcher: false,
+    tuning: emptyTuning(), energy: { availableSeconds: 0, reservedSeconds: 0, serviceUntil: null } };
+  plane.energy = planeEnergy(plane);
+  const s: GameState = { version: SAVE_VERSION, credits: 18000, simTime: 0, lastWallTime: now, nextId: 2,
+    airports: [{ id: 'PEK', level: 1 }, { id: 'PVG', level: 1 }], fleet: [plane], routes: [],
+    stats: { flights: 0, passengers: 0, cargo: 0, revenue: 0, costs: 0 }, claimedTasks: [],
+    log: [{ at: 0, text: '公司成立 · 北京与上海机场已开放', amount: 18000 }],
+    orders: [], nextOrderId: 1, nextDemandAt: DEMAND_INTERVAL, hangarSlots: 4, fleetPeak: 1,
+    tutorial: 'available', career, talent: createTalent(career.seed, 0) };
+  replenish(s);
+  return s;
+}
+
 /** Older saves always pass their frozen validators before any migration. */
 export function migrateV8(value: unknown): GameState {
+  rejectRetiredModels(value);
   const old = validateV8(value);
   return { ...old, version: 9, talent: createTalent(old.career.seed, old.simTime) };
 }
-export const migrateV1=migrateV8, migrateV2=migrateV8, migrateV3=migrateV8, migrateV4=migrateV8, migrateV5=migrateV8, migrateV6=migrateV8, migrateV7=migrateV8;
+export const migrateV7=migrateV8;
+/** A retired plane may be active, stored or already donated to the museum. */
+function rejectRetiredModels(value: unknown): void {
+  if (!value || typeof value !== 'object') return;
+  const save = value as { version?: unknown; fleet?: unknown; career?: { stored?: unknown; museum?: unknown } };
+  const rejected = () => { throw new Error('此存档包含已移除的旧机型或旧版本，不再支持导入；原进度未被覆盖'); };
+  if (typeof save.version === 'number' && save.version < 7) rejected();
+  for (const list of [save.fleet, save.career?.stored]) if (Array.isArray(list)) {
+    for (const plane of list) if (plane && typeof plane.modelId === 'string' && !modernModel(plane.modelId)) rejected();
+  }
+  if (Array.isArray(save.career?.museum) && save.career.museum.some(id => typeof id === 'string' && !modernModel(id))) rejected();
+}
 export function validateSave(value: unknown): GameState {
   const fail = (): never => { throw new Error('存档结构或经营数据无效，原进度未被覆盖'); };
   const record = (v: unknown, fields: string[]): Record<string, unknown> => {
@@ -414,12 +434,7 @@ export function validateSave(value: unknown): GameState {
   };
   if (!value || typeof value !== 'object' || Array.isArray(value)) return fail();
   const version = (value as { version?: unknown }).version;
-  if (version === 1) return validateSave(migrateV1(value));
-  if (version === 2) return validateSave(migrateV2(value));
-  if (version === 3) return validateSave(migrateV3(value));
-  if (version === 4) return validateSave(migrateV4(value));
-  if (version === 5) return validateSave(migrateV5(value));
-  if (version === 6) return validateSave(migrateV6(value));
+  rejectRetiredModels(value);
   if (version === 7) return validateSave(migrateV7(value));
   if (version === 8) return validateSave(migrateV8(value));
   if (version !== SAVE_VERSION) throw new Error('不支持此存档版本；请使用对应版本的游戏');
@@ -451,7 +466,7 @@ export function validateSave(value: unknown): GameState {
     number(p.energy.reservedSeconds, energyCapacity(p));
     if (p.energy.availableSeconds + p.energy.reservedSeconds > energyCapacity(p) ||
       (!p.flight && p.energy.reservedSeconds !== 0) ||
-      (p.flight && (modernModel(p.modelId) || p.energy.reservedSeconds !== 0) && p.energy.reservedSeconds !== flightEnergy(p,Math.round(p.flight.arriveAt-p.flight.departAt)))) fail();
+      (p.flight && p.energy.reservedSeconds !== flightEnergy(p,Math.round(p.flight.arriveAt-p.flight.departAt)))) fail();
     if (p.energy.serviceUntil !== null) {
       number(p.energy.serviceUntil, 1e12, false);
       if (p.energy.serviceUntil <= s.simTime || p.energy.serviceUntil > s.simTime + ENERGY_SERVICE_SECONDS ||

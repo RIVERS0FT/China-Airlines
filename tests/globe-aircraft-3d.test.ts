@@ -2,8 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { describe, expect, it, vi } from 'vitest';
 import { Box3, Group, Mesh, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { validateSave } from '../src/core/game.js';
-import flying from './fixtures/v5-unit-flying.json';
+import { GameCore } from '../src/core/game.js';
+const currentFlying=()=>{const c=new GameCore(1800000000000);c.execute({type:'dispatch',planeId:'AC0001',to:'PVG',auto:false},1800000000000);return c.snapshot();};
 import { aircraftFrame, projectAircraftFrame } from '../src/ui/globe-aircraft-pose.js';
 import { dot, globeCamera, greatCircle, screenPoint, toVector, viewVector } from '../src/ui/globe-geometry.js';
 import { airport } from '../src/core/catalog.js';
@@ -11,7 +11,7 @@ import { AIRLINER_A, disposeAircraftModel, prepareAircraftModel } from '../src/u
 
 describe('map aircraft follows a real 3D frame', () => {
   it.each([['PEK', 'PVG'], ['PVG', 'PEK'], ['NRT', 'HNL'], ['ANC', 'AKL'], ['PEK', 'PEK']])('keeps a right-handed upright basis for %s to %s, including endpoints', (from, to) => {
-    const plane = validateSave(flying).fleet[0]!;
+    const plane = currentFlying().fleet[0]!;
     plane.flight = { ...plane.flight!, from, to };
     const original = structuredClone(plane), f = plane.flight!;
     for (const progress of [-1, 0, .25, .5, .75, 1, 2]) {
@@ -33,7 +33,7 @@ describe('map aircraft follows a real 3D frame', () => {
   });
 
   it.each([1, 3, 6])('matches existing sphere projection at zoom %s, including a hidden back-side aircraft', scale => {
-    const plane = validateSave(flying).fleet[0]!;
+    const plane = currentFlying().fleet[0]!;
     const frame = aircraftFrame(plane, plane.flight!.departAt + 10);
     for (const lon of [0, 110, -70, 179]) {
       const camera = globeCamera(844, 390, { lat: 31, lon }, scale);

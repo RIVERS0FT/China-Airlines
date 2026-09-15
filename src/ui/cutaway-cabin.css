@@ -1,39 +1,54 @@
-/* The cabin shares the game's logical coordinate system and uniform UI scaling. */
-.aviation-game:not(.dispatch-focused) .airplane-display.cabin-aircraft{left:50%;bottom:0;width:min(98%,1400px);height:340px;max-height:100%;padding:0;border:0;box-shadow:none;background:none;transform:translateX(-50%);overflow:visible;cursor:default}
-.cabin-aircraft .cutaway-airframe{display:block;width:100%;height:100%;transform:scaleX(-1);filter:drop-shadow(0 5px 5px #28485325);pointer-events:none}
-.aviation-game .cabin-inspect{position:absolute;left:3%;top:60%;height:44px;min-height:44px;padding:3px 12px;border:1px solid #9eaba0;border-radius:7px;background:#fffbea;color:#52695f;font-size:12px;box-shadow:0 2px 0 #263e4420}
-.cabin-aircraft .cabin-interior{position:absolute;left:17%;right:20%;top:33%;height:49%;display:grid;grid-template-columns:3fr 2fr;gap:0;border:3px solid #738c8d;border-radius:14px 10px 10px 10px;overflow:hidden;box-shadow:inset 0 3px 7px #163b5530,0 2px 0 #fff;background:#eef0dc;text-align:left}
-.cabin-aircraft .single-deck{grid-template-columns:1fr}
-.cabin-deck{min-width:0;display:flex;flex-direction:column;background:linear-gradient(#d6e6e4 0 33%,#f2efdf 33% 78%,#9ca7a0 78% 81%,#657b77 81%);overflow:hidden}
-.cabin-deck.cabin-cargo{border-left:5px solid #84958c;background:linear-gradient(#e2dbc5 0 78%,#b29c78 78% 81%,#7b725d 81%)}
-.single-deck .cabin-cargo{border-left:0}
-.cabin-deck>header{height:44px;flex:0 0 44px;padding:0 3px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:3px;color:#304f55;background:#ffffff8c;border-bottom:1px solid #a4b9b4;font-size:12px}
+/* Generated hull, room and place sprites share one left-facing coordinate system. */
+.aviation-game:not(.dispatch-focused) .airplane-display.cabin-aircraft{left:50%;bottom:0;width:min(98%,1400px);height:500px;max-height:100%;padding:0;border:0;box-shadow:none;background:none;transform:translateX(-50%);overflow:visible;cursor:default}
+.cabin-aircraft .cutaway-airframe{display:block;width:100%;height:100%;transform:none;filter:drop-shadow(0 5px 5px #28485325);pointer-events:none}
+.aviation-game .cabin-inspect{position:absolute;left:3%;top:61%;height:44px;min-height:44px;padding:3px 9px;border:1px solid #9eaba0;border-radius:7px;background:#fffbea;color:#52695f;font-size:12px;box-shadow:0 2px 0 #263e4420}
+.cabin-aircraft .cabin-interior{position:absolute;display:grid;grid-template-columns:1fr;grid-template-rows:56% 44%;gap:0;isolation:isolate;text-align:left;border-radius:8px;background:#d7daca}
+.cabin-aircraft .single-deck{grid-template-columns:1fr;grid-template-rows:1fr}
+.cabin-deck{position:relative;min-width:0;height:100%;background:#d6d9d1}
+.cabin-room-wall,.cabin-room-floor{position:absolute;left:0;right:0;overflow:hidden;pointer-events:none}
+.cabin-room-wall{top:0;height:55%}.cabin-room-floor{top:55%;bottom:0}
+.cabin-room-art{position:absolute;left:0;width:100%;pointer-events:none;object-fit:fill}
+.cabin-room-wall .cabin-room-art{top:0;height:120%}
+.cabin-cargo .cabin-room-wall .cabin-room-art{height:126%}
+.cabin-floor-plane{display:block;width:100%;height:100%;overflow:hidden;pointer-events:none}
+.cabin-wall-plane{display:block;width:100%;height:100%;overflow:hidden;pointer-events:none}
+.stacked-decks .cabin-passengers>header{top:calc(100% / .56);width:50%;right:auto}
+.stacked-decks .cabin-cargo>header{left:50%;width:50%;right:auto}
+.aircraft-near-layer{position:absolute;pointer-events:none;z-index:8;object-fit:fill}
+.aviation-game .cabin-toggle{position:absolute;left:3%;top:50%;height:44px;min-height:44px;padding:3px 9px;z-index:10;border:1px solid #9eaba0;border-radius:7px;background:#fffbea;color:#52695f;font-size:12px}
+.cabin-aircraft .cabin-inspect{z-index:10}
+[data-exterior] .cabin-interior header{visibility:hidden}
+.cabin-deck.cabin-cargo{border-top:4px solid #b7b6a2}
+.single-deck .cabin-cargo{border-top:0}
+.cabin-deck>header{position:absolute;top:100%;left:0;right:0;height:44px;padding:0 4px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:3px;color:#304f55;background:#fffbeaeb;border:1px solid #aaad9b;border-radius:0 0 6px 6px;font-size:12px;z-index:5}
 .cabin-deck>header strong{min-width:0;line-height:1.15}.cabin-deck>header strong span{display:inline-block;margin-left:6px;font-variant-numeric:tabular-nums}
-.cabin-deck:first-child>header strong{padding-left:12px}
 .cabin-deck nav{display:flex;align-items:center;gap:3px;font-size:10px;font-variant-numeric:tabular-nums}
 .aviation-game .cabin-deck nav button{height:44px;min-height:44px;width:44px;min-width:44px;padding:0;border:0;border-radius:4px;box-shadow:none;background:transparent;font-size:23px;line-height:1}
-.cabin-places{display:flex;align-items:stretch;gap:0;flex:1;min-height:0;padding:0 3px;overflow:hidden}
-.cabin-aircraft .cabin-order,.cabin-aircraft .cabin-empty{flex:1 0 0;min-width:0;max-width:128px;position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:flex-end;gap:0!important;height:100%;padding:0 3px!important;border:0!important;border-radius:0;background:none;box-shadow:none;overflow:hidden;text-align:center;color:#fff9df}
+.cabin-places{position:absolute;inset:0 8px;overflow:hidden}
+.cabin-anchor{position:absolute;height:100%;min-width:0}
+.cabin-place-art{position:absolute;pointer-events:none;left:50%;bottom:var(--floor-bottom);width:var(--furniture-width);height:var(--furniture-height);margin-left:var(--furniture-offset);transform:translateX(-50%);object-fit:contain;object-position:center bottom;z-index:1}
+.cabin-aircraft .cabin-order,.cabin-aircraft .cabin-empty{position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:flex-end;gap:0!important;width:100%;height:100%;min-width:0;min-height:0;padding:0 3px!important;border:0!important;border-radius:0;background:none;box-shadow:none;overflow:hidden;text-align:center;color:#fff9df}
+.cabin-aircraft .cabin-order,.cabin-aircraft .cabin-empty{z-index:2}
 .aviation-game .cabin-order:hover:not(:disabled){background:#e5f7ea66}
 .cabin-order:disabled{opacity:.82}
-.cabin-aircraft .cabin-order .job-figure{position:relative;display:block;width:100%;flex:1;min-height:0;height:auto;margin:0;overflow:hidden}
+.cabin-aircraft .cabin-order .job-figure{position:absolute;top:0;left:0;display:block;width:100%;height:var(--label-top);margin:0;overflow:hidden}
 .apron-queue .job-art{transform:scaleX(-1)}
-.cabin-order .job-art{position:absolute;left:50%;bottom:0;transform:translateX(-50%) scaleX(-1);width:80px;height:100%;object-fit:contain;object-position:center bottom;margin:0;filter:drop-shadow(1px 2px 1px #284f5055)}
+.cabin-order .job-art{position:absolute;left:50%;top:var(--occupant-top);margin-left:var(--occupant-offset);transform:translateX(-50%) scaleX(-1);width:var(--occupant-width);height:var(--occupant-height);max-height:none;object-fit:contain;object-position:center bottom;filter:drop-shadow(1px 2px 1px #284f5055)}
 .job-art[data-passenger-variant],.job-art[data-cargo-type]{overflow:hidden;pointer-events:none}
 .apron-queue .job-art[data-passenger-variant],.apron-queue .job-art[data-cargo-type]{transform:none}
-.cabin-order .job-art[data-passenger-variant],.cabin-order .job-art[data-cargo-type]{transform:translateX(-50%);z-index:1;max-width:100%}
+.cabin-order .job-art[data-passenger-variant],.cabin-order .job-art[data-cargo-type]{transform:translateX(-50%);z-index:2;max-width:100%}
 .aviation-game .apron-queue .order-cargo .job-info:has(.cargo-name){flex-basis:40px;flex-direction:column;gap:1px}
 .aviation-game .apron-queue .cargo-name{max-width:100%;font-size:11px;line-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff8dc;text-shadow:0 1px #4b4433,1px 0 #4b4433,-1px 0 #4b4433,0 -1px #4b4433}
-@media(max-height:600px) and (orientation:landscape){.aviation-game .apron-queue .order-cargo .job-info:has(.cargo-name){flex-basis:30px}.aviation-game .apron-queue .cargo-name{font-size:10px;line-height:11px}}
-.cabin-passengers .cabin-order .job-figure:before{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:49px;height:min(65%,42px);border:2px solid #446c70;border-radius:12px 12px 4px 4px;background:linear-gradient(90deg,#507c83,#94bcb4);box-shadow:0 3px #344e57}
-.cabin-passengers .cabin-order .job-figure:after{content:"";position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:45px;height:12px;border:2px solid #456670;border-radius:5px;background:#92b2a7}
-.cabin-aircraft .cabin-order .job-info{flex:0 0 44px;display:flex;flex-direction:column;justify-content:center;gap:2px;width:100%;height:44px;min-height:44px;padding:0 2px;border:0;border-radius:0;background:transparent;box-shadow:none;color:#fff8db;line-height:1.15;text-shadow:0 1px #35443b,1px 0 #35443b,-1px 0 #35443b,0 -1px #35443b}
-.cabin-aircraft .cabin-order .cabin-destination{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:11px;line-height:14px;text-align:center}
-.cabin-aircraft .cabin-order .job-price{display:block;white-space:nowrap;max-width:100%;font-size:12px;color:#ffd74d;line-height:16px;text-align:center}
+.cabin-aircraft .cabin-order .job-info{position:absolute;top:var(--label-top);left:0;display:flex;flex-direction:column;justify-content:center;gap:1px;width:100%;height:44px;min-height:44px;padding:2px;border:0;border-radius:0;background:transparent;box-shadow:none;color:#fff8db;line-height:1.15;text-shadow:0 1px #35443b,1px 0 #35443b,-1px 0 #35443b,0 -1px #35443b}
+.cabin-aircraft .cabin-order .cabin-destination{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:11px;line-height:12px;text-align:center}
+.cabin-aircraft .cabin-order .job-price{display:block;white-space:nowrap;max-width:100%;font-size:12px;color:#ffd74d;line-height:13px;text-align:center}
 .cabin-order .job-quantity{position:absolute;right:0;top:0;z-index:2;font-size:11px;background:#3f576b;color:white;border-radius:6px;padding:1px 4px}
-.cabin-empty .empty-place-art{min-height:0;flex:1;display:flex;align-items:flex-end;justify-content:center;width:100%;opacity:.72}
-.empty-place-art svg{height:100%;width:64px;max-height:70px;transform:scaleX(-1)}
-.cabin-empty>span{display:block;height:44px;line-height:44px;font-size:11px;color:#fffde8}
-.cabin-aircraft button:focus-visible,.cabin-places:focus-visible{outline:3px solid #e69b34;outline-offset:-3px;z-index:2}
+.cabin-empty>span{position:absolute;top:var(--label-top);display:grid;place-items:center;width:100%;height:44px;line-height:1.2;font-size:11px;color:#fffde8;text-shadow:0 1px 2px #263d4a}
+.cabin-aircraft .cabin-compact .cabin-order .job-info{flex-direction:row;height:14px;min-height:14px;gap:4px;padding:0}
+.cabin-compact .cabin-empty>span{height:14px}
+.cabin-front-rim{position:absolute;inset:0;z-index:4;pointer-events:none;border:4px solid #c4bb93;border-radius:8px;box-shadow:inset 0 0 0 2px #344e5c,0 2px 2px #23435655}
+.cabin-aircraft button:focus-visible,.cabin-places:focus-visible{outline:3px solid #e69b34;outline-offset:-3px;z-index:6}
 .aviation-game:not(.dispatch-focused) .scene-caption{pointer-events:none}
-@media(max-height:600px) and (orientation:landscape){.aviation-game:not(.dispatch-focused) .airplane-display.cabin-aircraft{height:300px}.cabin-aircraft .cabin-interior{top:auto;bottom:18%;height:max(51%,146px)}.aviation-game .cabin-inspect{left:2%;padding-inline:5px;font-size:11px}}
+[data-anchor-debug] .cabin-anchor{outline:1px dashed #ff257c}
+[data-anchor-debug] .cabin-anchor:after{content:attr(data-anchor-id);position:absolute;left:50%;bottom:var(--floor-bottom);transform:translateX(-50%);color:#fff;background:#b31551;font:10px monospace;pointer-events:none;z-index:9}
+@media(max-height:600px) and (orientation:landscape){.aviation-game:not(.dispatch-focused) .airplane-display.cabin-aircraft{height:410px}.aviation-game .cabin-inspect{left:2%;padding-inline:5px;font-size:11px}.aviation-game .apron-queue .order-cargo .job-info:has(.cargo-name){flex-basis:30px}.aviation-game .apron-queue .cargo-name{font-size:10px;line-height:11px}}

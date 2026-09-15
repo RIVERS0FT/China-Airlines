@@ -5,7 +5,6 @@ import {
   MATERIALS,
   WORKSHOP_MATERIALS,
   RECIPES,
-  modernModel,
   type Material,
   type Building,
 } from "../core/career-catalog.js";
@@ -184,7 +183,7 @@ export function CareerHub({
                   action(
                     `${["提升编队", "机体进化", "提升电力"][i]} · ${(p.tuning[(["group", "evolution", "power"] as const)[i]!] + 1) * 500}金币＋${(p.tuning[(["group", "evolution", "power"] as const)[i]!] + 1) * 2}券`,
                     { type, planeId: p.id },
-                    locked || !modernModel(p.modelId),
+                    locked,
                   ),
               )}
               {action(
