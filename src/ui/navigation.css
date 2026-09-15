@@ -1,0 +1,91 @@
+/* Shared dock geometry. Page-specific chrome must not move navigation targets.
+   Imported last by main.tsx; dimensions use the logical game viewport. */
+.aviation-game:not(.dispatch-focused) {
+  position:relative;
+  --dock-inset:12px;
+  --dock-gap:8px;
+  --dock-button-width:84px;
+  --dock-button-height:78px;
+  --dock-dispatch-width:118px;
+  --dock-height:calc(var(--dock-button-height) + 2 * var(--dock-inset));
+}
+
+.aviation-game:not(.dispatch-focused) > .game-dock,
+.aviation-game.map-browse:not(.dispatch-focused) > .game-dock {
+  position:relative;
+  inset:auto;
+  display:flex;
+  flex:0 0 var(--dock-height);
+  flex-flow:row nowrap;
+  align-items:center;
+  justify-content:flex-start;
+  gap:var(--dock-gap);
+  width:100%;
+  max-width:none;
+  height:var(--dock-height);
+  min-height:var(--dock-height);
+  margin:0;
+  padding:var(--dock-inset);
+  border:0;
+  border-radius:0;
+  transform:none;
+  overflow:visible;
+}
+
+/* Fixed slots do not stretch with labels, selection, or the dispatch button. */
+.aviation-game:not(.dispatch-focused) > .game-dock > button:not(.depart-button),
+.aviation-game:not(.dispatch-focused) > .game-dock > button.depart-button {
+  flex:0 0 var(--dock-button-width);
+  width:var(--dock-button-width);
+  min-width:var(--dock-button-width);
+  max-width:var(--dock-button-width);
+  height:var(--dock-button-height);
+  min-height:var(--dock-button-height);
+  max-height:var(--dock-button-height);
+  margin:0;
+  transform:none;
+}
+.aviation-game:not(.dispatch-focused) > .game-dock > button.depart-button {
+  flex-basis:var(--dock-dispatch-width);
+  width:var(--dock-dispatch-width);
+  min-width:var(--dock-dispatch-width);
+  max-width:var(--dock-dispatch-width);
+}
+.aviation-game:not(.dispatch-focused) > .game-dock > button:is(:hover,:active,:focus-visible,.active) {
+  transform:none;
+}
+
+/* Same coordinates, but no map-height reservation or invisible hit targets. */
+.aviation-game.map-browse:not(.dispatch-focused) > .game-dock {
+  position:absolute;
+  inset:auto 0 0;
+  background:none;
+  box-shadow:none;
+  backdrop-filter:none;
+  pointer-events:none;
+}
+.aviation-game.map-browse:not(.dispatch-focused) > .game-dock::before,
+.aviation-game.map-browse:not(.dispatch-focused) > .game-dock::after {
+  display:none;
+  content:none;
+}
+.aviation-game.map-browse:not(.dispatch-focused) > .game-dock > button {
+  pointer-events:auto;
+}
+
+/* Narrow logical landscapes still fit all eight entries without reflow. */
+@media (max-width:950px) and (orientation:landscape) {
+  .aviation-game:not(.dispatch-focused) {
+    --dock-button-width:72px;
+    --dock-dispatch-width:108px;
+  }
+}
+@media (max-height:600px) and (orientation:landscape) {
+  .aviation-game:not(.dispatch-focused) {
+    --dock-inset:8px;
+    --dock-gap:5px;
+    --dock-button-width:59px;
+    --dock-button-height:52px;
+    --dock-dispatch-width:90px;
+  }
+}
