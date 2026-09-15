@@ -1,4 +1,4 @@
-import { upgradeLimit, upgradeTickets, modernModel } from '../core/career-catalog.js';
+import { upgradeLimit, upgradeTickets } from '../core/career-catalog.js';
 import { artAsset } from './art-assets.js';
 import { EnergyService } from './EnergyService.js';
 import { AircraftService } from './AircraftService.js';
@@ -18,7 +18,7 @@ export function Hangar({ game, busy, selectedPlaneId, onInspect, onSelect }: { g
   const full = game.hangarSlots >= MAX_FLEET;
   const details: Record<UpgradeKey, string> = {
     capacity: `客舱 ${m.seats} 人 / 货舱 ${m.cargo} 吨`, engine: `速度参数 ${m.speed}`,
-    range: `单段航程 ${m.range} km`, efficiency: modernModel(p.modelId) ? `机体重量 ${m.weight}` : `每公里成本 ${m.costKm.toFixed(2)} 币`
+    range: `单段航程 ${m.range} km`, efficiency: `机体重量 ${m.weight}`
   };
   return <section className="hangar-workshop">
     <div className="hangar-capacity"><div><strong data-testid="hangar-capacity">机位 {game.fleet.length} / {game.hangarSlots}</strong><small>扩建机库后才能继续增加飞机，最高 {MAX_FLEET} 架。</small></div>
@@ -34,7 +34,7 @@ export function Hangar({ game, busy, selectedPlaneId, onInspect, onSelect }: { g
           <details className="fleet-manifest"><summary>机上清单 · {orders.length} 单</summary>{orders.length ? <ul>{orders.map(order => <li key={order.id} data-testid="fleet-onboard-order"><strong>✓ 已装机</strong><span>{airport(order.to).city} · {order.amount}{order.kind === 'passengers' ? '位旅客' : '吨货物'}</span><small>{orderPresentation(game, p, order).reason || '前往机场可卸载'}</small></li>)}</ul> : <p>暂无已装机客货。</p>}</details></div>
         <div className="upgrade-grid">{(Object.keys(UPGRADE_LABEL) as UpgradeKey[]).map(key => {
           const max = p.upgrades[key] >= upgradeLimit(p,key), price = retrofitPrice(p, key), next = aircraftSpecs({ ...p, upgrades: { ...p.upgrades, [key]: Math.min(upgradeLimit(p,key), p.upgrades[key] + 1) } });
-          const nextText = key === 'capacity' ? `${next.seats} 人 / ${next.cargo} 吨` : key === 'engine' ? `${next.speed}` : key === 'range' ? `${next.range} km` : modernModel(p.modelId) ? `重量 ${next.weight}` : `${next.costKm.toFixed(2)} 币/km`;
+          const nextText = key === 'capacity' ? `${next.seats} 人 / ${next.cargo} 吨` : key === 'engine' ? `${next.speed}` : key === 'range' ? `${next.range} km` : `重量 ${next.weight}`;
           return <article key={key} data-testid={`upgrade-${key}`}><header><strong><Icon name="maintenance"/>{UPGRADE_LABEL[key]}</strong><span>Lv.{p.upgrades[key]} / {upgradeLimit(p,key)}</span></header><p>{details[key]}</p><small>{max ? '已达到最高等级' : `下一级 → ${nextText}`}</small><button disabled={busy || max || Boolean(reason) || game.credits < price || game.career.tickets < upgradeTickets(p,key)} aria-label={`升级${UPGRADE_LABEL[key]}`} onClick={() => ignore(controller.command({ type: 'retrofit', planeId: p.id, upgrade: key }))}>{max ? '已满级' : reason ? '暂不可改装' : game.credits < price ? '运营资金不足' : `改装 · ${money(price)}＋${upgradeTickets(p,key)}券`}</button></article>;
         })}</div>
       </div></div>

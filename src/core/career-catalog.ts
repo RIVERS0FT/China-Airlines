@@ -1,9 +1,5 @@
 import { RAILWAY_LEVELS } from "./railway-observations.js";
 import {
-  MODELS as HISTORIC_MODELS,
-  STARTER_MODEL as HISTORIC_STARTER,
-  aircraftSpecs as oldSpecs,
-  retrofitPrice as oldPrice,
   TASKS as OLD_TASKS,
   type Upgrades,
 } from "./catalog-v5.js";
@@ -131,7 +127,7 @@ export const MODELS: readonly AircraftModel[] = families.flatMap((f) =>
     weight: f.weight,
     energy: f.energy,
     rank: f.rank,
-    art: `aircraft-${f.art}-${kind === "cargo" ? "cargo" : "passenger"}-v2.png`,
+    art: `aircraft-${f.id}-${["p", "f", "m"][i]}-exterior-v4.png`,
   })),
 );
 export const STARTER_MODEL: AircraftModel = {
@@ -142,17 +138,9 @@ export const STARTER_MODEL: AircraftModel = {
   cargo: 2,
   price: 6000,
   role: "初始客货机",
+  art: "aircraft-starter-swift-exterior-v4.png",
 };
-export const ALL_MODELS: readonly AircraftModel[] = [
-  STARTER_MODEL,
-  ...MODELS,
-  HISTORIC_STARTER,
-  ...HISTORIC_MODELS,
-].map((m) =>
-  "energy" in m
-    ? m
-    : { ...m, weight: 1000, energy: 240, rank: 1, art: "aircraft-v1.png" },
-);
+export const ALL_MODELS: readonly AircraftModel[] = [STARTER_MODEL, ...MODELS];
 export const model = (id: string): AircraftModel => {
   const m = ALL_MODELS.find((m) => m.id === id);
   if (!m) throw new Error("未知机型");
@@ -167,8 +155,6 @@ export function aircraftSpecs(p: {
 }) {
   const m = model(p.modelId),
     t = p.tuning ?? emptyTuning();
-  if (!modernModel(m.id))
-    return { ...m, ...oldSpecs(p), energy: m.energy, weight: m.weight };
   const level = (n: number) => RAILWAY_LEVELS[Math.min(99, Math.max(0, n))]!;
   const cabins = 1 + p.upgrades.capacity + t.cabins;
   return {
@@ -185,21 +171,16 @@ export const retrofitPrice = (
   p: { modelId: string; upgrades: Upgrades },
   key: keyof Upgrades,
 ) =>
-  modernModel(p.modelId)
-    ? Math.ceil(model(p.modelId).price * 0.025 * (1 + p.upgrades[key] * 0.12))
-    : oldPrice(p, key);
-export const upgradeLimit = (p: { modelId: string }, key: keyof Upgrades) =>
-  modernModel(p.modelId) ? (key === "capacity" ? 9 : 99) : 3;
+  Math.ceil(model(p.modelId).price * 0.025 * (1 + p.upgrades[key] * 0.12));
+export const upgradeLimit = (_p: { modelId: string }, key: keyof Upgrades) => key === "capacity" ? 9 : 99;
 export const upgradeTickets = (
   p: { modelId: string; upgrades: Upgrades },
   key: keyof Upgrades,
 ) =>
-  modernModel(p.modelId)
-    ? Math.max(
+  Math.max(
         1,
         Math.ceil(RAILWAY_LEVELS[Math.min(99, p.upgrades[key])]![5] / 4),
-      )
-    : 0;
+      );
 export const MATERIALS = {
   frame: "机身组件",
   engine: "动力组件",

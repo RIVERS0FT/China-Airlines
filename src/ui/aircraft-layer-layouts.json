@@ -1,0 +1,197 @@
+{
+  "starter-swift": {
+    "family": "light",
+    "interior": {
+      "x": 281,
+      "y": 171,
+      "width": 995,
+      "height": 300
+    },
+    "nearBounds": {
+      "x": -18.63,
+      "y": 81.77,
+      "width": 1598.11,
+      "height": 562.04
+    }
+  },
+  "swift-p": {
+    "family": "light",
+    "interior": {
+      "x": 280,
+      "y": 177,
+      "width": 990,
+      "height": 244
+    },
+    "nearBounds": {
+      "x": -38.24,
+      "y": 85.88,
+      "width": 1612.49,
+      "height": 553.35
+    }
+  },
+  "swift-f": {
+    "family": "light",
+    "interior": {
+      "x": 280,
+      "y": 185,
+      "width": 990,
+      "height": 292
+    },
+    "nearBounds": {
+      "x": -17.36,
+      "y": 92.35,
+      "width": 1584.67,
+      "height": 561.65
+    }
+  },
+  "swift-m": {
+    "family": "light",
+    "interior": {
+      "x": 280,
+      "y": 180,
+      "width": 989,
+      "height": 293
+    },
+    "nearBounds": {
+      "x": -77.91,
+      "y": 89.89,
+      "width": 1699.4,
+      "height": 553.27
+    }
+  },
+  "heron-p": {
+    "family": "regional",
+    "interior": {
+      "x": 285,
+      "y": 190,
+      "width": 945,
+      "height": 272
+    },
+    "nearBounds": {
+      "x": -47.38,
+      "y": 103.46,
+      "width": 1578.89,
+      "height": 572.43
+    }
+  },
+  "heron-f": {
+    "family": "regional",
+    "interior": {
+      "x": 279,
+      "y": 240,
+      "width": 971,
+      "height": 221
+    },
+    "nearBounds": {
+      "x": -61.09,
+      "y": 173.19,
+      "width": 1639.89,
+      "height": 466.41
+    }
+  },
+  "heron-m": {
+    "family": "regional",
+    "interior": {
+      "x": 286,
+      "y": 196,
+      "width": 931,
+      "height": 257
+    },
+    "nearBounds": {
+      "x": -26.53,
+      "y": 69.83,
+      "width": 1665.15,
+      "height": 554.56
+    }
+  },
+  "albatross-p": {
+    "family": "heavy",
+    "interior": {
+      "x": 278,
+      "y": 183,
+      "width": 951,
+      "height": 207
+    },
+    "nearBounds": {
+      "x": -39.81,
+      "y": 121.47,
+      "width": 1634.78,
+      "height": 545.76
+    }
+  },
+  "albatross-f": {
+    "family": "heavy",
+    "interior": {
+      "x": 282,
+      "y": 183,
+      "width": 931,
+      "height": 224
+    },
+    "nearBounds": {
+      "x": -49.62,
+      "y": 144.29,
+      "width": 1627.43,
+      "height": 541.59
+    }
+  },
+  "albatross-m": {
+    "family": "heavy",
+    "interior": {
+      "x": 283,
+      "y": 176,
+      "width": 959,
+      "height": 290
+    },
+    "nearBounds": {
+      "x": -25.95,
+      "y": 88.53,
+      "width": 1519.52,
+      "height": 585.64
+    }
+  },
+  "aurora-p": {
+    "family": "heavy",
+    "interior": {
+      "x": 271,
+      "y": 174,
+      "width": 959,
+      "height": 291
+    },
+    "nearBounds": {
+      "x": -12.06,
+      "y": 92.65,
+      "width": 1554.41,
+      "height": 556.11
+    }
+  },
+  "aurora-f": {
+    "family": "heavy",
+    "interior": {
+      "x": 249,
+      "y": 232,
+      "width": 867,
+      "height": 249
+    },
+    "nearBounds": {
+      "x": 1.98,
+      "y": 151.88,
+      "width": 1470.19,
+      "height": 562.66
+    }
+  },
+  "aurora-m": {
+    "family": "heavy",
+    "interior": {
+      "x": 302,
+      "y": 181,
+      "width": 954,
+      "height": 283
+    },
+    "nearBounds": {
+      "x": 26.47,
+      "y": 100.12,
+      "width": 1508.97,
+      "height": 533.15
+    }
+  }
+}

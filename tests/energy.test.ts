@@ -1,14 +1,18 @@
-import { HistoricalSession as GameCore, historicalFields } from './career-fixtures.js';
+import { GameCore, flightEnergy } from '../src/core/game.js';
 import orderedV4 from './fixtures/v4-ordered-route.json' with { type: 'json' };
 import { describe, expect, it } from 'vitest';
 import { validateSave, quote, manifest, planQuote, type Command } from '../src/core/game.js';
-import { ENERGY_CAPACITY_SECONDS as CAP, ENERGY_SERVICE_SECONDS as SERVICE, energyRequired, energyDepartureReason, fullEnergy } from '../src/core/energy.js';
+import { ENERGY_SERVICE_SECONDS as SERVICE, energyRequired, energyDepartureReason } from '../src/core/energy.js';
 import { flightStatus, fleetStatuses } from '../src/ui/flight-status.js';
 import { loadingLock } from '../src/ui/order-presentation.js';
 import oldSave from './fixtures/v4-energy-migration.json';
+const CAP = 12000;
+const fullEnergy = () => ({availableSeconds:CAP,reservedSeconds:0,serviceUntil:null});
+const required = (seconds = amount()) => flightEnergy(prepared().snapshot().fleet[0]!, seconds);
 const NOW = 1_800_000_000_000, ID = 'AC0001';
 function prepared() {
   const c = new GameCore(NOW);
+  c.execute({type:'hire-dispatcher',planeId:ID},NOW);
   c.execute({type:'load-destination',planeId:ID,to:'PVG'},NOW);
   return c;
 }
@@ -22,8 +26,8 @@ function serviceCore() {
   const c = withEnergy(13); c.execute({type:'service-energy',planeId:ID},NOW); return c;
 }
 describe('reference rate and safe flight reservation', () => {
-  it('uses exactly 60 seconds per point and 240 points in this declared reference profile', () => {
-    expect(energyRequired(60)).toBe(60); expect(CAP).toBe(14400);
+  it('uses a 200-point starter budget and whole-minute flight charge', () => {
+    expect(energyRequired(60)).toBe(60); expect(CAP).toBe(12000); expect(required(119)).toBe(60); expect(required(120)).toBe(120);
     expect(energyRequired(30)+energyRequired(30)).toBe(energyRequired(60));
     expect(energyRequired(77)).toBe(77);
   });
@@ -32,27 +36,27 @@ describe('reference rate and safe flight reservation', () => {
   });
   it('creates independent full budgets for initial and purchased aircraft', () => {
     const c=prepared(); dispatch(c); c.execute({type:'buy',modelId:'swift-f',airportId:'PEK'},NOW);
-    const s=c.snapshot(); expect(s.fleet[0]!.energy.availableSeconds).toBe(CAP-amount());
+    const s=c.snapshot(); expect(s.fleet[0]!.energy.availableSeconds).toBe(CAP-required());
     expect(s.fleet[1]!.energy).toEqual({...fullEnergy(),availableSeconds:12000});
   });
   it('reserves exact integer seconds once and does not spend them again on arrival or reload', () => {
     const c=prepared(),s0=c.snapshot(),q=quote(s0,s0.fleet[0]!,'PVG');dispatch(c);
-    const s=c.snapshot();expect(s.fleet[0]!.energy).toEqual({availableSeconds:CAP-q.duration,reservedSeconds:q.duration,serviceUntil:null});
+    const s=c.snapshot();expect(s.fleet[0]!.energy).toEqual({availableSeconds:CAP-required(q.duration),reservedSeconds:required(q.duration),serviceUntil:null});
     const restored=new GameCore(NOW,s);restored.tick(NOW+q.duration*1000);
-    expect(restored.snapshot().fleet[0]!.energy).toEqual({availableSeconds:CAP-q.duration,reservedSeconds:0,serviceUntil:null});
+    expect(restored.snapshot().fleet[0]!.energy).toEqual({availableSeconds:CAP-required(q.duration),reservedSeconds:0,serviceUntil:null});
     const after=restored.snapshot();expect(restored.tick(NOW+q.duration*1000).revenue).toBe(0);expect(restored.snapshot()).toEqual(after);
   });
   it.each([51.003, 90.247, 1000.123])('preserves exact reservations at fractional simulation time %s', seconds => {
     const c=prepared();c.execute({type:'dispatch',planeId:ID,to:'PVG',auto:false},NOW+seconds*1000);
-    const s=c.snapshot();expect(()=>validateSave(s)).not.toThrow();expect(s.fleet[0]!.energy.reservedSeconds).toBe(amount());
+    const s=c.snapshot();expect(()=>validateSave(s)).not.toThrow();expect(s.fleet[0]!.energy.reservedSeconds).toBe(required());
   });
   it('allows exactly enough energy and delivers without cancelling in midair', () => {
-    const c=withEnergy(amount());dispatch(c);expect(c.snapshot().fleet[0]!.energy.availableSeconds).toBe(0);
+    const c=withEnergy(required());dispatch(c);expect(c.snapshot().fleet[0]!.energy.availableSeconds).toBe(0);
     expect(()=>validateSave(c.snapshot())).not.toThrow();c.tick(NOW+amount()*1000);
     expect(c.snapshot().stats.flights).toBe(1);expect(c.snapshot().fleet[0]!.airportId).toBe('PVG');
   });
   it('rejects a one-second shortage without deducting money, moving cargo or changing orders', () => {
-    const c=withEnergy(amount()-1),s=c.snapshot();expect(()=>dispatch(c)).toThrow('能量不足');expect(c.snapshot()).toEqual(s);
+    const c=withEnergy(required()-1),s=c.snapshot();expect(()=>dispatch(c)).toThrow('能量不足');expect(c.snapshot()).toEqual(s);
   });
   it('cannot reserve energy when the same command fails for insufficient money', () => {
     const s=prepared().snapshot();s.credits=0;const c=new GameCore(NOW,s),before=c.snapshot();
@@ -60,11 +64,11 @@ describe('reference rate and safe flight reservation', () => {
   });
   it('charges empty positioning flights by duration too', () => {
     const c=new GameCore(NOW);c.execute({type:'route',from:'PEK',to:'PVG'},NOW);dispatch(c);
-    expect(c.snapshot().fleet[0]!.energy.availableSeconds).toBe(CAP-amount());expect(c.snapshot().fleet[0]!.flight!.revenue).toBe(0);
+    expect(c.snapshot().fleet[0]!.energy.availableSeconds).toBe(CAP-required());expect(c.snapshot().fleet[0]!.flight!.revenue).toBe(0);
   });
   it('faster engines reduce flight duration and its energy requirement, not alter the rate', () => {
     const c=prepared(),before=amount();c.execute({type:'retrofit',planeId:ID,upgrade:'engine'},NOW);const s=c.snapshot(),q=quote(s,s.fleet[0]!,'PVG');
-    expect(q.duration).toBeLessThan(before);dispatch(c);expect(c.snapshot().fleet[0]!.energy.availableSeconds).toBe(CAP-q.duration);
+    expect(q.duration).toBeLessThan(before);dispatch(c);expect(c.snapshot().fleet[0]!.energy.availableSeconds).toBe(CAP-required(q.duration));
   });
   it('previewing routes cannot reserve any energy', () => {
     const c=prepared(),s=c.snapshot(),before=structuredClone(s);quote(s,s.fleet[0]!,'PVG');planQuote(s,s.fleet[0]!,['PVG','PEK']);
@@ -73,10 +77,10 @@ describe('reference rate and safe flight reservation', () => {
 });
 describe('automatic and multi-leg energy boundaries', () => {
   it('stops the following auto leg at the real airport and preserves its loaded jobs', () => {
-    const c=withEnergy(amount()*2-1);dispatch(c,true);const s0=c.snapshot(),first=s0.fleet[0]!.flight!;
+    const c=withEnergy(required()*2-1);dispatch(c,true);const s0=c.snapshot(),first=s0.fleet[0]!.flight!;
     c.tick(NOW+(first.arriveAt+8)*1000);const s=c.snapshot(),p=s.fleet[0]!;
     expect(p.flight).toBeNull();expect(p.autoRouteId).toBeNull();expect(p.airportId).toBe('PVG');
-    expect(p.energy.availableSeconds).toBe(amount()-1);expect(s.stats.costs).toBe(first.cost);expect(s.stats.flights).toBe(1);
+    expect(p.energy.availableSeconds).toBe(required()-1);expect(s.stats.costs).toBe(first.cost);expect(s.stats.flights).toBe(1);
     expect(manifest(s,ID).length).toBeGreaterThan(0);expect(s.log[0]!.text).toContain('能量不足');expect(()=>validateSave(s)).not.toThrow();
   });
   it('starting duty with supply and low energy is wholly rejected, including its automatic load', () => {
@@ -90,7 +94,7 @@ describe('automatic and multi-leg energy boundaries', () => {
   });
   it('a finite plan reserves only the departing leg and retains onward cargo when energy ends', () => {
     const c=prepared();c.execute({type:'unlock',airportId:'WUH'},NOW);c.execute({type:'open-plan-routes',planeId:ID,stops:['WUH','PVG']},NOW);
-    const s=c.snapshot(),q=planQuote(s,s.fleet[0]!,['WUH','PVG']);s.fleet[0]!.energy.availableSeconds=q.legs[0]!.duration;
+    const s=c.snapshot(),q=planQuote(s,s.fleet[0]!,['WUH','PVG']);s.fleet[0]!.energy.availableSeconds=required(q.legs[0]!.duration);
     const run=new GameCore(NOW,s);run.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW);
     expect(run.snapshot().fleet[0]!.energy.availableSeconds).toBe(0);run.tick(NOW+(q.legs[0]!.duration+8)*1000);
     const after=run.snapshot();expect(after.fleet[0]!.airportId).toBe('WUH');expect(after.fleet[0]!.itinerary).toEqual([]);
@@ -148,19 +152,11 @@ describe('explicit ground service and event recovery', () => {
     const c=serviceCore(),before=c.snapshot();expect(()=>c.execute(command,NOW)).toThrow('补能');expect(c.snapshot()).toEqual(before);
   });
 });
-describe('strict v5 saves and legacy flight protection', () => {
-  it('migrates v4 with all old money, orders, flights, clocks and upgrades untouched', () => {
-    const old=structuredClone(oldSave),s=validateSave(old);expect(s.version).toBe(9);
-    expect({...historicalFields(s),version:4,fleet:historicalFields(s).fleet.map(({energy:_e,...p})=>p)}).toEqual(old);
-    for(const p of s.fleet)expect(p.energy).toEqual(fullEnergy());expect(oldSave).toEqual(old);
+describe('strict current saves and rejected retired flights', () => {
+  it.each([oldSave, orderedV4])('rejects retired flights without modifying their input', old => {
+    const before=structuredClone(old);expect(()=>validateSave(old)).toThrow('不再支持');expect(old).toEqual(before);
   });
-  it('does not charge a grandfathered old in-flight leg again on arrival', () => {
-    const c=new GameCore(oldSave.lastWallTime,oldSave),s=c.snapshot();
-    const time=Math.min(...s.fleet.filter(p=>p.flight).map(p=>p.flight!.arriveAt));
-    c.tick(oldSave.lastWallTime+(time-s.simTime)*1000);
-    expect(c.snapshot().fleet.find(p=>p.id===s.fleet.find(p=>p.flight?.arriveAt===time)!.id)!.energy.availableSeconds).toBe(CAP);
-  });
-  it('v5 reload does not regrant energy or reset an unfinished service', () => {
+  it('current save reload does not regrant energy or reset an unfinished service', () => {
     const s=serviceCore().snapshot();expect(validateSave(s)).toEqual(s);
   });
   it.each([-1,0.1,NaN,Infinity,CAP+1])('rejects corrupt balances %s instead of silently refilling',balance=>{
@@ -189,20 +185,16 @@ describe('energy with ordered-city routes', () => {
     expect(before.routes).toEqual([]); dispatch(c);
     const after=c.snapshot();expect(after.credits).toBe(before.credits-q.cost);
     expect(after.routes).toEqual([{id:'PEK-PVG',from:'PEK',to:'PVG'}]);
-    expect(after.fleet[0]!.energy.availableSeconds).toBe(CAP-q.duration);
+    expect(after.fleet[0]!.energy.availableSeconds).toBe(CAP-required(q.duration));
   });
-  it('accepts a real v4 route whose future legs have no operating record yet', () => {
-    expect(orderedV4.routes).toHaveLength(1);expect(orderedV4.fleet[0]!.itinerary).toEqual(['PVG','PEK']);
-    const s=validateSave(orderedV4);
-    expect({...historicalFields(s),version:4,fleet:historicalFields(s).fleet.map(({energy:_e,...p})=>p)}).toEqual(orderedV4);
-    expect(s.fleet[0]!.energy).toEqual(fullEnergy());
-  });
-  it('grandfathers that first old flight, then reserves energy on the next real departure', () => {
-    const c=new GameCore(orderedV4.lastWallTime,orderedV4),f=orderedV4.fleet[0]!.flight!;
-    c.tick(orderedV4.lastWallTime+(f.arriveAt-orderedV4.simTime+8)*1000);
-    const s=c.snapshot(),p=s.fleet[0]!;
-    expect(p.flight!.from).toBe('WUH');expect(p.flight!.to).toBe('PVG');
-    expect(p.energy.reservedSeconds).toBe(51);expect(p.energy.availableSeconds).toBe(CAP-51);
-    expect(s.routes).toHaveLength(2);expect(()=>validateSave(s)).not.toThrow();
+  it('reserves each current ordered-route leg independently', () => {
+    const c=prepared();c.execute({type:'unlock',airportId:'WUH'},NOW);
+    c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW);
+    const first=c.snapshot().fleet[0]!.flight!, e=c.snapshot().fleet[0]!.energy.availableSeconds;
+    c.tick(NOW+(first.arriveAt+8)*1000);const s=c.snapshot(),p=s.fleet[0]!;
+    expect(p.flight!.to).toBe('PVG');
+    const charge=required(Math.round(p.flight!.arriveAt-p.flight!.departAt));
+    expect(p.energy.reservedSeconds).toBe(charge);expect(p.energy.availableSeconds).toBe(e-charge);
+    expect(validateSave(s)).toEqual(s);
   });
 });

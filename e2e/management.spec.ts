@@ -1,6 +1,6 @@
 import { selectCity, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from './fixture.js';
-import { readFile } from 'node:fs/promises';
+import { rejectRetiredSave } from './retired-save-helpers.js';
 import type { GameState } from '../src/core/game.js';
 import legacy from '../tests/fixtures/v3-dispatching.json' with { type: 'json' };
 let errors:string[];
@@ -52,11 +52,8 @@ test('hangar duty can start for a reachable unlocked city without route purchase
   await page.getByRole('button',{name:'停止自动值勤',exact:true}).click();await expect(page.getByRole('button',{name:'人员下岗',exact:true})).toBeDisabled();await page.getByRole('button',{name:'关闭机队管理'}).click();
   await openGlobal(page, '机场装载');await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();await page.clock.fastForward(400000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');await expect(page.getByTestId('loaded-order')).toHaveCount(0);
 });
-test('v3 automatic flight migrates without changed manifest or extra money',async({page})=>{
-  await ready(page);page.on('dialog',d=>void d.accept());await openGlobal(page, '存档设置');
-  await page.getByLabel('选择存档文件').setInputFiles({name:'v3.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(legacy))});await expect(page.getByTestId('credits')).toHaveText(`¥ ${legacy.credits.toLocaleString('zh-CN')}`);
-  const pending=page.waitForEvent('download');await page.getByRole('button',{name:'导出存档',exact:true}).click();const download=await pending,path=await download.path();expect(path).not.toBeNull();const s=JSON.parse(await readFile(path!,'utf8'));
-  expect(s.version).toBe(9);expect(s.orders.map(({service:_s,product:_p,...o}: import('../src/core/game.js').Order)=>o)).toEqual(legacy.orders);expect(s.fleet[0].flight).toEqual(legacy.fleet[0]!.flight);expect(s.fleet.every((p:{dispatcher:boolean})=>p.dispatcher)).toBe(true);expect(s.tutorial).toBe('skipped');
+test('retired v3 automatic flight cannot replace current progress',async({page})=>{
+  await ready(page);await page.clock.pauseAt(new Date('2026-09-11T00:00:05Z'));await rejectRetiredSave(page,legacy);
 });
 for(const width of [1440,844])test(`guided real first flight persists at ${width}`,async({page})=>{
   await page.setViewportSize({width,height:width===1440?900:390});await ready(page);await openGlobal(page, '操作帮助');await page.getByRole('button',{name:'开始分步引导',exact:true}).click();

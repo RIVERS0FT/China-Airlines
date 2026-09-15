@@ -225,7 +225,7 @@ export function autoAllowed(s: GameState, p: Plane) {
   const pilot = assignedPilot(s, p);
   return (
     p.dispatcher &&
-    (pilot ? pilot.paidUntil > s.simTime : !modernModel(p.modelId))
+    !!pilot && pilot.paidUntil > s.simTime
   );
 }
 export function onArrival(s: GameState, p: Plane, orders: Order[]) {
@@ -451,7 +451,6 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
     case "evolve-plane":
     case "power-upgrade": {
       const p = emptyPlane(s, command.planeId);
-      guard(modernModel(p.modelId), "历史机型保留原有改装体系");
       const key =
         command.type === "group-plane"
           ? "group"

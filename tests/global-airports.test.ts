@@ -1,4 +1,3 @@
-import { historicalFields } from './career-fixtures.js';
 import { describe, it, expect } from 'vitest';
 import { AIRPORTS, CONTINENTS, distance, routeId } from '../src/core/catalog.js';
 import { AIRPORTS as legacyAirports } from '../src/core/catalog-v4.js';
@@ -78,9 +77,8 @@ describe('world operations and persistence', () => {
     expect(s.routes).toHaveLength(1225); expect(validateSave(s)).toEqual(s);
     s.routes[0]!.to = 'ZZZ'; expect(() => validateSave(s)).toThrow();
   });
-  it.each([flyingV5, serviceV5])('migrates frozen v5 data with only the version changed', old => {
-    expect(validateV5(old)).toEqual(old); const migrated = validateSave(old);
-    expect(historicalFields(migrated)).toEqual({ ...old, version: 6 }); expect(validateSave(migrated)).toEqual(migrated);
+  it.each([flyingV5, serviceV5])('rejects retired v5 data without changing it', old => {
+    const before=structuredClone(old);expect(validateV5(old)).toEqual(old);expect(()=>validateSave(old)).toThrow('不再支持');expect(old).toEqual(before);
   });
   it('rejects forged global v5 data and corrupt energy instead of laundering them into v6', () => {
     const old = structuredClone(flyingV5); old.airports.push({ id: 'NRT', level: 1 });

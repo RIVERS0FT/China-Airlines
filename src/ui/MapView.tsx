@@ -36,9 +36,8 @@ function aircraftPoint(p: Plane, time: number): Vec3 {
   return parabolicLift(greatCircle(geography.get(f.from)!, geography.get(f.to)!, progress), progress, .1);
 }
 function planeSize(file: string) {
-  if (file.includes('heavy')) return { width: 56, height: 25 };
-  if (file.includes('regional')) return { width: 50, height: 23 };
-  return { width: 44, height: 20 };
+  const width = file.includes('aurora') || file.includes('albatross') ? 56 : file.includes('heron') ? 50 : 44;
+  return { width, height: width * 590 / 1536 };
 }
 function path(graphics: Graphics, points: Vec3[], camera: GlobeCamera, color: number, width: number, alpha = 1, dashed = false) {
   for (let i = 1; i < points.length; i++) {

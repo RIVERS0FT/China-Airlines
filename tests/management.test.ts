@@ -83,12 +83,9 @@ describe('safe resale and lifetime fleet milestones',()=>{
   });
 });
 describe('migration and strict invariants',()=>{
-  it('preserves all v3 identities, clocks, locked flights and auto privileges',()=>{
-    const s=new GameCore(NOW,v3).snapshot();expect(s.version).toBe(9);expect(s.tutorial).toBe('skipped');expect(s.fleetPeak).toBe(v3.fleet.length);
-    expect(s.fleet.map(({dispatcher:_d,energy:_e,tuning:_t,...p})=>p)).toEqual(v3.fleet);expect(s.orders.map(({service:_s,product:_p,...o})=>o)).toEqual(v3.orders);expect(s.credits).toBe(v3.credits);expect(s.lastWallTime).toBe(v3.lastWallTime);expect(s.fleet.every(p=>p.dispatcher)).toBe(true);expect(validateSave(s)).toEqual(s);
-  });
+  it('rejects retired v3 automatic flights',()=>{expect(()=>new GameCore(NOW,v3)).toThrow('不再支持');});
   it('imports without old wall-clock income and resumes only once',()=>{
-    const c=GameCore.imported(v3,NOW+1e9);expect(c.snapshot().stats).toEqual(v3.stats);expect(c.snapshot().lastWallTime).toBe(NOW+1e9);
+    const source=rich();source.execute({type:'start-duty',planeId:ID,to:'PVG'},NOW);const saved=source.snapshot();const c=GameCore.imported(saved,NOW+1e9);expect(c.snapshot().stats).toEqual(saved.stats);expect(c.snapshot().lastWallTime).toBe(NOW+1e9);
     c.tick(NOW+1e9+200000);const s=c.snapshot(),again=new GameCore(s.lastWallTime,s);again.tick(s.lastWallTime);expect(again.snapshot()).toEqual(s);
   });
   const mutations:[string,(s:GameState)=>void][]=[

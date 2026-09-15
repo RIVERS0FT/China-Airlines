@@ -6,7 +6,6 @@ import {
   BUILDINGS,
   RECIPES,
   CAREER_TASKS,
-  modernModel,
   type Material,
 } from "./career-catalog.js";
 import { warehouseUsed, warehouseCapacity, taskValue } from "./career.js";
@@ -63,11 +62,7 @@ export function validateTuning(p: Plane) {
     fail();
   const m = ALL_MODELS.find((m) => m.id === p.modelId);
   if (!m) fail();
-  if (
-    (!m!.cargo && p.tuning.special !== "none") ||
-    (!modernModel(p.modelId) &&
-      (p.tuning.group || p.tuning.evolution || p.tuning.power))
-  )
+  if (!m!.cargo && p.tuning.special !== "none")
     fail();
 }
 export function validateCareer(s: GameState) {
@@ -163,7 +158,7 @@ export function validateCareer(s: GameState) {
     if (employee.planeId !== null) planeIds.add(employee.planeId);
   }
   for (const p of s.fleet)
-    if (modernModel(p.modelId) && p.dispatcher && !planeIds.has(p.id)) fail();
+    if (p.dispatcher && !planeIds.has(p.id)) fail();
   for (const job of c.production) {
     record(job, ["id", "recipe", "airportId", "count", "finishAt"]);
     identity(job.id);

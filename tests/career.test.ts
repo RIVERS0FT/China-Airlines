@@ -80,18 +80,13 @@ describe("v7 economy and historical contracts", () => {
     wait(c, 0);
     expect(c.snapshot()).toEqual(arrived);
   });
-  it("preserves old v6 flights and exact energy on migration", () => {
+  it("rejects retired v6 flights without rewriting their energy", () => {
     const old = new V6Core(NOW);
     old.execute({ type: "load-destination", planeId: ID, to: "PVG" }, NOW);
     old.execute({ type: "dispatch", planeId: ID, to: "PVG", auto: true }, NOW);
-    const s = old.snapshot(),
-      c = new GameCore(NOW, s);
-    expect(c.snapshot().fleet[0]!.flight).toEqual(s.fleet[0]!.flight);
-    expect(c.snapshot().fleet[0]!.energy).toEqual(s.fleet[0]!.energy);
-    expect(
-      c.snapshot().orders.map(({ service: _s, product: _p, ...o }) => o),
-    ).toEqual(s.orders);
-    expect(validateSave(c.snapshot())).toEqual(c.snapshot());
+    const s = old.snapshot(), before = structuredClone(s);
+    expect(() => new GameCore(NOW, s)).toThrow('不再支持');
+    expect(s).toEqual(before);
   });
   it("never accepts expanded aircraft in an old schema", () => {
     const old = new V6Core(NOW).snapshot();

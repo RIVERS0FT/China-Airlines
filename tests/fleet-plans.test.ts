@@ -1,8 +1,7 @@
 import { upgradeLimit } from '../src/core/career-catalog.js';
 import { describe, it, expect } from 'vitest';
 import { GameCore, validateSave, manifest, planQuote, quote, type GameState } from '../src/core/game.js';
-import { MODELS, aircraftSpecs, emptyUpgrades, hangarPrice, retrofitPrice } from '../src/core/catalog.js';
-import type { GameState as V2State } from '../src/core/save-v2.js';
+import { MODELS, aircraftSpecs, hangarPrice, retrofitPrice } from '../src/core/catalog.js';
 import legacyV2 from './fixtures/v2-flying.json';
 const NOW = 1800000000000;
 const ID = 'AC0001';
@@ -123,16 +122,11 @@ describe('finite multi-stop plans',()=>{
     const step=new GameCore(NOW,c.snapshot());for(let i=1;i<=480;i++)step.tick(NOW+i*60000);c.tick(NOW+8*3600000);expect(step.snapshot()).toEqual(c.snapshot());
   });
 });
-describe('v1/v2 migration and v3 save validation',()=>{
-  it('migrates fixed v2 in-flight data without repricing or resetting time',()=>{
-    const c=new GameCore(NOW,legacyV2),s=c.snapshot();expect(s.version).toBe(9);expect(s.orders.map(({service:_s,product:_p,...o})=>o)).toEqual(legacyV2.orders);
-    expect(s.lastWallTime).toBe(legacyV2.lastWallTime);expect(s.fleet[0]!.flight).toEqual(legacyV2.fleet[0]!.flight);
-    expect(s.fleet[0]!.upgrades).toEqual(emptyUpgrades());expect(validateSave(s)).toEqual(s);
-  });
-  it('gives larger old fleets enough hangar space without deleting aircraft',()=>{
-    const old=structuredClone(legacyV2) as unknown as V2State;old.fleet=Array.from({length:7},(_,i)=>({...old.fleet[0]!,id:`AC${String(i+10).padStart(4,'0')}`,flight:null,autoRouteId:null}));
-    old.orders=old.orders.filter(o=>!o.location.startsWith('AC'));old.nextId=100;
-    const s=validateSave(old);expect(s.fleet).toHaveLength(7);expect(s.hangarSlots).toBe(8);
+describe('retired rejection and current save validation',()=>{
+  it('rejects retired v2 aircraft regardless of fleet size',()=>{
+    expect(()=>validateSave(legacyV2)).toThrow('不再支持');
+    const old=structuredClone(legacyV2);old.fleet=Array.from({length:7},(_,i)=>({...old.fleet[0]!,id:`AC${i+10}`}));
+    expect(()=>validateSave(old)).toThrow('不再支持');
   });
   for(const [name,fn] of Object.entries({
     'missing upgrades':(s:GameState)=>{delete (s.fleet[0] as Partial<GameState['fleet'][0]>).upgrades;},

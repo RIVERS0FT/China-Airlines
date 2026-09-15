@@ -1,6 +1,6 @@
 import { selectCity, closeRouteDetails, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from './fixture.js';
-import { readFile } from 'node:fs/promises';
+import { rejectRetiredSave } from './retired-save-helpers.js';
 import v2 from '../tests/fixtures/v2-flying.json' with { type: 'json' };
 let errors: string[];
 test.beforeEach(async({page})=>{ errors=[];page.on('pageerror',e=>errors.push(e.message)); });
@@ -50,16 +50,8 @@ test('cancel plan in flight only removes onward destinations',async({page})=>{
   await page.clock.fastForward(400000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');
   await expect(page.locator('.gate-sign')).toContainText('武汉');await expect(page.getByTestId('loaded-order')).not.toHaveCount(0);
 });
-test('v2 import preserves manifest and exports v4 upgrade fields',async({page})=>{
-  const previousPlane = v2.fleet[0];
-  if (!previousPlane?.flight) throw new Error('v2 migration fixture must contain an active flight');
-  await ready(page);page.on('dialog',d=>void d.accept());await openGlobal(page, '存档设置');
-  await page.getByLabel('选择存档文件').setInputFiles({name:'v2.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(v2))});
-  await expect(page.getByTestId('credits')).toHaveText(`¥ ${v2.credits.toLocaleString('zh-CN')}`);
-  const pending=page.waitForEvent('download');await page.getByRole('button',{name:'导出存档',exact:true}).click();
-  const file=await pending,s=JSON.parse(await readFile((await file.path())!,'utf8'));
-  expect(s.version).toBe(9);expect(s.hangarSlots).toBe(4);expect(s.orders.map(({service:_s,product:_p,...o}: import('../src/core/game.js').Order)=>o)).toEqual(v2.orders);expect(s.fleet[0].flight).toEqual(previousPlane.flight);
-  expect(s.fleet[0].upgrades).toEqual({capacity:0,engine:0,range:0,efficiency:0});
+test('retired v2 import keeps the current fleet',async({page})=>{
+  await ready(page);await page.clock.pauseAt(new Date('2026-09-11T00:00:05Z'));await rejectRetiredSave(page,v2);
 });
 test('landscape plan editor and workshop stay reachable',async({page})=>{
   await page.setViewportSize({width:844,height:390});await ready(page);await plan(page);

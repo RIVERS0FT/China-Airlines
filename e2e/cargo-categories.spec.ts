@@ -45,7 +45,7 @@ for (const [width, height] of [[1440, 900], [667, 375]]) test(`reference cargo n
   await expect(aboard.locator('.job-art')).toHaveAttribute('data-cargo-type', key!);
   await aboard.click();
   await expect(aboard).toHaveCount(0);
-  await expect(page.locator(`[data-order-id="${id}"] .cargo-name`)).toHaveText(name!);
+  await expect(page.locator(`[data-order-id="${id}"]`)).toHaveAttribute('data-load-state', 'waiting');
   await page.reload();
   await expect(page.locator(`[data-order-id="${id}"] .cargo-name`)).toHaveText(name!);
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
