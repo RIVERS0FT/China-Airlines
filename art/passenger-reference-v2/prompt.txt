@@ -1,0 +1,22 @@
+Use case: precise-object-edit.
+Image 1 is the EDIT TARGET: our original 6-column, 2-row atlas containing 6 original airline passengers with matching standing and seated poses.
+Image 2 is the ANGLE REFERENCE ONLY: the original railway game's packed sprite atlas. Its passengers are predominantly FRONT-FACING with only a small turn toward the left. Some packed sprites are rotated; evaluate their anatomical facing angle independent of that packing rotation.
+
+User correction: the current passengers are turned much too far sideways. Redraw ALL TWELVE figures in Image 1 with the SAME NEAR-FRONTAL orientation as the ordinary upright standing people in Image 2. Think straight-on front view with just 10 to 15 degrees of yaw toward SCREEN LEFT, NOT a 40 to 60 degree three-quarter view. This is a small leftward glance and slight body turn, not a profile.
+- BOTH eyes clearly and fully visible, near-equal size; the far eye must not be reduced to a narrow sliver against the edge of the face.
+- Face width almost symmetrical, nose very close to the centerline, only a little leftward offset.
+- Show nearly the FULL FRONT of chest, collar, jacket opening and waistband. Both shoulders clearly visible and nearly equal apparent widths.
+- Standing: two legs placed side by side, both shoes predominantly seen from the front, with only a subtle leftward direction.
+- Seated: use the same near-frontal/slightly-left camera as the standing person above. Two knees, shins and feet side by side and similarly sized, both hands resting on the lap or knees. The thighs recede in perspective toward the hips (foreshortened front-facing seated pose); do not show a long horizontal thigh extending far toward the left. Bent hips and bent knees must still clearly communicate sitting. NO CHAIR OR SEAT; person only.
+
+Preserve the six original identities, ages, faces, hairstyles, facial hair, hat, clothes, accessories and color assignments in Image 1. Preserve the attractive large-headed compact cartoon proportions, crisp outlines, clean warm cel colors. Do not copy any actual people, clothes or recognizable characters from Image 2.
+Preserve the full atlas composition: 6 columns, standing in the top row, identical person seated directly underneath in the bottom row, all figures fully within their own separated regions, generous transparent margins and gutters. Match head scale between each standing/seated pair. No overlap, no cropping.
+Original characters left to right: brown-haired young man with navy jacket, ochre trousers and small brown satchel; brown ponytailed woman with coral cardigan and indigo jeans; dark-haired glasses-wearing man in teal hoodie and dark trousers; silver-haired elderly man with white moustache, beige shirt and brown vest/trousers; brown-haired woman in blue-ribbon straw hat and light blue dress; dark bob-haired businesswoman in navy pantsuit and pale blue blouse.
+Return one complete corrected landscape PNG atlas with genuinely transparent alpha background. Preserve the transparency of Image 1. No floor, no ground shadow, no chair, no checkerboard pattern, no text, no labels, no numbers, no watermarks, no borders. The only requested visual change is the substantially MORE FRONTAL viewing angle and the anatomical adjustments necessary for it.
+
+--- Transparency correction ---
+
+Use case: background-extraction.
+Edit the attached 1774x887 image. Keep ALL TWELVE existing character sprites EXACTLY unchanged: same positions, scale, near-frontal slightly-left viewing angle, faces, expressions, hair, clothing, colors, outlines, standing top row and seated bottom row, six columns. Do not redraw, reinterpret, add or remove any body part. Do not rotate anyone. Preserve all six identities and both poses.
+
+The grey and white checkerboard is erroneously baked into the image pixels. REMOVE ONLY that checkerboard background, including every gap between hair, arms, legs, shoes, and all empty space between characters. Deliver a PNG with a GENUINE RGBA ALPHA CHANNEL whose background pixels have ALPHA ZERO. The checkerboard must not exist in the returned image. Transparency must be encoded in the PNG alpha channel, not represented by a graphic. No solid-color replacement, no white or black background, no checkerboard, no pattern, no floor, no shadows, no halo. Characters remain opaque, clean antialiased outlines retain appropriate alpha only at edges. This is a production transparent game sprite atlas, not a preview of transparency.

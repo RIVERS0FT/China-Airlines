@@ -46,7 +46,7 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
     await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
     await expect(page.locator('.plane-status')).toContainText('地勤补能');
     await expect(page.getByTestId('loaded-order').first()).toBeDisabled();
-    await expect(page.getByTestId('loaded-order').first().locator('.job-action')).toHaveText('已装机 · 补能中');
+    await expect(page.getByTestId('loaded-order').first()).toHaveAccessibleName(/地勤补能中，不能装卸/);
     await openGlobal(page, '机队管理概览');await page.getByRole('button',{name:/^待命飞机/}).click();
     await expect(page.getByTestId('flight-row')).toHaveCount(0);await page.getByRole('button',{name:'关闭机队管理',exact:true}).click();
     await openGlobal(page, '机队管理');
@@ -80,7 +80,23 @@ test('multi-leg energy shortage stops at the hub without erasing transfer cargo'
   await launchRoute(page);await expect(page.getByTestId('plane-energy')).toHaveText('能量 0.00 点');
   await page.clock.fastForward((q.legs[0]!.duration+9)*1000);
   await expect(page.locator('.gate-sign')).toContainText('武汉航空港');await expect(page.getByTestId('flights-count')).toHaveText('1 班');
-  await expect(page.getByTestId('loaded-order')).toHaveCount(7);await expect(page.getByTestId('credits')).toHaveText(money(s.credits-q.legs[0]!.cost));
+  // A cabin page need not display the entire manifest. Inspect every page and
+  // compare the original identities so a hidden/lost transfer cannot pass.
+  const aboard: string[] = [];
+  const resume = page.getByRole('button', { name: '继续经营', exact: true });
+  if (await resume.isVisible()) await resume.click();
+  await page.getByRole('button', { name: '查看机上客货', exact: true }).click();
+  for (const [kind, label] of [['passengers', '客舱'], ['cargo', '货舱']]) {
+    const deck = page.getByTestId(`cabin-${kind}`), next = deck.getByRole('button', { name: `下一页${label}` });
+    do {
+      aboard.push(...await deck.getByTestId('loaded-order').evaluateAll(elements => elements.map(el => el.getAttribute('data-order-id')!)));
+      if (await next.isDisabled()) break;
+      await next.click();
+    } while (true);
+  }
+  expect(aboard.sort()).toEqual(s.orders.filter(order => order.location === ID).map(order => order.id).sort());
+  expect(aboard).toHaveLength(7);
+  await expect(page.getByTestId('credits')).toHaveText(money(s.credits-q.legs[0]!.cost));
   await expect(page.getByTestId('active-plan')).toHaveCount(0);
 });
 for(const [label,s] of [['legacy',legacy],['ordered-route',orderedV4]] as const)test(`old v4 ${label} flight imports unchanged, without charging energy retroactively`,async({page})=>{

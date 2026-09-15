@@ -18,8 +18,8 @@ async function expectMobileHeightBudget(page: import('@playwright/test').Page, v
   expect(queue).not.toBeNull();
   expect(dock).not.toBeNull();
 
-  expect(scene!.height / viewportHeight).toBeGreaterThanOrEqual(0.44);
-  expect(queue!.height / viewportHeight).toBeLessThanOrEqual(0.30);
+  expect(scene!.height / viewportHeight).toBeGreaterThanOrEqual(0.55);
+  expect(queue!.height / viewportHeight).toBeLessThanOrEqual(0.21);
   expect(dock!.height / viewportHeight).toBeLessThanOrEqual(0.15);
 
   const previous = await page.getByRole('button', { name: '上一组客货', exact: true }).boundingBox();

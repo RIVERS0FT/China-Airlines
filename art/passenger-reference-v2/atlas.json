@@ -1,0 +1,233 @@
+{
+  "tool": "built-in image_gen",
+  "image": "passenger-standing-seated-atlas.png",
+  "size": [
+    1774,
+    887
+  ],
+  "mode": "RGBA",
+  "view_direction": "near frontal, slight left turn",
+  "angle_note": "10 to 15 degree artistic target, not measured geometry",
+  "source_style_reference": "../../中华铁路_2.0.9_解包/乘客货物图集/rgba8888_001.png",
+  "edit_target": "../passenger-reference-v1/passenger-standing-seated-atlas.png",
+  "sha256": "04dbec44b5b09643bd6c730933ff4257d88ff84859924cc2b3ca04dcbca072e3",
+  "transparent_pixels": 825915,
+  "total_pixels": 1573538,
+  "original_generated_file": "C:\\Users\\xfd027\\.codex-vscode-relay\\generated_images\\01a0a410-4c0a-73a0-9ad0-19e9fc2b841d\\exec-a1f53504-5264-42f1-b4fe-2786f5ccff00.png",
+  "pixel_processing": "none",
+  "characters": [
+    {
+      "id": "01",
+      "name": "挎包青年",
+      "poses": {
+        "standing": {
+          "region_xywh": [
+            0,
+            0,
+            296,
+            504
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            55,
+            34,
+            228,
+            465
+          ]
+        },
+        "seated": {
+          "region_xywh": [
+            0,
+            504,
+            296,
+            383
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            57,
+            508,
+            221,
+            366
+          ]
+        }
+      }
+    },
+    {
+      "id": "02",
+      "name": "红色外套女性",
+      "poses": {
+        "standing": {
+          "region_xywh": [
+            296,
+            0,
+            295,
+            504
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            342,
+            52,
+            235,
+            447
+          ]
+        },
+        "seated": {
+          "region_xywh": [
+            296,
+            504,
+            295,
+            383
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            346,
+            518,
+            227,
+            357
+          ]
+        }
+      }
+    },
+    {
+      "id": "03",
+      "name": "戴眼镜青年",
+      "poses": {
+        "standing": {
+          "region_xywh": [
+            591,
+            0,
+            296,
+            504
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            621,
+            44,
+            221,
+            456
+          ]
+        },
+        "seated": {
+          "region_xywh": [
+            591,
+            504,
+            296,
+            383
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            627,
+            513,
+            214,
+            362
+          ]
+        }
+      }
+    },
+    {
+      "id": "04",
+      "name": "银发老人",
+      "poses": {
+        "standing": {
+          "region_xywh": [
+            887,
+            0,
+            296,
+            504
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            933,
+            49,
+            202,
+            451
+          ]
+        },
+        "seated": {
+          "region_xywh": [
+            887,
+            504,
+            296,
+            383
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            933,
+            514,
+            196,
+            362
+          ]
+        }
+      }
+    },
+    {
+      "id": "05",
+      "name": "蓝裙女性",
+      "poses": {
+        "standing": {
+          "region_xywh": [
+            1183,
+            0,
+            295,
+            504
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            1190,
+            52,
+            264,
+            447
+          ]
+        },
+        "seated": {
+          "region_xywh": [
+            1183,
+            504,
+            295,
+            383
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            1192,
+            516,
+            255,
+            358
+          ]
+        }
+      }
+    },
+    {
+      "id": "06",
+      "name": "商务女性",
+      "poses": {
+        "standing": {
+          "region_xywh": [
+            1478,
+            0,
+            296,
+            504
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            1506,
+            49,
+            215,
+            451
+          ]
+        },
+        "seated": {
+          "region_xywh": [
+            1478,
+            504,
+            296,
+            383
+          ],
+          "visible_bounds_xywh_alpha_gt_32": [
+            1509,
+            516,
+            209,
+            360
+          ]
+        }
+      }
+    }
+  ],
+  "verification": {
+    "png_decoded": true,
+    "real_alpha_background": true,
+    "twelve_sprites_inside_regions": true,
+    "visual_review": "Near-frontal paired standing/seated passengers with unchanged identities, no seats or text",
+    "game_integrated": true,
+    "application_checks_run": true,
+    "application_validation": "../VALIDATION-passenger-v2.md"
+  }
+}

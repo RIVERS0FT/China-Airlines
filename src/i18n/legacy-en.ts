@@ -3,6 +3,15 @@ import type { Locale } from './I18n.js';
 // Transitional catalogue for pre-i18n screens. Chinese source strings are stable
 // keys; adding a locale only requires another table, not changes to game state.
 const en: Readonly<Record<string, string>> = {
+  '牛排':'Steak', '草莓':'Strawberries', '西瓜':'Watermelon', '雪花梨':'Pears', '苹果':'Apples', '葡萄':'Grapes', '大米':'Rice', '鲜鱼':'Fish',
+  '旅行箱':'Suitcase', '针织衫':'Knitwear', '方便面':'Instant noodles', '毛绒玩具':'Plush toy', '电脑':'Computer', '木箱':'Wooden crate', '邮政包裹':'Postal parcel', '旅行袋':'Travel bag',
+  '石油':'Petroleum', '煤炭':'Coal', '宝石':'Gemstone', '药品':'Medicine', '救灾物资':'Relief supplies', '酒类':'Liquor', '羊驼':'Alpaca', '白色货箱':'White cargo chest',
+  '机舱剖视':'Cabin cutaway', '客舱':'Cabin', '货舱':'Cargo',
+  '客舱翻页':'Cabin pages', '货舱翻页':'Cargo pages',
+  '上一页{section}':'Previous {section} page', '下一页{section}':'Next {section} page',
+  '机内乘客':'Passengers aboard', '机内货物':'Cargo aboard',
+  '空座位':'Empty seat', '空货位':'Empty cargo slot',
+  '点击地面客货装机 · 点击机内客货卸载':'Select traffic on the apron to load · Select traffic inside to unload',
   '候选人已入职，包含7天合同':'Candidate hired with a seven-day contract',
   '候选人已入职或不在名单中':'Candidate was already hired or is no longer listed',
   '候选人编号已达上限':'Candidate identifier limit reached',

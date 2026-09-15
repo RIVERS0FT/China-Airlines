@@ -1,7 +1,10 @@
 import { service, MATERIALS } from '../core/career-catalog.js';
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { airport } from '../core/catalog.js';
-import { manifest, waiting, type Order, type GameState, type Plane } from '../core/game.js';
+import { waiting, type Order, type GameState, type Plane } from '../core/game.js';
+import { orderArtFile } from './cabin-layout.js';
+import { passengerFrame } from './passenger-art.js';
+import { cargoAppearance } from './cargo-art.js';
 import { controller } from '../runtime.js';
 import { loadingLock, orderBlockReason, orderPresentation } from './order-presentation.js';
 import { money, ignore } from './Panels.js';
@@ -9,26 +12,34 @@ import { artAsset } from './art-assets.js';
 import { useI18n } from '../i18n/I18n.js';
 
 /** One decorative sprite per real order. Appearance never implies different fares or cargo rules. */
-function PassengerArt({ order }: { order: Order }) {
-  const variant = Array.from(order.id).reduce((sum, char) => sum + char.charCodeAt(0), 0) % 6 + 1;
-  const file = order.kind === 'cargo' ? service(order.service)?.art ?? 'cargo-v1.png' : `passenger-${String(variant).padStart(2, '0')}-v1.png`;
-  return <img src={artAsset(file)} alt="" aria-hidden="true" className="job-art" draggable={false}/>;
+function OrderArt({ order, cabin }: { order: Order; cabin: boolean }) {
+  const clipId = useId();
+  const source = artAsset(orderArtFile(order));
+  const pose = cabin ? 'seated' : 'standing', passenger = order.kind === 'passengers' ? passengerFrame(order.id, pose) : null;
+  const cargo = order.kind === 'cargo' ? cargoAppearance(order) : null, frame = passenger ?? cargo!;
+  return <svg className="job-art" viewBox={frame.viewBox} preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false"
+    data-passenger-variant={passenger?.variant} data-pose={passenger ? pose : undefined} data-cargo-type={cargo?.key}>
+    <defs><clipPath id={clipId}><rect x={frame.x} y={frame.y} width={frame.width} height={frame.height}/></clipPath></defs>
+    <image href={source} width="1774" height="887" clipPath={`url(#${clipId})`}/>
+  </svg>;
 }
-function OrderCard({ order, state, onClick }: {
-  order: Order; state: ReturnType<typeof orderPresentation>; onClick: () => void;
+export function OrderCard({ order, state, onClick, cabin = false }: {
+  order: Order; state: ReturnType<typeof orderPresentation>; onClick: () => void; cabin?: boolean;
 }) {
   const { ui, airportName } = useI18n();
-  const type = order.product ? MATERIALS[order.product] : service(order.service)?.name;
-  return <button className={`job-card order-${state.state} ${state.aboard ? 'aboard' : ''} ${order.amount > 1 ? 'legacy-quantity' : ''}`} disabled={state.disabled} onClick={onClick}
+  const type = order.kind === 'cargo' ? cargoAppearance(order).name : service(order.service)?.name;
+  return <button className={`${cabin ? 'cabin-order' : 'job-card'} order-${order.kind} order-${state.state} ${state.aboard ? 'aboard' : ''} ${order.amount > 1 ? 'legacy-quantity' : ''}`} disabled={state.disabled} onClick={onClick}
     data-testid={state.aboard ? 'loaded-order' : 'waiting-order'} data-order-id={order.id} data-load-state={state.state}
-    aria-label={`${ui(state.aboard ? '卸下' : '装载')} ${order.id} ${ui('前往{city}',{city:airportName(order.to,airport(order.to).city)})} ${ui('{count}{unit}',{count:order.amount,unit:ui(order.kind === 'cargo' ? '吨货物' : '位旅客')})}${type ? `, ${type}` : ''}${state.reason ? `, ${ui(state.reason)}` : ''}${state.transfer ? `, ${ui('中转客货')}` : ''}`}
-    aria-describedby={`price-${order.id} state-${order.id}`} title={[type, ui(state.action), state.transfer ? ui('中转客货保留至交付') : ''].filter(Boolean).join(' · ')}>
-    <span className="job-figure"><PassengerArt order={order}/>
+    aria-label={`${ui(state.aboard ? '卸下' : '装载')} ${order.id} ${ui('前往{city}',{city:airportName(order.to,airport(order.to).city)})} ${ui('{count}{unit}',{count:order.amount,unit:ui(order.kind === 'cargo' ? '吨货物' : '位旅客')})}${type ? `, ${ui(type)}` : ''}${state.reason ? `, ${ui(state.reason)}` : ''}${state.transfer ? `, ${ui('中转客货')}` : ''}`}
+    aria-describedby={`${cabin ? `destination-${order.id} ` : ''}price-${order.id}`} title={[type ? ui(type) : '', ui(cabin ? state.action : '装机'), state.transfer ? ui('中转客货保留至交付') : ''].filter(Boolean).join(' · ')}>
+    <span className="job-figure"><OrderArt order={order} cabin={cabin}/>
       {state.transfer && <span className="job-transfer-tag">{ui('中转')}</span>}
       {order.amount > 1 && <span className="job-quantity">{ui('{count}{unit}',{count:order.amount,unit:ui(order.kind === 'cargo' ? '吨' : '人')})}</span>}
     </span>
-    <span className="job-info"><strong id={`price-${order.id}`} className="job-price">{order.product ? MATERIALS[order.product] : money(order.reward)}</strong>
-      <span id={`state-${order.id}`} className="job-state job-action">{ui(state.caption)}</span>
+    <span className="job-info">
+      {cabin && <span id={`destination-${order.id}`} className="cabin-destination">{airportName(order.to, airport(order.to).city)}</span>}
+      {!cabin && order.kind === 'cargo' && !order.product && <span className="cargo-name">{ui(type!)}</span>}
+      <strong id={`price-${order.id}`} className="job-price">{!cabin && order.product ? ui(MATERIALS[order.product]) : money(order.reward)}</strong>
     </span>
   </button>;
 }
@@ -40,8 +51,7 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
   const gesture = useRef<{ x: number; y: number; scale: number; scroll: number; moved: boolean; active: boolean } | null>(null);
   const [edges, setEdges] = useState({ start: true, end: true });
   const { ui, airportName } = useI18n();
-  const onboard = plane ? manifest(game, plane.id) : [];
-  const shown = [...waiting(game, airportId), ...onboard]
+  const shown = [...waiting(game, airportId)]
     .sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id, undefined, { numeric: true }));
   const groups = new Map<string, Order[]>();
   for (const order of shown) {
@@ -64,12 +74,7 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
   }, []);
   useEffect(() => {
     const el = strip.current;
-    const loaded = aboard ? el?.querySelector<HTMLElement>('[data-testid="loaded-order"]') : null;
-    if (el && loaded) {
-      const bounds = el.getBoundingClientRect();
-      el.scrollLeft += (loaded.getBoundingClientRect().left - bounds.left) * el.offsetWidth / Math.max(1, bounds.width);
-    }
-    else el?.scrollTo({ left: 0, behavior: 'instant' });
+    if (!aboard) el?.scrollTo({ left: 0, behavior: 'instant' });
     measure();
   }, [plane?.id, airportId, aboard, viewKey]);
   useEffect(measure, [ids]);

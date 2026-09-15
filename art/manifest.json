@@ -134,6 +134,18 @@
     "transparentPixels": 29116
   },
   {
+    "file": "cargo-everyday-atlas-v1.png",
+    "width": 1774,
+    "height": 887,
+    "bytes": 1355322,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 832428
+  },
+  {
     "file": "cargo-express-v2.png",
     "width": 256,
     "height": 256,
@@ -146,6 +158,18 @@
     "transparentPixels": 27474
   },
   {
+    "file": "cargo-food-atlas-v1.png",
+    "width": 1774,
+    "height": 887,
+    "bytes": 1505296,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 782685
+  },
+  {
     "file": "cargo-industrial-v2.png",
     "width": 256,
     "height": 256,
@@ -156,6 +180,18 @@
       255
     ],
     "transparentPixels": 29510
+  },
+  {
+    "file": "cargo-special-atlas-v1.png",
+    "width": 1774,
+    "height": 887,
+    "bytes": 1344790,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 816314
   },
   {
     "file": "cargo-v1.png",
@@ -480,6 +516,18 @@
       255
     ],
     "transparentPixels": 45977
+  },
+  {
+    "file": "passenger-standing-seated-v2.png",
+    "width": 1774,
+    "height": 887,
+    "bytes": 1555700,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 825915
   },
   {
     "file": "pilot-avatar-v1.png",

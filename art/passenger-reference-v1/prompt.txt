@@ -1,0 +1,18 @@
+Use case: stylized-concept.
+Asset type: an original production character sprite atlas for a Chinese 2D airline management game.
+Reference image: the supplied extracted atlas is ONLY a reference for the general art direction: very large rounded heads, compact short bodies about 2.5 heads tall, crisp dark brown contour lines, clear facial features, bright warm cel colors, small readable silhouettes. Ignore its packing, rotations, items, trains and recognizable licensed characters. Draw NEW original everyday passengers, no copied sprites. It is polished small-scale 2D cartoon sprite art, not realistic illustration, not a 3D render and not coarse 8-bit pixel art.
+
+Primary request: one transparent landscape PNG sprite sheet containing EXACTLY 12 full-body sprites of SIX characters in TWO matching poses. A strict 6-column by 2-row regular grid, 12 separate equal cells, no visible grid lines. Top row: six standing passengers. Bottom row: the SAME six passengers seated, each directly below their standing counterpart. Every column is one consistent identity. All figures face SCREEN LEFT in a clear side / slight three-quarter-side view; head, torso and shoes point left. Show enough face for expressive eyes. Same camera, scale, head size, contours and palette throughout. Generous clear gutters around every figure, no cut-off hair, no overlaps. Requested canvas approximately 3072 x 1536.
+
+Columns left to right:
+1. Young adult East Asian man, short swept brown hair, navy jacket over white shirt, ochre trousers, brown shoes, small brown crossbody satchel.
+2. Young adult East Asian woman, dark brown ponytail, coral-red cardigan, cream shirt, indigo jeans, cream sneakers.
+3. Young adult East Asian man, short charcoal hair, round dark glasses, teal zip hoodie, dark trousers, white sneakers.
+4. Elderly East Asian man, silver hair, neatly trimmed white moustache, warm brown knitted vest over pale beige rolled-sleeve shirt, dark brown trousers, brown shoes.
+5. Adult East Asian woman, simple straw sunhat with narrow blue ribbon, shoulder-length dark brown hair, light blue knee-length dress, white sneakers.
+6. Adult East Asian businesswoman, tidy short dark bob, navy pantsuit, pale blue blouse, dark low heels.
+
+Standing row: relaxed upright full-body standing, both feet clearly visible on the same implied baseline in each cell, arms resting naturally. No luggage besides character 1's small close-fitting satchel.
+Seated row: each identical character from above seated on an INVISIBLE aircraft seat, upright torso, bent hips, both thighs extending LEFT approximately horizontally, knees bent around 90 degrees, calves extending down, shoes pointing LEFT, hands resting naturally on knees or lap. Clearly readable complete seated anatomy. Keep each seated character's head and body scale equal to their standing version; sitting lowers their height naturally. Draw the PERSON ONLY, no chair, no stool, no visible seat, no furniture, no armrests. The sprite will later overlay a separately drawn seat.
+
+Background: genuinely transparent alpha everywhere outside characters, no painted checkerboard, no solid background, no floor, no ground shadow, no drop shadow, no glow or white halo. Keep natural internal clothing shading. No text, no lettering, no labels, no row titles, no numbers, no border, no logo or watermark. Produce a clean usable sprite atlas, not a poster or game screenshot.

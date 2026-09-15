@@ -4,10 +4,11 @@ import { loadSummary, type GameState, type Plane } from '../core/game.js';
 import { artAsset } from './art-assets.js';
 import { FlightSky } from './FlightSky.js';
 import { useI18n } from '../i18n/I18n.js';
+import { CutawayCabin } from './CutawayCabin.js';
 
 /** Painted scene and aircraft; capacity overlays remain read-only projections of real orders. */
-export function AviationScene({ game, plane, onCabin }: {
-  game: GameState; plane?: Plane; onCabin: () => void;
+export function AviationScene({ game, plane, onCabin, busy, cabinFocusKey }: {
+  game: GameState; plane?: Plane; onCabin: () => void; busy: boolean; cabinFocusKey: number;
 }) {
   const { t, ui, modelName } = useI18n();
   const viewport = useGameViewport();
@@ -25,16 +26,10 @@ export function AviationScene({ game, plane, onCabin }: {
       <g fill="#fff" opacity=".8" className="scene-clouds"><path d="M70 120c-40-20-6-52 23-36 9-58 91-42 87 2 56-12 69 42 26 42H70ZM945 67c-10-22 19-41 42-26 5-49 76-39 81 5 42-18 78 20 42 39H960Z"/><path d="M490 63c-9-20 19-31 36-19 8-30 56-24 57 3 36-5 38 20 15 20H490Z"/></g>
       <image href={artAsset('airport-day-v1.jpg')} width="1440" height="520" preserveAspectRatio="xMidYMid slice"/>
     </svg>}
-    {!flying && <div className="ground-props" aria-hidden="true">
-      <img className="ground-tug" src={artAsset('tug-v1.png')} alt=""/>
-      <img className="ground-trailer" src={artAsset('baggage-trailer-v1.png')} alt=""/>
-      <img className="ground-worker" src={artAsset('ground-crew-v1.png')} alt=""/>
-      <img className="ground-cones" src={artAsset('cones-v1.png')} alt=""/>
-    </div>}
-    {plane && <button className="airplane-display" onClick={onCabin} aria-label={flying ? t('flight.view') : ui('查看机上客货')} data-testid="plane-art">
+    {plane && !flying && <CutawayCabin key={plane.id} game={game} plane={plane} busy={busy} focusKey={cabinFocusKey} onInspect={onCabin}/>}
+    {plane && flying && <button className="airplane-display" onClick={onCabin} aria-label={t('flight.view')} data-testid="plane-art">
       <svg viewBox={compact ? "90 50 840 280" : "0 0 1000 330"} role="img" aria-label={t('flight.sceneLabel', { model: modelName(plane.modelId, m!.name) })}>
-        {!flying && <ellipse cx="490" cy="286" rx="365" ry="15" fill="#456b78" opacity=".15"/>}
-        <image data-testid="aircraft-sprite" href={artAsset(flying ? 'aircraft-flight-v1.png' : m?.art ?? 'aircraft-v1.png')} x="95" y="0" width="810" height="310"/>
+        <image data-testid="aircraft-sprite" href={artAsset('aircraft-flight-v1.png')} x="95" y="0" width="810" height="310"/>
         <g className="cabin-overlay" stroke="#466477" strokeWidth="1.5" strokeLinejoin="round">
           <rect x="317" y="148" width="310" height="47" rx="7" fill="#f1fbfff2"/>
           <text x="329" y="163" stroke="none" fill="#214f72" fontSize="12" fontWeight="800">{modelName(plane.modelId, m!.name)} · {plane.id}　{ui('旅客 {used}/{capacity}',{used:total.passengers,capacity:m!.seats})}</text>
@@ -48,6 +43,6 @@ export function AviationScene({ game, plane, onCabin }: {
       </svg>
     </button>}
     {!plane && <div className="empty-apron">{ui('此机场暂无停靠飞机')}<br/><small>{ui('可在商店选择此处交付，或安排飞机飞来。')}</small></div>}
-    <div className="scene-caption">{flying ? t('flight.running') : plane ? ui('点击客货装载 · 点击飞机查看机上清单') : ui('机场浏览 · 选择停靠飞机后才能装载')}</div>
+    <div className="scene-caption">{flying ? t('flight.running') : plane ? ui('点击地面客货装机 · 点击机内客货卸载') : ui('机场浏览 · 选择停靠飞机后才能装载')}</div>
   </div>;
 }
