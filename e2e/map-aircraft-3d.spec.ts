@@ -50,10 +50,17 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
   });
 }
 
-test('model failure and context loss preserve the existing plane and route controls', async ({ page }) => {
-  await page.route('**/models/low-poly-airliner.glb', route => route.fulfill({ status: 200, contentType: 'text/html', body: '<html>missing model</html>' }));
+// Service Worker cache hits bypass page.route; only this network-failure case blocks workers.
+const networkFailureTest = test.extend({ serviceWorkers: 'block' });
+networkFailureTest('model failure and context loss preserve the existing plane and route controls', async ({ page }) => {
+  let intercepted = false;
+  await page.route('**/models/low-poly-airliner.glb', route => {
+    intercepted = true;
+    return route.fulfill({ status: 200, contentType: 'text/html', body: '<html>missing model</html>' });
+  });
   const host = await openMap(page);
   await expect(host).toHaveAttribute('data-aircraft-status', 'fallback');
+  expect(intercepted, 'the GLB failure must come from the injected invalid response').toBe(true);
   await expect(host).toHaveAttribute('data-visible-plane-models', /aircraft-light-passenger-v2\.png/);
   await expect(page.getByTestId('map-aircraft-canvas')).toHaveCount(0);
   await page.getByRole('button', { name: '机场装载', exact: true }).click();
