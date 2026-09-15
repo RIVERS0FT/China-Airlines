@@ -8,8 +8,6 @@ import { ignore } from './Panels.js';
 import { useI18n } from '../i18n/I18n.js';
 import { cabinAnchors, cabinPlacement, type CabinArtLayout } from './cabin-art-layout.js';
 import { artAsset } from './art-assets.js';
-import { CabinFloor } from './CabinFloor.js';
-import { aircraftSpecs } from '../core/catalog.js';
 
 export function CabinDeck({ deck, art, game, plane, busy, focusKey }: {
   deck: CabinDeckData; art: CabinArtLayout; game: GameState; plane: Plane; busy: boolean; focusKey: number;
@@ -18,16 +16,14 @@ export function CabinDeck({ deck, art, game, plane, busy, focusKey }: {
   const strip = useRef<HTMLDivElement>(null);
   const previousOrders = useRef(new Set(deck.orders.map(order => order.id)));
   const [pageIndex, setPage] = useState(0), [size, setSize] = useState({ width: 288, height: 180 });
-  const logicalWidth = size.width;
-  const anchors = cabinAnchors(deck.kind, logicalWidth, art.maxAnchors), pageSize = anchors.length;
+  const anchors = cabinAnchors(deck.kind, size.width, art.maxAnchors), pageSize = anchors.length;
   const page = cabinPage(deck, pageIndex, pageSize);
-  const spec = aircraftSpecs(plane), mixed = spec.seats > 0 && spec.cargo > 0;
-  const room = art.interior;
-  const wallY = room.y + (mixed && deck.kind === 'cargo' ? room.height * .64 : 15);
-  const wallHeight = room.height * (mixed ? .24 : .48);
   useEffect(() => {
     const element = strip.current!;
-    const resize = () => setSize({ width: element.clientWidth, height: element.clientHeight });
+    const resize = () => {
+      const width = element.clientWidth, height = element.clientHeight;
+      setSize(previous => previous.width === width && previous.height === height ? previous : { width, height });
+    };
     const observer = new ResizeObserver(resize); observer.observe(element); resize();
     return () => observer.disconnect();
   }, []);
@@ -47,8 +43,8 @@ export function CabinDeck({ deck, art, game, plane, busy, focusKey }: {
     strip.current?.focus();
   }
   return <section className={`cabin-deck cabin-${deck.kind}${size.height < 90 ? ' cabin-compact' : ''}`} aria-label={ui(deck.kind === 'passengers' ? '客舱' : '货舱')} data-testid={`cabin-${deck.kind}`}>
-    <div className="cabin-room-wall" aria-hidden="true"><svg className="cabin-wall-plane" viewBox={`${room.x + 70} ${wallY} ${room.width - 140} ${wallHeight}`} preserveAspectRatio="none"><image href={artAsset(art.hull)} width={art.canvas.width} height={art.canvas.height}/></svg></div>
-    <div className="cabin-room-floor" aria-hidden="true"><CabinFloor kind={deck.kind} width={size.width + 16} height={size.height * .45}/></div>
+    {/* Geometry-only floor guide for contact checks; never paints a second room. */}
+    <div className="cabin-room-floor" data-floor-guide="true" aria-hidden="true"/>
     <header><strong>{ui(deck.kind === 'passengers' ? '客舱' : '货舱')} <span>{deck.used}/{deck.capacity}</span></strong>
       <nav aria-label={ui(deck.kind === 'passengers' ? '客舱翻页' : '货舱翻页')}>
         <button aria-label={ui('上一页{section}', { section: ui(deck.kind === 'passengers' ? '客舱' : '货舱') })} disabled={page.page === 0} onClick={() => setPage(page.page - 1)}>‹</button>

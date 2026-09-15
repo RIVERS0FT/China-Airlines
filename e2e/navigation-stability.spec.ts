@@ -67,7 +67,9 @@ for (const config of cases) {
     }
     const route = dock.locator('.depart-button');
     const routeBox = (await route.boundingBox())!;
-    expect(Math.abs(routeBox.x - baseline[6]!.x - baseline[6]!.width - gap)).toBeLessThan(.5);
+    const rightInset = await dock.evaluate(el => parseFloat(getComputedStyle(el).paddingRight));
+    expect(routeBox.x).toBeGreaterThanOrEqual(baseline[6]!.x + baseline[6]!.width + gap - .5);
+    expect(Math.abs(navBox.x + navBox.width - routeBox.x - routeBox.width - rightInset * scale)).toBeLessThan(.5);
     await expect(route).toBeInViewport();
 
     // Pressing an active tab must not temporarily move its hit target either.
@@ -124,6 +126,13 @@ for (const config of cases) {
       await route.click();
       await expect(page.locator('.route-dispatch-view')).toBeVisible();
       await expect(dock).toHaveCount(0);
+      const launch = page.getByTestId('dispatch');
+      const mapBox = (await page.locator('.route-dispatch-view .network-map').boundingBox())!;
+      const launchBox = (await launch.boundingBox())!;
+      const edge = await page.locator('.route-dispatch-view').evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue('--edge')));
+      expect(Math.abs(mapBox.x + mapBox.width - launchBox.x - launchBox.width - edge * scale)).toBeLessThan(.5);
+      await expect(launch).toHaveCSS('pointer-events', 'auto');
+      await expect(page.locator('.dispatch-launch-area')).toHaveCSS('pointer-events', 'none');
       await leaveMap(page);
       await expectStable(page, baseline);
     }

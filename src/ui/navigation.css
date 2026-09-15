@@ -51,9 +51,26 @@
   width:var(--dock-dispatch-width);
   min-width:var(--dock-dispatch-width);
   max-width:var(--dock-dispatch-width);
+  margin-left:auto;
 }
 .aviation-game:not(.dispatch-focused) > .game-dock > button:is(:hover,:active,:focus-visible,.active) {
   transform:none;
+}
+
+/* Keep only the primary launch action on the right, even under legacy overrides.
+   The empty area and warning remain transparent to map gestures. */
+.aviation-game.dispatch-focused .route-dispatch-view .dispatch-launch-area {
+  left:auto;
+  right:var(--edge);
+  bottom:var(--edge);
+  align-items:flex-end;
+  transform:none;
+  pointer-events:none;
+}
+.aviation-game.dispatch-focused .route-dispatch-view .dispatch-launch-area > .route-dispatch-button {
+  margin:0;
+  transform:none;
+  pointer-events:auto;
 }
 
 /* Same coordinates, but no map-height reservation or invisible hit targets. */
