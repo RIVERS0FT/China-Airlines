@@ -30,6 +30,7 @@ for (const [width, height] of [[1440, 900], [667, 375]]) test(`reference cargo n
   const cold = state.orders.find(item => item.service === 'cold')!, industrial = state.orders.find(item => item.service === 'industrial')!;
   await expect(page.locator(`[data-order-id="${cold.id}"]`)).toBeDisabled();
   await expect(page.locator(`[data-order-id="${cold.id}"]`)).toHaveAccessibleName(/需要冷链货舱/);
+  await expect(page.locator(`[data-order-id="${industrial.id}"]`)).toBeDisabled();
   await expect(page.locator(`[data-order-id="${industrial.id}"]`)).toHaveAccessibleName(/需要工业货舱/);
   const first = cards.first(), id = await first.getAttribute('data-order-id'), name = await first.locator('.cargo-name').textContent();
   const key = await first.locator('.job-art').getAttribute('data-cargo-type');
@@ -42,7 +43,10 @@ for (const [width, height] of [[1440, 900], [667, 375]]) test(`reference cargo n
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await context.setOffline(true); await page.reload();
   await expect(aboard.locator('.job-art')).toHaveAttribute('data-cargo-type', key!);
-  await aboard.click(); await page.reload();
+  await aboard.click();
+  await expect(aboard).toHaveCount(0);
+  await expect(page.locator(`[data-order-id="${id}"] .cargo-name`)).toHaveText(name!);
+  await page.reload();
   await expect(page.locator(`[data-order-id="${id}"] .cargo-name`)).toHaveText(name!);
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
   const download = page.waitForEvent('download'); await page.getByRole('button', { name: '导出存档', exact: true }).click();

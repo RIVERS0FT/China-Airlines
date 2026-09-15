@@ -2,12 +2,13 @@
    Imported last by main.tsx; dimensions use the logical game viewport. */
 .aviation-game:not(.dispatch-focused) {
   position:relative;
-  --dock-inset:12px;
+  --dock-inset-x:12px;
+  --dock-inset-y:8px;
   --dock-gap:8px;
   --dock-button-width:84px;
   --dock-button-height:78px;
   --dock-dispatch-width:118px;
-  --dock-height:calc(var(--dock-button-height) + 2 * var(--dock-inset));
+  --dock-height:calc(var(--dock-button-height) + 2 * var(--dock-inset-y));
 }
 
 .aviation-game:not(.dispatch-focused) > .game-dock,
@@ -25,7 +26,7 @@
   height:var(--dock-height);
   min-height:var(--dock-height);
   margin:0;
-  padding:var(--dock-inset);
+  padding:var(--dock-inset-y) var(--dock-inset-x);
   border:0;
   border-radius:0;
   transform:none;
@@ -82,7 +83,8 @@
 }
 @media (max-height:600px) and (orientation:landscape) {
   .aviation-game:not(.dispatch-focused) {
-    --dock-inset:8px;
+    --dock-inset-x:8px;
+    --dock-inset-y:4px;
     --dock-gap:5px;
     --dock-button-width:59px;
     --dock-button-height:52px;
