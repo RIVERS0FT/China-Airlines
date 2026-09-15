@@ -39,7 +39,8 @@ test('purchase, export, invalid import, and valid restore',async({page})=>{
   await page.getByLabel('选择存档文件').setInputFiles({name:'valid.json',mimeType:'application/json',buffer:Buffer.from(raw)});
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await expect(page.getByTestId('credits')).toHaveText(credits!);
 });
-test('cached airport and PixiJS map start offline without external requests',async({page,context})=>{
+test('cached airport and PixiJS map start offline without external requests',async({page,context,baseURL})=>{
+  const origin=new URL(baseURL!).origin;
   const requests:string[]=[];page.on('request',request=>requests.push(request.url()));
   await ready(page);await page.evaluate(()=>navigator.serviceWorker.ready.then(()=>true));await page.reload();
   await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller));await context.setOffline(true);await page.reload();
@@ -47,7 +48,7 @@ test('cached airport and PixiJS map start offline without external requests',asy
   await page.getByRole('button',{name:'地图',exact:true}).click();await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer','ready');
   await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 客货型',exact:true}).click();
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
-  expect(requests.filter(url=>/^https?:/.test(url)&&!url.startsWith('http://127.0.0.1:4173/'))).toEqual([]);
+  expect(requests.filter(url=>/^https?:/.test(url)&&new URL(url).origin!==origin)).toEqual([]);
 });
 test('landscape touch loading and portrait prompt',async({browser,baseURL})=>{
   const context=await browser.newContext({baseURL,viewport:{width:844,height:390},deviceScaleFactor:2,isMobile:true,hasTouch:true});

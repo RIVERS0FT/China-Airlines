@@ -13,6 +13,7 @@ import './globe.css';
 import { passengerDestinationCounts, passengerDestinationKey } from './passenger-destinations.js';
 import { useI18n } from '../i18n/I18n.js';
 import { artAsset } from './art-assets.js';
+import type { MapAircraftLayer } from './MapAircraftLayer.js';
 interface Props { planning: boolean; game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null; showOthers: boolean; onToggleOthers: () => void }
 const geography = new Map(AIRPORTS.map(a => [a.id, toVector(a)]));
 const land = LAND_VERTICES.map(([lon, lat]) => toVector({ lon, lat }));
@@ -58,6 +59,8 @@ export function MapView(props: Props) {
   latestI18n.current = i18n;
   useEffect(() => {
     const element = host.current!, app = new Application();
+    const modelAbort = new AbortController();
+    let aircraftLayer: MapAircraftLayer | undefined;
     let cancelled = false, initialized = false, dispose = () => {};
     void (async () => {
       try {
@@ -96,6 +99,10 @@ export function MapView(props: Props) {
           }).catch(() => undefined).finally(() => pendingPlaneTextures.delete(file));
         };
         const publishCamera = () => { element.dataset.camera = JSON.stringify(camera); dirty = true; };
+        const fallBackAircraft = () => {
+          aircraftLayer?.dispose(); aircraftLayer = undefined;
+          element.dataset.aircraftStatus = 'fallback'; element.dataset.aircraftVisual = 'model'; dirty = true;
+        };
         const zoom = (factor: number) => { camera.scale = Math.max(1, Math.min(6, camera.scale * factor)); publishCamera(); };
         const focusCurrent = () => {
           const p = latest.current.plane;
@@ -117,6 +124,7 @@ export function MapView(props: Props) {
           const screenScale = bounds.width / w;
           const resolution = Math.max(.5, Math.min((window.devicePixelRatio || 1) * screenScale, 3));
           app.renderer.resize(w, h, resolution); camera = globeCamera(w, h, camera, camera.scale); publishCamera();
+          aircraftLayer?.resize(w, h, resolution, camera);
         };
         const observer = new ResizeObserver(resize);
         window.addEventListener('gameviewportchange', resize);
@@ -160,7 +168,8 @@ export function MapView(props: Props) {
               if (v.visible && distance < nearest) { nearest = distance; hit = a.id; }
             }
             const current = latest.current.plane && planes.get(latest.current.plane.id);
-            if (current?.visible && Math.hypot(p.x - current.x, p.y - current.y) < Math.min(16, nearest)) focusCurrent();
+            const visibleIds = element.dataset.visiblePlanes?.split(',') ?? [];
+            if (current && visibleIds.includes(latest.current.plane!.id) && Math.hypot(p.x - current.x, p.y - current.y) < Math.min(16, nearest)) focusCurrent();
             else if (hit) latest.current.onSelect(hit);
           }
           pointers.delete(e.pointerId);
@@ -276,7 +285,10 @@ export function MapView(props: Props) {
         // repaint a full sphere 30 times a second while the user reads a dialog.
         // Keep a lightweight private ticker for coalescing touch and snapshot updates.
         const renderLoop = new Ticker();
-        let networkKey = '', lastLocale = latestI18n.current.locale, frames = 0;
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const motionChanged = () => { dirty = true; };
+        reducedMotion.addEventListener('change', motionChanged);
+        let networkKey = '', lastLocale = latestI18n.current.locale, frames = 0, lastVisualTime = -1;
         renderLoop.maxFPS = 30;
         renderLoop.add(() => {
           const { game, selected, preview, showOthers } = latest.current;
@@ -290,9 +302,13 @@ export function MapView(props: Props) {
           if (dirty) drawGlobe();
           if (repaint) drawNetwork();
           dirty = false; lastPreview = previewKey; lastOthers = showOthers; lastLocale = latestI18n.current.locale; networkKey = nextNetworkKey;
-          const animating = game.fleet.some(p => p.flight && (showOthers || p.id === latest.current.plane?.id));
-          if (!repaint && !animating) return;
-          const visualTime = game.simTime + Math.min(1, Math.max(0, (performance.now() - snapshotAt) / 1000));
+          const animating = !reducedMotion.matches && game.fleet.some(p => p.flight && (showOthers || p.id === latest.current.plane?.id)
+            && screenPoint(viewVector(aircraftPoint(p, game.simTime), camera), camera).visible);
+          const snapshotStep = reducedMotion.matches && game.simTime !== lastVisualTime
+            && game.fleet.some(p => p.flight && (showOthers || p.id === latest.current.plane?.id));
+          if (!repaint && !animating && !snapshotStep) return;
+          const visualTime = game.simTime + (reducedMotion.matches ? 0 : Math.min(1, Math.max(0, (performance.now() - snapshotAt) / 1000)));
+          lastVisualTime = game.simTime;
           for (const p of game.fleet) {
             const file = aircraftSpecs(p).art, texture = planeTextures.get(file);
             let g = planes.get(p.id);
@@ -316,20 +332,42 @@ export function MapView(props: Props) {
           for (const [id, g] of planes) if (!game.fleet.some(p => p.id === id)) { g.destroy(); planes.delete(id); }
           element.dataset.visiblePlanes = [...planes].filter(([, g]) => g.visible).map(([id]) => id).join(',');
           element.dataset.visiblePlaneModels = [...planes].filter(([, g]) => g.visible).map(([id, g]) => `${id}:${g.label}`).join(',');
+          if (aircraftLayer) {
+            try {
+              const markers = aircraftLayer.render(game, visualTime, camera, latest.current.plane?.id, showOthers);
+              element.dataset.visiblePlanes = markers.filter(p => p.visible).map(p => p.id).join(',');
+              element.dataset.visiblePlaneModels = markers.filter(p => p.visible).map(p => `${p.id}:low-poly-airliner.glb`).join(',');
+              for (const g of planes.values()) g.visible = false;
+            } catch { fallBackAircraft(); }
+          }
           app.render();
           element.dataset.renderCount = String(++frames);
+          element.dataset.aircraftTime = String(visualTime);
         });
         renderLoop.start();
         publishCamera();
         dispose = () => {
+          modelAbort.abort(); aircraftLayer?.dispose(); reducedMotion.removeEventListener('change', motionChanged);
           window.removeEventListener('gameviewportchange', resize); window.removeEventListener('resize', resize);
           renderLoop.destroy(); observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move);
           canvas.removeEventListener('pointerup', up); canvas.removeEventListener('pointercancel', up); canvas.removeEventListener('wheel', wheel); canvas.removeEventListener('keydown', keydown);
         };
         setStatus('ready');
+        element.dataset.aircraftStatus = 'loading';
+        void import('./MapAircraftLayer.js').then(async ({ MapAircraftLayer, AIRLINER_A }) => {
+          if (cancelled) return;
+          const layer = await MapAircraftLayer.load({ ...AIRLINER_A, url: `${import.meta.env.BASE_URL}models/${AIRLINER_A.file}` }, modelAbort.signal);
+          if (cancelled) { layer.dispose(); return; }
+          aircraftLayer = layer;
+          layer.canvas.addEventListener('webglcontextlost', () => { if (!cancelled && aircraftLayer === layer) fallBackAircraft(); }, { once: true });
+          element.after(layer.canvas); resize();
+          element.dataset.aircraftStatus = 'ready'; element.dataset.aircraftVisual = '3d';
+        }).catch(() => {
+          if (!cancelled) fallBackAircraft();
+        });
       } catch { if (!cancelled) setStatus('fallback'); }
     })();
-    return () => { cancelled = true; dispose(); if (initialized && !app.stage.destroyed) app.destroy(true, { children: true }); };
+    return () => { cancelled = true; modelAbort.abort(); dispose(); if (initialized && !app.stage.destroyed) app.destroy(true, { children: true }); };
   }, []);
   return <section className="map-area globe-area" aria-label={props.planning ? i18n.t('map.routeMap') : i18n.t('map.map')} aria-describedby={props.planning ? "route-preview-description" : undefined}>
     <div className="map-canvas" ref={host} data-testid="map-canvas" data-projection="orthographic" data-art-version="2" data-route-visual="parabolic" data-aircraft-visual="model" data-renderer={status}/>
