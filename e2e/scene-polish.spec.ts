@@ -20,23 +20,32 @@ for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
     expect(await queue.evaluate(el => getComputedStyle(el).scrollbarWidth)).toBe('none');
     const prev = page.getByRole('button', { name:'上一组客货', exact:true });
     const next = page.getByRole('button', { name:'下一组客货', exact:true });
-    await expect(prev).toBeDisabled(); await expect(next).toBeEnabled();
-    await next.click(); await expect.poll(() => queue.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+    const overflow = await queue.evaluate(el => el.scrollWidth > el.clientWidth + 2);
+    await expect(prev).toBeDisabled(); await expect(next).toBeEnabled({ enabled: overflow });
+    if (overflow) {
+      await next.click(); await expect.poll(() => queue.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+    }
     await queue.focus(); await page.keyboard.press('Home'); await expect(prev).toBeDisabled();
     await page.keyboard.press('End'); await expect(next).toBeDisabled();
     await page.keyboard.press('Home'); await expect(prev).toBeDisabled();
     await expect(page.locator('.order-toolbar')).toHaveCount(0);
     const first = page.getByTestId('waiting-order').first();
     const id = await first.getAttribute('data-order-id');
+    const price = await first.locator('.job-price').textContent();
     const position = await first.boundingBox();
     await first.click();
     const loaded = page.locator(`[data-order-id="${id}"]`);
-    await expect(loaded.locator('.job-state')).toHaveText('已装机 · 卸载');
-    expect((await loaded.boundingBox())!.x).toBeCloseTo(position!.x, 0);
+    await expect(loaded.locator('.cabin-destination')).toHaveText('上海');
+    await expect(loaded.locator('.job-price')).toHaveText(price!);
+    await expect(loaded.locator('.job-state')).toHaveCount(0);
+    await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toHaveCount(1);
+    await expect(queue.locator(`[data-order-id="${id}"]`)).toHaveCount(0);
+    expect((await loaded.boundingBox())!.y).toBeLessThan(position!.y);
     await loaded.click();
     await expect(page.getByTestId('waiting-order')).toHaveCount(12);
-    await expect(prev).toBeDisabled(); await expect(next).toBeEnabled();
-    const card = page.getByTestId('waiting-order').first(), label = card.locator('.job-state');
+    expect((await queue.locator(`[data-order-id="${id}"]`).boundingBox())!.x).toBeCloseTo(position!.x, 0);
+    await expect(prev).toBeDisabled(); await expect(next).toBeEnabled({ enabled: overflow });
+    const card = page.getByTestId('waiting-order').first(), label = card.locator('.job-price');
     const b = await card.boundingBox(), t = await label.boundingBox();
     expect(b).not.toBeNull(); expect(t).not.toBeNull();
     expect(t!.y + t!.height).toBeLessThanOrEqual(b!.y + b!.height + 1);
@@ -44,7 +53,7 @@ for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
     expect(await label.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (width! < 1000) {
-      const bodyWidth = await page.getByTestId('plane-art').locator('svg').evaluate(el => 810 * Math.abs((el as SVGSVGElement).getScreenCTM()!.a));
+      const bodyWidth = (await page.locator('.cutaway-airframe').boundingBox())!.width * .9;
       expect(bodyWidth).toBeGreaterThan(width! * .4);
     }
     await page.screenshot({ path:`artifacts/loading-queue-${width}.png` });

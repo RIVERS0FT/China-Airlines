@@ -87,16 +87,16 @@ test('flight inspection opens aircraft details without modifying the flight or u
   await expect(page.getByTestId('credits')).toHaveText(`¥ ${state.credits.toLocaleString('zh-CN')}`);
 });
 
-for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three loading states remain distinct and update in place at ${width}`, async ({ page }) => {
+for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three loading states remain distinct across apron and cabin at ${width}`, async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
   await page.setViewportSize({ width: width!, height: height! }); await setup(page, mixed());
   const board = page.getByRole('region', { name: '客货列表', exact: true });
   await expect(page.locator('[data-load-state=loaded]')).toHaveCount(3);
-  const plates: string[] = [];
-  for (const [state, label] of [['loaded', '已装机 · 卸载'], ['waiting', '装机'], ['blocked', '客舱不足']]) {
+  for (const state of ['loaded', 'waiting', 'blocked']) {
     const card = page.locator(`[data-load-state=${state}]`).first();
     await card.scrollIntoViewIfNeeded();
-    await expect(card.locator('.job-state')).toHaveText(label!);
+    await expect(card.locator('.job-state')).toHaveCount(0);
+    if (state === 'loaded') await expect(card.locator('.cabin-destination')).not.toBeEmpty();
     if (state === 'blocked') { await expect(card).toBeDisabled(); await expect(card).toHaveAccessibleName(/剩余客舱不足/); }
     else await expect(card).toBeEnabled();
     const scale = await displayScale(page), plate = (await card.locator('.job-info').boundingBox())!;
@@ -104,33 +104,38 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three
     expect(art.y + art.height).toBeLessThanOrEqual(figure.y + figure.height + 1);
     expect(figure.y + figure.height).toBeLessThanOrEqual(plate.y + 1);
     let previousBottom = plate.y;
-    for (const cls of ['.job-price', '.job-action']) {
+    // The first waiting order in this fixture is cargo; its name sits above the fare.
+    const textRows = state === 'loaded' ? ['.cabin-destination', '.job-price'] : state === 'waiting' ? ['.cargo-name', '.job-price'] : ['.job-price'];
+    for (const cls of textRows) {
       const text = (await card.locator(cls).boundingBox())!;
       expect(text.x).toBeGreaterThanOrEqual(plate.x - 1); expect(text.x + text.width).toBeLessThanOrEqual(plate.x + plate.width + 1);
       expect(text.y).toBeGreaterThanOrEqual(previousBottom - 1);
       previousBottom = text.y + text.height;
       expect(text.y + text.height).toBeLessThanOrEqual(plate.y + plate.height + 1);
     }
-    expect(await card.locator('.job-state').evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11);
-    expect(plate.height / scale).toBeGreaterThanOrEqual(44);
+    expect(await card.locator('.job-price').evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11);
+    expect(plate.height / scale).toBeGreaterThanOrEqual((state === 'loaded' ? 44 : 24) - 0.01);
     expect(plate.height / scale).toBeLessThanOrEqual(70);
-    await expect(card.locator('.job-info > *')).toHaveCount(2);
+    await expect(card.locator('.job-info > *')).toHaveCount(textRows.length);
     await expect(card.locator('.job-marker, .cargo-service-name')).toHaveCount(0);
-    plates.push(await card.locator('.job-info').evaluate(el => getComputedStyle(el).backgroundColor));
+    expect(await card.locator('.job-info').evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
+    expect(await card.locator('.job-info').evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('0px');
   }
-  expect(new Set(plates).size).toBe(3);
   const blockedId = await page.locator('[data-load-state=blocked]').first().getAttribute('data-order-id');
   const loaded = page.getByTestId('loaded-order').first(), id = await loaded.getAttribute('data-order-id');
   await loaded.scrollIntoViewIfNeeded();
-  const before = (await loaded.boundingBox())!;
+  await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toHaveCount(1);
   await loaded.click();
   const same = page.locator(`[data-order-id="${id}"]`);
   await expect(same).toHaveAttribute('data-load-state', 'waiting');
   expect(await page.locator('.toast').allTextContents()).toEqual([]);
   await expect(same.locator('.job-transfer-tag')).toHaveText('中转');
-  expect(Math.abs((await same.boundingBox())!.x - before.x)).toBeLessThan(2);
+  await expect(board.locator(`[data-order-id="${id}"]`)).toHaveCount(1);
+  await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toHaveCount(0);
   await expect(page.locator(`[data-order-id="${blockedId}"]`)).toHaveAttribute('data-load-state', 'waiting');
   await same.click(); await expect(same).toHaveAttribute('data-load-state', 'loaded');
+  await expect(board.locator(`[data-order-id="${id}"]`)).toHaveCount(0);
+  await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toHaveCount(1);
   expect(await page.locator('.toast').allTextContents()).toEqual([]);
   await expect(page.locator(`[data-order-id="${blockedId}"]`)).toHaveAttribute('data-load-state', 'blocked');
   await board.focus(); await page.keyboard.press('Home');

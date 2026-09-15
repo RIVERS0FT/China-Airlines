@@ -12,10 +12,10 @@ test('tutorial feedback does not obscure or crop loading controls', async ({ pag
   await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step', 'load');
   await expect(page.locator('.toast')).toHaveCount(0);
   const card = page.getByTestId('waiting-order').first();
-  const bounds = await card.boundingBox(), label = await card.locator('.job-state').boundingBox();
+  const bounds = await card.boundingBox(), label = await card.locator('.job-price').boundingBox();
   expect(bounds).not.toBeNull(); expect(label).not.toBeNull();
   expect(label!.y + label!.height).toBeLessThanOrEqual(bounds!.y + bounds!.height);
-  await expect(card.locator('.job-state')).toBeInViewport();
+  await expect(card.locator('.job-price')).toBeInViewport();
   await page.screenshot({ path: 'artifacts/tutorial-landscape-readable.png' });
   await card.click();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);

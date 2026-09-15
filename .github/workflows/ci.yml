@@ -10,8 +10,19 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
+    name: verify (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: root
+            base_path: ''
+          - name: subpath
+            base_path: /China-Airlines/
+    env:
+      BASE_PATH: ${{ matrix.base_path }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,28 +43,20 @@ jobs:
         run: npm run typecheck
       - name: Domain and persistence tests
         run: npm test -- --reporter=default --reporter=json --outputFile=artifacts/unit-tests.json
-      - name: Production build (portable root)
+      - name: Production build (${{ matrix.name }})
         run: npm run build
       - name: Install Chromium and system fonts
         run: |
           npx playwright install --with-deps chromium
           sudo apt-get install -y fonts-noto-cjk
           mkdir -p artifacts
-      - name: Browser verification (root)
-        run: npm run test:e2e
-      - name: Production build (GitHub Pages subpath)
-        env:
-          BASE_PATH: /China-Airlines/
-        run: npm run build
-      - name: Browser verification (subpath)
-        env:
-          BASE_PATH: /China-Airlines/
+      - name: Browser verification (${{ matrix.name }})
         run: npm run test:e2e
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: china-airlines-verification
+          name: china-airlines-verification-${{ matrix.name }}
           path: |
             artifacts/
             playwright-report/

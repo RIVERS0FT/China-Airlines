@@ -7,7 +7,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.setViewportSize(viewport);
-    await page.clock.install({ time: new Date('2026-09-12T00:00:00Z') });
+    // Fix save timestamps without replacing the Pixi requestAnimationFrame clock.
+    await page.clock.setFixedTime(new Date('2026-09-12T00:00:00Z'));
     await page.goto('./');
     await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
     await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
@@ -66,6 +67,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     await expect(canvas).toHaveAttribute('data-preview-path','');
     await expect(page.getByTestId('auto-route-badge')).toHaveCount(0);
     await selectCity(page,'PVG'); await page.getByRole('button',{name:'路线撤销',exact:true}).click();
+    await expect(page.getByTestId('route-preview')).toHaveAttribute('data-legs', '0');
+    await expect(page.getByRole('button',{name:'路线撤销',exact:true})).toBeDisabled();
     await expect(canvas).toHaveAttribute('data-preview-path','');
     await expect(page.getByTestId('credits')).toHaveText(money!);
     await selectCity(page,'PVG'); await launchRoute(page);

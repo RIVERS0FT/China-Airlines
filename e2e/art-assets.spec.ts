@@ -8,7 +8,7 @@ test('local art decodes and remains available after offline reload', async ({ pa
   const backdrop = page.locator('.airport-backdrop image');
   expect(await page.locator('.apron-queue').evaluate(el => getComputedStyle(el).backgroundImage)).toContain('apron-platform-v1.jpg');
   await expect(backdrop).toHaveCount(1);
-  const urls = await page.locator('.job-art').evaluateAll(elements => elements.map(el => (el as HTMLImageElement).src));
+  const urls = await page.locator('img.job-art, .job-art image').evaluateAll(elements => elements.map(el => el.getAttribute('src') ?? el.getAttribute('href')!));
   urls.push((await backdrop.getAttribute('href'))!);
   // Include every variant, even if the initial queue does not happen to show it.
   const base = new URL((await backdrop.getAttribute('href'))!, page.url());
@@ -29,7 +29,10 @@ test('local art decodes and remains available after offline reload', async ({ pa
   await page.getByTestId('waiting-order').first().click();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   expect(await page.locator('.toast').allTextContents()).toEqual([]);
-  await expect(page.getByTestId('aircraft-sprite')).toHaveAttribute('href', /aircraft-light-passenger-v2\.png$/);
+  await expect(page.locator('.cutaway-airframe')).toBeVisible();
+  await expect(page.getByTestId('aircraft-cabin').getByTestId('loaded-order')).toHaveCount(1);
+  await expect(page.getByTestId('loaded-order').locator('.job-art')).toHaveAttribute('data-pose', 'seated');
+  await expect(page.getByTestId('loaded-order').locator('.job-art image')).toHaveAttribute('href', /passenger-standing-seated-v2\.png$/);
   // Task art stays at the upper-left entrance; organization has its own painted dock entry.
   await expect(page.getByRole('button', { name: '任务中心', exact: true }).locator('img.painted-icon')).toHaveCount(1);
   const dock = page.getByRole('navigation', { name: '主导航' });

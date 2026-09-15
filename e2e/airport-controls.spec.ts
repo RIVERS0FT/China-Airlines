@@ -66,20 +66,26 @@ test('first flight is guided through the mission without a bottom tutorial entry
   await expect(page.getByTestId('first-flight-task')).toHaveCount(0);
 });
 
-test('loading and unloading stay in the same destination group without a toolbar', async ({ page }) => {
+test('loading and unloading move an order between the apron and cabin without a toolbar', async ({ page }) => {
   await page.goto('./');
   await expect(page.getByTestId('waiting-order')).toHaveCount(12);
   await expect(page.locator('.job-quantity')).toHaveCount(0);
   await expect(page.locator('.order-toolbar')).toHaveCount(0);
   const item = page.getByTestId('waiting-order').first();
   const id = await item.getAttribute('data-order-id');
+  const price = await item.locator('.job-price').textContent();
   await item.click();
   const loaded = page.locator(`[data-order-id="${id}"]`);
   await expect(loaded).toHaveAttribute('data-testid', 'loaded-order');
-  await expect(loaded.locator('.job-state')).toHaveText('已装机 · 卸载');
+  await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toHaveCount(1);
+  await expect(page.locator('.apron-queue').locator(`[data-order-id="${id}"]`)).toHaveCount(0);
+  await expect(loaded.locator('.cabin-destination')).toHaveText('上海');
+  await expect(loaded.locator('.job-price')).toHaveText(price!);
+  await expect(loaded.locator('.job-state')).toHaveCount(0);
   await loaded.click();
   await expect(loaded).toHaveAttribute('data-testid', 'waiting-order');
-  await expect(loaded.locator('.job-state')).toHaveText('装机');
+  await expect(page.locator('.apron-queue').locator(`[data-order-id="${id}"]`)).toHaveCount(1);
+  await expect(loaded.locator('.job-state')).toHaveCount(0);
   await loaded.click();
   await page.getByRole('button', { name: '查看机上客货', exact: true }).click();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
@@ -124,7 +130,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     expect(await occupant.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
     expect(await occupant.evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('0px');
     await expect(occupant).toHaveAttribute('data-load-state', 'waiting');
-    expect(await occupant.locator('.job-info').evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('2px');
+    expect(await occupant.locator('.job-info').evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('0px');
     await page.screenshot({ path: `artifacts/airport-controls-${width}.png` });
   });
 }
