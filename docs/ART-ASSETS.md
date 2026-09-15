@@ -1,5 +1,9 @@
 > 2026-09-14 更新：本文件下方保留历史美术记录。当前规则和新增范围以 [OFFLINE-CAREER.md](OFFLINE-CAREER.md) 与 [APK-EVIDENCE.md](APK-EVIDENCE.md) 为准。
 
+## 地图 3D 飞机（2026-09-15）
+
+地图统一使用 `public/models/low-poly-airliner.glb`，由用户提供的 A 款文件原样复制，257,356 字节，无外部纹理。作者 Mauro3D，CC BY 4.0，模型 ID `f06d488f08764e3ca26f2917d4053c69`。完整署名、来源、许可、SHA-256 与运行时修改说明见 `public/models/ATTRIBUTION.txt`，中英文帮助页提供入口。运行时隐藏三组起落架，保留2组机体材质、2,284个三角面，统一长度52逻辑像素；不宣称各游戏机型的真实外形。GLB 和署名随 PWA 预缓存；原机型 PNG 继续用于机场、商店及地图加载失败回退。完整契约见 [MAP-AIRCRAFT-3D.md](MAP-AIRCRAFT-3D.md)。
+
 ## 点券图标与球面美术（v0.8.0）
 
 新增 `public/art/icon-ticket-v2.png`（256×256，RGBA），运行时清单增至43项。该图使用内置 imagegen 原创生成，表现带侧边缺口、点线压纹与机翼徽记的金色票券，不含文字、货币符号、品牌或水印；用于顶部点券和帮助资源说明，原奖杯图标只继续用于经营中心。1254×1254透明原图保存为 `art/source/icon-ticket-v2-source.png`，完整提示词与缩放说明保存于 `art/prompt-ticket-v2.txt`。

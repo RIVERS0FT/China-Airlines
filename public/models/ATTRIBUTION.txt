@@ -1,0 +1,12 @@
+Low Poly Airliner
+Author: Mauro3D (https://sketchfab.com/maurogsw)
+Source: https://sketchfab.com/3d-models/low-poly-airliner-f06d488f08764e3ca26f2917d4053c69
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+The GLB was supplied by the project owner on 2026-09-15 and is included unchanged.
+SHA-256: a81d473fdcf7607cc98c929a5d03c661eadf2e4137a5ac8e6bdbdd40611c5b65
+
+Runtime modifications: landing-gear nodes hidden; geometry recentered and
+normalized; instances placed along spherical flight paths; selected aircraft
+tinted gold. No endorsement by the author is implied.

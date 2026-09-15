@@ -9,7 +9,7 @@ export default defineConfig({
       lang: 'zh-CN', id: './', start_url: './', scope: './', display: 'standalone', orientation: 'landscape',
       theme_color: '#174c4a', background_color: '#f4f3ed',
       icons: [{src: 'icon-192.png', sizes: '192x192', type: 'image/png'}, {src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable'}] },
-    workbox: { globPatterns: ['**/*.{js,css,html,svg,png,jpg,webmanifest}'], maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+    workbox: { globPatterns: ['**/*.{js,css,html,svg,png,jpg,glb,txt,webmanifest}'], maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       cleanupOutdatedCaches: true, clientsClaim: true, navigateFallback: 'index.html' }
   })],
   build: { target: 'es2022', rollupOptions: { output: { manualChunks: { renderer: ['pixi.js'], ui: ['react', 'react-dom', 'zustand'], storage: ['dexie'] } } } }
