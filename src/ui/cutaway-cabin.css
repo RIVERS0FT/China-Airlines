@@ -1,9 +1,8 @@
 /* Only the original cutaway supplies walls, windows and floors. All art uses one canvas. */
 .aviation-game:not(.dispatch-focused) .airplane-display.cabin-aircraft{left:50%;bottom:0;width:min(98%,1400px);height:500px;max-height:100%;padding:0;border:0;box-shadow:none;background:none;transform:translateX(-50%);overflow:visible;cursor:default}
 .cabin-aircraft .aircraft-canvas{position:absolute;transform-origin:0 0;isolation:isolate;pointer-events:none}
-.cabin-aircraft .cutaway-airframe,.cabin-aircraft .aircraft-near-layer{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;transform:none;pointer-events:none}
+.cabin-aircraft .cutaway-airframe{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;transform:none;pointer-events:none}
 .cabin-aircraft .cutaway-airframe{filter:drop-shadow(0 5px 5px #28485325)}
-.cabin-aircraft .aircraft-near-layer{z-index:8}
 .cabin-aircraft .cabin-interior{position:absolute;display:block;background:none;border:0;box-shadow:none;text-align:left}
 .cabin-aircraft .cabin-deck{position:absolute;min-width:0;background:none;border:0;box-shadow:none}
 .cabin-aircraft .cabin-deck>header{position:absolute;height:calc(44 * var(--cabin-ui-unit));padding:0 calc(6 * var(--cabin-ui-unit));display:flex;align-items:center;justify-content:flex-start;gap:calc(6 * var(--cabin-ui-unit));font-size:calc(12 * var(--cabin-ui-unit));line-height:1.15;color:#304f55;background:none;border:0;box-shadow:none;z-index:9;pointer-events:auto}

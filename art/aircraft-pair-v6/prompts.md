@@ -1,14 +1,15 @@
-# 独立剖面图与外观图样稿 v6
+# 独立剖面图与外观图 v6
 
-本目录保存新版飞机绘制规则的首架样稿。运行候选资源使用原创通用名 `light-single-1p`；Diamond DA40 只用于单发低翼、长泡形座舱盖、T 尾、固定前三点起落架与细长复合材料机身等通用结构研究。未复制品牌标志、注册号、现实涂装、照片或技术图纸。
+本目录保存新版飞机绘制规则的首架源稿。源资源使用原创通用名 `light-single-1p`，运行目录以 `diamond-da40` 接入；Diamond DA40 只用于单发低翼、长泡形座舱盖、T 尾、固定前三点起落架与细长复合材料机身等通用结构研究。未复制品牌标志、注册号、现实涂装、照片或技术图纸。
 
 DA40通用结构核对使用Diamond Aircraft官方[机型介绍](https://www.diamondaircraft.com/en/private-owners/aircraft/da40/overview/)与[技术规格](https://www.diamondaircraft.com/en/private-owners/aircraft/da40/tech-specs/)，只提取上述非品牌化结构特征。
 
-## 容量和阶段边界
+## 容量和接入边界
 
 - 游戏化基础容量：1 客、0 货。
 - 剖面图只画一个空客位，不画货舱、座椅、人物、行李或货物；真实家具和订单仍由 UI 按核心快照投影。
-- 本轮只确认绘制规范与一架美术样稿，未接入机型目录，未修改经营数值、存档或结算。
+- 运行机型为 `diamond-da40`：1客、0货，航程1,730 km、速度参数285、售价4,000金币，容量不可扩充；存档格式仍为9，结算继续使用现有核心公式。
+- `scripts/prepare-aircraft-art.mjs` 通过 `pair` 配置把两张完整图写入 `public/art`，不生成近侧蒙皮；UI切换时替换整张图片。
 
 ## Imagegen 提示词
 

@@ -32,7 +32,7 @@ jobs:
       - name: Install CJK fonts
         run: sudo apt-get install -y fonts-noto-cjk
       - name: Check common containers and browser interaction
-        run: npx playwright test e2e/ui-workspace.spec.ts e2e/navigation-stability.spec.ts e2e/browse-ux.spec.ts e2e/energy.spec.ts e2e/flight-board.spec.ts e2e/fleet-entry.spec.ts e2e/game.spec.ts e2e/organization.spec.ts
+        run: npx playwright test e2e/flight-animation.spec.ts e2e/start-map-i18n.spec.ts e2e/ui-workspace.spec.ts e2e/navigation-stability.spec.ts e2e/browse-ux.spec.ts e2e/energy.spec.ts e2e/flight-board.spec.ts e2e/fleet-entry.spec.ts e2e/game.spec.ts e2e/organization.spec.ts
       - uses: actions/upload-artifact@v4
         if: always()
         with:

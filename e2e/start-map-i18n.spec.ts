@@ -41,7 +41,7 @@ test('an in-flight scene animates visually and respects reduced motion', async (
 
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
   await expect(page.getByTestId('aircraft-sprite')).toHaveAttribute('href', /aircraft-starter-swift-exterior-v5\.png/);
-  await expect(page.locator('.is-flying .airplane-display>svg')).toHaveCSS('animation-name', 'flight-aircraft-cruise');
+  await expect(page.locator('.is-flying .airplane-display>svg')).toHaveCSS('animation-name', 'start-aircraft-cruise');
   await expect(page.locator('.is-flying .flight-clouds-near')).toHaveCSS('animation-name', 'flight-cloud-drift');
 
   await page.emulateMedia({ reducedMotion: 'reduce' });

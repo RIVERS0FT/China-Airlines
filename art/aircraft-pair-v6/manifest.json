@@ -1,6 +1,7 @@
 {
   "id": "light-single-1p",
-  "status": "artwork-sample-not-catalogued",
+  "status": "catalogued-as-diamond-da40-v6",
+  "modelId": "diamond-da40",
   "direction": "left",
   "capacity": { "passengers": 1, "cargo": 0 },
   "canvas": { "width": 1536, "height": 590 },

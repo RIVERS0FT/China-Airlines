@@ -7,7 +7,7 @@ const NOW=Date.parse('2026-09-16T00:00:00Z');
 for(const model of ALL_MODELS)test(`dedicated layers cover ${model.id} without remounting or changing orders`,async({page})=>{
   await page.clock.install({time:new Date(NOW)});await page.clock.pauseAt(new Date(NOW+1000));
   await page.goto('./');await expect(page.getByTestId('aircraft-cabin')).toBeVisible();
-  const s=new GameCore(NOW).snapshot();s.fleet[0]!.modelId=model.id;s.airports.forEach(a=>a.level=3);
+  const s=new GameCore(NOW).snapshot();s.fleet[0]!.modelId=model.id;s.fleet[0]!.energy={availableSeconds:model.energy*60,reservedSeconds:0,serviceUntil:null};s.airports.forEach(a=>a.level=3);
   await page.getByRole('button',{name:'存档设置',exact:true}).click();page.once('dialog',d=>void d.accept());
   await page.getByLabel('选择存档文件').setInputFiles({name:'current-aircraft.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(s))});
   await expect(page.getByRole('status').filter({hasText:'存档导入成功'})).toBeVisible();
@@ -50,11 +50,10 @@ for(const model of ALL_MODELS)test(`dedicated layers cover ${model.id} without r
     await expect(anchor).toBeHidden();
     await expect(anchor.locator('[data-testid=loaded-order],[data-testid=cabin-empty-place]')).toHaveCount(0);
   }
-  const frame=page.getByTestId('plane-art'),cabin=page.getByTestId('aircraft-cabin'),near=page.getByTestId('aircraft-near-layer');
+  const frame=page.getByTestId('plane-art'),cabin=page.getByTestId('aircraft-cabin'),view=page.getByTestId('aircraft-view');
   await expect(frame).toHaveAttribute('data-model-id',model.id);
-  const revision='v5';
-  await expect(frame.locator('.cutaway-airframe')).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-cutaway-${revision}.png$`));
-  await expect(near).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-near-${revision}.png$`));
+  const revision=model.id==='diamond-da40'?'v6':'v5';
+  await expect(view).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-cutaway-${revision}.png$`));
   await expect.poll(()=>frame.locator('img').evaluateAll(nodes=>nodes.every(n=>(n as HTMLImageElement).complete&&(n as HTMLImageElement).naturalWidth>0))).toBe(true);
   await expect(page.locator('.cabin-deck')).toHaveCount(model.seats&&model.cargo?2:1);
   if(model.seats&&model.cargo){
@@ -66,29 +65,17 @@ for(const model of ALL_MODELS)test(`dedicated layers cover ${model.id} without r
   const ids=await cabin.getByTestId('loaded-order').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('data-order-id')));
   await cabin.evaluate(n=>n.setAttribute('data-mount-marker','kept'));
   await page.screenshot({path:`artifacts/aircraft-layers-${model.id}-interior.png`});
-  await page.getByRole('button',{name:'查看外观',exact:true}).click();await expect(near).toBeVisible();
+  await page.getByRole('button',{name:'查看外观',exact:true}).click();
+  await expect(view).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-exterior-${revision}.png$`));
   await expect(cabin).toHaveAttribute('inert','');await expect(cabin).toHaveAttribute('data-mount-marker','kept');
   expect(await cabin.getByTestId('loaded-order').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('data-order-id')))).toEqual(ids);
-  // Sample actual layer pixels across the whole room, not just an image bounding box.
-  const coverage=await frame.evaluate(el=>{
-    const n=el.querySelector<HTMLImageElement>('.aircraft-near-layer')!,r=n.getBoundingClientRect(),room=el.querySelector('.cabin-interior')!.getBoundingClientRect();
-    const canvas=document.createElement('canvas');canvas.width=n.naturalWidth;canvas.height=n.naturalHeight;
-    const ctx=canvas.getContext('2d')!;ctx.drawImage(n,0,0);let min=255;
-    for(let u=.05;u<1;u+=.1)for(let v=.05;v<1;v+=.1){
-      const x=Math.floor((room.x+u*room.width-r.x)/r.width*canvas.width),y=Math.floor((room.y+v*room.height-r.y)/r.height*canvas.height);
-      min=Math.min(min,ctx.getImageData(x,y,1,1).data[3]!);
-    }
-    return {min,corner:ctx.getImageData(0,0,1,1).data[3]};
-  });
-  expect(coverage.corner).toBe(0);expect(coverage.min).toBeGreaterThan(245);
   const sameCanvas = async () => {
-    const geometry = await frame.locator('.cutaway-airframe,.aircraft-near-layer').evaluateAll(nodes => nodes.map(node => {
+    const geometry = await frame.locator('.cutaway-airframe').evaluateAll(nodes => nodes.map(node => {
       const image = node as HTMLImageElement, rect = image.getBoundingClientRect();
       return { width: image.naturalWidth, height: image.naturalHeight, x: rect.x, y: rect.y, w: rect.width, h: rect.height };
     }));
-    expect(geometry).toHaveLength(2);
+    expect(geometry).toHaveLength(1);
     expect(geometry[0]!.width).toBe(1536); expect(geometry[0]!.height).toBe(590);
-    expect(geometry[0]).toEqual(geometry[1]);
     expect(geometry[0]!.w / geometry[0]!.h).toBeCloseTo(1536 / 590, 4);
   };
   await sameCanvas();
@@ -96,7 +83,8 @@ for(const model of ALL_MODELS)test(`dedicated layers cover ${model.id} without r
   await page.setViewportSize({width:844,height:390});
   await page.clock.runFor(34);
   await sameCanvas();
-  await page.getByRole('button',{name:'查看机舱',exact:true}).click();await expect(near).toBeHidden();
+  await page.getByRole('button',{name:'查看机舱',exact:true}).click();
+  await expect(view).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-cutaway-${revision}.png$`));
   await expect(cabin).not.toHaveAttribute('inert','');await expect(cabin).toHaveAttribute('data-mount-marker','kept');
   await captionClearance();
   await cabin.getByTestId('loaded-order').first().click({trial:true});

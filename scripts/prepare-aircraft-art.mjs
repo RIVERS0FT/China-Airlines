@@ -37,9 +37,14 @@ export function prepareAircraftArt({review=false}={}){
   const out=resolve(root,'public/art');mkdirSync(out,{recursive:true});
   const report=[];
   for(const [id,layout] of Object.entries(layouts)){
-    let hull,near,source;
+    let hull,near,full,source;
     const revision=layout.revision??'v4';
-    if(layout.master){
+    if(layout.pair){
+      // v6+ artwork is reviewed as two complete, independently generated views.
+      hull=decodePng(readFileSync(resolve(root,layout.pair.cutaway)));
+      full=decodePng(readFileSync(resolve(root,layout.pair.exterior)));
+      assertCanvas(hull,format.canvas,id);assertCanvas(full,format.canvas,id);source='direct-pair';
+    }else if(layout.master){
       // New artwork must be exported from one master, full canvas, at the origin.
       hull=decodePng(readFileSync(resolve(root,layout.master.cutaway)));
       near=decodePng(readFileSync(resolve(root,layout.master.near)));
@@ -56,9 +61,9 @@ export function prepareAircraftArt({review=false}={}){
       near=registerLayer(crop(atlas,format.nearCrop),format.canvas,layout.nearBounds);
       source=layout.sourceAtlas?'capacity-atlas-registration':'legacy-atlas-registration';
     }
-    assertCanvas(hull,format.canvas,id);assertCanvas(near,format.canvas,id);
-    const full=composite(hull,near);
-    for(const [kind,image] of [['cutaway',hull],['near',near],['exterior',full]]){
+    assertCanvas(hull,format.canvas,id);
+    if(!full){assertCanvas(near,format.canvas,id);full=composite(hull,near);}
+    for(const [kind,image] of [['cutaway',hull],...(near?[['near',near]]:[]),['exterior',full]]){
       const path=resolve(out,`aircraft-${id}-${kind}-${revision}.png`),bytes=encodePng(image);
       // Encoder versions may produce different byte streams for identical pixels.
       // Avoid dirtying reviewed artwork unless the rendered output really changed.
@@ -67,14 +72,14 @@ export function prepareAircraftArt({review=false}={}){
     const entry={id,revision,source,canvas:format.canvas,sha256:createHash('sha256').update(full.data).digest('hex')};report.push(entry);
     if(review){
       const check=Buffer.from(hull.data);
-      for(let i=0;i<check.length;i+=4){const a=near.data[i+3]/255*.5;if(a){check[i]=Math.round(check[i]*(1-a)+near.data[i]*a);check[i+1]=Math.round(check[i+1]*(1-a)+near.data[i+1]*a);check[i+2]=Math.round(check[i+2]*(1-a)+near.data[i+2]*a);check[i+3]=Math.max(check[i+3],near.data[i+3]);}}
+      if(near)for(let i=0;i<check.length;i+=4){const a=near.data[i+3]/255*.5;if(a){check[i]=Math.round(check[i]*(1-a)+near.data[i]*a);check[i+1]=Math.round(check[i+1]*(1-a)+near.data[i+1]*a);check[i+2]=Math.round(check[i+2]*(1-a)+near.data[i+2]*a);check[i+3]=Math.max(check[i+3],near.data[i+3]);}}
       mkdirSync(resolve(root,'artifacts/aircraft-registration'),{recursive:true});
       writeFileSync(resolve(root,`artifacts/aircraft-registration/${id}.png`),encodePng({...hull,data:check}));
     }
   }
   mkdirSync(resolve(root,'artifacts'),{recursive:true});
   writeFileSync(resolve(root,'artifacts/aircraft-registration.json'),JSON.stringify(report,null,2)+'\n');
-  console.log(`Prepared ${report.length} aircraft: equal canvases, shared origin, composed previews.`);
+  console.log(`Prepared ${report.length} aircraft: equal canvases, shared origin, complete cutaway/exterior views.`);
   return report;
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)prepareAircraftArt({review:process.argv.includes('--review')});

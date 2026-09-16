@@ -14,19 +14,33 @@ function prepared() {
 }
 function mutated(fn: (s: GameState) => void) { const s = prepared().snapshot(); fn(s); return () => validateSave(s); }
 describe('aircraft specialisation and workshop', () => {
-  it('offers twelve distinct aircraft, including four of each role', () => {
-    expect(new Set(MODELS.map(m => m.id)).size).toBe(12);
-    for (const kind of ['mixed', 'passengers', 'cargo']) expect(MODELS.filter(m => m.kind === kind)).toHaveLength(4);
+  it('offers thirteen distinct aircraft, including the passenger-only DA40 entry tier', () => {
+    expect(new Set(MODELS.map(m => m.id)).size).toBe(13);
+    expect(MODELS.filter(m => m.kind === 'passengers')).toHaveLength(5);
+    for (const kind of ['mixed', 'cargo'] as const) expect(MODELS.filter(m => m.kind === kind)).toHaveLength(4);
+    for (const model of MODELS) {
+      expect(model.reference.prototype.length).toBeGreaterThan(3);
+      expect(model.reference.capacity).toMatch(/座/);
+    }
+  });
+  it('buys, saves and restores the one-passenger DA40 without permitting capacity expansion', () => {
+    const c = rich(); c.execute({ type: 'buy', modelId: 'diamond-da40', airportId: 'PEK' }, NOW);
+    const p = c.snapshot().fleet[1]!;
+    expect(aircraftSpecs(p)).toMatchObject({ name: '钻石 DA40', seats: 1, cargo: 0, range: 1730, speed: 285 });
+    expect(upgradeLimit(p, 'capacity')).toBe(0);
+    const restored = new GameCore(NOW, validateSave(c.snapshot())).snapshot();
+    expect(restored.fleet[1]).toEqual(p);
   });
   for (const m of MODELS) it(`${m.id} has valid, independently upgradeable capacity`, () => {
     const c = rich();
     for (let i = 1; i < m.level; i++) c.execute({ type: 'upgrade', airportId: 'PEK' }, NOW);
     c.execute({ type: 'buy', modelId: m.id, airportId: 'PEK' }, NOW);
     const p = c.snapshot().fleet[1]!;
-    c.execute({ type: 'retrofit', planeId: p.id, upgrade: 'capacity' }, NOW);
+    if (m.id === 'diamond-da40') expect(() => c.execute({ type: 'retrofit', planeId: p.id, upgrade: 'capacity' }, NOW)).toThrow(/最高/);
+    else c.execute({ type: 'retrofit', planeId: p.id, upgrade: 'capacity' }, NOW);
     const upgraded = c.snapshot().fleet[1]!, spec = aircraftSpecs(upgraded);
-    expect(spec.seats).toBe(m.seats ? m.seats * 2 : 0);
-    expect(spec.cargo).toBe(m.cargo ? m.cargo * 2 : 0);
+    expect(spec.seats).toBe(m.seats ? m.seats * (m.id === 'diamond-da40' ? 1 : 2) : 0);
+    expect(spec.cargo).toBe(m.cargo ? m.cargo * (m.id === 'diamond-da40' ? 1 : 2) : 0);
     const incompatible = c.snapshot().orders.find(o => o.location === 'PEK' && o.kind === (m.kind === 'cargo' ? 'passengers' : 'cargo'))!;
     if (m.kind !== 'mixed') expect(() => c.execute({ type: 'load', planeId: p.id, orderId: incompatible.id }, NOW)).toThrow(/容量/);
     expect(validateSave(c.snapshot())).toEqual(c.snapshot());

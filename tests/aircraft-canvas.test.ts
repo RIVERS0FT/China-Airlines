@@ -47,15 +47,17 @@ describe('one aircraft canvas and fixed furniture', () => {
       }
     }
   });
-  it('uses every model capacity as its v5 cabin rhythm', () => {
+  it('uses every model capacity as its reviewed cabin rhythm', () => {
     for (const model of ALL_MODELS) {
       const art = cabinArtLayout({ modelId: model.id });
       if (model.seats) expect(paintedAnchors(art, 'passengers'), model.id).toHaveLength(model.seats);
       else expect(art.decks.passengers, model.id).toBeUndefined();
       if (model.cargo) expect(paintedAnchors(art, 'cargo'), model.id).toHaveLength(model.cargo);
       else expect(art.decks.cargo, model.id).toBeUndefined();
-      expect(art.hull, model.id).toBe(`aircraft-${model.id}-cutaway-v5.png`);
-      expect(model.art, model.id).toBe(`aircraft-${model.id}-exterior-v5.png`);
+      const revision = model.id === 'diamond-da40' ? 'v6' : 'v5';
+      expect(art.hull, model.id).toBe(`aircraft-${model.id}-cutaway-${revision}.png`);
+      expect(art.exterior, model.id).toBe(`aircraft-${model.id}-exterior-${revision}.png`);
+      expect(model.art, model.id).toBe(art.exterior);
     }
   });
 });

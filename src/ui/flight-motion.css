@@ -1,0 +1,24 @@
+/* Decorative motion shared by the title and the actual airborne aircraft.
+   Animate the inner artwork, never the button's centering transform or game clock. */
+.start-aircraft,
+.is-flying .airplane-display > svg {
+  transform-origin:50% 50%;
+  animation:start-aircraft-cruise 6s ease-in-out infinite;
+}
+.flight-sky { pointer-events:none; }
+.flight-clouds { transform-box:view-box; transform-origin:center; }
+.flight-clouds-far { animation:flight-cloud-drift 32s linear infinite; }
+.flight-clouds-near { animation:flight-cloud-drift 18s linear infinite; }
+@keyframes start-aircraft-cruise {
+  0%,100% { transform:translate3d(0,0,0) rotate(-.5deg); }
+  50% { transform:translate3d(-10px,-9px,0) rotate(.6deg); }
+}
+@keyframes flight-cloud-drift {
+  from { transform:translate3d(0,0,0); }
+  to { transform:translate3d(-1440px,0,0); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .start-aircraft,
+  .is-flying .airplane-display > svg,
+  .flight-clouds { animation:none; }
+}
