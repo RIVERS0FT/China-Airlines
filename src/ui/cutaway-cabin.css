@@ -15,7 +15,8 @@
 .cabin-anchor[data-slot-active="false"]{visibility:hidden;pointer-events:none}
 .cabin-furniture-clip{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .cabin-place-art{position:absolute;pointer-events:none;left:50%;bottom:var(--floor-bottom);width:var(--furniture-width);height:var(--furniture-height);margin-left:var(--furniture-offset);transform:translateX(-50%);object-fit:contain;object-position:center bottom;z-index:1}
-.cabin-aircraft .cabin-order,.cabin-aircraft .cabin-empty{position:relative;display:block!important;width:100%;height:max(100%,calc(44 * var(--cabin-ui-unit)));min-width:0;min-height:0;gap:0!important;padding:0!important;border:0!important;border-radius:0;background:none;box-shadow:none;overflow:visible;text-align:center;color:#fff9df;z-index:2}
+/* Keep a tiny logical-pixel reserve so transformed 44px hit targets never round below 44. */
+.cabin-aircraft .cabin-order,.cabin-aircraft .cabin-empty{position:relative;display:block!important;width:100%;height:max(100%,calc(44.02 * var(--cabin-ui-unit)));min-width:0;min-height:0;gap:0!important;padding:0!important;border:0!important;border-radius:0;background:none;box-shadow:none;overflow:visible;text-align:center;color:#fff9df;z-index:2}
 .aviation-game .cabin-order:hover:not(:disabled){background:#e5f7ea33}.cabin-order:disabled{opacity:.82}
 .cabin-aircraft .cabin-order .job-figure{position:absolute;top:0;left:0;display:block;width:100%;height:var(--deck-height);margin:0;overflow:hidden;pointer-events:none}
 .apron-queue .job-art{transform:scaleX(-1)}
