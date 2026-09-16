@@ -61,7 +61,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     await expect(canvas).toHaveAttribute('data-camera',camera!);
     await expect(page.getByTestId('credits')).toHaveText(money!);
     await page.getByRole('button',{name:'隐藏其他飞机',exact:true}).click();
-    await expect(canvas).toHaveAttribute('data-visible-planes','AC0001');
+    await expect(canvas).toHaveAttribute('data-visible-planes','');
+    await expect(canvas).toHaveAttribute('data-visible-plane-models','');
     await page.screenshot({path:`artifacts/minimal-dispatch-${viewport.width}.png`});
     await page.getByRole('button',{name:'路线后退',exact:true}).click();
     await expect(canvas).toHaveAttribute('data-preview-path','');
