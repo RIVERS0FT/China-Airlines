@@ -1,0 +1,57 @@
+name: UI contracts
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - src/ui/**
+      - src/main.tsx
+      - e2e/**
+      - .github/workflows/ui-contracts.yml
+permissions:
+  contents: read
+concurrency:
+  group: ui-contracts-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_PATH: /China-Airlines/
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Record UI selector audit
+        run: |
+          mkdir -p artifacts
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const report = {};
+          for (const name of fs.readdirSync('e2e').filter(name => name.endsWith('.ts'))) {
+            const lines = fs.readFileSync('e2e/' + name,'utf8').split('\n');
+            const selected = lines.flatMap((text,index) => /dialog|modal|aria-haspopup|scrollTop/.test(text) ? [{line:index+1,text}] : []);
+            if (selected.length) report[name] = selected;
+          }
+          fs.writeFileSync('artifacts/ui-selector-audit.json',JSON.stringify(report,null,2));
+          NODE
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Install CJK fonts
+        run: sudo apt-get install -y fonts-noto-cjk
+      - name: Check common containers and browser interaction
+        run: npx playwright test e2e/ui-workspace.spec.ts e2e/navigation-stability.spec.ts e2e/browse-ux.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-contract-evidence
+          path: |
+            artifacts/
+            test-results/
+            playwright-report/
+          retention-days: 7

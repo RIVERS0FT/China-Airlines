@@ -25,13 +25,12 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
     await page.setViewportSize({ width, height }); await ready(page);
     const credits = await page.getByTestId('credits').textContent();
     await page.getByRole('button', { name: '机场目录', exact: true }).click();
-    let directory = page.getByRole('dialog', { name: '机场目录', exact: true });
+    const directory = page.getByRole('main', { name: '机场目录', exact: true });
     await directory.getByRole('button', { name: /^全部/ }).click();
     await directory.getByLabel('搜索机场', { exact: true }).fill(' pVg ');
     await expect(directory.getByRole('status')).toContainText('找到 1 座');
     await directory.getByRole('button', { name: '查看上海机场', exact: true }).click();
     await page.getByRole('button', { name: '返回机场目录', exact: true }).click();
-    directory = page.getByRole('dialog', { name: '机场目录', exact: true });
     await expect(directory.getByLabel('搜索机场', { exact: true })).toHaveValue(' pVg ');
     await expect(directory.getByRole('button', { name: /^全部/ })).toHaveAttribute('aria-pressed', 'true');
     await expect(directory.getByRole('button', { name: '查看上海机场', exact: true })).toBeFocused();
@@ -53,7 +52,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
 test('airport empty results offer a reset and reopening preserves the current search', async ({ page }) => {
   await ready(page);
   await page.getByRole('button', { name: '机场目录', exact: true }).click();
-  let directory = page.getByRole('dialog', { name: '机场目录', exact: true });
+  const directory = page.getByRole('main', { name: '机场目录', exact: true });
   await directory.getByLabel('搜索机场', { exact: true }).fill('不存在的机场');
   await expect(directory.getByRole('status')).toContainText('没有符合条件');
   await directory.getByRole('button', { name: '查看全部机场', exact: true }).click();
@@ -66,14 +65,11 @@ test('airport empty results offer a reset and reopening preserves the current se
   await expect(directory.getByLabel('搜索机场', { exact: true })).toHaveValue('');
   await expect(directory).toBeVisible();
   await directory.getByLabel('搜索机场', { exact: true }).fill('PEK');
-  // Explicit close must retain the query, unlike the search field's clear action.
   await directory.getByRole('button', { name: '关闭机场目录', exact: true }).click();
   await expect(directory).toHaveCount(0);
   await page.getByRole('button', { name: '机场目录', exact: true }).click();
-  directory = page.getByRole('dialog', { name: '机场目录', exact: true });
   await expect(directory.getByLabel('搜索机场', { exact: true })).toHaveValue('PEK');
   await expect(directory.getByRole('listitem')).toHaveCount(1);
-  // Escape still closes the dialog when focus is outside the search field.
   await directory.getByRole('button', { name: '关闭机场目录', exact: true }).focus();
   await page.keyboard.press('Escape');
   await expect(directory).toHaveCount(0);
@@ -82,24 +78,25 @@ test('airport empty results offer a reset and reopening preserves the current se
 test('airport detail navigation restores the scrolled card instead of jumping to the top', async ({ page }) => {
   await page.setViewportSize({ width: 667, height: 375 }); await ready(page);
   await page.getByRole('button', { name: '机场目录', exact: true }).click();
-  const directory = page.getByRole('dialog', { name: '机场目录', exact: true });
+  const directory = page.getByRole('main', { name: '机场目录', exact: true });
+  const scroll = directory.locator('.ui-scroll-region');
   await directory.getByRole('button', { name: /^全部/ }).click();
   const last = directory.locator('.airport-card').last();
   const id = await last.getAttribute('data-testid');
   await last.scrollIntoViewIfNeeded();
-  const before = await directory.evaluate(el => el.scrollTop);
+  const before = await scroll.evaluate(el => el.scrollTop);
   expect(before).toBeGreaterThan(0);
   await last.click();
   await page.getByRole('button', { name: '返回机场目录', exact: true }).click();
   await expect(page.getByTestId(id!)).toBeFocused();
-  await expect.poll(async () => Math.abs(await directory.evaluate(el => el.scrollTop) - before)).toBeLessThanOrEqual(2);
+  await expect.poll(async () => Math.abs(await scroll.evaluate(el => el.scrollTop) - before)).toBeLessThanOrEqual(2);
 });
 
 test('fleet search combines with every ground-state filter and recovers from no results', async ({ page }) => {
   await page.setViewportSize({ width: 667, height: 375 }); await ready(page);
   const credits = await page.getByTestId('credits').textContent();
   await page.getByRole('button', { name: '机队管理概览', exact: true }).click();
-  const board = page.getByRole('dialog', { name: '机队管理', exact: true });
+  const board = page.getByRole('main', { name: '机队管理', exact: true });
   await board.getByLabel('搜索飞机', { exact: true }).fill(' ac0001 ');
   await expect(board.getByTestId('flight-row')).toHaveCount(1);
   for (const phase of ['turnaround', 'service', 'automatic', 'planned']) {
@@ -131,7 +128,6 @@ test('dispatch backdrop dismisses only deliberate outside clicks and preserves t
   const mapHandle = await map.elementHandle();
   const credits = await page.getByTestId('credits').textContent();
   const dialog = await routeDetails(page);
-  // A drag that starts inside the dialog must not be mistaken for a backdrop tap.
   const heading = await dialog.getByRole('heading', { name: '路线详情', exact: true }).boundingBox();
   await page.mouse.move(heading!.x + 10, heading!.y + 10);
   await page.mouse.down(); await page.mouse.move(2, 2, { steps: 5 }); await page.mouse.up();

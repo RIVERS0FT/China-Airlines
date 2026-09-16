@@ -32,6 +32,8 @@ export function PageFrame({ page, title, closeLabel, onClose, children, layout =
     if (!document.querySelector('dialog[open]')) (ref.current?.querySelector<HTMLElement>('[data-page-heading]') ?? ref.current)?.focus({ preventScroll: true });
   }, [page]);
   return <main ref={ref} className={`ui-page ui-page--${layout} ${layout === 'tree' ? 'organization-workspace' : ''}`.trim()} tabIndex={-1} data-page={page} data-testid={`page-${page}`} aria-label={title} onKeyDown={event => {
+    // Native search consumes Escape to clear its query before page navigation.
+    if (event.target instanceof HTMLInputElement && event.target.type === 'search' && event.target.value) return;
     if (event.key === 'Escape' && !event.defaultPrevented && !document.querySelector('dialog[open]')) { event.preventDefault(); onClose(); }
   }}>
     {layout !== 'tree' && <PageHeader title={title} actions={<button type="button" className="ui-close-button" onClick={onClose} aria-label={closeLabel}>×</button>}/>}

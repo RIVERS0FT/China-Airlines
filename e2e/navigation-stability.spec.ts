@@ -70,19 +70,20 @@ for (const config of cases) {
     const rightInset = await dock.evaluate(el => parseFloat(getComputedStyle(el).paddingRight));
     expect(Math.abs(navBox.x + navBox.width - routeBox.x - routeBox.width - rightInset * scale)).toBeLessThan(.5);
     await expect(route).toBeInViewport();
-
-    // Pressing an active tab must not temporarily move its hit target either.
     await ordinary(page).nth(1).hover();
     await page.mouse.down();
     await expectStable(page, baseline);
     await page.mouse.up();
 
-    // Native modal scrollbars and dismissals must not recenter the underlying dock.
+    // Work pages share the shell instead of occupying the native modal top layer.
     for (const index of [2, 3, 4, 6]) {
       await ordinary(page).nth(index).click();
-      await expect(page.locator('dialog[open]')).toHaveCount(1);
+      await expect(page.locator('.ui-page')).toHaveCount(1);
+      await expect(page.locator('dialog[open]')).toHaveCount(0);
+      await expect(ordinary(page).nth(index)).toHaveAttribute('aria-current', 'page');
       await expectStable(page, baseline);
       await page.keyboard.press('Escape');
+      await expect(page.locator('.ui-page')).toHaveCount(0);
       await expect(page.locator('dialog[open]')).toHaveCount(0);
       await expectStable(page, baseline);
     }
@@ -98,13 +99,16 @@ for (const config of cases) {
     const first = baseline[0]!, second = baseline[1]!;
     const point = { x:(first.x + first.width + second.x) / 2, y:first.y + first.height / 2 };
     expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.tagName, point)).toBe('CANVAS');
+    const camera = await page.getByTestId('map-canvas').getAttribute('data-camera');
     await ordinary(page).nth(6).click();
-    await expect(page.locator('dialog[open]')).toHaveCount(1);
+    await expect(page.getByTestId('page-career')).toBeVisible();
+    await expect(page.locator('dialog[open]')).toHaveCount(0);
     await expectStable(page, baseline);
     await page.keyboard.press('Escape');
-    await expect(page.locator('dialog[open]')).toHaveCount(0);
+    await expect(page.locator('.ui-page')).toHaveCount(0);
+    await expect(page.locator('.world-map-view')).toBeVisible();
+    await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-camera', camera!);
 
-    // Organization inherits the same geometry whether entered from map or airport.
     await ordinary(page).nth(5).click();
     await expect(page.locator('.organization-workspace')).toBeVisible();
     await expectStable(page, baseline);
