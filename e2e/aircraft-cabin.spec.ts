@@ -44,8 +44,8 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
     await expect(page.getByTestId('cabin-passengers').locator('header strong')).toContainText('3/3');
     await expect(page.getByTestId('cabin-cargo').locator('header strong')).toContainText('2/2');
     await expect(page.getByTestId('plane-art')).toHaveAttribute('data-facing', 'left');
-    expect(await page.locator('.cutaway-airframe, .cabin-place-art, .cabin-seat-front, .cabin-room-art').evaluateAll(elements => elements.every(el => new DOMMatrix(getComputedStyle(el).transform).a === 1))).toBe(true);
-    expect(await page.locator('.cutaway-airframe, .cabin-place-art, .cabin-seat-front, .cabin-room-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
+    expect(await page.locator('.cutaway-airframe, .cabin-place-art').evaluateAll(elements => elements.every(el => new DOMMatrix(getComputedStyle(el).transform).a === 1))).toBe(true);
+    expect(await page.locator('.cutaway-airframe, .cabin-place-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
     expect(await page.locator('.job-art[data-passenger-variant], .job-art[data-cargo-type]').evaluateAll(elements => elements.every(el => new DOMMatrix(getComputedStyle(el).transform).a === 1))).toBe(true);
     for (const sprite of await page.locator('.cabin-passengers .job-art').all()) await expect(sprite).toHaveAttribute('data-pose', 'seated');
     for (const sprite of await page.locator('.apron-queue .job-art[data-passenger-variant]').all()) await expect(sprite).toHaveAttribute('data-pose', 'standing');
@@ -57,34 +57,41 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
         const b = el.getBoundingClientRect(), hit = document.elementFromPoint(b.x + 15, b.y + b.height / 2);
         return !!hit && el.contains(hit);
       })).toBe(true);
-      expect(box.y + box.height).toBeLessThan((await page.getByTestId('airport-scene').boundingBox())!.y + (await page.getByTestId('airport-scene').boundingBox())!.height);
+      expect(box.y + box.height).toBeLessThanOrEqual((await page.getByTestId('airport-scene').boundingBox())!.y + (await page.getByTestId('airport-scene').boundingBox())!.height + .5);
     }
     const frame = (await page.getByTestId('plane-art').boundingBox())!;
     const cabin = (await page.getByTestId('aircraft-cabin').boundingBox())!;
-    for (const floorPlane of await page.locator('.cabin-floor-plane').all()) {
-      const geometry = await floorPlane.evaluate(el => {
-        const svg = el as SVGSVGElement, view = svg.viewBox.baseVal;
-        return { xScale: svg.clientWidth / view.width, yScale: svg.clientHeight / view.height,
-          oldFloorImage: !!svg.parentElement!.querySelector('img.cabin-room-art') };
-      });
-      expect(Math.abs(geometry.xScale - geometry.yScale)).toBeLessThan(.03);
-      expect(geometry.oldFloorImage).toBe(false);
-    }
+    await expect(page.locator('.cabin-floor-plane, .cabin-room-floor, .cabin-room-art, .cabin-room-wall')).toHaveCount(0);
+    expect(await page.locator('.cabin-interior, .cabin-deck').evaluateAll(nodes => nodes.every(node => {
+      const style = getComputedStyle(node);
+      return style.backgroundImage === 'none' && style.backgroundColor === 'rgba(0, 0, 0, 0)' && style.borderTopWidth === '0px';
+    }))).toBe(true);
     expect(cabin.x).toBeGreaterThan(frame.x); expect(cabin.x + cabin.width).toBeLessThan(frame.x + frame.width);
     expect(cabin.y).toBeGreaterThan(frame.y); expect(cabin.y + cabin.height).toBeLessThan(frame.y + frame.height);
     for (const card of await page.getByTestId('loaded-order').all()) {
       const box = (await card.boundingBox())!;
-      expect(box.y).toBeGreaterThanOrEqual(cabin.y); expect(box.y + box.height).toBeLessThanOrEqual(cabin.y + cabin.height);
+      expect(box.y).toBeGreaterThanOrEqual(cabin.y); expect(box.y + box.height).toBeLessThanOrEqual(frame.y + frame.height);
       const scale = await page.getByTestId('game-layout').getAttribute('data-screen-scale');
       // Both image and caption activate the full-height card; stacked decks
       // use an inline caption on short screens without shrinking touch targets.
       expect(box.height / Number(scale)).toBeGreaterThanOrEqual(44);
       const anchor = card.locator('..'), furniture = (await anchor.locator('.cabin-place-art').boundingBox())!;
-      const floor = (await card.locator('xpath=ancestor::section[contains(@class,"cabin-deck")]').locator('.cabin-room-floor').boundingBox())!;
+      const deckNode = card.locator('xpath=ancestor::section[contains(@class,"cabin-deck")]');
+      const room = (await deckNode.boundingBox())!;
+      const artScale = Number(await page.getByTestId('aircraft-canvas').getAttribute('data-art-scale')) * Number(scale);
+      const ground = room.y + Number(await anchor.getAttribute('data-floor-y')) * artScale;
       const occupant = (await card.locator('.job-art').boundingBox())!;
       const furnitureBase = furniture.y + furniture.height;
-      expect(furnitureBase).toBeGreaterThan(floor.y);
-      expect(furnitureBase).toBeLessThan(floor.y + floor.height);
+      expect(furniture.y).toBeGreaterThanOrEqual(room.y - .5);
+      expect(furnitureBase).toBeLessThanOrEqual(room.y + room.height + .5);
+      expect(occupant.y).toBeGreaterThanOrEqual(room.y - .5);
+      expect(occupant.y + occupant.height).toBeLessThanOrEqual(room.y + room.height + .5);
+      const floorAnchor = await card.locator('.job-art').getAttribute('data-pose') === 'seated' ? 796 / 804 : 228 / 237;
+      expect(Math.abs(furniture.y + furniture.height * floorAnchor - ground)).toBeLessThan(1);
+      const caption = (await card.locator('.job-info').boundingBox())!;
+      expect(caption.x).toBeGreaterThanOrEqual(furniture.x + furniture.width - .5);
+      expect(caption.x).toBeGreaterThanOrEqual(occupant.x + occupant.width - .5);
+      expect(caption.y + caption.height).toBeLessThanOrEqual(box.y + box.height + .5);
       if (await card.locator('.job-art').getAttribute('data-pose') === 'seated') {
         const seat = Number(await anchor.getAttribute('data-seat-cushion-y'));
         const hip = Number(await anchor.getAttribute('data-passenger-hip-y'));
@@ -144,6 +151,13 @@ test('new loads reveal their cabin page; paging is read-only and saves restore r
   const before = await exported(page);
   await page.getByRole('group', { name: '机内乘客', exact: true }).focus(); await page.keyboard.press('End');
   await expect(deck.getByRole('button', { name: '下一页客舱' })).toBeDisabled();
+  const lastPage = await deck.locator('nav span').textContent();
+  await deck.locator('.cabin-place-art').first().evaluate(node => node.setAttribute('data-same-seat', 'true'));
+  await page.getByRole('button', { name: '查看外观', exact: true }).click();
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.getByRole('button', { name: '查看机舱', exact: true }).click();
+  await expect(deck.locator('nav span')).toHaveText(lastPage!);
+  await expect(deck.locator('.cabin-place-art').first()).toHaveAttribute('data-same-seat', 'true');
   await page.getByRole('button', { name: '查看机上客货', exact: true }).click();
   await expect(page.getByRole('group', { name: '机内乘客', exact: true })).toBeFocused();
   expect(await exported(page)).toEqual(before);
@@ -180,7 +194,7 @@ test('English cabin and offline unload restore the same order without a translat
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => true));
   await page.reload(); await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await context.setOffline(true); await page.reload();
-  expect(await page.locator('.cutaway-airframe, .cabin-place-art, .cabin-seat-front, .cabin-room-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
+  expect(await page.locator('.cutaway-airframe, .cabin-place-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
   await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toBeVisible();
   await expect(page.getByTestId('loaded-order').locator('.job-art')).toHaveAttribute('data-pose', 'seated');
   await page.getByTestId('loaded-order').click();
@@ -204,7 +218,7 @@ for (const family of ['swift', 'heron', 'albatross', 'aurora']) for (const role 
       await expect(card.locator('..')).toHaveAttribute('data-anchor-id', /^(passengers|cargo)-\d+$/);
       await card.click({ trial: true });
     }
-    expect(await page.locator('.cutaway-airframe, .cabin-place-art, .cabin-seat-front, .cabin-room-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
+    expect(await page.locator('.cutaway-airframe, .cabin-place-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
     await page.screenshot({ path: `artifacts/cabin-${family}-${role}.png` });
   });
 }

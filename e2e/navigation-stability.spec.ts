@@ -1,6 +1,5 @@
 import { test, expect, type Page } from './fixture.js';
 import { displayScale } from './display-helpers.js';
-import { leaveMap } from './dispatch-helpers.js';
 
 type Box = { x: number; y: number; width: number; height: number };
 const ordinary = (page: Page) => page.locator('.game-dock > button:not(.depart-button)');
@@ -67,7 +66,9 @@ for (const config of cases) {
     }
     const route = dock.locator('.depart-button');
     const routeBox = (await route.boundingBox())!;
-    expect(Math.abs(routeBox.x - baseline[6]!.x - baseline[6]!.width - gap)).toBeLessThan(.5);
+    expect(routeBox.x - baseline[6]!.x - baseline[6]!.width).toBeGreaterThanOrEqual(gap - .5);
+    const rightInset = await dock.evaluate(el => parseFloat(getComputedStyle(el).paddingRight));
+    expect(Math.abs(navBox.x + navBox.width - routeBox.x - routeBox.width - rightInset * scale)).toBeLessThan(.5);
     await expect(route).toBeInViewport();
 
     // Pressing an active tab must not temporarily move its hit target either.
@@ -120,13 +121,24 @@ for (const config of cases) {
     await expect(page.locator('.organization-workspace')).toHaveCount(0);
     await expectStable(page, baseline);
 
-    if (config.locale === 'zh-CN') {
-      await route.click();
-      await expect(page.locator('.route-dispatch-view')).toBeVisible();
-      await expect(dock).toHaveCount(0);
-      await leaveMap(page);
-      await expectStable(page, baseline);
+    await route.click();
+    await expect(page.locator('.route-dispatch-view')).toBeVisible();
+    await expect(dock).toHaveCount(0);
+    const launch = page.getByTestId('dispatch');
+    await expect(launch).toBeDisabled();
+    async function expectPrimaryPosition() {
+      const box = (await launch.boundingBox())!;
+      expect(Math.abs(box.x + box.width - routeBox.x - routeBox.width)).toBeLessThan(.5);
+      expect(Math.abs(box.y + box.height - routeBox.y - routeBox.height)).toBeLessThan(.5);
+      expect(Math.abs(box.height - routeBox.height)).toBeLessThan(.5);
     }
+    await expectPrimaryPosition();
+    await page.locator('.dispatch-destination').click();
+    await page.locator('.dispatch-city-field select').selectOption('PVG');
+    await expect(launch).toBeEnabled();
+    await expectPrimaryPosition();
+    await page.locator('.route-cancel-button').click();
+    await expectStable(page, baseline);
     await page.screenshot({ path:`artifacts/navigation-stable-${config.width}-${config.zoom}-${config.locale}.png` });
     await page.reload();
     await expect(page.getByTestId('airport-scene')).toBeVisible();

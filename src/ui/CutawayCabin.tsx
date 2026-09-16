@@ -28,7 +28,7 @@ export function CutawayCabin({ game, plane, busy, focusKey, onInspect }: { game:
   return <div ref={frame} className="airplane-display cabin-aircraft" data-testid="plane-art" data-cabin-plane-id={plane.id} data-model-id={art.modelId} data-exterior={exterior || undefined}
     data-cabin-family={art.family} data-facing={art.direction} data-anchor-debug={debug || undefined}>
     <div className="aircraft-canvas" data-testid="aircraft-canvas" data-art-scale={fit.scale} style={{ width: art.canvas.width, height: art.canvas.height,
-      left: fit.left, top: fit.top, transform: `scale(${fit.scale})`, '--cabin-ui-unit': `${1 / fit.scale}px` } as CSSProperties}>
+      left: fit.left, top: fit.top, visibility: fit.scale ? 'visible' : 'hidden', transform: `scale(${fit.scale})`, '--cabin-ui-unit': `${1 / (fit.scale || 1)}px` } as CSSProperties}>
       <img className="cutaway-airframe" src={artAsset(art.hull)} alt="" aria-hidden="true" draggable={false}/>
       <div ref={interior} inert={exterior} aria-hidden={exterior || undefined} className={`cabin-overlay cabin-interior ${decks.length === 1 ? 'single-deck' : 'stacked-decks'}`}
         style={{ left: rect.x, top: rect.y, width: rect.width, height: rect.height }} data-testid="aircraft-cabin">

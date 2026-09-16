@@ -3,17 +3,18 @@ import { GameCore, manifest, waiting, validateSave } from '../src/core/game.js';
 import { aircraftSpecs } from '../src/core/catalog.js';
 import { cabinLayout, cabinPage, orderArtFile } from '../src/ui/cabin-layout.js';
 import { passengerFrame } from '../src/ui/passenger-art.js';
-import { cabinArtLayout, cabinAnchors, cabinPlacement } from '../src/ui/cabin-art-layout.js';
+import { cabinArtLayout, paintedAnchors, paintedDeck, cabinPlacement, fitAircraft, type CabinAnchor } from '../src/ui/cabin-art-layout.js';
 import { ALL_MODELS } from '../src/core/catalog.js';
 
 
+const template = (kind: CabinAnchor['kind']): CabinAnchor => ({ id: `${kind}-1`, kind, x: .5, floorY: .78, width: 1, z: 2 });
 const NOW = 1_800_000_000_000, ID = 'AC0001';
 
 describe('real orders inside the aircraft', () => {
   it('aligns passenger hips to cushions, feet to the floor and cargo to pallet tops', () => {
     const core = new GameCore(NOW), state = core.snapshot();
     for (const order of waiting(state, 'PEK')) for (const [width, height] of [[120, 140], [240, 230]]) {
-      const anchor = cabinAnchors(order.kind, width!, 8)[0]!;
+      const anchor = template(order.kind);
       const p = cabinPlacement(anchor, width!, height!, order);
       expect(p.ground).toBeGreaterThan(height! * .65);
       expect(p.furnitureWidth).toBeLessThanOrEqual(width! * anchor.width);
@@ -27,13 +28,12 @@ describe('real orders inside the aircraft', () => {
         expect(p.occupantFoot).toBeCloseTo(p.palletTop!);
         expect(p.occupantHeight).toBeLessThanOrEqual(92);
       }
-      expect(p.labelTop).toBeGreaterThan(p.ground);
     }
   });
   it('fits all six seated silhouettes and their horizontal contact points at narrow and wide sizes', () => {
     const order = waiting(new GameCore(NOW).snapshot(), 'PEK').find(o => o.kind === 'passengers')!;
     for (const id of ['a', 'b', 'c', 'd', 'e', 'f']) for (const [width, height] of [[96, 140], [120, 180], [240, 230]]) {
-      const anchor = cabinAnchors('passengers', width!, 8)[0]!;
+      const anchor = template('passengers');
       const p = cabinPlacement(anchor, width!, height!, { ...order, id });
       const frame = passengerFrame(id, 'seated');
       const left = width! * anchor.width / 2 + p.occupantOffsetX - p.occupantWidth / 2;
@@ -46,13 +46,14 @@ describe('real orders inside the aircraft', () => {
       expect(top + frame.anchors.footY * p.occupantHeight).toBeCloseTo(p.ground);
     }
   });
-  it('keeps short stacked decks on the floor with cargo fully above its pallet and captions below',()=>{
+  it('keeps sprites on short painted floors without using text to resize the furniture',()=>{
     const state=new GameCore(NOW).snapshot();
     for(const order of waiting(state,'PEK'))for(const height of [56,77,89,140]){
-      const p=cabinPlacement(cabinAnchors(order.kind,110,8)[0]!,110,height,order);
+      const p=cabinPlacement(template(order.kind),110,height,order);
       expect(p.ground).toBeGreaterThan(height*.55);expect(p.ground).toBeLessThan(height);
       expect(height-p.occupantBottom-p.occupantHeight).toBeGreaterThanOrEqual(0);
-      expect(p.labelTop+(height<90?14:44)).toBeLessThanOrEqual(height+.01);
+      expect(p.furnitureBottom).toBeGreaterThanOrEqual(0);
+      if(order.kind === 'cargo') expect(p.occupantFoot).toBeCloseTo(p.palletTop!);
     }
   });
   it('keeps every current model mapped to an in-bounds left-facing cabin', () => {
@@ -63,28 +64,32 @@ describe('real orders inside the aircraft', () => {
       expect(art.interior.y).toBeGreaterThan(0);
       expect(art.interior.x + art.interior.width).toBeLessThan(art.canvas.width);
       expect(art.interior.y + art.interior.height).toBeLessThan(art.canvas.height);
-      for (const width of [96, 240, 480, 1200]) {
-        for (const kind of ['passengers', 'cargo'] as const) {
-          const anchors = cabinAnchors(kind, width, art.maxAnchors);
-          expect(new Set(anchors.map(a => a.id)).size).toBe(anchors.length);
-          expect(anchors.length).toBeLessThanOrEqual(art.maxAnchors);
-          for (const [i, anchor] of anchors.entries()) {
-            expect(anchor.x - anchor.width / 2).toBeGreaterThanOrEqual(-1e-12);
-            expect(anchor.x + anchor.width / 2).toBeLessThanOrEqual(1 + 1e-12);
-            expect(anchor.width * width).toBeGreaterThanOrEqual(96);
-            if (i) expect(anchor.x - anchor.width / 2).toBeCloseTo(anchors[i - 1]!.x + anchors[i - 1]!.width / 2);
-          }
+      expect(Object.keys(art.decks).sort()).toEqual([...(aircraft.seats ? ['passengers'] : []), ...(aircraft.cargo ? ['cargo'] : [])].sort());
+      for (const kind of ['passengers', 'cargo'] as const) {
+        if (!art.decks[kind]) continue;
+        const room = paintedDeck(art, kind), anchors = paintedAnchors(art, kind);
+        expect(room.x).toBeGreaterThanOrEqual(art.interior.x);
+        expect(room.y).toBeGreaterThanOrEqual(art.interior.y);
+        expect(room.x + room.width).toBeLessThanOrEqual(art.interior.x + art.interior.width);
+        expect(room.y + room.height).toBeLessThanOrEqual(art.interior.y + art.interior.height);
+        expect(anchors).toHaveLength(room.count);
+        expect(new Set(anchors.map(anchor => anchor.id)).size).toBe(room.count);
+        for (const anchor of anchors) {
+          expect(anchor.x - anchor.width / 2).toBeGreaterThanOrEqual(-1e-12);
+          expect(anchor.x + anchor.width / 2).toBeLessThanOrEqual(1 + 1e-12);
+          expect(room.y + anchor.floorY * room.height).toBeCloseTo(room.floorY);
         }
       }
     }
   });
 
-  it('reflows anchor pages without losing or duplicating real loaded orders', () => {
+  it('uses fixed painted slots at every display scale without losing or duplicating real orders', () => {
     const core = new GameCore(NOW);
     core.execute({ type: 'load-destination', planeId: ID, to: 'PVG' }, NOW);
     const state = core.snapshot(), before = structuredClone(state), art = cabinArtLayout(state.fleet[0]!);
     for (const deck of cabinLayout(state, state.fleet[0]!)) for (const width of [96, 240, 900]) {
-      const size = cabinAnchors(deck.kind, width, art.maxAnchors).length;
+      expect(fitAircraft(width, 500).scale).toBeGreaterThan(0);
+      const size = paintedAnchors(art, deck.kind).length;
       const pages = cabinPage(deck, 0, size).pages;
       const ids = Array.from({ length: pages }, (_, i) => cabinPage(deck, i, size).items).flat().flatMap(item => item.order ? [item.order.id] : []);
       expect(ids).toEqual(deck.orders.map(order => order.id));

@@ -13,7 +13,6 @@ export interface CabinArtLayout {
   canvas: { width: number; height: number };
   interior: { x: number; y: number; width: number; height: number };
   decks: Partial<Record<Order['kind'], PaintedDeck>>;
-  maxAnchors: number;
 }
 const SEAT = { width: 678, height: 804, floorY: 796 / 804, cushionX: 305 / 678, cushionY: 603 / 804 } as const;
 const PALLET = { width: 787, height: 237, floorY: 228 / 237, topX: .5, topY: 78 / 237 } as const;
@@ -35,16 +34,9 @@ export function cabinArtLayout(plane: Pick<Plane, 'modelId'>): CabinArtLayout {
   const family = registered.family as CabinFamily;
   return { modelId: aircraft.id, family, direction: 'left',
     hull: `aircraft-${aircraft.id}-cutaway-v4.png`, near: `aircraft-${aircraft.id}-near-v4.png`,
-    canvas: format.canvas, interior: registered.interior, decks: registered.decks,
-    maxAnchors: family === 'light' ? 8 : family === 'regional' ? 10 : 12 };
+    canvas: format.canvas, interior: registered.interior, decks: registered.decks };
 }
 
-/** Pure template helper. Production counts come from the measured painted deck. */
-export function cabinAnchors(kind: Order['kind'], logicalWidth: number, limit: number): CabinAnchor[] {
-  const width = Number.isFinite(logicalWidth) ? Math.max(0, logicalWidth) : 0;
-  const count = Math.max(1, Math.min(limit, Math.floor(width / 96)));
-  return Array.from({ length: count }, (_, i) => ({ id: `${kind}-${i + 1}`, kind, x: (i + .5) / count, floorY: .78, width: 1 / count, z: 2 }));
-}
 export function paintedDeck(art: CabinArtLayout, kind: Order['kind']): PaintedDeck {
   const deck = art.decks[kind];
   if (!deck) throw new Error(`Missing ${kind} coordinates for ${art.modelId}`);
@@ -58,7 +50,7 @@ export function paintedAnchors(art: CabinArtLayout, kind: Order['kind']): CabinA
 export function fitAircraft(width: number, height: number, canvas = format.canvas) {
   const usableWidth = Number.isFinite(width) ? Math.max(0, width) : 0;
   const usableHeight = Number.isFinite(height) ? Math.max(0, height - 44) : 0;
-  const scale = Math.max(.001, Math.min(usableWidth / canvas.width, usableHeight / canvas.height));
+  const scale = Math.min(usableWidth / canvas.width, usableHeight / canvas.height);
   return { scale, left: (usableWidth - canvas.width * scale) / 2, top: Math.max(0, usableHeight - canvas.height * scale) };
 }
 
@@ -85,7 +77,7 @@ export function cabinPlacement(anchor: CabinAnchor, deckWidth: number, deckHeigh
     return { ground, occupantWidth: occupantHeight * ratio, occupantHeight, occupantBottom,
       occupantFoot: ground, occupantHip: ground - cushionRise, occupantHipX: seatCushionX,
       occupantOffsetX, seatCushion: ground - cushionRise, seatCushionX, palletTop: null,
-      furnitureWidth: furnitureHeight * rearRatio, furnitureHeight, furnitureBottom, furnitureOffsetX, labelTop: ground + 2 };
+      furnitureWidth: furnitureHeight * rearRatio, furnitureHeight, furnitureBottom, furnitureOffsetX };
   }
   const scale = frame && 'cabinVisualScale' in frame ? frame.cabinVisualScale : .84;
   const furnitureWidth = Math.min(slotWidth * .52, 118, availableHeight * .44 * PALLET.width / (PALLET.height * (PALLET.floorY - PALLET.topY)));
@@ -97,5 +89,5 @@ export function cabinPlacement(anchor: CabinAnchor, deckWidth: number, deckHeigh
     occupantBottom: deckHeight - palletTop, occupantFoot: palletTop, occupantHip: null, occupantHipX: null,
     occupantOffsetX: furnitureOffsetX + (PALLET.topX - .5) * furnitureWidth, seatCushion: null, seatCushionX: null,
     furnitureWidth, furnitureHeight, furnitureBottom: deckHeight - ground - (1 - PALLET.floorY) * furnitureHeight,
-    furnitureOffsetX, palletTop, labelTop: ground + 2 };
+    furnitureOffsetX, palletTop };
 }
