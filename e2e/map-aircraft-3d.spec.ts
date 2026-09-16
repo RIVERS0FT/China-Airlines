@@ -10,11 +10,35 @@ async function openMap(page: Page) {
   return host;
 }
 
+async function openFlyingMap(page: Page) {
+  const now = Date.parse('2026-09-15T00:00:00Z'), core = new GameCore(now);
+  core.execute({ type: 'dispatch', planeId: 'AC0001', to: 'PVG', auto: false }, now);
+  await page.clock.setFixedTime(new Date(now));
+  await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
+  await page.getByRole('button', { name: '存档设置', exact: true }).click();
+  page.once('dialog', dialog => void dialog.accept());
+  await page.getByLabel('选择存档文件').setInputFiles({ name: 'flying-aircraft.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(core.snapshot())) });
+  await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
+  await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
+  await page.getByRole('button', { name: '地图', exact: true }).click();
+  const host = page.getByTestId('map-canvas');
+  await expect(host).toHaveAttribute('data-renderer', 'ready');
+  return host;
+}
+
+test('grounded aircraft does not create a 3D map model', async ({ page }) => {
+  const host = await openMap(page), layer = page.getByTestId('map-aircraft-canvas');
+  await expect(host).toHaveAttribute('data-aircraft-status', 'ready');
+  await expect(host).toHaveAttribute('data-visible-plane-models', '');
+  await expect(host).toHaveAttribute('data-visible-planes', '');
+  await expect(layer).toHaveAttribute('data-instances', '0');
+});
+
 for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
   test(`A model paints real pixels, hides behind globe, and keeps input at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
-    const host = await openMap(page), layer = page.getByTestId('map-aircraft-canvas');
+    const host = await openFlyingMap(page), layer = page.getByTestId('map-aircraft-canvas');
     await expect(host).toHaveAttribute('data-aircraft-status', 'ready');
     await expect(host).toHaveAttribute('data-visible-plane-models', 'AC0001:low-poly-airliner.glb');
     await expect(layer).toHaveAttribute('data-instances', '1');
@@ -98,7 +122,7 @@ test('downloaded A model remains available after refresh and offline restart', a
   await context.setOffline(true); await page.reload();
   await page.getByRole('button', { name: '地图', exact: true }).click();
   await expect(host).toHaveAttribute('data-aircraft-status', 'ready');
-  await expect(page.getByTestId('map-aircraft-canvas')).toHaveAttribute('data-instances', '1');
+  await expect(page.getByTestId('map-aircraft-canvas')).toHaveAttribute('data-instances', '0');
   await context.setOffline(false);
 });
 
@@ -124,6 +148,7 @@ test('a real flight uses A while still advancing the original business state', a
 test('different aircraft types share A geometry and hiding others changes only visibility', async ({ page }) => {
   const now = Date.parse('2026-09-15T00:00:00Z'), core = new GameCore(now);
   core.execute({ type: 'buy', modelId: 'swift-m', airportId: 'PEK' }, now);
+  core.execute({ type: 'dispatch', planeId: 'AC0001', to: 'PVG', auto: false }, now);
   core.execute({ type: 'dispatch', planeId: 'AC0002', to: 'PVG', auto: false }, now);
   await page.clock.setFixedTime(new Date(now));
   await page.goto('./'); await page.getByRole('button', { name: '存档设置', exact: true }).click();
