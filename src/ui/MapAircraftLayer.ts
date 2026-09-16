@@ -26,6 +26,10 @@ export const AIRLINER_A = {
   hiddenNodes: ['Cylinder001', 'Cylinder002', 'Cylinder003'],
 } as const;
 
+export function shouldShowMapAircraft(plane: GameState['fleet'][number], currentId: string | undefined, showOthers: boolean) {
+  return Boolean(plane.flight) && (plane.id === currentId || showOthers);
+}
+
 /** Per-layer ownership: instances share the loaded model; teardown frees it once. */
 export function disposeAircraftModel(model: Object3D) {
   const geometries = new Set<BufferGeometry>(), materials = new Set<Material>(), textures = new Set<Texture>();
@@ -138,7 +142,7 @@ export class MapAircraftLayer {
     const markers: AircraftMarker[] = []; let count = 0;
     for (const plane of game.fleet) {
       const frame = projectAircraftFrame(aircraftFrame(plane, time), camera, !plane.flight);
-      const visible = frame.visible && (plane.id === currentId || (showOthers && Boolean(plane.flight)));
+      const visible = frame.visible && shouldShowMapAircraft(plane, currentId, showOthers);
       markers.push({ id: plane.id, x: camera.cx + frame.position.x, y: camera.cy - frame.position.y, visible });
       if (!visible) continue;
       right.set(frame.right.x, frame.right.y, frame.right.z);
