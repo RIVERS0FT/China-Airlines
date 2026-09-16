@@ -1,10 +1,10 @@
-# 独立剖面图与外观图 v6（2026-09-16）
+# 全机队客货舱剖面图与外观图 v7（2026-09-16）
 
-飞机新稿改为每架直接交付两张完整1536×590 RGBA：`aircraft-{id}-cutaway-{revision}.png` 和 `aircraft-{id}-exterior-{revision}.png`。两张图必须是同一架左向飞机，造型、视角、尺度、基线、涂装和光照一致；外观模式直接替换整图，不再绘制或合成近侧蒙皮层。完整规则见 [UNIFIED-AIRCRAFT-CANVAS.md](UNIFIED-AIRCRAFT-CANVAS.md)。
+现役14架飞机每架直接交付两张1536×590 RGBA：`aircraft-{id}-cutaway-v7.png` 和 `aircraft-{id}-exterior-v7.png`。上图只剖开客货舱段，不剖驾驶舱、发动机、机翼、起落架或尾部结构；下图为匹配的完整封闭外观。两图保持同一左向原型、视角、可见宽度、基线、原创蓝白金涂装和光照；外观模式直接替换整图，不再绘制或合成近侧蒙皮层。完整规则见 [UNIFIED-AIRCRAFT-CANVAS.md](UNIFIED-AIRCRAFT-CANVAS.md)。
 
-首架资源位于 `art/aircraft-pair-v6/`，以Diamond DA40的通用结构为参考，使用原创蓝白金涂装，游戏化容量为1客0货。剖面图只有一个空客位且没有货舱；外观图是同一飞机的完整封闭外观。目录同时保存imagegen原图、完整提示词、容量声明和自动校验清单。`prepare-aircraft-art.mjs` 通过 `pair` 分支无损写入 `public/art/aircraft-diamond-da40-{cutaway,exterior}-v6.png`，不生成近侧蒙皮，并接入机型目录与PWA构建。
+资源位于 `art/aircraft-pair-v7/`，覆盖SkyCourier、ATR 72、A321、747-8和DA40五组现实原型及所有客运、货运、客货与初航号变体。`sources/` 保存1536×1024纯绿母版；`prepare-aircraft-pairs-v7.mjs` 抠除绿底、分离上下视图、统一可见宽度与基线，`prepare-aircraft-art.mjs` 再通过 `pair` 分支写入 `public/art`。目录同时保存提示词、容量声明和自动校验清单。
 
-现役13架v5仍按历史图集注册为剖面、近侧外壳与合成外观，相关源图和提示词保留在 `art/aircraft-capacity-v5/`。这只是未重画机型的运行兼容，不再是新飞机绘制规则。现实机型网站和厂商资料只允许研究通用结构，不下载或接入图片、商标、注册号、现实涂装和线稿。
+旧v5/v6资源和提示词保留作历史记录，但现役目录不再引用。现实机型网站和厂商资料只允许研究通用结构，不下载或接入图片、商标、注册号、现实涂装和线稿。
 
 旧机型及存档边界保持：v1–v6不再导入，v7–v8只有当时现役机型可迁移；v9允许目录中的初航号、12架v5机型及新增DA40。退役或未知机型必须拒绝，不能自动替换、删除、缩容或覆盖有效存档和备份。IndexedDB结构仍为1。
 

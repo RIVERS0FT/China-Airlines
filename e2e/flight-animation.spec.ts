@@ -80,7 +80,7 @@ for (const config of [
   await page.getByRole('button', { name: '机场装载', exact: true }).click();
   if (id === 'AC0002') await page.getByRole('button', { name: '下一架飞机', exact: true }).click();
   await expect(page.locator('.plane-status')).toContainText(id);
-  await expect(page.getByTestId('aircraft-sprite')).toHaveAttribute('href', new RegExp(`aircraft-${config.model}-exterior-v[56]\\.png$`));
+  await expect(page.getByTestId('aircraft-sprite')).toHaveAttribute('href', new RegExp(`aircraft-${config.model}-exterior-v7\\.png$`));
   const before = await exportState(page);
   const button = page.getByTestId('plane-art');
   const fixed = await button.boundingBox();

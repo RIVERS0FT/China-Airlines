@@ -1,7 +1,7 @@
 import { upgradeLimit } from '../src/core/career-catalog.js';
 import { describe, it, expect } from 'vitest';
 import { GameCore, validateSave, manifest, planQuote, quote, type GameState } from '../src/core/game.js';
-import { MODELS, aircraftSpecs, hangarPrice, retrofitPrice } from '../src/core/catalog.js';
+import { ALL_MODELS, MODELS, aircraftSpecs, hangarPrice, retrofitPrice } from '../src/core/catalog.js';
 import legacyV2 from './fixtures/v2-flying.json';
 const NOW = 1800000000000;
 const ID = 'AC0001';
@@ -14,11 +14,13 @@ function prepared() {
 }
 function mutated(fn: (s: GameState) => void) { const s = prepared().snapshot(); fn(s); return () => validateSave(s); }
 describe('aircraft specialisation and workshop', () => {
-  it('offers thirteen distinct aircraft, including the passenger-only DA40 entry tier', () => {
+  it('gives every purchasable and non-sale aircraft a real-world prototype', () => {
     expect(new Set(MODELS.map(m => m.id)).size).toBe(13);
+    expect(ALL_MODELS).toHaveLength(14);
+    expect(new Set(ALL_MODELS.map(m => m.id)).size).toBe(ALL_MODELS.length);
     expect(MODELS.filter(m => m.kind === 'passengers')).toHaveLength(5);
     for (const kind of ['mixed', 'cargo'] as const) expect(MODELS.filter(m => m.kind === kind)).toHaveLength(4);
-    for (const model of MODELS) {
+    for (const model of ALL_MODELS) {
       expect(model.reference.prototype.length).toBeGreaterThan(3);
       expect(model.reference.capacity).toMatch(/座/);
     }

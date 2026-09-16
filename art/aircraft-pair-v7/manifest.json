@@ -1,0 +1,25 @@
+{
+  "revision": "v7",
+  "direction": "left",
+  "canvas": { "width": 1536, "height": 590 },
+  "sourceBoard": { "width": 1536, "height": 1024 },
+  "targetVisibleWidth": 1430,
+  "targetBaseline": 560,
+  "generator": "built-in imagegen",
+  "aircraft": [
+    { "id": "starter-swift", "prototype": "Cessna 408 SkyCourier", "capacity": { "passengers": 3, "cargo": 2 }, "source": "sources/starter-swift-source-v7.png", "cutaway": "starter-swift-cutaway-v7.png", "exterior": "starter-swift-exterior-v7.png" },
+    { "id": "diamond-da40", "prototype": "Diamond DA40 NG", "capacity": { "passengers": 1, "cargo": 0 }, "source": "sources/diamond-da40-source-v7.png", "cutaway": "diamond-da40-cutaway-v7.png", "exterior": "diamond-da40-exterior-v7.png" },
+    { "id": "swift-p", "prototype": "Cessna 408 SkyCourier Passenger", "capacity": { "passengers": 4, "cargo": 0 }, "source": "sources/swift-p-source-v7.png", "cutaway": "swift-p-cutaway-v7.png", "exterior": "swift-p-exterior-v7.png" },
+    { "id": "swift-f", "prototype": "Cessna 408 SkyCourier Freighter", "capacity": { "passengers": 0, "cargo": 3 }, "source": "sources/swift-f-source-v7.png", "cutaway": "swift-f-cutaway-v7.png", "exterior": "swift-f-exterior-v7.png" },
+    { "id": "swift-m", "prototype": "Cessna 408 SkyCourier", "capacity": { "passengers": 2, "cargo": 2 }, "source": "sources/swift-m-source-v7.png", "cutaway": "swift-m-cutaway-v7.png", "exterior": "swift-m-exterior-v7.png" },
+    { "id": "heron-p", "prototype": "ATR 72-600", "capacity": { "passengers": 8, "cargo": 0 }, "source": "sources/heron-p-source-v7.png", "cutaway": "heron-p-cutaway-v7.png", "exterior": "heron-p-exterior-v7.png" },
+    { "id": "heron-f", "prototype": "ATR 72-600F", "capacity": { "passengers": 0, "cargo": 6 }, "source": "sources/heron-f-source-v7.png", "cutaway": "heron-f-cutaway-v7.png", "exterior": "heron-f-exterior-v7.png" },
+    { "id": "heron-m", "prototype": "ATR 72-600 Combi", "capacity": { "passengers": 4, "cargo": 3 }, "source": "sources/heron-m-source-v7.png", "cutaway": "heron-m-cutaway-v7.png", "exterior": "heron-m-exterior-v7.png" },
+    { "id": "albatross-p", "prototype": "Airbus A321XLR", "capacity": { "passengers": 12, "cargo": 0 }, "source": "sources/albatross-p-source-v7.png", "cutaway": "albatross-p-cutaway-v7.png", "exterior": "albatross-p-exterior-v7.png" },
+    { "id": "albatross-f", "prototype": "Airbus A321P2F", "capacity": { "passengers": 0, "cargo": 9 }, "source": "sources/albatross-f-source-v7.png", "cutaway": "albatross-f-cutaway-v7.png", "exterior": "albatross-f-exterior-v7.png" },
+    { "id": "albatross-m", "prototype": "Airbus A321XLR", "capacity": { "passengers": 6, "cargo": 5 }, "source": "sources/albatross-m-source-v7.png", "cutaway": "albatross-m-cutaway-v7.png", "exterior": "albatross-m-exterior-v7.png" },
+    { "id": "aurora-p", "prototype": "Boeing 747-8I", "capacity": { "passengers": 18, "cargo": 0 }, "source": "sources/aurora-p-source-v7.png", "cutaway": "aurora-p-cutaway-v7.png", "exterior": "aurora-p-exterior-v7.png" },
+    { "id": "aurora-f", "prototype": "Boeing 747-8F", "capacity": { "passengers": 0, "cargo": 14 }, "source": "sources/aurora-f-source-v7.png", "cutaway": "aurora-f-cutaway-v7.png", "exterior": "aurora-f-exterior-v7.png" },
+    { "id": "aurora-m", "prototype": "Boeing 747-8I / 747-8F", "capacity": { "passengers": 9, "cargo": 7 }, "source": "sources/aurora-m-source-v7.png", "cutaway": "aurora-m-cutaway-v7.png", "exterior": "aurora-m-exterior-v7.png" }
+  ]
+}

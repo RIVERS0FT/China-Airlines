@@ -52,13 +52,13 @@ for(const model of ALL_MODELS)test(`dedicated layers cover ${model.id} without r
   }
   const frame=page.getByTestId('plane-art'),cabin=page.getByTestId('aircraft-cabin'),view=page.getByTestId('aircraft-view');
   await expect(frame).toHaveAttribute('data-model-id',model.id);
-  const revision=model.id==='diamond-da40'?'v6':'v5';
+  const revision='v7';
   await expect(view).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-cutaway-${revision}.png$`));
   await expect.poll(()=>frame.locator('img').evaluateAll(nodes=>nodes.every(n=>(n as HTMLImageElement).complete&&(n as HTMLImageElement).naturalWidth>0))).toBe(true);
   await expect(page.locator('.cabin-deck')).toHaveCount(model.seats&&model.cargo?2:1);
   if(model.seats&&model.cargo){
-    const top=(await page.getByTestId('cabin-passengers').boundingBox())!,bottom=(await page.getByTestId('cabin-cargo').boundingBox())!;
-    expect(bottom.y).toBeGreaterThanOrEqual(top.y+top.height-.5);expect(bottom.x).toBeCloseTo(top.x,0);
+    const passengers=(await page.getByTestId('cabin-passengers').boundingBox())!,cargo=(await page.getByTestId('cabin-cargo').boundingBox())!;
+    expect(cargo.x).toBeGreaterThanOrEqual(passengers.x+passengers.width-.5);expect(cargo.y).toBeCloseTo(passengers.y,0);
   }
   if(model.seats)await expect(page.getByTestId('cabin-passengers').locator('.cabin-anchor')).toHaveCount(model.seats);
   if(model.cargo)await expect(page.getByTestId('cabin-cargo').locator('.cabin-anchor')).toHaveCount(model.cargo);

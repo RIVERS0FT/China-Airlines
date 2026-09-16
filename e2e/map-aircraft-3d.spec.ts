@@ -86,7 +86,7 @@ networkFailureTest('model failure and context loss preserve the existing plane a
   const host = await openMap(page);
   await expect(host).toHaveAttribute('data-aircraft-status', 'fallback');
   expect(intercepted, 'the GLB failure must come from the injected invalid response').toBe(true);
-  await expect(host).toHaveAttribute('data-visible-plane-models', /aircraft-starter-swift-exterior-v5\.png/);
+  await expect(host).toHaveAttribute('data-visible-plane-models', /aircraft-starter-swift-exterior-v7\.png/);
   await expect(page.getByTestId('map-aircraft-canvas')).toHaveCount(0);
   await page.getByRole('button', { name: '机场装载', exact: true }).click();
   await page.unroute('**/models/low-poly-airliner.glb');
@@ -94,7 +94,7 @@ networkFailureTest('model failure and context loss preserve the existing plane a
   await expect(host).toHaveAttribute('data-aircraft-status', 'ready');
   await page.getByTestId('map-aircraft-canvas').evaluate(canvas => canvas.dispatchEvent(new Event('webglcontextlost')));
   await expect(host).toHaveAttribute('data-aircraft-status', 'fallback');
-  await expect(host).toHaveAttribute('data-visible-plane-models', /aircraft-starter-swift-exterior-v5\.png/);
+  await expect(host).toHaveAttribute('data-visible-plane-models', /aircraft-starter-swift-exterior-v7\.png/);
   await selectCity(page, 'PVG'); await expect(page.getByTestId('dispatch')).toBeEnabled();
 });
 

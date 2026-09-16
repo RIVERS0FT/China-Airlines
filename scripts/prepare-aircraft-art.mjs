@@ -3,6 +3,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { decodePng, encodePng, registerLayer, composite } from './aircraft-png.mjs';
+import { prepareAircraftPairsV7 } from './prepare-aircraft-pairs-v7.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const readJson=path=>JSON.parse(readFileSync(resolve(root,path),'utf8'));
@@ -33,6 +34,7 @@ function restoreAlpha(image,mask,label){
 
 /** No artwork is generated in the browser. The same registered pair creates the preview. */
 export function prepareAircraftArt({review=false}={}){
+  prepareAircraftPairsV7();
   const format=readJson('src/ui/aircraft-canvas.json'),layouts=readJson('src/ui/aircraft-layer-layouts.json');
   const out=resolve(root,'public/art');mkdirSync(out,{recursive:true});
   const report=[];
@@ -40,7 +42,7 @@ export function prepareAircraftArt({review=false}={}){
     let hull,near,full,source;
     const revision=layout.revision??'v4';
     if(layout.pair){
-      // v6+ artwork is reviewed as two complete, independently generated views.
+      // v7 artwork is reviewed as a compartment-only cutaway and a matching complete exterior.
       hull=decodePng(readFileSync(resolve(root,layout.pair.cutaway)));
       full=decodePng(readFileSync(resolve(root,layout.pair.exterior)));
       assertCanvas(hull,format.canvas,id);assertCanvas(full,format.canvas,id);source='direct-pair';
@@ -79,7 +81,7 @@ export function prepareAircraftArt({review=false}={}){
   }
   mkdirSync(resolve(root,'artifacts'),{recursive:true});
   writeFileSync(resolve(root,'artifacts/aircraft-registration.json'),JSON.stringify(report,null,2)+'\n');
-  console.log(`Prepared ${report.length} aircraft: equal canvases, shared origin, complete cutaway/exterior views.`);
+  console.log(`Prepared ${report.length} aircraft: equal canvases, shared origin, compartment cutaway/exterior views.`);
   return report;
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)prepareAircraftArt({review:process.argv.includes('--review')});

@@ -46,7 +46,7 @@ export interface AircraftModel {
     capacity: string;
   };
 }
-const AIRCRAFT_ART_REVISION = "v5";
+const AIRCRAFT_ART_REVISION = "v7";
 const families = [
   {
     id: "swift",
@@ -137,7 +137,7 @@ const DA40_MODEL: AircraftModel = {
   weight: 140,
   energy: 180,
   rank: 1,
-  art: "aircraft-diamond-da40-exterior-v6.png",
+  art: "aircraft-diamond-da40-exterior-v7.png",
   reference: {
     prototype: "Diamond DA40 NG",
     capacity: "4座（含飞行员）· 最大有效载荷407 kg",
