@@ -73,7 +73,7 @@ test('flight inspection opens aircraft details without modifying the flight or u
   await page.getByRole('button', { name: '机队管理概览', exact: true }).click();
   await expect(page.getByRole('tab', { name: '航班', exact: true })).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('button', { name: `查看${ID}飞机`, exact: true }).click();
-  await expect(page.getByRole('dialog', { name: '机队管理', exact: true })).toBeVisible();
+  await expect(page.getByRole('main', { name: '机队管理', exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: '飞机', exact: true })).toBeFocused();
   await expect(page.locator('.hangar-selector [aria-pressed=true]')).toContainText(ID);
   await expect(page.getByRole('button', { name: '升级舱位扩充', exact: true })).toBeDisabled();

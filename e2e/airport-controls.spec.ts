@@ -107,17 +107,17 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     await page.setViewportSize({ width: width!, height: height! });
     await page.goto('./');
     await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
-    for (const [button, dialog] of [
-      ['机队管理概览', '机队管理'], ['机场目录', '机场目录'], ['机队管理', '机队管理'],
-      ['飞机商店', '飞机商店'], ['任务中心', '任务中心'], ['操作帮助', '起航指南'],
-      ['存档设置', '本地存档与设置'], ['当前机场详情', '机场详情'],
-
-    ]) {
-      const control = page.getByRole('button', { name: button!, exact: true });
+    for (const [button, title, role] of [
+      ['机队管理概览', '机队管理', 'main'], ['机场目录', '机场目录', 'main'], ['机队管理', '机队管理', 'main'],
+      ['飞机商店', '飞机商店', 'main'], ['任务中心', '任务中心', 'dialog'], ['操作帮助', '起航指南', 'dialog'],
+      ['存档设置', '本地存档与设置', 'dialog'], ['当前机场详情', '机场详情', 'dialog'],
+    ] as const) {
+      const control = page.getByRole('button', { name: button, exact: true });
       await control.click();
-      await expect(page.getByRole('dialog', { name: dialog!, exact: true })).toBeVisible();
+      await expect(page.getByRole(role, { name: title, exact: true })).toBeVisible();
       await page.keyboard.press('Escape');
       await expect(page.getByRole('dialog')).toHaveCount(0);
+      await expect(page.locator('.ui-page')).toHaveCount(0);
     }
     await expect(page.locator('.airport-shortcuts')).toHaveCount(0);
     await expect(page.getByRole('button', { name: '显示机体客货示意', exact: true })).toHaveCount(0);

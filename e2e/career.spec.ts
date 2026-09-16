@@ -10,16 +10,8 @@ async function setup(page: Page, saved?: GameState) {
   if (saved) {
     await openGlobal(page, "存档设置");
     page.once("dialog", (d) => void d.accept());
-    await page
-      .getByLabel("选择存档文件")
-      .setInputFiles({
-        name: "career.json",
-        mimeType: "application/json",
-        buffer: Buffer.from(JSON.stringify(saved)),
-      });
-    await expect(page.getByTestId("credits")).toContainText(
-      saved.credits.toLocaleString("zh-CN"),
-    );
+    await page.getByLabel("选择存档文件").setInputFiles({ name: "career.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(saved)) });
+    await expect(page.getByTestId("credits")).toContainText(saved.credits.toLocaleString("zh-CN"));
     await page.getByRole("button", { name: "关闭存档设置" }).click();
   }
 }
@@ -30,26 +22,17 @@ function funded() {
   return s;
 }
 async function exportState(page: Page) {
-  if (await page.locator(".game-modal").isVisible())
-    await page.locator(".game-modal>header button").click();
+  if (await page.locator(".game-modal").isVisible()) await page.locator(".game-modal>header button").click();
   await openGlobal(page, "存档设置");
   const pending = page.waitForEvent("download");
   await page.getByRole("button", { name: "导出存档", exact: true }).click();
   const file = await pending;
-  const saved = JSON.parse(
-    await readFile((await file.path())!, "utf8"),
-  ) as GameState;
+  const saved = JSON.parse(await readFile((await file.path())!, "utf8")) as GameState;
   await page.getByRole("button", { name: "关闭存档设置" }).click();
   return saved;
 }
-for (const [width, height] of [
-  [1440, 900],
-  [844, 390],
-  [667, 375],
-])
-  test(`career tabs, organization, daily claim and original art remain usable at ${width}`, async ({
-    page,
-  }) => {
+for (const [width, height] of [[1440, 900],[844, 390],[667, 375]])
+  test(`career tabs, organization, daily claim and original art remain usable at ${width}`, async ({page}) => {
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
     await page.setViewportSize({ width: width!, height: height! });
@@ -67,28 +50,14 @@ for (const [width, height] of [
     await expect(page.getByLabel("林航岗位")).toHaveValue("AC0001");
     await page.getByRole("button", { name: "关闭公司组织" }).click();
     await openGlobal(page, "经营中心");
-    await expect(page.getByRole("dialog", { name: "公司经营中心" })).toBeVisible();
-    for (const name of [
-      "机体工坊",
-      "物流园",
-      "物资商店",
-      "航空展馆",
-      "机场运营",
-    ]) {
+    await expect(page.getByRole("main", { name: "公司经营中心" })).toBeVisible();
+    for (const name of ["机体工坊","物流园","物资商店","航空展馆","机场运营"]) {
       await page.getByRole("tab", { name, exact: true }).click();
-      await expect(
-        page.getByRole("tabpanel", { name, exact: true }),
-      ).toBeVisible();
-      expect(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth <= innerWidth,
-        ),
-      ).toBe(true);
+      await expect(page.getByRole("tabpanel", { name, exact: true })).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
     await page.getByRole("tab", { name: "物流园" }).click();
-    const decoded = await page
-      .locator(".logistics-scene img")
-      .evaluateAll(async (els) => {
+    const decoded = await page.locator(".logistics-scene img").evaluateAll(async (els) => {
         await Promise.all(els.map((el) => (el as HTMLImageElement).decode()));
         return els.every((el) => (el as HTMLImageElement).naturalWidth > 0);
       });
@@ -105,15 +74,11 @@ for (const [width, height] of [
     await expect(page.locator('[data-task-id="checkin-0"]').getByRole("button", { name: "已领取", exact: true })).toBeDisabled();
     expect(errors).toEqual([]);
   });
-test("factory goods load onto a cargo plane, arrive in another city and fulfil one trade", async ({
-  page,
-}) => {
+test("factory goods load onto a cargo plane, arrive in another city and fulfil one trade", async ({page}) => {
   await setup(page, funded());
   await openGlobal(page, "飞机商店");
   await page.getByRole("button", { name: "纯货机", exact: true }).click();
-  await page
-    .getByRole("button", { name: "购买雨燕 货运型", exact: true })
-    .click();
+  await page.getByRole("button", { name: "购买雨燕 货运型", exact: true }).click();
   await page.getByRole("button", { name: "关闭飞机商店" }).click();
   await openGlobal(page, "经营中心");
   await page.getByRole("tab", { name: "物流园" }).click();
@@ -129,9 +94,7 @@ test("factory goods load onto a cargo plane, arrive in another city and fulfil o
   await page.getByLabel("运输数量").fill("3");
   await page.getByLabel("物资目的地").selectOption("PVG");
   await page.getByRole("button", { name: "物资装机", exact: true }).click();
-  await expect(page.locator(".career-feedback")).toContainText(
-    "航空餐食已装机",
-  );
+  await expect(page.locator(".career-feedback")).toContainText("航空餐食已装机");
   await page.getByRole("button", { name: "关闭公司经营中心" }).click();
   await page.getByRole("button", { name: "下一架飞机" }).click();
   await expect(page.getByTestId("loaded-order")).toHaveCount(1);
@@ -150,10 +113,7 @@ test("factory goods load onto a cargo plane, arrive in another city and fulfil o
   expect(saved.career.warehouses.PVG?.meal).toBe(0);
   expect(saved.career.warehouses.PEK?.meal).toBe(1);
 });
-test("new career art, facilities and saved progress open offline", async ({
-  page,
-  context,
-}) => {
+test("new career art, facilities and saved progress open offline", async ({page,context}) => {
   await setup(page);
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => true));
   await page.reload();
@@ -163,13 +123,9 @@ test("new career art, facilities and saved progress open offline", async ({
   await openGlobal(page, "经营中心");
   await page.getByRole("tab", { name: "物流园" }).click();
   await page.getByRole("button", { name: /制造工厂 Lv.0/ }).click();
-  await expect(
-    page.getByRole("button", { name: /制造工厂 Lv.1/ }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /制造工厂 Lv.1/ })).toBeVisible();
   await page.reload();
   await openGlobal(page, "经营中心");
   await page.getByRole("tab", { name: "物流园" }).click();
-  await expect(
-    page.getByRole("button", { name: /制造工厂 Lv.1/ }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /制造工厂 Lv.1/ })).toBeVisible();
 });

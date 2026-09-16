@@ -32,7 +32,7 @@ test('active map keeps the locked route and payment while another airport is bro
   await expect(page.getByTestId('flight-cost')).toHaveText(money(f.cost));await expect(page.getByTestId('flight-revenue')).toHaveText('¥ 0');
   await page.getByRole('button',{name:'地图',exact:true}).click();
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer', 'ready');
-  await page.clock.runFor(50); // Render once while the business clock is paused.
+  await page.clock.runFor(50);
   await selectCity(page, 'URC');
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-preview-path', '');
   await expect(page.getByTestId('network-summary')).toHaveCount(0);
@@ -90,7 +90,7 @@ for(const viewport of [{width:1440,height:900},{width:844,height:390},{width:667
   }
   await expect(page.locator('.apron-queue')).toHaveCount(0);await expect(page.getByTestId('loaded-order')).toHaveCount(0);
   await page.screenshot({path:`artifacts/running-flight-${viewport.width}.png`});
-  await openGlobal(page, '机队管理概览');await expect(page.getByRole('dialog',{name:'机队管理'})).toBeVisible();
+  await openGlobal(page, '机队管理概览');await expect(page.getByRole('main',{name:'机队管理'})).toBeVisible();
   const row=page.getByTestId('flight-row').first();
   await expect(page.getByRole('group',{name:'运行状态筛选'})).toBeInViewport();
   const box=await row.boundingBox();expect(box).not.toBeNull();
@@ -101,6 +101,6 @@ for(const viewport of [{width:1440,height:900},{width:844,height:390},{width:667
   if(viewport.width>=1000)await expect(row.getByRole('group',{name:'当前航班收支'})).toBeInViewport();
   await page.getByRole('button',{name:`查看${ID}飞机`}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:`查看${ID}飞机`})).toBeInViewport();
   await page.screenshot({path:`artifacts/fleet-board-${viewport.width}.png`});await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByRole('button',{name:'机队管理概览',exact:true})).toBeFocused();
+  await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByTestId('page-fleet')).toHaveCount(0);await expect(page.getByRole('button',{name:'机队管理概览',exact:true})).toBeFocused();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

@@ -13,7 +13,6 @@ async function detail(page: Page, city: string) {
   await expect(page.getByRole('dialog', { name: '机场详情', exact: true })).toBeVisible();
 }
 async function chooseCityAfterDifferentValue(page: Page, cityId: string, differentId: string) {
-
   await selectCity(page, differentId);
   const dialog = page.getByRole('dialog', { name:'机场详情', exact:true });
   if (await dialog.isVisible()) await dialog.getByRole('button', { name:'返回制定路线', exact:true }).click();
@@ -24,7 +23,7 @@ test('airport abbreviations stay hidden from visible airport surfaces', async ({
   await expect(page.locator('.gate-sign')).not.toContainText(/\bPEK\b/);
   await expect(page.locator('.destination-station').first()).not.toContainText(/\bPVG\b/);
   await openGlobal(page, '机场目录');
-  const directory = page.getByRole('dialog', { name: '机场目录', exact: true });
+  const directory = page.getByRole('main', { name: '机场目录', exact: true });
   await directory.getByRole('button', { name: /^全部/ }).click();
   await expect(directory.getByTestId('airport-card-PEK')).not.toContainText(/\bPEK\b/);
   await expect(directory.getByTestId('airport-card-PVG')).not.toContainText(/\bPVG\b/);

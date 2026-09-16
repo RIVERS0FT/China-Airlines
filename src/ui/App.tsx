@@ -48,6 +48,7 @@ export function App() {
   const [detailBack, setDetailBack] = useState<'directory' | 'map' | 'close'>('directory');
   const mapReturn = useRef<{ planeId: string; browsedAirport: string | null; aboard: boolean } | null>(null);
   const routeUnlockResume = useRef<(() => void) | null>(null);
+  const workspaceOpener = useRef<HTMLElement | null>(null);
   const context = game ? airportScene(game, planeId, browsedAirport) : null;
   const plane = context?.plane, current = context?.airportId ?? 'PEK';
   const to = game?.airports.some(a => a.id === destination && a.id !== current)
@@ -68,10 +69,19 @@ export function App() {
     try { sessionStorage.setItem(PLAYING_KEY, 'true'); sessionStorage.setItem(SCREEN_KEY, screen); } catch { /* Presentation preferences are optional. */ }
   }, [playing, screen]);
 
-  function openPage(page: WorkPage) { navigate({ type: 'open', page }); setModal(null); }
+  function openPage(page: WorkPage) {
+    workspaceOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    navigate({ type: 'open', page }); setModal(null);
+  }
   function closePage() {
+    const opener = workspaceOpener.current;
     navigate({ type: 'return' });
-    requestAnimationFrame(() => document.querySelector<HTMLElement>('.game-dock [aria-current="page"]')?.focus({ preventScroll: true }));
+    // Focus restoration does not depend on animation or the simulation clock.
+    queueMicrotask(() => {
+      if (document.querySelector('dialog[open]')) return;
+      const target = opener?.isConnected && opener.getClientRects().length ? opener : document.querySelector<HTMLElement>('.game-dock [aria-current="page"]');
+      target?.focus({ preventScroll: true });
+    });
   }
   function openOrganization(id: number | null = null, training = false) { setOrganizationTarget({ id, training }); openPage('organization'); }
   function openFleet(tab?: FleetTab) { setFleetTab(tab); openPage('fleet'); }
