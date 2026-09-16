@@ -4,6 +4,7 @@ on:
     branches: [chore/retired-save-cleanup-20260916]
     paths:
       - scripts/retired-save-cleanup.once.mjs
+      - scripts/retired-save-prepare.once.mjs
       - .github/workflows/retired-save-cleanup-once.yml
 permissions:
   contents: write
@@ -28,6 +29,7 @@ jobs:
       - name: Clean retired fixtures and unreachable validators
         run: |
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          node scripts/retired-save-prepare.once.mjs
           node scripts/retired-save-cleanup.once.mjs
           git diff --check
           git diff --exit-code -- src/core/game.ts src/persistence src/runtime.ts
@@ -37,7 +39,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A -- src/core tests docs
+          git add -A -- src/core tests docs e2e
           git diff --cached --stat
           git commit -m 'chore: remove retired save fixtures and unused validators; consolidate boundary tests'
           git push origin HEAD:refs/heads/chore/retired-save-cleanup-20260916
