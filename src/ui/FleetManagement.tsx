@@ -6,6 +6,7 @@ import { FlightBoard } from './FlightBoard.js';
 import { Hangar } from './Hangar.js';
 import { useI18n } from '../i18n/I18n.js';
 import { usePageState } from './shell/PageState.js';
+import { PageToolbar } from './layout/PageFrame.js';
 
 export type FleetTab = 'planes' | 'flights';
 export function FleetManagement({ game, busy, selectedPlaneId, initialTab, onSelect, onEmployee }: {
@@ -20,15 +21,17 @@ export function FleetManagement({ game, busy, selectedPlaneId, initialTab, onSel
   useEffect(() => { if (initialTab) setTab(initialTab); }, [initialTab, setTab]);
   function inspect(id: string) { setSelected(id); setTab('planes'); tabs.current?.querySelector<HTMLButtonElement>('#fleet-planes-tab')?.focus(); }
   return <section className="fleet-management">
-    <div className="ui-page-toolbar fleet-management-tabs" role="tablist" aria-label={ui('机队管理栏目')} ref={tabs} onKeyDown={event => {
-      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-      event.preventDefault(); const next = event.key === 'Home' ? 'planes' : event.key === 'End' ? 'flights' : tab === 'planes' ? 'flights' : 'planes';
-      setTab(next); tabs.current?.querySelector<HTMLButtonElement>(`#fleet-${next}-tab`)?.focus();
-    }}>
-      <button role="tab" id="fleet-planes-tab" aria-controls="fleet-panel" aria-selected={tab === 'planes'} tabIndex={tab === 'planes' ? 0 : -1} onClick={() => setTab('planes')}>{ui('飞机')}</button>
-      <button role="tab" id="fleet-flights-tab" aria-controls="fleet-panel" aria-selected={tab === 'flights'} tabIndex={tab === 'flights' ? 0 : -1} onClick={() => setTab('flights')}>{ui('航班')}</button>
-    </div>
-    {pilot && onEmployee && <button className="fleet-employee-link" onClick={() => onEmployee(pilot.id)}><EmployeePortrait id={pilot.id}/><span>{locale === 'en-US' ? 'Assigned pilot' : '负责飞行员'} · {employeeDisplayName(pilot)}</span></button>}
+    <PageToolbar className="fleet-management-toolbar">
+      <div className="fleet-management-tabs" role="tablist" aria-label={ui('机队管理栏目')} ref={tabs} onKeyDown={event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault(); const next = event.key === 'Home' ? 'planes' : event.key === 'End' ? 'flights' : tab === 'planes' ? 'flights' : 'planes';
+        setTab(next); tabs.current?.querySelector<HTMLButtonElement>(`#fleet-${next}-tab`)?.focus();
+      }}>
+        <button role="tab" id="fleet-planes-tab" aria-controls="fleet-panel" aria-selected={tab === 'planes'} tabIndex={tab === 'planes' ? 0 : -1} onClick={() => setTab('planes')}>{ui('飞机')}</button>
+        <button role="tab" id="fleet-flights-tab" aria-controls="fleet-panel" aria-selected={tab === 'flights'} tabIndex={tab === 'flights' ? 0 : -1} onClick={() => setTab('flights')}>{ui('航班')}</button>
+      </div>
+      {pilot && onEmployee && <button className="fleet-employee-link" onClick={() => onEmployee(pilot.id)}><EmployeePortrait id={pilot.id}/><span>{locale === 'en-US' ? 'Assigned pilot' : '负责飞行员'} · {employeeDisplayName(pilot)}</span></button>}
+    </PageToolbar>
     <div role="tabpanel" id="fleet-panel" aria-labelledby={`fleet-${tab}-tab`}>
       {tab === 'planes' ? <Hangar game={game} busy={busy} selectedPlaneId={selected} onInspect={setSelected} onSelect={onSelect}/> : <FlightBoard game={game} selectedId={selected} onSelect={inspect}/>}
     </div>
