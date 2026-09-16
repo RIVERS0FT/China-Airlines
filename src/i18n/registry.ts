@@ -1,5 +1,6 @@
 import { enUS } from './locales/en-US.js';
-import { zhCN } from './locales/zh-CN.js';
+import { zhCN, type MessageKey } from './locales/zh-CN.js';
+import type { LocaleBundle } from './types.js';
 
 export const localeRegistry = {
   'zh-CN': zhCN,
@@ -18,6 +19,6 @@ export function resolveLocale(value: string | null | undefined): Locale {
   return isSupportedLocale(value) ? value : DEFAULT_LOCALE;
 }
 
-export function localeBundle(locale: Locale) {
+export function localeBundle(locale: Locale): LocaleBundle<Record<MessageKey, string>> {
   return localeRegistry[locale];
 }
