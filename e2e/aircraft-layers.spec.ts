@@ -17,11 +17,33 @@ for(const model of ALL_MODELS)test(`dedicated layers cover ${model.id} without r
     return { slot: node.closest('.cabin-anchor')!.getAttribute('data-anchor-id'), width: style.width,
       height: style.height, bottom: style.bottom, left: style.left, transform: style.transform };
   }));
+  const captionClearance = async () => {
+    const slots = await page.locator('.cabin-anchor[data-slot-active=true]').evaluateAll(nodes => nodes.map(node => {
+      const slot = node.getBoundingClientRect();
+      const caption = node.querySelector('.job-info,.cabin-empty>span')!.getBoundingClientRect();
+      const furniture = node.querySelector('.cabin-place-art')!.getBoundingClientRect();
+      const occupant = node.querySelector('.job-art')?.getBoundingClientRect();
+      return { id: node.getAttribute('data-anchor-id'), slotRight: slot.right, width: slot.width,
+        captionLeft: caption.left, captionRight: caption.right, captionWidth: caption.width,
+        furnitureRight: furniture.right, occupantRight: occupant?.right };
+    }));
+    expect(slots.length).toBeGreaterThan(0);
+    for (const slot of slots) {
+      expect(slot.captionWidth, `${model.id}/${slot.id}: caption width`).toBeGreaterThan(0);
+      // Use the rendered caption boundary, not a duplicated CSS percentage. The 1%
+      // minimum gap leaves subpixel tolerance inside the designed 2% gutter.
+      expect(slot.furnitureRight + slot.width * .01, `${model.id}/${slot.id}: furniture clearance`).toBeLessThanOrEqual(slot.captionLeft + .1);
+      if (slot.occupantRight !== undefined) expect(slot.occupantRight + slot.width * .01, `${model.id}/${slot.id}: occupant clearance`).toBeLessThanOrEqual(slot.captionLeft + .1);
+      expect(slot.captionRight, `${model.id}/${slot.id}: caption containment`).toBeLessThanOrEqual(slot.slotRight + .1);
+    }
+  };
+  await captionClearance();
   await page.locator('.cabin-place-art').evaluateAll(nodes => nodes.forEach((node, i) => node.setAttribute('data-furniture-node', String(i))));
   const identity = () => page.locator('.cabin-place-art').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-furniture-node')));
   const before = await furniture(), identities = await identity(); expect(before.length).toBeGreaterThan(0);
   await page.getByRole('button',{name:/^同目的地装载：/}).first().click();
   expect(await furniture()).toEqual(before); expect(await identity()).toEqual(identities);
+  await captionClearance();
   const inactive = page.locator('.cabin-anchor[data-slot-active=false]');
   for (const anchor of await inactive.all()) {
     await expect(anchor).toHaveAttribute('inert', '');
@@ -73,6 +95,7 @@ for(const model of ALL_MODELS)test(`dedicated layers cover ${model.id} without r
   await sameCanvas();
   await page.getByRole('button',{name:'查看机舱',exact:true}).click();await expect(near).toBeHidden();
   await expect(cabin).not.toHaveAttribute('inert','');await expect(cabin).toHaveAttribute('data-mount-marker','kept');
+  await captionClearance();
   await cabin.getByTestId('loaded-order').first().click({trial:true});
   await page.getByRole('button',{name:'存档设置',exact:true}).click();const pending=page.waitForEvent('download');
   await page.getByRole('button',{name:'导出存档',exact:true}).click();const saved=JSON.parse(await readFile((await (await pending).path())!,'utf8'));
