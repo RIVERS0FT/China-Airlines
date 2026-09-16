@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { initialNavigation, isWorkPage, navigationReducer, WORK_PAGES } from './navigation.js';
+import { initialNavigation, isWorkPage, navigationReducer, WORK_PAGES } from '../src/ui/shell/navigation.js';
 
 describe('UI navigation', () => {
   it('starts from the existing scene preference and rejects unrelated values', () => {
@@ -10,10 +10,11 @@ describe('UI navigation', () => {
     for (const scene of ['airport', 'map', 'dispatch'] as const) {
       let state = { page: scene, scene } as ReturnType<typeof initialNavigation>;
       for (const page of WORK_PAGES) {
-        const before = { ...state };
+        const before = state;
         state = navigationReducer(state, { type: 'open', page });
         expect(state).toEqual({ page, scene });
         expect(before.scene).toBe(scene);
+        expect(state).not.toBe(before);
       }
       expect(navigationReducer(state, { type: 'return' })).toEqual({ page: scene, scene });
     }
