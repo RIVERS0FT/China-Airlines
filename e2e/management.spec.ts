@@ -1,8 +1,9 @@
+import { retiredSave } from './retired-save-helpers.js';
 import { selectCity, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from './fixture.js';
 import { rejectRetiredSave } from './retired-save-helpers.js';
 import type { GameState } from '../src/core/game.js';
-import legacy from '../tests/fixtures/v3-dispatching.json' with { type: 'json' };
+const legacy = retiredSave(3);
 let errors:string[];
 test.beforeEach(async({page})=>{errors=[];page.on('pageerror',e=>errors.push(e.message));});
 test.afterEach(()=>expect(errors).toEqual([]));

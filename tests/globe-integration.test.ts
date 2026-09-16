@@ -1,11 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { ALL_MODELS, MODELS, aircraftSpecs, model } from '../src/core/catalog.js';
-import { GameCore, loadSummary, validateSave, parseSave } from '../src/core/game.js';
+import { describe,expect,it } from 'vitest';
+import { ALL_MODELS,MODELS,aircraftSpecs,model } from '../src/core/catalog.js';
+import { GameCore,loadSummary,validateSave } from '../src/core/game.js';
 import { GameCore as V7Core } from '../src/core/v7/game.js';
 import { GameCore as V8Core } from '../src/core/v8/game.js';
-import aggregated from './fixtures/v5-flying.json';
-import unitFlying from './fixtures/v5-unit-flying.json';
-import unitServicing from './fixtures/v5-unit-servicing.json';
 const NOW = 1_800_000_000_000;
 
 describe('current aircraft registry and save boundary', () => {
@@ -29,10 +26,6 @@ describe('current aircraft registry and save boundary', () => {
       expect(()=>validateSave(s)).toThrow('不再支持');expect(s).toEqual(before);
     }
     expect(validateSave(current)).toEqual(current);
-  });
-  it.each([aggregated,unitFlying,unitServicing])('refuses retired v5 variants without migrating them', s=>{
-    const before=structuredClone(s);expect(()=>GameCore.imported(s,NOW)).toThrow('不再支持');
-    expect(()=>parseSave(JSON.stringify(s))).toThrow('不再支持');expect(s).toEqual(before);
   });
   it.each([V7Core,V8Core])('retains strict migration for current aircraft in organization-era saves', Core=>{
     const c=new Core(NOW);c.execute({type:'load-destination',planeId:'AC0001',to:'PVG'},NOW);

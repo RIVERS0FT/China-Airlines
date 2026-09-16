@@ -1,3 +1,4 @@
+import { GameCore } from '../src/core/game.js';
 import { expect, type Page } from './fixture.js';
 import { readFile } from 'node:fs/promises';
 
@@ -25,4 +26,9 @@ export async function rejectRetiredSave(page: Page, retired: unknown) {
   await page.getByRole('button',{name:'存档设置',exact:true}).click();
   expectSameExport(await exported(), before);
   await page.getByRole('button',{name:'关闭存档设置',exact:true}).click();
+}
+
+/** Synthetic version-gate input, not an archived or player-owned save. */
+export function retiredSave(version: 1 | 2 | 3 | 4 | 5 | 6) {
+  return { ...new GameCore(1_800_000_000_000).snapshot(), version };
 }

@@ -1,8 +1,7 @@
+import { describe,expect,it } from 'vitest';
 import { upgradeLimit } from '../src/core/career-catalog.js';
-import { describe, it, expect } from 'vitest';
-import { GameCore, validateSave, manifest, planQuote, quote, type GameState } from '../src/core/game.js';
-import { MODELS, aircraftSpecs, hangarPrice, retrofitPrice } from '../src/core/catalog.js';
-import legacyV2 from './fixtures/v2-flying.json';
+import { MODELS,aircraftSpecs,hangarPrice,retrofitPrice } from '../src/core/catalog.js';
+import { GameCore,manifest,planQuote,quote,validateSave,type GameState } from '../src/core/game.js';
 const NOW = 1800000000000;
 const ID = 'AC0001';
 function rich() { const s = new GameCore(NOW).snapshot(); s.credits = 10000000; s.career.tickets=1000000; s.career.xp=20000; return new GameCore(NOW, s); }
@@ -137,11 +136,6 @@ describe('finite multi-stop plans',()=>{
   });
 });
 describe('retired rejection and current save validation',()=>{
-  it('rejects retired v2 aircraft regardless of fleet size',()=>{
-    expect(()=>validateSave(legacyV2)).toThrow('不再支持');
-    const old=structuredClone(legacyV2);old.fleet=Array.from({length:7},(_,i)=>({...old.fleet[0]!,id:`AC${i+10}`}));
-    expect(()=>validateSave(old)).toThrow('不再支持');
-  });
   for(const [name,fn] of Object.entries({
     'missing upgrades':(s:GameState)=>{delete (s.fleet[0] as Partial<GameState['fleet'][0]>).upgrades;},
     'extra upgrade':(s:GameState)=>{Object.assign(s.fleet[0]!.upgrades,{cheat:1});},

@@ -1,6 +1,7 @@
+import { retiredSave } from './retired-save-helpers.js';
 import { openGlobal } from './dispatch-helpers.js';
 import { test, expect } from './fixture.js';
-import legacy from '../tests/fixtures/v1-flying.json' with { type: 'json' };
+const legacy = retiredSave(1);
 import { rejectRetiredSave } from './retired-save-helpers.js';
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 }, { width: 667, height: 375 }]) {
