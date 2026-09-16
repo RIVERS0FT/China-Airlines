@@ -7,7 +7,20 @@ const currentFlying=()=>{const c=new GameCore(1800000000000);c.execute({type:'di
 import { aircraftFrame, projectAircraftFrame } from '../src/ui/globe-aircraft-pose.js';
 import { dot, globeCamera, greatCircle, screenPoint, toVector, viewVector } from '../src/ui/globe-geometry.js';
 import { airport } from '../src/core/catalog.js';
-import { AIRLINER_A, disposeAircraftModel, prepareAircraftModel } from '../src/ui/MapAircraftLayer.js';
+import { AIRLINER_A, disposeAircraftModel, prepareAircraftModel, shouldShowMapAircraft } from '../src/ui/MapAircraftLayer.js';
+
+describe('map aircraft visibility', () => {
+  it('shows only real flights, even when the grounded aircraft is current', () => {
+    const grounded = new GameCore(1800000000000).snapshot().fleet[0]!;
+    expect(shouldShowMapAircraft(grounded, grounded.id, true)).toBe(false);
+    expect(shouldShowMapAircraft(grounded, grounded.id, false)).toBe(false);
+
+    const flying = currentFlying().fleet[0]!;
+    expect(shouldShowMapAircraft(flying, flying.id, false)).toBe(true);
+    expect(shouldShowMapAircraft(flying, 'AC9999', false)).toBe(false);
+    expect(shouldShowMapAircraft(flying, 'AC9999', true)).toBe(true);
+  });
+});
 
 describe('map aircraft follows a real 3D frame', () => {
   it.each([['PEK', 'PVG'], ['PVG', 'PEK'], ['NRT', 'HNL'], ['ANC', 'AKL'], ['PEK', 'PEK']])('keeps a right-handed upright basis for %s to %s, including endpoints', (from, to) => {
