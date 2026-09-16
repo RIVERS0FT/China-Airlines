@@ -103,10 +103,12 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three
     const figure = (await card.locator('.job-figure').boundingBox())!, art = (await card.locator('.job-art').boundingBox())!;
     expect(art.y + art.height).toBeLessThanOrEqual(figure.y + figure.height + 1);
     if (state === 'loaded') {
-      // On the original cutaway, text is beside the furniture rather than below a new panel.
-      const furniture = (await card.locator('..').locator('.cabin-place-art').boundingBox())!;
-      expect(art.x + art.width).toBeLessThanOrEqual(plate.x + 1);
-      expect(furniture.x + furniture.width).toBeLessThanOrEqual(plate.x + 1);
+      const anchor = card.locator('..');
+      const anchorBox = (await anchor.boundingBox())!;
+      const furniture = (await anchor.locator('.cabin-place-art').boundingBox())!;
+      expect(Math.abs(plate.x + plate.width / 2 - (anchorBox.x + anchorBox.width / 2))).toBeLessThan(1);
+      expect(plate.y).toBeGreaterThanOrEqual(art.y + art.height - 1);
+      expect(plate.y).toBeGreaterThanOrEqual(furniture.y + furniture.height - 1);
       expect((await card.boundingBox())!.height / scale).toBeGreaterThanOrEqual(44 - .01);
     } else expect(figure.y + figure.height).toBeLessThanOrEqual(plate.y + 1);
     let previousBottom = plate.y;

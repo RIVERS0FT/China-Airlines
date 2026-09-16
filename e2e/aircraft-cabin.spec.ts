@@ -89,8 +89,10 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
       const floorAnchor = await card.locator('.job-art').getAttribute('data-pose') === 'seated' ? 796 / 804 : 228 / 237;
       expect(Math.abs(furniture.y + furniture.height * floorAnchor - ground)).toBeLessThan(1);
       const caption = (await card.locator('.job-info').boundingBox())!;
-      expect(caption.x).toBeGreaterThanOrEqual(furniture.x + furniture.width - .5);
-      expect(caption.x).toBeGreaterThanOrEqual(occupant.x + occupant.width - .5);
+      const anchorBox = (await anchor.boundingBox())!;
+      expect(Math.abs(caption.x + caption.width / 2 - (anchorBox.x + anchorBox.width / 2))).toBeLessThan(1);
+      expect(caption.y).toBeGreaterThanOrEqual(furniture.y + furniture.height - 1);
+      expect(caption.y).toBeGreaterThanOrEqual(occupant.y + occupant.height - 1);
       expect(caption.y + caption.height).toBeLessThanOrEqual(box.y + box.height + .5);
       if (await card.locator('.job-art').getAttribute('data-pose') === 'seated') {
         const seat = Number(await anchor.getAttribute('data-seat-cushion-y'));

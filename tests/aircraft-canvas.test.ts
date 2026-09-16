@@ -35,7 +35,8 @@ describe('one aircraft canvas and fixed furniture', () => {
         expect(room.height - place.occupantBottom - place.occupantHeight).toBeGreaterThanOrEqual(0);
         const left = room.width * anchor.width / 2 + place.occupantOffsetX - place.occupantWidth / 2;
         expect(left).toBeGreaterThanOrEqual(0);
-        expect(left + place.occupantWidth).toBeLessThanOrEqual(room.width * anchor.width * .57);
+        expect(place.furnitureOffsetX).toBe(0);
+        expect(left + place.occupantWidth).toBeLessThanOrEqual(room.width * anchor.width);
         if (kind === 'passengers') {
           const anatomy = passengerFrame(id, 'seated').anchors;
           const top = room.height - place.occupantBottom - place.occupantHeight;
@@ -44,6 +45,17 @@ describe('one aircraft canvas and fixed furniture', () => {
           expect(left + anatomy.hipX * place.occupantWidth).toBeCloseTo(place.seatCushionX!);
         } else expect(place.occupantFoot).toBeCloseTo(place.palletTop!);
       }
+    }
+  });
+  it('uses every model capacity as its v5 cabin rhythm', () => {
+    for (const model of ALL_MODELS) {
+      const art = cabinArtLayout({ modelId: model.id });
+      if (model.seats) expect(paintedAnchors(art, 'passengers'), model.id).toHaveLength(model.seats);
+      else expect(art.decks.passengers, model.id).toBeUndefined();
+      if (model.cargo) expect(paintedAnchors(art, 'cargo'), model.id).toHaveLength(model.cargo);
+      else expect(art.decks.cargo, model.id).toBeUndefined();
+      expect(art.hull, model.id).toBe(`aircraft-${model.id}-cutaway-v5.png`);
+      expect(model.art, model.id).toBe(`aircraft-${model.id}-exterior-v5.png`);
     }
   });
 });

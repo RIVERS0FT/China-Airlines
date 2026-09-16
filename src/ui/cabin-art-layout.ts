@@ -32,8 +32,9 @@ const envelopeWidth = Math.max(SEAT.width / SEAT.height, ...silhouettes.map(fram
 export function cabinArtLayout(plane: Pick<Plane, 'modelId'>): CabinArtLayout {
   const aircraft = model(plane.modelId), registered = layerLayouts[aircraft.id as keyof typeof layerLayouts];
   const family = registered.family as CabinFamily;
+  const revision = 'revision' in registered ? registered.revision : 'v4';
   return { modelId: aircraft.id, family, direction: 'left',
-    hull: `aircraft-${aircraft.id}-cutaway-v4.png`, near: `aircraft-${aircraft.id}-near-v4.png`,
+    hull: `aircraft-${aircraft.id}-cutaway-${revision}.png`, near: `aircraft-${aircraft.id}-near-${revision}.png`,
     canvas: format.canvas, interior: registered.interior, decks: registered.decks };
 }
 
@@ -61,13 +62,13 @@ export function cabinPlacement(anchor: CabinAnchor, deckWidth: number, deckHeigh
   const availableHeight = Math.max(1, ground - deckHeight * .05);
   const frame = order ? order.kind === 'passengers' ? passengerFrame(order.id, 'seated') : cargoAppearance(order) : null;
   const ratio = frame ? frame.width / frame.height : anchor.kind === 'passengers' ? .62 : 1;
-  // Leave a transparent caption lane beside the furniture; no panel or second floor.
-  const furnitureOffsetX = -slotWidth * .18;
+  // Captions are below the load, so furniture can use the centered width of the slot.
+  const furnitureOffsetX = 0;
   if (anchor.kind === 'passengers') {
     const rearRatio = SEAT.width / SEAT.height;
     const anatomy = frame && 'anchors' in frame ? frame.anchors : { hipX: .55, hipY: .78, footY: .985 };
     const hipY = anatomy.hipY ?? .78, footY = anatomy.footY;
-    const furnitureHeight = Math.min(150, availableHeight * .95 / envelopeHeight, slotWidth * .52 / envelopeWidth);
+    const furnitureHeight = Math.min(150, availableHeight * .95 / envelopeHeight, slotWidth * .82 / envelopeWidth);
     const cushionRise = furnitureHeight * (SEAT.floorY - SEAT.cushionY);
     const occupantHeight = cushionRise / (footY - hipY);
     const occupantBottom = deckHeight - ground - (1 - footY) * occupantHeight;
@@ -80,7 +81,7 @@ export function cabinPlacement(anchor: CabinAnchor, deckWidth: number, deckHeigh
       furnitureWidth: furnitureHeight * rearRatio, furnitureHeight, furnitureBottom, furnitureOffsetX };
   }
   const scale = frame && 'cabinVisualScale' in frame ? frame.cabinVisualScale : .84;
-  const furnitureWidth = Math.min(slotWidth * .52, 118, availableHeight * .44 * PALLET.width / (PALLET.height * (PALLET.floorY - PALLET.topY)));
+  const furnitureWidth = Math.min(slotWidth * .82, 150, availableHeight * .44 * PALLET.width / (PALLET.height * (PALLET.floorY - PALLET.topY)));
   const furnitureHeight = furnitureWidth * PALLET.height / PALLET.width;
   const maxCargoHeight = Math.min(92, availableHeight * .56);
   const occupantWidth = Math.min(furnitureWidth * .72 * scale, maxCargoHeight * ratio, 84);

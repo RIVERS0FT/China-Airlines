@@ -23,17 +23,17 @@ for(const model of ALL_MODELS)test(`dedicated layers cover ${model.id} without r
       const caption = node.querySelector('.job-info,.cabin-empty>span')!.getBoundingClientRect();
       const furniture = node.querySelector('.cabin-place-art')!.getBoundingClientRect();
       const occupant = node.querySelector('.job-art')?.getBoundingClientRect();
-      return { id: node.getAttribute('data-anchor-id'), slotRight: slot.right, width: slot.width,
-        captionLeft: caption.left, captionRight: caption.right, captionWidth: caption.width,
-        furnitureRight: furniture.right, occupantRight: occupant?.right };
+      return { id: node.getAttribute('data-anchor-id'), slotLeft: slot.left, slotRight: slot.right, slotCenter: slot.x + slot.width / 2,
+        captionLeft: caption.left, captionRight: caption.right, captionTop: caption.top, captionCenter: caption.x + caption.width / 2,
+        captionWidth: caption.width, furnitureBottom: furniture.bottom, occupantBottom: occupant?.bottom };
     }));
     expect(slots.length).toBeGreaterThan(0);
     for (const slot of slots) {
       expect(slot.captionWidth, `${model.id}/${slot.id}: caption width`).toBeGreaterThan(0);
-      // Use the rendered caption boundary, not a duplicated CSS percentage. The 1%
-      // minimum gap leaves subpixel tolerance inside the designed 2% gutter.
-      expect(slot.furnitureRight + slot.width * .01, `${model.id}/${slot.id}: furniture clearance`).toBeLessThanOrEqual(slot.captionLeft + .1);
-      if (slot.occupantRight !== undefined) expect(slot.occupantRight + slot.width * .01, `${model.id}/${slot.id}: occupant clearance`).toBeLessThanOrEqual(slot.captionLeft + .1);
+      expect(Math.abs(slot.captionCenter - slot.slotCenter), `${model.id}/${slot.id}: caption centered below load`).toBeLessThan(.75);
+      expect(slot.captionTop, `${model.id}/${slot.id}: caption below furniture`).toBeGreaterThanOrEqual(slot.furnitureBottom - 1);
+      if (slot.occupantBottom !== undefined) expect(slot.captionTop, `${model.id}/${slot.id}: caption below occupant`).toBeGreaterThanOrEqual(slot.occupantBottom - 1);
+      expect(slot.captionLeft, `${model.id}/${slot.id}: caption left containment`).toBeGreaterThanOrEqual(slot.slotLeft - .1);
       expect(slot.captionRight, `${model.id}/${slot.id}: caption containment`).toBeLessThanOrEqual(slot.slotRight + .1);
     }
   };
@@ -52,17 +52,20 @@ for(const model of ALL_MODELS)test(`dedicated layers cover ${model.id} without r
   }
   const frame=page.getByTestId('plane-art'),cabin=page.getByTestId('aircraft-cabin'),near=page.getByTestId('aircraft-near-layer');
   await expect(frame).toHaveAttribute('data-model-id',model.id);
-  await expect(frame.locator('.cutaway-airframe')).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-cutaway-v4.png$`));
-  await expect(near).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-near-v4.png$`));
+  const revision='v5';
+  await expect(frame.locator('.cutaway-airframe')).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-cutaway-${revision}.png$`));
+  await expect(near).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-near-${revision}.png$`));
   await expect.poll(()=>frame.locator('img').evaluateAll(nodes=>nodes.every(n=>(n as HTMLImageElement).complete&&(n as HTMLImageElement).naturalWidth>0))).toBe(true);
   await expect(page.locator('.cabin-deck')).toHaveCount(model.seats&&model.cargo?2:1);
   if(model.seats&&model.cargo){
     const top=(await page.getByTestId('cabin-passengers').boundingBox())!,bottom=(await page.getByTestId('cabin-cargo').boundingBox())!;
     expect(bottom.y).toBeGreaterThanOrEqual(top.y+top.height-.5);expect(bottom.x).toBeCloseTo(top.x,0);
   }
+  if(model.seats)await expect(page.getByTestId('cabin-passengers').locator('.cabin-anchor')).toHaveCount(model.seats);
+  if(model.cargo)await expect(page.getByTestId('cabin-cargo').locator('.cabin-anchor')).toHaveCount(model.cargo);
   const ids=await cabin.getByTestId('loaded-order').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('data-order-id')));
   await cabin.evaluate(n=>n.setAttribute('data-mount-marker','kept'));
-  await page.screenshot({path:`artifacts/aircraft-v4-${model.id}-interior.png`});
+  await page.screenshot({path:`artifacts/aircraft-layers-${model.id}-interior.png`});
   await page.getByRole('button',{name:'查看外观',exact:true}).click();await expect(near).toBeVisible();
   await expect(cabin).toHaveAttribute('inert','');await expect(cabin).toHaveAttribute('data-mount-marker','kept');
   expect(await cabin.getByTestId('loaded-order').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('data-order-id')))).toEqual(ids);
@@ -89,7 +92,7 @@ for(const model of ALL_MODELS)test(`dedicated layers cover ${model.id} without r
     expect(geometry[0]!.w / geometry[0]!.h).toBeCloseTo(1536 / 590, 4);
   };
   await sameCanvas();
-  await page.screenshot({path:`artifacts/aircraft-v4-${model.id}-exterior.png`});
+  await page.screenshot({path:`artifacts/aircraft-layers-${model.id}-exterior.png`});
   await page.setViewportSize({width:844,height:390});
   await page.clock.runFor(34);
   await sameCanvas();

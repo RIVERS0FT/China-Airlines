@@ -15,8 +15,9 @@
 .cabin-anchor[data-slot-active="false"]{visibility:hidden;pointer-events:none}
 .cabin-furniture-clip{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .cabin-place-art{position:absolute;pointer-events:none;left:50%;bottom:var(--floor-bottom);width:var(--furniture-width);height:var(--furniture-height);margin-left:var(--furniture-offset);transform:translateX(-50%);object-fit:contain;object-position:center bottom;z-index:1}
-/* Keep a tiny logical-pixel reserve so transformed 44px hit targets never round below 44. */
-.cabin-aircraft .cabin-order,.cabin-aircraft .cabin-empty{position:relative;display:block!important;width:100%;height:max(100%,calc(44.02 * var(--cabin-ui-unit)));min-width:0;min-height:0;gap:0!important;padding:0!important;border:0!important;border-radius:0;background:none;box-shadow:none;overflow:visible;text-align:center;color:#fff9df;z-index:2}
+/* Keep the below-load caption inside the button and a tiny logical-pixel reserve
+   so transformed 44px hit targets never round below 44. */
+.cabin-aircraft .cabin-order,.cabin-aircraft .cabin-empty{position:relative;display:block!important;width:100%;height:max(calc(var(--painted-ground) + 34 * var(--cabin-ui-unit)),calc(44.02 * var(--cabin-ui-unit)));min-width:0;min-height:0;gap:0!important;padding:0!important;border:0!important;border-radius:0;background:none;box-shadow:none;overflow:visible;text-align:center;color:#fff9df;z-index:2}
 .aviation-game .cabin-order:hover:not(:disabled){background:#e5f7ea33}.cabin-order:disabled{opacity:.82}
 .cabin-aircraft .cabin-order .job-figure{position:absolute;top:0;left:0;display:block;width:100%;height:var(--deck-height);margin:0;overflow:hidden;pointer-events:none}
 .apron-queue .job-art{transform:scaleX(-1)}
@@ -26,10 +27,10 @@
 .cabin-order .job-art[data-passenger-variant],.cabin-order .job-art[data-cargo-type]{transform:translateX(-50%);z-index:2;max-width:none}
 .aviation-game .apron-queue .order-cargo .job-info:has(.cargo-name){flex-basis:40px;flex-direction:column;gap:1px}
 .aviation-game .apron-queue .cargo-name{max-width:100%;font-size:11px;line-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff8dc;text-shadow:0 1px #4b4433,1px 0 #4b4433,-1px 0 #4b4433,0 -1px #4b4433}
-/* Furniture can extend to 58% of a slot; start captions at 60% to leave a real gutter. */
-.cabin-aircraft .cabin-order .job-info,.cabin-aircraft .cabin-empty>span{position:absolute;top:max(0px,calc(var(--painted-ground) - 32 * var(--cabin-ui-unit)));left:60%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(1 * var(--cabin-ui-unit));width:40%;height:calc(30 * var(--cabin-ui-unit));min-height:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;color:#fff8db;line-height:1.15;text-shadow:0 1px #35443b,1px 0 #35443b,-1px 0 #35443b,0 -1px #35443b;overflow:hidden}
+/* Destination and reward sit below each load; the whole transparent area remains one button. */
+.cabin-aircraft .cabin-order .job-info,.cabin-aircraft .cabin-empty>span{position:absolute;top:calc(var(--painted-ground) + 2 * var(--cabin-ui-unit));left:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:calc(1 * var(--cabin-ui-unit));width:100%;height:calc(30 * var(--cabin-ui-unit));min-height:0;padding:0 calc(2 * var(--cabin-ui-unit));border:0;border-radius:0;background:none;box-shadow:none;color:#fff8db;line-height:1.15;text-shadow:0 1px #35443b,1px 0 #35443b,-1px 0 #35443b,0 -1px #35443b;overflow:hidden;pointer-events:none}
 .cabin-aircraft .cabin-order .cabin-destination{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:calc(11 * var(--cabin-ui-unit));line-height:calc(12 * var(--cabin-ui-unit));text-align:center}
-.cabin-aircraft .cabin-order .job-price{display:block;white-space:nowrap;max-width:100%;font-size:calc(12 * var(--cabin-ui-unit));color:#ffd74d;line-height:calc(13 * var(--cabin-ui-unit));text-align:center}
+.cabin-aircraft .cabin-order .job-price{display:block;white-space:nowrap;max-width:100%;font-size:calc(12 * var(--cabin-ui-unit));color:#ffd74d;line-height:calc(13 * var(--cabin-ui-unit));text-align:center;font-variant-numeric:tabular-nums}
 .cabin-order .job-quantity{position:absolute;right:0;top:0;z-index:2;font-size:calc(11 * var(--cabin-ui-unit));background:#3f576b;color:white;border-radius:4px;padding:1px 4px}
 .cabin-aircraft .cabin-empty>span{font-size:calc(11 * var(--cabin-ui-unit));color:#fffde8}
 .aviation-game .cabin-inspect,.aviation-game .cabin-toggle{position:absolute;left:3%;height:44px;min-height:44px;padding:3px 9px;border:1px solid #9eaba0;border-radius:7px;background:#fffbea;color:#52695f;font-size:12px;box-shadow:0 2px 0 #263e4420;z-index:10}

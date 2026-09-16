@@ -42,6 +42,7 @@ export interface AircraftModel {
   rank: number;
   art: string;
 }
+const AIRCRAFT_ART_REVISION = "v5";
 const families = [
   {
     id: "swift",
@@ -101,34 +102,37 @@ const families = [
   },
 ] as const;
 export const MODELS: readonly AircraftModel[] = families.flatMap((f) =>
-  (["passengers", "cargo", "mixed"] as const).map((kind, i) => ({
-    id: `${f.id}-${["p", "f", "m"][i]}`,
-    family: f.id,
-    name: `${f.name} ${["客运型", "货运型", "客货型"][i]}`,
-    role: `${["纯客运输", "专业货运", "灵活客货"][i]}`,
-    kind,
-    seats:
-      kind === "cargo"
-        ? 0
-        : kind === "mixed"
-          ? Math.ceil(f.seats / 2)
-          : f.seats,
-    cargo:
-      kind === "passengers"
-        ? 0
-        : kind === "mixed"
-          ? Math.ceil(f.cargo / 2)
-          : f.cargo,
-    range: f.range,
-    speed: f.speed,
-    price: Math.round(f.price * [1, 0.95, 1.1][i]!),
-    level: f.level,
-    costKm: 0.12,
-    weight: f.weight,
-    energy: f.energy,
-    rank: f.rank,
-    art: `aircraft-${f.id}-${["p", "f", "m"][i]}-exterior-v4.png`,
-  })),
+  (["passengers", "cargo", "mixed"] as const).map((kind, i) => {
+    const id = `${f.id}-${["p", "f", "m"][i]}`;
+    return {
+      id,
+      family: f.id,
+      name: `${f.name} ${["客运型", "货运型", "客货型"][i]}`,
+      role: `${["纯客运输", "专业货运", "灵活客货"][i]}`,
+      kind,
+      seats:
+        kind === "cargo"
+          ? 0
+          : kind === "mixed"
+            ? Math.ceil(f.seats / 2)
+            : f.seats,
+      cargo:
+        kind === "passengers"
+          ? 0
+          : kind === "mixed"
+            ? Math.ceil(f.cargo / 2)
+            : f.cargo,
+      range: f.range,
+      speed: f.speed,
+      price: Math.round(f.price * [1, 0.95, 1.1][i]!),
+      level: f.level,
+      costKm: 0.12,
+      weight: f.weight,
+      energy: f.energy,
+      rank: f.rank,
+      art: `aircraft-${id}-exterior-${AIRCRAFT_ART_REVISION}.png`,
+    };
+  }),
 );
 export const STARTER_MODEL: AircraftModel = {
   ...MODELS[2]!,
@@ -138,7 +142,7 @@ export const STARTER_MODEL: AircraftModel = {
   cargo: 2,
   price: 6000,
   role: "初始客货机",
-  art: "aircraft-starter-swift-exterior-v4.png",
+  art: `aircraft-starter-swift-exterior-${AIRCRAFT_ART_REVISION}.png`,
 };
 export const ALL_MODELS: readonly AircraftModel[] = [STARTER_MODEL, ...MODELS];
 export const model = (id: string): AircraftModel => {

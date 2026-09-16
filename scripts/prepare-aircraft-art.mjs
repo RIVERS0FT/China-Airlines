@@ -14,6 +14,22 @@ function crop(image,rect){
   return {width,height,data};
 }
 function assertCanvas(image,canvas,label){if(image.width!==canvas.width||image.height!==canvas.height)throw new Error(`${label}: expected ${canvas.width}x${canvas.height}`);}
+function hasSamePixels(path,image){
+  if(!existsSync(path))return false;
+  try{
+    const current=decodePng(readFileSync(path));
+    return current.width===image.width&&current.height===image.height&&current.data.equals(image.data);
+  }catch{return false;}
+}
+function restoreAlpha(image,mask,label){
+  assertCanvas(mask,{width:image.width,height:image.height},`${label} alpha mask`);
+  const data=Buffer.from(image.data);
+  for(let i=0;i<data.length;i+=4){
+    data[i+3]=mask.data[i+3];
+    if(data[i+3]===0)data.fill(0,i,i+3);
+  }
+  return {...image,data};
+}
 
 /** No artwork is generated in the browser. The same registered pair creates the preview. */
 export function prepareAircraftArt({review=false}={}){
@@ -22,26 +38,33 @@ export function prepareAircraftArt({review=false}={}){
   const report=[];
   for(const [id,layout] of Object.entries(layouts)){
     let hull,near,source;
+    const revision=layout.revision??'v4';
     if(layout.master){
       // New artwork must be exported from one master, full canvas, at the origin.
       hull=decodePng(readFileSync(resolve(root,layout.master.cutaway)));
       near=decodePng(readFileSync(resolve(root,layout.master.near)));
       assertCanvas(hull,format.canvas,id);assertCanvas(near,format.canvas,id);source='registered-master';
     }else{
-      const atlas=decodePng(readFileSync(resolve(root,`art/aircraft-layers-v4/${id}-source.png`)));
+      const atlasPath=layout.sourceAtlas??`art/aircraft-layers-v4/${id}-source.png`;
+      let atlas=decodePng(readFileSync(resolve(root,atlasPath)));
       assertCanvas(atlas,format.legacyAtlas,id);
+      if(layout.alphaMaskAtlas){
+        const mask=decodePng(readFileSync(resolve(root,layout.alphaMaskAtlas)));
+        atlas=restoreAlpha(atlas,mask,id);
+      }
       hull=crop(atlas,format.cutawayCrop);
       near=registerLayer(crop(atlas,format.nearCrop),format.canvas,layout.nearBounds);
-      source='legacy-atlas-registration';
+      source=layout.sourceAtlas?'capacity-atlas-registration':'legacy-atlas-registration';
     }
     assertCanvas(hull,format.canvas,id);assertCanvas(near,format.canvas,id);
     const full=composite(hull,near);
     for(const [kind,image] of [['cutaway',hull],['near',near],['exterior',full]]){
-      const path=resolve(out,`aircraft-${id}-${kind}-v4.png`),bytes=encodePng(image);
-      // Repeated dev/test/build commands are deterministic and do not rewrite equal output.
-      if(!existsSync(path)||!readFileSync(path).equals(bytes))writeFileSync(path,bytes);
+      const path=resolve(out,`aircraft-${id}-${kind}-${revision}.png`),bytes=encodePng(image);
+      // Encoder versions may produce different byte streams for identical pixels.
+      // Avoid dirtying reviewed artwork unless the rendered output really changed.
+      if(!hasSamePixels(path,image))writeFileSync(path,bytes);
     }
-    const entry={id,source,canvas:format.canvas,sha256:createHash('sha256').update(full.data).digest('hex')};report.push(entry);
+    const entry={id,revision,source,canvas:format.canvas,sha256:createHash('sha256').update(full.data).digest('hex')};report.push(entry);
     if(review){
       const check=Buffer.from(hull.data);
       for(let i=0;i<check.length;i+=4){const a=near.data[i+3]/255*.5;if(a){check[i]=Math.round(check[i]*(1-a)+near.data[i]*a);check[i+1]=Math.round(check[i+1]*(1-a)+near.data[i+1]*a);check[i+2]=Math.round(check[i+2]*(1-a)+near.data[i+2]*a);check[i+3]=Math.max(check[i+3],near.data[i+3]);}}

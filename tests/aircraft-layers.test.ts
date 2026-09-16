@@ -51,6 +51,13 @@ describe('dedicated registered aircraft resources', () => {
     expect(() => decodePng(Buffer.from('not artwork'))).toThrow(/PNG/);
   });
 
+  it('normalizes reviewed RGB source atlases to opaque RGBA before their alpha masks are applied', () => {
+    const rgb = decodePng(readFileSync('art/aircraft-capacity-v5/aurora-p-source.png'));
+    expect(rgb.width).toBe(1536); expect(rgb.height).toBe(1024);
+    expect(rgb.data.length).toBe(rgb.width * rgb.height * 4);
+    expect(rgb.data[3]).toBe(255);
+  });
+
   it('registers at the origin without changing pixels and composes source-over alpha', () => {
     const source = { width: 1, height: 1, data: Buffer.from([0, 0, 255, 128]) };
     const canvas = { width: 1, height: 1 };
