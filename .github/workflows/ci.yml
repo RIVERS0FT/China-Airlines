@@ -52,6 +52,17 @@ jobs:
           mkdir -p artifacts
       - name: Browser verification (${{ matrix.name }})
         run: npm run test:e2e
+      - name: Upload compact verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: china-airlines-reports-${{ matrix.name }}
+          path: |
+            artifacts/*.json
+            test-results/**/error-context.md
+            test-results/**/*.png
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4

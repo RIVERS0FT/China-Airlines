@@ -15,6 +15,7 @@
   .aviation-game { --dock-button-width:72px; --dock-dispatch-width:108px; }
 }
 @media(max-height:600px) and (orientation:landscape) {
-  .game-layout { --ui-page-padding:12px; --ui-heading-size:18px; --ui-header-height:48px; }
+  /* Container queries style descendants, never the size container itself. */
+  .aviation-game,.ui-dialog { --ui-page-padding:12px; --ui-heading-size:18px; --ui-header-height:48px; }
   .aviation-game { --dock-inset-x:8px; --dock-inset-y:4px; --dock-gap:5px; --dock-button-width:59px; --dock-button-height:52px; --dock-dispatch-width:90px; }
 }

@@ -1,0 +1,31 @@
+# Temporary read-only extraction of the existing regression report; removed after review.
+name: UI regression report review
+on:
+  pull_request:
+    branches: [main]
+    paths: [.github/workflows/ui-report-review.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  report:
+    if: github.repository == 'RIVERS0FT/China-Airlines' && github.event.pull_request.number == 53
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          repository: RIVERS0FT/China-Airlines
+          run-id: 35083186284
+          name: china-airlines-verification-subpath
+          github-token: ${{ github.token }}
+          path: evidence
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ui-regression-report-4cc4121
+          path: |
+            evidence/artifacts/*.json
+            evidence/test-results/**/error-context.md
+            evidence/test-results/**/*.png
+          if-no-files-found: error
+          retention-days: 3
