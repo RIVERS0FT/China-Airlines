@@ -35,7 +35,7 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
     await expect(await detailValue(page, 'plan-energy')).toContainText('能量不足');
     await expect(page.getByTestId('credits')).toHaveText(money(s.credits));
     await openGlobal(page, '机队管理');
-    const service=page.getByRole('region',{name:'飞机能量管理'}); // section has an accessible name.
+    const service=page.getByRole('region',{name:'飞机能量管理'});
     await page.getByRole('button',{name:'开始地勤补能',exact:true}).scrollIntoViewIfNeeded();
     await expect(page.getByRole('button',{name:'开始地勤补能',exact:true})).toBeInViewport();
     await expect(service).toContainText('每整分钟消耗1点');
@@ -51,6 +51,8 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
     await openGlobal(page, '机队管理概览');await page.getByRole('button',{name:/^待命飞机/}).click();
     await expect(page.getByTestId('flight-row')).toHaveCount(0);await page.getByRole('button',{name:'关闭机队管理',exact:true}).click();
     await openGlobal(page, '机队管理');
+    // Ordinary navigation restores the last tab; select aircraft to inspect service.
+    await page.getByRole('tab',{name:'飞机',exact:true}).click();
     await page.clock.fastForward(119000);await expect(page.getByTestId('hangar-energy')).toHaveText('0.22 / 200 点');
     await page.clock.fastForward(1000);await expect(page.getByTestId('hangar-energy')).toHaveText('200.00 / 200 点');
     await expect(page.getByRole('button',{name:'开始地勤补能',exact:true})).toBeDisabled();
@@ -81,8 +83,7 @@ test('multi-leg energy shortage stops at the hub without erasing transfer cargo'
   await launchRoute(page);await expect(page.getByTestId('plane-energy')).toHaveText('能量 0.00 点');
   await page.clock.fastForward((q.legs[0]!.duration+9)*1000);
   await expect(page.locator('.gate-sign')).toContainText('武汉航空港');await expect(page.getByTestId('flights-count')).toHaveText('1 班');
-  // A cabin page need not display the entire manifest. Inspect every page and
-  // compare the original identities so a hidden/lost transfer cannot pass.
+  // Inspect every cabin page and compare original identities, not just visible cards.
   const aboard: string[] = [];
   const resume = page.getByRole('button', { name: '继续经营', exact: true });
   if (await resume.isVisible()) await resume.click();

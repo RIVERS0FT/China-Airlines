@@ -171,7 +171,7 @@ export function App() {
   </>;
 
   return <>
-    <GameShell page={navigation.page} training={navigation.page === 'airport' && game?.tutorial === 'active' && Boolean(plane) && !modal}
+    <GameShell page={navigation.page} modalOpen={Boolean(modal && (game || modal === 'settings'))} training={navigation.page === 'airport' && game?.tutorial === 'active' && Boolean(plane) && !modal}
       header={<TopStatusBar hidden={isDispatch} onFleet={() => openFleet('flights')} onHelp={() => setModal('help')} onSettings={() => setModal('settings')}/>}
       navigation={game && <MainNavigation page={navigation.page} onNavigate={selectPage} departure={{ disabled: !plane || view.busy || Boolean(flight) || Boolean(cooling) || plane?.energy.serviceUntil !== null, reason: departureReason, onClick: () => showMap() }}/> }>
       {navigation.page === 'airport' && game && plane && game.tutorial === 'active' && !modal && <Tutorial game={game} plane={plane} screen={screen} destination={to} busy={view.busy} onLocate={locateTutorial}/>}

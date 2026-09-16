@@ -98,7 +98,8 @@ for (const config of cases) {
     await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer', 'ready');
     const first = baseline[0]!, second = baseline[1]!;
     const point = { x:(first.x + first.width + second.x) / 2, y:first.y + first.height / 2 };
-    expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.tagName, point)).toBe('CANVAS');
+    // Renderer readiness precedes the asynchronous canvas resize; wait for the real hit target.
+    await expect.poll(() => page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.tagName, point)).toBe('CANVAS');
     const camera = await page.getByTestId('map-canvas').getAttribute('data-camera');
     await ordinary(page).nth(6).click();
     await expect(page.getByTestId('page-career')).toBeVisible();
