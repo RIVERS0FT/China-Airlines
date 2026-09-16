@@ -1,7 +1,7 @@
 import { test, expect, type Page } from './fixture.js';
 import { GameCore } from '../src/core/game.js';
 import { ALL_MODELS } from '../src/core/catalog.js';
-import layouts from '../src/ui/aircraft-layer-layouts.json';
+import layouts from '../src/ui/aircraft-layer-layouts.json' with { type: 'json' };
 import { readFile } from 'node:fs/promises';
 const NOW = Date.parse('2026-09-16T00:00:00Z');
 
