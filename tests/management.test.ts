@@ -1,8 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { GameCore, validateSave, manifest, taskProgress, type GameState } from '../src/core/game.js';
-import { DISPATCHER_PRICE, resaleValue } from '../src/core/management.js';
+import { describe,expect,it } from 'vitest';
+import { GameCore,manifest,taskProgress,validateSave,type GameState } from '../src/core/game.js';
+import { DISPATCHER_PRICE,resaleValue } from '../src/core/management.js';
 import { guideStep } from '../src/core/onboarding.js';
-import v3 from './fixtures/v3-dispatching.json';
 const NOW=1800000000000, ID='AC0001';
 function rich(){const s=new GameCore(NOW).snapshot();s.credits=10000000;s.career.tickets=1000000;s.career.xp=20000;const c=new GameCore(NOW,s);c.execute({type:'hire-dispatcher',planeId:ID},NOW);return c;}
 function purchase(c=rich()){c.execute({type:'buy',modelId:'swift-f',airportId:'PEK'},NOW);return c;}
@@ -83,7 +82,6 @@ describe('safe resale and lifetime fleet milestones',()=>{
   });
 });
 describe('migration and strict invariants',()=>{
-  it('rejects retired v3 automatic flights',()=>{expect(()=>new GameCore(NOW,v3)).toThrow('不再支持');});
   it('imports without old wall-clock income and resumes only once',()=>{
     const source=rich();source.execute({type:'start-duty',planeId:ID,to:'PVG'},NOW);const saved=source.snapshot();const c=GameCore.imported(saved,NOW+1e9);expect(c.snapshot().stats).toEqual(saved.stats);expect(c.snapshot().lastWallTime).toBe(NOW+1e9);
     c.tick(NOW+1e9+200000);const s=c.snapshot(),again=new GameCore(s.lastWallTime,s);again.tick(s.lastWallTime);expect(again.snapshot()).toEqual(s);

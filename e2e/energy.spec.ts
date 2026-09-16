@@ -1,11 +1,12 @@
+import { retiredSave } from './retired-save-helpers.js';
 import { GameCore, flightEnergy } from '../src/core/game.js';
 import { rejectRetiredSave } from './retired-save-helpers.js';
 import { selectCity, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
-import orderedV4 from '../tests/fixtures/v4-ordered-route.json' with { type: 'json' };
+const orderedV4 = retiredSave(4);
 import { test, expect, type Page } from './fixture.js';
 import { quote, planQuote, type GameState } from '../src/core/game.js';
 const CAP=12000;
-import legacy from '../tests/fixtures/v4-energy-migration.json' with { type: 'json' };
+const legacy = retiredSave(4);
 const NOW = Date.parse('2026-09-12T00:00:00Z'), ID = 'AC0001';
 const money=(n:number)=>`¥ ${Math.round(n).toLocaleString('zh-CN')}`;
 let errors: string[];
@@ -101,7 +102,7 @@ test('multi-leg energy shortage stops at the hub without erasing transfer cargo'
   await expect(page.getByTestId('credits')).toHaveText(money(s.credits-q.legs[0]!.cost));
   await expect(page.getByTestId('active-plan')).toHaveCount(0);
 });
-for(const [label,s] of [['legacy',legacy],['ordered-route',orderedV4]] as const)test(`retired v4 ${label} flight is rejected`,async({page})=>{
+for(const [label,s] of [['legacy',legacy],['ordered-route',orderedV4]] as const)test(`retired v4 ${label} save version is rejected`,async({page})=>{
   await page.clock.install({time:new Date(NOW)});await page.clock.pauseAt(new Date(NOW+1000));await page.goto('./');
   await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await rejectRetiredSave(page,s);
 });

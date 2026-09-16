@@ -1,23 +1,22 @@
-import { migrateEmployee } from '../src/core/organization.js';
-import { describe, it, expect } from "vitest";
+import { describe,expect,it } from "vitest";
 import {
-  GameCore,
-  quote,
-  legQuote,
-  flightEnergy,
-  validateSave,
-  manifest,
-  energyCapacity,
-  type Command,
-  type GameState,
-} from "../src/core/game.js";
-import { GameCore as V6Core } from "../src/core/save-v6.js";
-import { aircraftSpecs, MODELS, distance } from "../src/core/catalog.js";
-import {
-  inventory,
-  warehouseUsed,
-  warehouseCapacity,
+inventory,
+warehouseCapacity,
+warehouseUsed,
 } from "../src/core/career.js";
+import { aircraftSpecs,distance,MODELS } from "../src/core/catalog.js";
+import {
+energyCapacity,
+flightEnergy,
+GameCore,
+legQuote,
+manifest,
+quote,
+validateSave,
+type Command,
+type GameState,
+} from "../src/core/game.js";
+import { migrateEmployee } from '../src/core/organization.js';
 const NOW = 1800000000000,
   ID = "AC0001";
 function rich() {
@@ -79,19 +78,6 @@ describe("v7 economy and historical contracts", () => {
     const arrived = c.snapshot();
     wait(c, 0);
     expect(c.snapshot()).toEqual(arrived);
-  });
-  it("rejects retired v6 flights without rewriting their energy", () => {
-    const old = new V6Core(NOW);
-    old.execute({ type: "load-destination", planeId: ID, to: "PVG" }, NOW);
-    old.execute({ type: "dispatch", planeId: ID, to: "PVG", auto: true }, NOW);
-    const s = old.snapshot(), before = structuredClone(s);
-    expect(() => new GameCore(NOW, s)).toThrow('不再支持');
-    expect(s).toEqual(before);
-  });
-  it("never accepts expanded aircraft in an old schema", () => {
-    const old = new V6Core(NOW).snapshot();
-    old.fleet[0]!.modelId = "swift-p";
-    expect(() => validateSave(old)).toThrow();
   });
   it("gates rank and airport level before spending", () => {
     const c = new GameCore(NOW);

@@ -1,7 +1,8 @@
+import { retiredSave } from './retired-save-helpers.js';
 import { selectCity, closeRouteDetails, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from './fixture.js';
 import { rejectRetiredSave } from './retired-save-helpers.js';
-import v2 from '../tests/fixtures/v2-flying.json' with { type: 'json' };
+const v2 = retiredSave(2);
 let errors: string[];
 test.beforeEach(async({page})=>{ errors=[];page.on('pageerror',e=>errors.push(e.message)); });
 test.afterEach(()=>expect(errors).toEqual([]));
