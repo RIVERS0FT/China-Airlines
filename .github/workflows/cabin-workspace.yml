@@ -1,0 +1,29 @@
+# Temporary read-only workspace export for offline verification of this PR.
+# This diagnostic workflow is removed before merge; it does not replace Verify.
+name: Cabin verification workspace
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  workspace:
+    if: github.head_ref == 'feat/unified-cutaway-coordinates'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Export public source and exact locked dependencies only
+        run: tar -czf /tmp/cabin-workspace.tgz src scripts public art tests e2e docs node_modules AGENTS.md README.md package.json package-lock.json index.html tsconfig.json vite.config.ts vitest.config.ts playwright.config.ts postcss.config.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cabin-verification-workspace
+          path: /tmp/cabin-workspace.tgz
+          retention-days: 1

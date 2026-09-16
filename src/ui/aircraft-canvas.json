@@ -1,0 +1,6 @@
+{
+  "canvas": { "width": 1536, "height": 590 },
+  "legacyAtlas": { "width": 1536, "height": 1024 },
+  "cutawayCrop": { "x": 0, "y": 0, "width": 1536, "height": 590 },
+  "nearCrop": { "x": 0, "y": 590, "width": 1536, "height": 434 }
+}
