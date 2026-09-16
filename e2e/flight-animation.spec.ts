@@ -87,6 +87,23 @@ for (const config of [
   const flight = await motionSample(cruise(page));
   expect(flight).toEqual(title);
   expect(await button.boundingBox()).toEqual(fixed);
+  // The old compact viewBox removed the top of DA40's tail. Check the whole
+  // sprite rectangle at each cruise quarter, not only the visible alpha pixels.
+  const bounds = await cruise(page).evaluate(element => {
+    const animation = element.getAnimations().find(item => item instanceof CSSAnimation && item.animationName === 'start-aircraft-cruise')!;
+    const image = element.querySelector('image')!;
+    const stage = element.closest('.aviation-stage')!;
+    animation.pause();
+    const samples = [0, 1500, 3000, 4500, 6000].map(time => {
+      animation.currentTime = time;
+      const sprite = image.getBoundingClientRect(), frame = stage.getBoundingClientRect();
+      return { left: sprite.left - frame.left, top: sprite.top - frame.top,
+        right: frame.right - sprite.right, bottom: frame.bottom - sprite.bottom };
+    });
+    animation.play();
+    return samples;
+  });
+  for (const sample of bounds) for (const inset of Object.values(sample)) expect(inset).toBeGreaterThanOrEqual(0);
   await expect(page.locator('.is-flying .flight-clouds-near')).toHaveCSS('animation-duration', '18s');
   await expect(page.locator('.is-flying .flight-clouds-far')).toHaveCSS('animation-duration', '32s');
   await expect(page.locator('.is-flying .flight-sky')).toHaveCSS('pointer-events', 'none');

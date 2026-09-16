@@ -1,4 +1,3 @@
-import { useGameViewport } from './GameViewport.js';
 import { aircraftSpecs } from '../core/catalog.js';
 import { loadSummary, type GameState, type Plane } from '../core/game.js';
 import { artAsset } from './art-assets.js';
@@ -11,8 +10,6 @@ export function AviationScene({ game, plane, onCabin, busy, cabinFocusKey }: {
   game: GameState; plane?: Plane; onCabin: () => void; busy: boolean; cabinFocusKey: number;
 }) {
   const { t, ui, modelName } = useI18n();
-  const viewport = useGameViewport();
-  const compact = viewport.height <= 600 && viewport.width >= viewport.height;
   const flying = Boolean(plane?.flight);
   const total = plane ? loadSummary(game, plane.id) : { passengers: 0, cargo: 0 };
   const m = plane ? aircraftSpecs(plane) : null;
@@ -28,7 +25,7 @@ export function AviationScene({ game, plane, onCabin, busy, cabinFocusKey }: {
     </svg>}
     {plane && !flying && <CutawayCabin key={plane.id} game={game} plane={plane} busy={busy} focusKey={cabinFocusKey} onInspect={onCabin}/>}
     {plane && flying && <button className="airplane-display" onClick={onCabin} aria-label={t('flight.view')} data-testid="plane-art">
-      <svg viewBox={compact ? "90 50 840 280" : "0 0 1000 330"} role="img" aria-label={t('flight.sceneLabel', { model: modelName(plane.modelId, m!.name) })}>
+      <svg viewBox="0 -24 1000 378" role="img" aria-label={t('flight.sceneLabel', { model: modelName(plane.modelId, m!.name) })}>
         <image data-testid="aircraft-sprite" href={artAsset(m!.art)} x="95" y="0" width="810" height="310"/>
         <g className="cabin-overlay" stroke="#466477" strokeWidth="1.5" strokeLinejoin="round">
           <rect x="317" y="148" width="310" height="47" rx="7" fill="#f1fbfff2"/>
