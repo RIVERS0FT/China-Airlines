@@ -1,5 +1,7 @@
 # 原创飞机分层资源 v4
 
+> 历史生成记录，仅用于复现现役v5兼容资源。新飞机不得沿用本目录的近侧蒙皮与合成外观流程，当前规则见 `docs/UNIFIED-AIRCRAFT-CANVAS.md`。
+
 2026-09-15–16，内置 image_gen 生成。先提交初航号预览，用户“实施修改”后展开剩余机型；按后续确认删除历史机型及兼容支持，只交付现役13种。
 
 每个 `*-source.png` 是1536×1024原始透明图集。第一行0..590为剖面机身，第二行590..1024为近侧蒙皮、机翼/发动机。`scripts/extract-aircraft-layers.ps1`只裁切和按坐标合成，不替代绘画或将一个机体换色冒充另一机型。每机型三张运行PNG共39张：cutaway、near与由前两层合成的exterior。两层注册位置在 `src/ui/aircraft-layer-layouts.json`；runtime场景使用相同坐标。

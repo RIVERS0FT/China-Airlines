@@ -1,0 +1,12 @@
+{
+  "id": "light-single-1p",
+  "status": "artwork-sample-not-catalogued",
+  "direction": "left",
+  "capacity": { "passengers": 1, "cargo": 0 },
+  "canvas": { "width": 1536, "height": 590 },
+  "source": "light-single-1p-imagegen-source-v1.png",
+  "cutaway": "aircraft-light-single-1p-cutaway-v1.png",
+  "exterior": "aircraft-light-single-1p-exterior-v1.png",
+  "referenceBoundary": "General DA40 structural cues only; original fictional livery and artwork; no logos or registrations.",
+  "generator": "built-in imagegen"
+}
