@@ -9,7 +9,7 @@ export type CabinFamily = 'light' | 'regional' | 'heavy';
 export interface CabinAnchor { id: string; kind: Order['kind']; x: number; floorY: number; width: number; z: number }
 export interface PaintedDeck { x: number; y: number; width: number; height: number; floorY: number; count: number }
 export interface CabinArtLayout {
-  modelId: string; family: CabinFamily; direction: 'left'; hull: string; near: string;
+  modelId: string; family: CabinFamily; direction: 'left'; hull: string; exterior: string;
   canvas: { width: number; height: number };
   interior: { x: number; y: number; width: number; height: number };
   decks: Partial<Record<Order['kind'], PaintedDeck>>;
@@ -34,7 +34,7 @@ export function cabinArtLayout(plane: Pick<Plane, 'modelId'>): CabinArtLayout {
   const family = registered.family as CabinFamily;
   const revision = 'revision' in registered ? registered.revision : 'v4';
   return { modelId: aircraft.id, family, direction: 'left',
-    hull: `aircraft-${aircraft.id}-cutaway-${revision}.png`, near: `aircraft-${aircraft.id}-near-${revision}.png`,
+    hull: `aircraft-${aircraft.id}-cutaway-${revision}.png`, exterior: `aircraft-${aircraft.id}-exterior-${revision}.png`,
     canvas: format.canvas, interior: registered.interior, decks: registered.decks };
 }
 

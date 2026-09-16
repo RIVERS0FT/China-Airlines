@@ -213,6 +213,7 @@ const airports = {
 
 const aircraft = {
   'starter-swift':{name:'Swift First Flight',role:'Starter mixed-use aircraft'},
+  'diamond-da40':{name:'Diamond DA40',role:'Light short-haul passenger aircraft'},
   'swift-p':{name:'Swift Passenger',role:'Light passenger aircraft'}, 'swift-f':{name:'Swift Freighter',role:'Light cargo aircraft'}, 'swift-m':{name:'Swift Mixed',role:'Light mixed-use aircraft'},
   'heron-p':{name:'Heron Passenger',role:'Regional passenger aircraft'}, 'heron-f':{name:'Heron Freighter',role:'Regional cargo aircraft'}, 'heron-m':{name:'Heron Mixed',role:'Regional mixed-use aircraft'},
   'albatross-p':{name:'Albatross Passenger',role:'Heavy passenger aircraft'}, 'albatross-f':{name:'Albatross Freighter',role:'Heavy cargo aircraft'}, 'albatross-m':{name:'Albatross Mixed',role:'Heavy mixed-use aircraft'},

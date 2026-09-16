@@ -5,6 +5,7 @@ import { decodePng } from '../scripts/aircraft-png.mjs';
 const root = 'art/aircraft-pair-v6';
 const manifest = JSON.parse(readFileSync(`${root}/manifest.json`, 'utf8')) as {
   status: string;
+  modelId: string;
   direction: string;
   capacity: { passengers: number; cargo: number };
   canvas: { width: number; height: number };
@@ -48,9 +49,9 @@ function significantComponents(file: string, threshold = 8) {
 }
 
 describe('independent cutaway and exterior aircraft artwork', () => {
-  it('records the approved sample boundary without changing the aircraft catalogue', () => {
+  it('records the approved DA40 catalogue boundary', () => {
     expect(manifest).toMatchObject({
-      status: 'artwork-sample-not-catalogued', direction: 'left',
+      status: 'catalogued-as-diamond-da40-v6', modelId: 'diamond-da40', direction: 'left',
       capacity: { passengers: 1, cargo: 0 }, canvas: { width: 1536, height: 590 },
     });
   });

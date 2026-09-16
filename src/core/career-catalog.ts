@@ -41,6 +41,10 @@ export interface AircraftModel {
   energy: number;
   rank: number;
   art: string;
+  reference: {
+    prototype: string;
+    capacity: string;
+  };
 }
 const AIRCRAFT_ART_REVISION = "v5";
 const families = [
@@ -57,6 +61,10 @@ const families = [
     weight: 220,
     energy: 200,
     art: "light",
+    reference: {
+      prototype: "Cessna SkyCourier",
+      capacity: "19座 · 最大有效载荷2,347 kg",
+    },
   },
   {
     id: "heron",
@@ -71,6 +79,10 @@ const families = [
     weight: 380,
     energy: 280,
     art: "regional",
+    reference: {
+      prototype: "ATR 72-600 / 72-600F",
+      capacity: "最多78座 · 货运型最大载荷9,200 kg",
+    },
   },
   {
     id: "albatross",
@@ -85,6 +97,10 @@ const families = [
     weight: 560,
     energy: 400,
     art: "heavy",
+    reference: {
+      prototype: "Airbus A321XLR / A321P2F",
+      capacity: "最多244座 · 货运型最大载荷28.1 t",
+    },
   },
   {
     id: "aurora",
@@ -99,9 +115,35 @@ const families = [
     weight: 750,
     energy: 600,
     art: "heavy",
+    reference: {
+      prototype: "Boeing 747-8I / 747-8F",
+      capacity: "410座 · 货运型收益载荷133.1 t",
+    },
   },
 ] as const;
-export const MODELS: readonly AircraftModel[] = families.flatMap((f) =>
+const DA40_MODEL: AircraftModel = {
+  id: "diamond-da40",
+  family: "diamond",
+  name: "钻石 DA40",
+  role: "轻型短途客运",
+  kind: "passengers",
+  seats: 1,
+  cargo: 0,
+  range: 1730,
+  speed: 285,
+  price: 4000,
+  level: 1,
+  costKm: 0.12,
+  weight: 140,
+  energy: 180,
+  rank: 1,
+  art: "aircraft-diamond-da40-exterior-v6.png",
+  reference: {
+    prototype: "Diamond DA40 NG",
+    capacity: "4座（含飞行员）· 最大有效载荷407 kg",
+  },
+};
+const FAMILY_MODELS = families.flatMap((f) =>
   (["passengers", "cargo", "mixed"] as const).map((kind, i) => {
     const id = `${f.id}-${["p", "f", "m"][i]}`;
     return {
@@ -131,11 +173,13 @@ export const MODELS: readonly AircraftModel[] = families.flatMap((f) =>
       energy: f.energy,
       rank: f.rank,
       art: `aircraft-${id}-exterior-${AIRCRAFT_ART_REVISION}.png`,
+      reference: f.reference,
     };
   }),
 );
+export const MODELS: readonly AircraftModel[] = [DA40_MODEL, ...FAMILY_MODELS];
 export const STARTER_MODEL: AircraftModel = {
-  ...MODELS[2]!,
+  ...FAMILY_MODELS[2]!,
   id: "starter-swift",
   name: "雨燕 初航号",
   seats: 3,
@@ -176,7 +220,8 @@ export const retrofitPrice = (
   key: keyof Upgrades,
 ) =>
   Math.ceil(model(p.modelId).price * 0.025 * (1 + p.upgrades[key] * 0.12));
-export const upgradeLimit = (_p: { modelId: string }, key: keyof Upgrades) => key === "capacity" ? 9 : 99;
+export const upgradeLimit = (p: { modelId: string }, key: keyof Upgrades) =>
+  key === "capacity" ? (p.modelId === DA40_MODEL.id ? 0 : 9) : 99;
 export const upgradeTickets = (
   p: { modelId: string; upgrades: Upgrades },
   key: keyof Upgrades,

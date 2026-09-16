@@ -29,12 +29,11 @@ export function CutawayCabin({ game, plane, busy, focusKey, onInspect }: { game:
     data-cabin-family={art.family} data-facing={art.direction} data-anchor-debug={debug || undefined}>
     <div className="aircraft-canvas" data-testid="aircraft-canvas" data-art-scale={fit.scale} style={{ width: art.canvas.width, height: art.canvas.height,
       left: fit.left, top: fit.top, visibility: fit.scale ? 'visible' : 'hidden', transform: `scale(${fit.scale})`, '--cabin-ui-unit': `${1 / (fit.scale || 1)}px` } as CSSProperties}>
-      <img className="cutaway-airframe" src={artAsset(art.hull)} alt="" aria-hidden="true" draggable={false}/>
+      <img className="cutaway-airframe" data-testid="aircraft-view" src={artAsset(exterior ? art.exterior : art.hull)} alt="" aria-hidden="true" draggable={false}/>
       <div ref={interior} inert={exterior} aria-hidden={exterior || undefined} className={`cabin-overlay cabin-interior ${decks.length === 1 ? 'single-deck' : 'stacked-decks'}`}
         style={{ left: rect.x, top: rect.y, width: rect.width, height: rect.height }} data-testid="aircraft-cabin">
         {decks.map((deck, index) => <CabinDeck key={`${plane.id}-${deck.kind}`} deck={deck} art={art} game={game} plane={plane} busy={busy} focusKey={focusKey} footerIndex={index} footerCount={decks.length}/>)}
       </div>
-      <img className="aircraft-near-layer" data-testid="aircraft-near-layer" src={artAsset(art.near)} alt="" aria-hidden="true" draggable={false} style={{ visibility: exterior ? 'visible' : 'hidden' }}/>
     </div>
     <button className="cabin-inspect" aria-label={ui('查看机上客货')} onClick={onInspect}>{ui('机舱剖视')}</button>
     <button className="cabin-toggle" aria-pressed={exterior} onClick={() => setExterior(value => !value)}>{ui(exterior ? '查看机舱' : '查看外观')}</button>

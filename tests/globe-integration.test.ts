@@ -12,7 +12,7 @@ describe('current aircraft registry and save boundary', () => {
   it('keeps twelve purchasable models and a three-seat two-cargo starter', () => {
     const c=new GameCore(NOW);c.execute({type:'load-destination',planeId:'AC0001',to:'PVG'},NOW);
     const s=c.snapshot(),p=s.fleet[0]!;
-    expect(ALL_MODELS).toHaveLength(13);expect(MODELS).toHaveLength(12);
+    expect(ALL_MODELS).toHaveLength(14);expect(MODELS).toHaveLength(13);
     expect(p.modelId).toBe('starter-swift');expect(aircraftSpecs(p)).toMatchObject({seats:3,cargo:2});
     expect(loadSummary(s,p.id)).toEqual({passengers:3,cargo:2});expect(validateSave(s)).toEqual(s);
     const fresh=new GameCore(NOW).snapshot();expect(fresh.log[0]!.amount).toBe(fresh.credits);

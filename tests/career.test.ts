@@ -44,13 +44,13 @@ function unchanged(c: GameCore, command: Command) {
   expect(c.snapshot()).toEqual(s);
 }
 describe("v7 economy and historical contracts", () => {
-  it("starts without gems and offers twelve distinct role models", () => {
+  it("starts without gems and offers thirteen distinct role models", () => {
     const s = new GameCore(NOW).snapshot();
     expect(s.version).toBe(9);
     expect(s.credits).toBe(18000);
     expect(s.career.tickets).toBe(24);
     expect(JSON.stringify(s)).not.toMatch(/gem|diamond/);
-    expect(MODELS).toHaveLength(12);
+    expect(MODELS).toHaveLength(13);
     expect(aircraftSpecs(s.fleet[0]!)).toMatchObject({
       seats: 3,
       cargo: 2,
