@@ -1,0 +1,51 @@
+name: Retired save cleanup (one-off)
+on:
+  push:
+    branches: [chore/retired-save-cleanup-20260916]
+    paths:
+      - scripts/retired-save-cleanup.once.mjs
+      - .github/workflows/retired-save-cleanup-once.yml
+permissions:
+  contents: write
+concurrency:
+  group: retired-save-cleanup-once
+  cancel-in-progress: false
+jobs:
+  cleanup:
+    if: github.ref == 'refs/heads/chore/retired-save-cleanup-20260916'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact locked dependencies
+        run: npm ci
+      - name: Clean retired fixtures and unreachable validators
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          node scripts/retired-save-cleanup.once.mjs
+          git diff --check
+          git diff --exit-code -- src/core/game.ts src/persistence src/runtime.ts
+      - name: Typecheck retained business tests and new save boundaries
+        run: npm run typecheck
+      - name: Commit only reviewed cleanup areas to the feature branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- src/core tests docs
+          git diff --cached --stat
+          git commit -m 'chore: remove retired save fixtures and unused validators; consolidate boundary tests'
+          git push origin HEAD:refs/heads/chore/retired-save-cleanup-20260916
+      - name: Full domain and persistence suite
+        run: npm test
+      - name: Root production build
+        run: npm run build
+      - name: Subpath production build
+        env:
+          BASE_PATH: /China-Airlines/
+        run: npm run build
