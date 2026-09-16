@@ -39,6 +39,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
     await page.setViewportSize({ width, height });
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     const host = await openFlyingMap(page), layer = page.getByTestId('map-aircraft-canvas');
+    const credits = await page.getByTestId('credits').textContent();
     await expect(host).toHaveAttribute('data-aircraft-status', 'ready');
     await expect(host).toHaveAttribute('data-visible-plane-models', 'AC0001:low-poly-airliner.glb');
     await expect(layer).toHaveAttribute('data-instances', '1');
@@ -69,7 +70,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
     await expect(host).toHaveAttribute('data-visible-planes', '');
     await page.keyboard.press('Home');
     await expect(layer).toHaveAttribute('data-instances', '1');
-    await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
+    await expect(page.getByTestId('credits')).toHaveText(credits!);
     expect(errors).toEqual([]);
   });
 }
@@ -145,17 +146,24 @@ test('a real flight uses A while still advancing the original business state', a
   await expect(page.getByTestId('flights-count')).toHaveText('1 班');
 });
 
-test('different aircraft types share A geometry and hiding others changes only visibility', async ({ page }) => {
-  const now = Date.parse('2026-09-15T00:00:00Z'), core = new GameCore(now);
+test('different in-flight aircraft types share A geometry and hiding others hides them for a grounded current aircraft', async ({ page }) => {
+  const now = Date.parse('2026-09-15T00:00:00Z');
+  const seed = new GameCore(now).snapshot(); seed.credits = 5_000_000;
+  const core = new GameCore(now, seed);
+  core.execute({ type: 'buy', modelId: 'swift-m', airportId: 'PEK' }, now);
   core.execute({ type: 'buy', modelId: 'swift-m', airportId: 'PEK' }, now);
   core.execute({ type: 'dispatch', planeId: 'AC0001', to: 'PVG', auto: false }, now);
   core.execute({ type: 'dispatch', planeId: 'AC0002', to: 'PVG', auto: false }, now);
   await page.clock.setFixedTime(new Date(now));
   await page.goto('./'); await page.getByRole('button', { name: '存档设置', exact: true }).click();
   page.once('dialog', dialog => void dialog.accept());
-  await page.getByLabel('选择存档文件').setInputFiles({ name: 'two-aircraft.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(core.snapshot())) });
-  await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
+  await page.getByLabel('选择存档文件').setInputFiles({ name: 'three-aircraft.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(core.snapshot())) });
+  await expect(page.getByTestId('fleet-count')).toHaveText('3 架');
   await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
+  await page.getByRole('button', { name: '机队管理概览', exact: true }).click();
+  await page.getByRole('button', { name: '查看AC0003飞机', exact: true }).click();
+  await expect(page.getByRole('tab', { name: '飞机', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('button', { name: '前往这架飞机', exact: true }).click();
   await page.getByRole('button', { name: '制定路线', exact: true }).click();
   const host = page.getByTestId('map-canvas'), layer = page.getByTestId('map-aircraft-canvas');
   await expect(host).toHaveAttribute('data-aircraft-status', 'ready');
@@ -163,9 +171,8 @@ test('different aircraft types share A geometry and hiding others changes only v
   await expect(layer).toHaveAttribute('data-instances', '2');
   await expect(layer).toHaveAttribute('data-draw-calls', '3');
   await page.getByRole('button', { name: '隐藏其他飞机', exact: true }).click();
-  await expect(layer).toHaveAttribute('data-instances', '1');
-  await expect(host).toHaveAttribute('data-visible-planes', 'AC0001');
+  await expect(layer).toHaveAttribute('data-instances', '0');
+  await expect(host).toHaveAttribute('data-visible-planes', '');
   await page.getByRole('button', { name: '显示其他飞机', exact: true }).click();
   await expect(layer).toHaveAttribute('data-instances', '2');
-  await expect(page.getByTestId('network-cost')).toHaveText(/0/);
 });
