@@ -43,6 +43,6 @@ export function AviationScene({ game, plane, onCabin, busy, cabinFocusKey }: {
       </svg>
     </button>}
     {!plane && <div className="empty-apron">{ui('此机场暂无停靠飞机')}<br/><small>{ui('可在商店选择此处交付，或安排飞机飞来。')}</small></div>}
-    <div className="scene-caption">{flying ? t('flight.running') : plane ? ui('点击地面客货装机 · 点击机内客货卸载') : ui('机场浏览 · 选择停靠飞机后才能装载')}</div>
+    <div className={plane && !flying ? 'sr-only' : 'scene-caption'}>{flying ? t('flight.running') : plane ? ui('点击地面客货装机 · 点击机内客货卸载') : ui('机场浏览 · 选择停靠飞机后才能装载')}</div>
   </div>;
 }

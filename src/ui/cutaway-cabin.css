@@ -12,6 +12,7 @@
 .aviation-game .cabin-deck nav button{height:calc(44 * var(--cabin-ui-unit));min-height:calc(44 * var(--cabin-ui-unit));width:calc(44 * var(--cabin-ui-unit));min-width:calc(44 * var(--cabin-ui-unit));padding:0;border:0;border-radius:0;box-shadow:none;background:transparent;font-size:calc(23 * var(--cabin-ui-unit));line-height:1}
 .cabin-aircraft .cabin-places{position:absolute;inset:0;overflow:visible;pointer-events:auto}
 .cabin-aircraft .cabin-anchor{position:absolute;top:0;height:100%;min-width:0}
+.cabin-anchor[data-slot-active="false"]{visibility:hidden;pointer-events:none}
 .cabin-furniture-clip{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .cabin-place-art{position:absolute;pointer-events:none;left:50%;bottom:var(--floor-bottom);width:var(--furniture-width);height:var(--furniture-height);margin-left:var(--furniture-offset);transform:translateX(-50%);object-fit:contain;object-position:center bottom;z-index:1}
 .cabin-aircraft .cabin-order,.cabin-aircraft .cabin-empty{position:relative;display:block!important;width:100%;height:max(100%,calc(44 * var(--cabin-ui-unit)));min-width:0;min-height:0;gap:0!important;padding:0!important;border:0!important;border-radius:0;background:none;box-shadow:none;overflow:visible;text-align:center;color:#fff9df;z-index:2}

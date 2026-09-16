@@ -102,7 +102,13 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three
     const scale = await displayScale(page), plate = (await card.locator('.job-info').boundingBox())!;
     const figure = (await card.locator('.job-figure').boundingBox())!, art = (await card.locator('.job-art').boundingBox())!;
     expect(art.y + art.height).toBeLessThanOrEqual(figure.y + figure.height + 1);
-    expect(figure.y + figure.height).toBeLessThanOrEqual(plate.y + 1);
+    if (state === 'loaded') {
+      // On the original cutaway, text is beside the furniture rather than below a new panel.
+      const furniture = (await card.locator('..').locator('.cabin-place-art').boundingBox())!;
+      expect(art.x + art.width).toBeLessThanOrEqual(plate.x + 1);
+      expect(furniture.x + furniture.width).toBeLessThanOrEqual(plate.x + 1);
+      expect((await card.boundingBox())!.height / scale).toBeGreaterThanOrEqual(44 - .01);
+    } else expect(figure.y + figure.height).toBeLessThanOrEqual(plate.y + 1);
     let previousBottom = plate.y;
     // The first waiting order in this fixture is cargo; its name sits above the fare.
     const textRows = state === 'loaded' ? ['.cabin-destination', '.job-price'] : state === 'waiting' ? ['.cargo-name', '.job-price'] : ['.job-price'];
@@ -114,7 +120,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three
       expect(text.y + text.height).toBeLessThanOrEqual(plate.y + plate.height + 1);
     }
     expect(await card.locator('.job-price').evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11);
-    expect(plate.height / scale).toBeGreaterThanOrEqual((state === 'loaded' ? 44 : 24) - 0.01);
+    expect(plate.height / scale).toBeGreaterThanOrEqual((state === 'loaded' ? 30 : 24) - 0.01);
     expect(plate.height / scale).toBeLessThanOrEqual(70);
     await expect(card.locator('.job-info > *')).toHaveCount(textRows.length);
     await expect(card.locator('.job-marker, .cargo-service-name')).toHaveCount(0);

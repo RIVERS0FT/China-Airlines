@@ -40,9 +40,11 @@ export function CabinDeck({ deck, art, game, plane, busy, focusKey, footerIndex,
       </nav>
     </header>
     <div ref={strip} className="cabin-places" role="group" tabIndex={0} onKeyDown={keys} aria-label={ui(deck.kind === 'passengers' ? '机内乘客' : '机内货物')}>
-      {page.items.map(({ slot, order }, index) => {
-        const anchor = anchors[index]!, place = cabinPlacement(anchor, room.width, room.height, order);
-        return <div className="cabin-anchor" key={index} data-anchor-id={anchor.id} data-slot={slot} data-floor-y={place.ground}
+      {anchors.map((anchor, index) => {
+        // Keep the same furniture nodes on partial last pages, without inventing capacity.
+        const item = page.items[index], order = item?.order ?? null;
+        const place = cabinPlacement(anchor, room.width, room.height, order);
+        return <div className="cabin-anchor" key={index} data-anchor-id={anchor.id} data-slot={item?.slot} data-slot-active={Boolean(item)} inert={!item} aria-hidden={!item || undefined} data-floor-y={place.ground}
           data-seat-cushion-y={place.seatCushion ?? undefined} data-passenger-hip-y={place.occupantHip ?? undefined}
           data-seat-cushion-x={place.seatCushionX ?? undefined} data-passenger-hip-x={place.occupantHipX ?? undefined}
           data-passenger-foot-y={deck.kind === 'passengers' ? place.occupantFoot : undefined}
@@ -56,7 +58,7 @@ export function CabinDeck({ deck, art, game, plane, busy, focusKey, footerIndex,
             src={artAsset(deck.kind === 'passengers' ? 'cabin-seat-v3.png' : 'cabin-pallet-v3.png')} alt="" aria-hidden="true" draggable={false}/></div>
           {order
             ? <OrderCard cabin order={order} state={orderPresentation(game, plane, order, busy)} onClick={() => { strip.current?.focus(); ignore(controller.command({ type: 'unload', planeId: plane.id, orderId: order.id })); }}/>
-            : <div className={`cabin-empty ${deck.kind}`} data-testid="cabin-empty-place" aria-label={ui(deck.kind === 'passengers' ? '空座位' : '空货位')}><span>{ui(deck.kind === 'passengers' ? '空座位' : '空货位')}</span></div>}
+            : item ? <div className={`cabin-empty ${deck.kind}`} data-testid="cabin-empty-place" aria-label={ui(deck.kind === 'passengers' ? '空座位' : '空货位')}><span>{ui(deck.kind === 'passengers' ? '空座位' : '空货位')}</span></div> : null}
         </div>;
       })}
     </div>

@@ -175,6 +175,9 @@ export function MapView(props: Props) {
           if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
           if (pointers.size === 1) last = [...pointers.values()][0]!;
         };
+        // Pointer events already handle taps and drags. Suppress a second synthesized
+        // mouse click, which can be adjusted onto a nearby floating navigation button.
+        const suppressTouchMouse = (event: TouchEvent) => { if (event.cancelable) event.preventDefault(); };
         const wheel = (e: WheelEvent) => { e.preventDefault(); zoom(Math.exp(-e.deltaY * .001)); };
         const keydown = (e: KeyboardEvent) => {
           if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -185,6 +188,7 @@ export function MapView(props: Props) {
           } else if (['+', '=', '-'].includes(e.key)) { e.preventDefault(); zoom(e.key === '-' ? .8 : 1.25); }
         };
         canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
+        canvas.addEventListener('touchstart', suppressTouchMouse, { passive: false });
         canvas.addEventListener('wheel', wheel, { passive: false }); canvas.addEventListener('keydown', keydown);
         function drawGlobe() {
           const { cx, cy } = camera, r = camera.radius * camera.scale;
@@ -349,7 +353,7 @@ export function MapView(props: Props) {
           modelAbort.abort(); aircraftLayer?.dispose(); reducedMotion.removeEventListener('change', motionChanged);
           window.removeEventListener('gameviewportchange', resize); window.removeEventListener('resize', resize);
           renderLoop.destroy(); observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move);
-          canvas.removeEventListener('pointerup', up); canvas.removeEventListener('pointercancel', up); canvas.removeEventListener('wheel', wheel); canvas.removeEventListener('keydown', keydown);
+          canvas.removeEventListener('pointerup', up); canvas.removeEventListener('pointercancel', up); canvas.removeEventListener('touchstart', suppressTouchMouse); canvas.removeEventListener('wheel', wheel); canvas.removeEventListener('keydown', keydown);
         };
         setStatus('ready');
         element.dataset.aircraftStatus = 'loading';
