@@ -43,6 +43,7 @@ export function App() {
   const [organizationTarget, setOrganizationTarget] = useState<{ id: number | null; training: boolean }>({ id: null, training: false });
   const [modal, setModal] = useState<ModalName | null>(null);
   const [fleetTab, setFleetTab] = useState<FleetTab | undefined>();
+  const [fleetEntry, setFleetEntry] = useState(0);
   const [browsedAirport, setBrowsedAirport] = useState<string | null>(null);
   const [detailAirport, setDetailAirport] = useState('PEK');
   const [detailBack, setDetailBack] = useState<'directory' | 'map' | 'close'>('directory');
@@ -84,7 +85,10 @@ export function App() {
     });
   }
   function openOrganization(id: number | null = null, training = false) { setOrganizationTarget({ id, training }); openPage('organization'); }
-  function openFleet(tab?: FleetTab) { setFleetTab(tab); openPage('fleet'); }
+  function openFleet(tab?: FleetTab) {
+    // Repeated HUD requests must open Flights even when Fleet is already active.
+    setFleetTab(tab); setFleetEntry(value => value + 1); openPage('fleet');
+  }
   function selectPlane(id: string) { setPlaneId(id); setBrowsedAirport(null); navigate({ type: 'open', page: 'airport' }); setAboard(false); setModal(null); }
   function showOrders(onboard: boolean) { setAboard(onboard); setOrderViewKey(key => key + 1); }
   function cycle(dir: number) {
@@ -183,7 +187,7 @@ export function App() {
         {workPage === 'career' ? <CareerHub game={game} busy={view.busy} selected={plane?.id ?? context?.selected.id} airportId={current}/>
           : workPage === 'airports' ? <AirportDirectory game={game} onInspect={id => inspectAirport(id, undefined, 'directory')}/>
           : workPage === 'shop' ? <Shop game={game} busy={view.busy} selected={current}/>
-          : workPage === 'fleet' ? <FleetManagement onEmployee={id => openOrganization(id)} game={game} busy={view.busy} selectedPlaneId={plane?.id ?? context?.selected.id} initialTab={fleetTab} onSelect={selectPlane}/>
+          : workPage === 'fleet' ? <FleetManagement key={fleetEntry} onEmployee={id => openOrganization(id)} game={game} busy={view.busy} selectedPlaneId={plane?.id ?? context?.selected.id} initialTab={fleetTab} onSelect={selectPlane}/>
           : <CompanyOrganization game={game} busy={view.busy} initialEmployeeId={organizationTarget.id} initialTraining={organizationTarget.training} onClose={closePage} onPlane={selectPlane} onAirport={visitAirport}/>}
       </PageFrame>}
     </GameShell>
