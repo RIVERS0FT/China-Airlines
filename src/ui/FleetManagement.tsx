@@ -1,23 +1,26 @@
 import { EmployeePortrait } from './EmployeePortrait.js';
 import { employeeDisplayName } from './organization-presentation.js';
-import { useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { GameState } from '../core/game.js';
 import { FlightBoard } from './FlightBoard.js';
 import { Hangar } from './Hangar.js';
 import { useI18n } from '../i18n/I18n.js';
+import { usePageState } from './shell/PageState.js';
 
 export type FleetTab = 'planes' | 'flights';
-export function FleetManagement({ game, busy, selectedPlaneId, initialTab = 'planes', onSelect, onEmployee }: {
+export function FleetManagement({ game, busy, selectedPlaneId, initialTab, onSelect, onEmployee }: {
   game: GameState; busy: boolean; selectedPlaneId?: string; initialTab?: FleetTab; onSelect: (id: string) => void; onEmployee?: (id: number) => void;
 }) {
-  const [tab, setTab] = useState<FleetTab>(initialTab);
-  const [selected, setSelected] = useState(selectedPlaneId ?? game.fleet[0]!.id);
+  const [tab, setTab] = usePageState<FleetTab>('fleet.tab', initialTab ?? 'planes');
+  const [selectedId, setSelected] = usePageState('fleet.selected', selectedPlaneId ?? game.fleet[0]!.id);
+  const selected = game.fleet.some(plane => plane.id === selectedId) ? selectedId : game.fleet[0]!.id;
   const { ui, locale } = useI18n();
   const pilot = game.career.employees.find(e => e.planeId === selected);
   const tabs = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (initialTab) setTab(initialTab); }, [initialTab, setTab]);
   function inspect(id: string) { setSelected(id); setTab('planes'); tabs.current?.querySelector<HTMLButtonElement>('#fleet-planes-tab')?.focus(); }
   return <section className="fleet-management">
-    <div className="fleet-management-tabs" role="tablist" aria-label={ui('机队管理栏目')} ref={tabs} onKeyDown={event => {
+    <div className="ui-page-toolbar fleet-management-tabs" role="tablist" aria-label={ui('机队管理栏目')} ref={tabs} onKeyDown={event => {
       if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
       event.preventDefault(); const next = event.key === 'Home' ? 'planes' : event.key === 'End' ? 'flights' : tab === 'planes' ? 'flights' : 'planes';
       setTab(next); tabs.current?.querySelector<HTMLButtonElement>(`#fleet-${next}-tab`)?.focus();

@@ -1,0 +1,20 @@
+/* Logical design tokens. Physical safe areas belong only to viewport.css. */
+.game-layout {
+  --ui-space-1:4px; --ui-space-2:8px; --ui-space-3:12px; --ui-space-4:16px; --ui-space-6:24px;
+  --ui-ink:#254c57; --ui-muted:#637b7e; --ui-paper:#fffbed; --ui-surface:#edf3ed;
+  --ui-line:#b7c8c5; --ui-accent:#276e7b; --ui-gold:#d6ad54; --ui-warning:#885225;
+  --ui-radius:8px; --ui-control-size:44px; --ui-page-padding:16px; --ui-heading-size:22px;
+  --ui-header-height:56px; --ui-overlay-layer:40;
+}
+.aviation-game {
+  --airport-frame-inset:0px; --dock-inset-x:12px; --dock-inset-y:8px; --dock-gap:8px;
+  --dock-button-width:84px; --dock-button-height:78px; --dock-dispatch-width:118px;
+  --dock-height:calc(var(--dock-button-height) + 2 * var(--dock-inset-y));
+}
+@media(max-width:950px) and (orientation:landscape) {
+  .aviation-game { --dock-button-width:72px; --dock-dispatch-width:108px; }
+}
+@media(max-height:600px) and (orientation:landscape) {
+  .game-layout { --ui-page-padding:12px; --ui-heading-size:18px; --ui-header-height:48px; }
+  .aviation-game { --dock-inset-x:8px; --dock-inset-y:4px; --dock-gap:5px; --dock-button-width:59px; --dock-button-height:52px; --dock-dispatch-width:90px; }
+}

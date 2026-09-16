@@ -1,16 +1,13 @@
-/* Shared logical geometry for navigation and the two right-aligned primary actions. */
-.aviation-game{position:relative;--airport-frame-inset:0px;--dock-inset-x:12px;--dock-inset-y:8px;--dock-gap:8px;--dock-button-width:84px;--dock-button-height:78px;--dock-dispatch-width:118px;--dock-height:calc(var(--dock-button-height) + 2 * var(--dock-inset-y))}
+/* Shared navigation geometry. Dimensions are owned by tokens.css. */
+.aviation-game{position:relative}
 .aviation-game:not(.dispatch-focused)>.game-dock,.aviation-game.map-browse:not(.dispatch-focused)>.game-dock{position:relative;inset:auto;display:flex;flex:0 0 var(--dock-height);flex-flow:row nowrap;align-items:center;justify-content:flex-start;gap:var(--dock-gap);width:100%;max-width:none;height:var(--dock-height);min-height:var(--dock-height);margin:0;padding:var(--dock-inset-y) var(--dock-inset-x);border:0;border-radius:0;transform:none;overflow:visible;background:none;box-shadow:none;backdrop-filter:none;pointer-events:none}
 .aviation-game:not(.dispatch-focused)>.game-dock>button:not(.depart-button),.aviation-game:not(.dispatch-focused)>.game-dock>button.depart-button{flex:0 0 var(--dock-button-width);width:var(--dock-button-width);min-width:var(--dock-button-width);max-width:var(--dock-button-width);height:var(--dock-button-height);min-height:var(--dock-button-height);max-height:var(--dock-button-height);margin:0;transform:none;pointer-events:auto}
 .aviation-game:not(.dispatch-focused)>.game-dock>button.depart-button{flex-basis:var(--dock-dispatch-width);width:var(--dock-dispatch-width);min-width:var(--dock-dispatch-width);max-width:var(--dock-dispatch-width);margin-left:auto}
 .aviation-game:not(.dispatch-focused)>.game-dock>button:is(:hover,:active,:focus-visible,.active){transform:none}
 .aviation-game.map-browse:not(.dispatch-focused)>.game-dock{position:absolute;inset:auto 0 0}
 .aviation-game:not(.dispatch-focused)>.game-dock::before,.aviation-game:not(.dispatch-focused)>.game-dock::after{display:none;content:none}
-/* The game shell is borderless, so airport and dispatch primary actions share the same content edge. */
-/* Warning text sits above the action and never participates in its fixed geometry. */
 .aviation-game .dispatch-launch-area{right:calc(var(--dock-inset-x) + var(--airport-frame-inset));bottom:calc(var(--dock-inset-y) + var(--airport-frame-inset));pointer-events:none}
 .aviation-game .route-dispatch-button{width:var(--dock-dispatch-width);min-width:var(--dock-dispatch-width);max-width:var(--dock-dispatch-width);height:var(--dock-button-height);min-height:var(--dock-button-height);max-height:var(--dock-button-height);margin:0;padding:3px;gap:2px;transform:none;pointer-events:auto}
 .aviation-game .route-dispatch-button:is(:hover,:active,:focus-visible){transform:none}
 .aviation-game .dispatch-route-buttons{pointer-events:none}.aviation-game .dispatch-route-buttons>button{pointer-events:auto}
-@media(max-width:950px) and (orientation:landscape){.aviation-game{--dock-button-width:72px;--dock-dispatch-width:108px}}
-@media(max-height:600px) and (orientation:landscape){.aviation-game{--dock-inset-x:8px;--dock-inset-y:4px;--dock-gap:5px;--dock-button-width:59px;--dock-button-height:52px;--dock-dispatch-width:90px}.aviation-game .route-dispatch-button .icon{width:24px;height:24px}.aviation-game .route-dispatch-button strong{font-size:14px;line-height:16px}}
+@media(max-height:600px) and (orientation:landscape){.aviation-game .route-dispatch-button .icon{width:24px;height:24px}.aviation-game .route-dispatch-button strong{font-size:14px;line-height:16px}}
