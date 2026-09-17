@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 
-/** Exercise the new visible entry points, never force-click a hidden legacy control. */
+/** Exercise visible entry points and never force-click a hidden control. */
 export async function closeRouteDetails(page: Page) {
   const dialog = page.getByRole('dialog', { name: '路线详情', exact: true });
   if (await dialog.isVisible()) await dialog.getByRole('button', { name: '关闭路线详情', exact: true }).click();

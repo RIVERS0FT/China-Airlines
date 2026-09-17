@@ -1,4 +1,3 @@
-import { migrateEmployee } from '../src/core/organization.js';
 import { describe, it, expect } from "vitest";
 import {
   GameCore,
@@ -11,7 +10,6 @@ import {
   type Command,
   type GameState,
 } from "../src/core/game.js";
-import { GameCore as V6Core } from "../src/core/save-v6.js";
 import { aircraftSpecs, MODELS, distance } from "../src/core/catalog.js";
 import {
   inventory,
@@ -43,10 +41,10 @@ function unchanged(c: GameCore, command: Command) {
   expect(() => c.execute(command, s.lastWallTime)).toThrow();
   expect(c.snapshot()).toEqual(s);
 }
-describe("v7 economy and historical contracts", () => {
+describe("current economy and contracts", () => {
   it("starts without gems and offers thirteen distinct role models", () => {
     const s = new GameCore(NOW).snapshot();
-    expect(s.version).toBe(9);
+    expect(s.version).toBe(10);
     expect(s.credits).toBe(18000);
     expect(s.career.tickets).toBe(24);
     expect(JSON.stringify(s)).not.toMatch(/gem|diamond/);
@@ -58,7 +56,7 @@ describe("v7 economy and historical contracts", () => {
     });
     expect(validateSave(s)).toEqual(s);
   });
-  it("locks observed base fare, aviation duration, cost, minimum energy and full destination bonus", () => {
+  it("uses the observed base fare and cost without a full-load bonus", () => {
     const c = new GameCore(NOW);
     cmd(c, { type: "load-destination", planeId: ID, to: "PVG" });
     const s = c.snapshot(),
@@ -67,9 +65,7 @@ describe("v7 economy and historical contracts", () => {
       q = quote(s, p, "PVG");
     expect(q.duration).toBe(Math.floor((d * 450) / 360));
     expect(q.cost).toBe(Math.floor((d * 220 * 360) / 400000));
-    expect(q.revenue).toBe(
-      Math.floor(manifest(s, ID).reduce((n, o) => n + o.reward, 0) * 1.25),
-    );
+    expect(q.revenue).toBe(manifest(s, ID).reduce((n, o) => n + o.reward, 0));
     expect(flightEnergy(p, 30)).toBe(60);
     expect(flightEnergy(p, 119)).toBe(60);
     cmd(c, { type: "dispatch", planeId: ID, to: "PVG", auto: false });
@@ -79,19 +75,6 @@ describe("v7 economy and historical contracts", () => {
     const arrived = c.snapshot();
     wait(c, 0);
     expect(c.snapshot()).toEqual(arrived);
-  });
-  it("rejects retired v6 flights without rewriting their energy", () => {
-    const old = new V6Core(NOW);
-    old.execute({ type: "load-destination", planeId: ID, to: "PVG" }, NOW);
-    old.execute({ type: "dispatch", planeId: ID, to: "PVG", auto: true }, NOW);
-    const s = old.snapshot(), before = structuredClone(s);
-    expect(() => new GameCore(NOW, s)).toThrow('不再支持');
-    expect(s).toEqual(before);
-  });
-  it("never accepts expanded aircraft in an old schema", () => {
-    const old = new V6Core(NOW).snapshot();
-    old.fleet[0]!.modelId = "swift-p";
-    expect(() => validateSave(old)).toThrow();
   });
   it("gates rank and airport level before spending", () => {
     const c = new GameCore(NOW);
@@ -436,8 +419,12 @@ describe("strict expanded schema", () => {
       "duplicate pilot",
       (s) => {
         s.career.employees = [
-          migrateEmployee({ id: 1, name: "a", paidUntil: 100, skill: 0, planeId: null }, s.simTime),
-          migrateEmployee({ id: 1, name: "b", paidUntil: 100, skill: 0, planeId: null }, s.simTime),
+          { id: 1, name: "a", paidUntil: 100, skill: 0, planeId: null, department: 'flight', role: 'specialist', managerId: null,
+            airportId: null, management: 0, potential: 10, trait: 'mentor', joinedAt: s.simTime, flights: 0, deliveries: 0,
+            history: [{ at: s.simTime, kind: 'joined', text: '测试入职' }] },
+          { id: 1, name: "b", paidUntil: 100, skill: 0, planeId: null, department: 'flight', role: 'specialist', managerId: null,
+            airportId: null, management: 0, potential: 10, trait: 'efficient', joinedAt: s.simTime, flights: 0, deliveries: 0,
+            history: [{ at: s.simTime, kind: 'joined', text: '测试入职' }] },
         ];
         s.career.nextId = 2;
       },

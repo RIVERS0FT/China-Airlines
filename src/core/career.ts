@@ -424,6 +424,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
         upgrades: emptyUpgrades(),
         tuning: emptyTuning(),
         itinerary: [],
+        planContract: null,
         dispatcher: false,
         energy: {
           availableSeconds: m.energy * 60,

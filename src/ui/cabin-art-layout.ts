@@ -28,7 +28,7 @@ const silhouettes = ['a', 'b', 'c', 'd', 'e', 'f'].map(id => {
 const envelopeHeight = Math.max(1, ...silhouettes.map(frame => frame.scale));
 const envelopeWidth = Math.max(SEAT.width / SEAT.height, ...silhouettes.map(frame => frame.halfWidth * 2));
 
-/** Registered PNGs share their full canvas; legacy registration is build-time only. */
+/** Registered PNGs share their full canvas; registration metadata is build-time only. */
 export function cabinArtLayout(plane: Pick<Plane, 'modelId'>): CabinArtLayout {
   const aircraft = model(plane.modelId), registered = layerLayouts[aircraft.id as keyof typeof layerLayouts];
   const family = registered.family as CabinFamily;

@@ -5,7 +5,7 @@ import { ENERGY_SERVICE_SECONDS } from './energy.js';
 export type Department = 'flight' | 'ground';
 export type EmployeeRole = 'specialist' | 'manager';
 export type Training = 'skill' | 'management';
-export type HistoryKind = 'joined' | 'migrated' | 'assigned' | 'reporting' | 'promoted' | 'demoted' | 'trained' | 'renewed' | 'flight';
+export type HistoryKind = 'joined' | 'assigned' | 'reporting' | 'promoted' | 'demoted' | 'trained' | 'renewed' | 'flight';
 export interface Employee {
   id: number; name: string; planeId: string | null; paidUntil: number; skill: number;
   department: Department; role: EmployeeRole; managerId: number | null; airportId: string | null;
@@ -56,12 +56,6 @@ export function groundServiceQuote(s: GameState, airportId: string) {
 export function employeeHistory(s: GameState, e: Employee, kind: HistoryKind, text: string) {
   e.history.unshift({ at: s.simTime, kind, text });
   e.history.length = Math.min(e.history.length, HISTORY_LIMIT);
-}
-/** Old records keep their identity and purchased skills; unavailable history stays explicitly unknown. */
-export function migrateEmployee(p: Pick<Employee, 'id' | 'name' | 'planeId' | 'paidUntil' | 'skill'>, at: number): Employee {
-  return { ...p, department: 'flight', role: 'specialist', managerId: null, airportId: null, management: 0,
-    potential: 10, trait: p.id % 2 ? 'mentor' : 'efficient', joinedAt: null, flights: 0, deliveries: 0,
-    history: [{ at, kind: 'migrated', text: '继承历史飞行员；此前入职时间与个人业绩未记录' }] };
 }
 const employeeById = (s: GameState, id: number) => {
   const e = s.career.employees.find(e => e.id === id); guard(e, '未找到员工'); return e;

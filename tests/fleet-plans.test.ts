@@ -2,7 +2,6 @@ import { upgradeLimit } from '../src/core/career-catalog.js';
 import { describe, it, expect } from 'vitest';
 import { GameCore, validateSave, manifest, planQuote, quote, type GameState } from '../src/core/game.js';
 import { ALL_MODELS, MODELS, aircraftSpecs, hangarPrice, retrofitPrice } from '../src/core/catalog.js';
-import legacyV2 from './fixtures/v2-flying.json';
 const NOW = 1800000000000;
 const ID = 'AC0001';
 function rich() { const s = new GameCore(NOW).snapshot(); s.credits = 10000000; s.career.tickets=1000000; s.career.xp=20000; return new GameCore(NOW, s); }
@@ -138,12 +137,7 @@ describe('finite multi-stop plans',()=>{
     const step=new GameCore(NOW,c.snapshot());for(let i=1;i<=480;i++)step.tick(NOW+i*60000);c.tick(NOW+8*3600000);expect(step.snapshot()).toEqual(c.snapshot());
   });
 });
-describe('retired rejection and current save validation',()=>{
-  it('rejects retired v2 aircraft regardless of fleet size',()=>{
-    expect(()=>validateSave(legacyV2)).toThrow('不再支持');
-    const old=structuredClone(legacyV2);old.fleet=Array.from({length:7},(_,i)=>({...old.fleet[0]!,id:`AC${i+10}`}));
-    expect(()=>validateSave(old)).toThrow('不再支持');
-  });
+describe('current save validation',()=>{
   for(const [name,fn] of Object.entries({
     'missing upgrades':(s:GameState)=>{delete (s.fleet[0] as Partial<GameState['fleet'][0]>).upgrades;},
     'extra upgrade':(s:GameState)=>{Object.assign(s.fleet[0]!.upgrades,{cheat:1});},
@@ -157,7 +151,7 @@ describe('retired rejection and current save validation',()=>{
     'invalid capacity':(s:GameState)=>{s.fleet[0]!.modelId='lark-f';},
     'invalid order number':(s:GameState)=>{s.orders[0]!.amount=NaN;},
   })) it(`rejects ${name}`,()=>expect(mutated(fn)).toThrow());
-  it('accepts queued plan legs without historical route records',()=>{const s=prepared().snapshot();s.fleet[0]!.itinerary=['WUH','PVG'];s.routes=[];expect(validateSave(s)).toEqual(s);});
+  it('accepts contracted queued plan legs without historical route records',()=>{const s=prepared().snapshot();s.fleet[0]!.itinerary=['WUH','PVG'];s.fleet[0]!.planContract={origin:'PEK',stops:['WUH','PVG'],index:0};s.routes=[];expect(validateSave(s)).toEqual(s);});
   it('rejects tampered upgraded flight duration and locked costs',()=>{
     const c=prepared();c.execute({type:'retrofit',planeId:ID,upgrade:'engine'},NOW);c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG']},NOW);
     for(const field of ['arriveAt','cost','revenue'] as const){const s=c.snapshot();s.fleet[0]!.flight![field]++;expect(()=>validateSave(s)).toThrow();}

@@ -1,11 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { AIRPORTS, CONTINENTS, distance, routeId } from '../src/core/catalog.js';
-import { AIRPORTS as legacyAirports } from '../src/core/catalog-v4.js';
+import { DOMESTIC_AIRPORTS } from '../src/core/domestic-airports.js';
 import { GameCore, manifest, quote, validateSave } from '../src/core/game.js';
-import { validateV5 } from '../src/core/save-v5.js';
 import { searchAirports } from '../src/ui/airport-search.js';
-import flyingV5 from './fixtures/v5-flying.json';
-import serviceV5 from './fixtures/v5-servicing.json';
 const NOW = 1_800_000_000_000;
 function funded() { const s = new GameCore(NOW).snapshot(); s.credits = 100_000_000; s.career.tickets=1000000; s.career.xp=20000; return new GameCore(NOW, s); }
 describe('global airport registry', () => {
@@ -16,7 +13,7 @@ describe('global airport registry', () => {
       expect(a.id).toMatch(/^[A-Z]{3}$/); expect(Math.abs(a.lat)).toBeLessThanOrEqual(90); expect(Math.abs(a.lon)).toBeLessThanOrEqual(180);
       expect(Number.isSafeInteger(a.price)).toBe(true); expect(a.price).toBeGreaterThanOrEqual(0);
     }
-    for (const a of legacyAirports) expect(AIRPORTS.find(b => b.id === a.id)).toMatchObject({...a,price:Math.round(a.price/4)});
+    for (const a of DOMESTIC_AIRPORTS) expect(AIRPORTS.find(b => b.id === a.id)).toMatchObject({...a,price:Math.round(a.price/4)});
   });
   it('every airport can be reached by a chain of existing 8000 km aircraft legs', () => {
     const visited = new Set(['PEK']);
@@ -76,15 +73,6 @@ describe('world operations and persistence', () => {
     s.routes = AIRPORTS.flatMap((a, i) => AIRPORTS.slice(i + 1).map(b => ({ id: routeId(a.id, b.id), from: a.id, to: b.id })));
     expect(s.routes).toHaveLength(1225); expect(validateSave(s)).toEqual(s);
     s.routes[0]!.to = 'ZZZ'; expect(() => validateSave(s)).toThrow();
-  });
-  it.each([flyingV5, serviceV5])('rejects retired v5 data without changing it', old => {
-    const before=structuredClone(old);expect(validateV5(old)).toEqual(old);expect(()=>validateSave(old)).toThrow('不再支持');expect(old).toEqual(before);
-  });
-  it('rejects forged global v5 data and corrupt energy instead of laundering them into v6', () => {
-    const old = structuredClone(flyingV5); old.airports.push({ id: 'NRT', level: 1 });
-    expect(() => validateSave(old)).toThrow();
-    const bad = structuredClone(serviceV5); bad.fleet[0]!.energy.availableSeconds = -1;
-    expect(() => validateSave(bad)).toThrow();
   });
   it('rejects invalid infrastructure atomically with expanded bounds', () => {
     const original = new GameCore(NOW).snapshot();

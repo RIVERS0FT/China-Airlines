@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { GameCore, validateSave, type Command } from '../src/core/game.js';
-import { GameCore as V8Core, validateSave as validateV8 } from '../src/core/v8/game.js';
 import { companyAffairs, createTalent } from '../src/core/talent.js';
 import { organizationLayout } from '../src/ui/organization-layout.js';
 const NOW = Date.parse('2026-09-14T02:00:00Z');
@@ -58,7 +57,7 @@ describe('mentoring, advice and retained milestones',()=>{
     act(c,{type:'train-employee',employeeId:p.id,training:'skill'});expect(companyAffairs(c.snapshot())).toHaveLength(1);
     reject(c,{type:'defer-company-affair',key:a.key,signature:a.signature});
   });
-  it('supports valid legacy fractional contract timestamps and offers ground advice only with an idle specialist',()=>{
+  it('supports fractional contract timestamps and offers ground advice only with an idle specialist',()=>{
     const {c,p,m}=mentored(),s=c.snapshot();s.career.employees.find(e=>e.id===p.id)!.paidUntil=1e-7;s.career.employees.find(e=>e.id===m.id)!.paidUntil=1e-7;
     const fractional=new GameCore(NOW,s),a=companyAffairs(s)[0]!;act(fractional,{type:'defer-company-affair',key:a.key,signature:a.signature});
     const g=hire(c,'ground-specialist');expect(companyAffairs(c.snapshot()).filter(a=>a.kind==='ground')).toHaveLength(2);
@@ -78,16 +77,7 @@ describe('mentoring, advice and retained milestones',()=>{
     empty.tick(NOW+empty.snapshot().fleet[0]!.flight!.arriveAt*1000);expect(empty.snapshot().talent.milestones.some(m=>m.kind==='paid-flight')).toBe(false);
   });
 });
-describe('v8 freeze and strict v9 persistence',()=>{
-  it('migrates locked flights and services without fabricating personnel history or changing old data',()=>{
-    const old=new V8Core(NOW);old.execute({type:'recruit-pilot'},NOW);old.execute({type:'assign-pilot',pilotId:1,planeId:'AC0001'},NOW);old.execute({type:'start-duty',planeId:'AC0001',to:'PVG'},NOW);
-    const before=old.snapshot(),after=validateSave(before),{talent,version,...unchanged}=after;
-    expect(version).toBe(9);const {version:oldVersion,...oldFields}=before;expect(oldVersion).toBe(8);expect(unchanged).toEqual(oldFields);
-    expect(talent.milestones).toEqual([]);expect(talent.mentoring).toEqual([]);
-    const service=new V8Core(NOW),s=service.snapshot();s.fleet[0]!.energy.availableSeconds-=600;const servicing=new V8Core(NOW,s);servicing.execute({type:'service-energy',planeId:'AC0001'},NOW);
-    expect(validateSave(servicing.snapshot()).fleet).toEqual(servicing.snapshot().fleet);
-    expect(()=>validateV8({...before,talent})).toThrow();expect(()=>validateSave({...before,talent})).toThrow();
-  });
+describe('strict current persistence',()=>{
   it('rejects unknown fields, duplicate candidates, forged references, future events and missing talent data',()=>{
     const {c,p}=mentored();act(c,{type:'train-employee',employeeId:p.id,training:'skill'});
     const invalid=[

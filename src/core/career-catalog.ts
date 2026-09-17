@@ -2,14 +2,14 @@ import { RAILWAY_LEVELS } from "./railway-observations.js";
 import {
   TASKS as OLD_TASKS,
   type Upgrades,
-} from "./catalog-v5.js";
+} from "./aircraft-basics.js";
 export {
   AIRCRAFT_KIND_LABEL,
   UPGRADE_LABEL,
   emptyUpgrades,
   routeId,
-} from "./catalog-v5.js";
-export type { AircraftKind, UpgradeKey, Upgrades } from "./catalog-v5.js";
+} from "./aircraft-basics.js";
+export type { AircraftKind, UpgradeKey, Upgrades } from "./aircraft-basics.js";
 export interface Tuning {
   group: number;
   cabins: number;
@@ -257,7 +257,6 @@ export const CARGO_SERVICES = [
     id: "general",
     name: "普通货物",
     kind: "cargo",
-    rate: 100,
     art: "cargo-v1.png",
     special: "none",
   },
@@ -265,7 +264,6 @@ export const CARGO_SERVICES = [
     id: "express",
     name: "航空快件",
     kind: "cargo",
-    rate: 120,
     art: "cargo-express-v2.png",
     special: "none",
   },
@@ -273,7 +271,6 @@ export const CARGO_SERVICES = [
     id: "cold",
     name: "冷链药品",
     kind: "cargo",
-    rate: 170,
     art: "cargo-cold-v2.png",
     special: "cold",
   },
@@ -281,7 +278,6 @@ export const CARGO_SERVICES = [
     id: "industrial",
     name: "工业设备",
     kind: "cargo",
-    rate: 150,
     art: "cargo-industrial-v2.png",
     special: "industrial",
   },
@@ -289,7 +285,6 @@ export const CARGO_SERVICES = [
     id: "tourist",
     name: "休闲旅客",
     kind: "passengers",
-    rate: 100,
     art: "passenger-02-v1.png",
     special: "none",
   },
@@ -297,7 +292,6 @@ export const CARGO_SERVICES = [
     id: "business",
     name: "商务旅客",
     kind: "passengers",
-    rate: 130,
     art: "passenger-01-v1.png",
     special: "none",
   },
@@ -305,7 +299,6 @@ export const CARGO_SERVICES = [
     id: "family",
     name: "探亲旅客",
     kind: "passengers",
-    rate: 110,
     art: "passenger-04-v1.png",
     special: "none",
   },

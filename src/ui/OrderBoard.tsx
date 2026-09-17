@@ -28,7 +28,7 @@ export function OrderCard({ order, state, onClick, cabin = false }: {
 }) {
   const { ui, airportName } = useI18n();
   const type = order.kind === 'cargo' ? cargoAppearance(order).name : service(order.service)?.name;
-  return <button className={`${cabin ? 'cabin-order' : 'job-card'} order-${order.kind} order-${state.state} ${state.aboard ? 'aboard' : ''} ${order.amount > 1 ? 'legacy-quantity' : ''}`} disabled={state.disabled} onClick={onClick}
+  return <button className={`${cabin ? 'cabin-order' : 'job-card'} order-${order.kind} order-${state.state} ${state.aboard ? 'aboard' : ''} ${order.amount > 1 ? 'bulk-quantity' : ''}`} disabled={state.disabled} onClick={onClick}
     data-testid={state.aboard ? 'loaded-order' : 'waiting-order'} data-order-id={order.id} data-load-state={state.state}
     aria-label={`${ui(state.aboard ? '卸下' : '装载')} ${order.id} ${ui('前往{city}',{city:airportName(order.to,airport(order.to).city)})} ${ui('{count}{unit}',{count:order.amount,unit:ui(order.kind === 'cargo' ? '吨货物' : '位旅客')})}${type ? `, ${ui(type)}` : ''}${state.reason ? `, ${ui(state.reason)}` : ''}${state.transfer ? `, ${ui('中转客货')}` : ''}`}
     aria-describedby={`${cabin ? `destination-${order.id} ` : ''}price-${order.id}`} title={[type ? ui(type) : '', ui(cabin ? state.action : '装机'), state.transfer ? ui('中转客货保留至交付') : ''].filter(Boolean).join(' · ')}>

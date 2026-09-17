@@ -1,8 +1,6 @@
 import { selectCity, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from './fixture.js';
-import { rejectRetiredSave } from './retired-save-helpers.js';
 import type { GameState } from '../src/core/game.js';
-import legacy from '../tests/fixtures/v3-dispatching.json' with { type: 'json' };
 let errors:string[];
 test.beforeEach(async({page})=>{errors=[];page.on('pageerror',e=>errors.push(e.message));});
 test.afterEach(()=>expect(errors).toEqual([]));
@@ -51,9 +49,6 @@ test('hangar duty can start for a reachable unlocked city without route purchase
   await page.getByRole('button',{name:'启动自动值勤',exact:true}).click();await expect(page.getByTestId('crew-status')).toContainText('自动值勤');
   await page.getByRole('button',{name:'停止自动值勤',exact:true}).click();await expect(page.getByRole('button',{name:'人员下岗',exact:true})).toBeDisabled();await page.getByRole('button',{name:'关闭机队管理'}).click();
   await openGlobal(page, '机场装载');await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();await page.clock.fastForward(400000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');await expect(page.getByTestId('loaded-order')).toHaveCount(0);
-});
-test('retired v3 automatic flight cannot replace current progress',async({page})=>{
-  await ready(page);await page.clock.pauseAt(new Date('2026-09-11T00:00:05Z'));await rejectRetiredSave(page,legacy);
 });
 for(const width of [1440,844])test(`guided real first flight persists at ${width}`,async({page})=>{
   await page.setViewportSize({width,height:width===1440?900:390});await ready(page);await openGlobal(page, '操作帮助');await page.getByRole('button',{name:'开始分步引导',exact:true}).click();

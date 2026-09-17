@@ -16,7 +16,7 @@ export function validateEmployees(s: GameState): void {
     record(e, ['id','name','planeId','paidUntil','skill','department','role','managerId','airportId','management','potential','trait','joinedAt','flights','deliveries','history']);
     num(e.id); num(e.paidUntil, 1e12, false); num(e.potential, 10); num(e.skill, e.potential); num(e.management, e.potential);
     num(e.flights, s.stats.flights); num(e.deliveries, s.stats.passengers + s.stats.cargo);
-    // v7 accepted any 1–12-character name; preserve that contract without normalizing saved identities.
+    // Names are stored as entered; display fallbacks must never rewrite saved identities.
     if (e.id < 1 || e.id >= s.career.nextId || ids.has(e.id) || typeof e.name !== 'string' || e.name.length < 1 || e.name.length > 12 ||
       e.potential < 6 || !['flight','ground'].includes(e.department) || !['specialist','manager'].includes(e.role) || !['mentor','efficient'].includes(e.trait)) fail();
     ids.add(e.id);
@@ -36,7 +36,7 @@ export function validateEmployees(s: GameState): void {
     if (!Array.isArray(e.history) || e.history.length < 1 || e.history.length > HISTORY_LIMIT) fail();
     for (const [i, event] of e.history.entries()) {
       record(event, ['at','kind','text']); num(event.at, s.simTime, false);
-      if (!['joined','migrated','assigned','reporting','promoted','demoted','trained','renewed','flight'].includes(event.kind) ||
+      if (!['joined','assigned','reporting','promoted','demoted','trained','renewed','flight'].includes(event.kind) ||
         typeof event.text !== 'string' || !event.text.trim() || event.text.length > 200 ||
         (e.joinedAt !== null && event.at < e.joinedAt) || (i > 0 && event.at > e.history[i - 1]!.at)) fail();
     }

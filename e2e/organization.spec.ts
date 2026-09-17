@@ -1,7 +1,6 @@
 import { test, expect, type Page } from './fixture.js';
 import { readFile } from 'node:fs/promises';
 import { GameCore, type GameState } from '../src/core/game.js';
-import { GameCore as V7Core } from '../src/core/v7/game.js';
 import { openGlobal } from './dispatch-helpers.js';
 import { UI_SCALE_KEY } from '../src/ui/viewport.js';
 const NOW = Date.parse('2026-09-14T02:00:00Z');
@@ -42,21 +41,11 @@ for (const [width,height] of [[1440,900],[844,390],[667,375]] as const) test(`co
   await expect(tree.locator('[data-employee-id="1"]')).toBeInViewport({ratio:FULL_VISIBILITY});
   await expect(tree.locator('[data-employee-id="2"]')).toBeInViewport({ratio:FULL_VISIBILITY});
   await page.screenshot({path:`artifacts/company-organization-${width}.png`});
-  const state=await exportState(page); expect(state.version).toBe(9); expect(state.career.employees).toHaveLength(3); expect(Object.keys(state.career)).not.toContain('pilots');
+  const state=await exportState(page); expect(state.version).toBe(10); expect(state.career.employees).toHaveLength(3); expect(Object.keys(state.career)).not.toContain('pilots');
   expect(state.career.employees[0]).toMatchObject({name:'林航',planeId:'AC0001',managerId:3,skill:1}); expect(state.career.employees[1]!.airportId).toBe('PEK');
   await page.reload(); await openOrganization(page); await page.getByRole('button',{name:'查看林航 · 飞行员',exact:true}).click();
   await expect(page.getByLabel('林航直属上级')).toHaveValue('3'); await expect(page.getByLabel('林航岗位')).toHaveValue('AC0001');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true); expect(errors).toEqual([]);
-});
-test('legacy pilots migrate once and the organization remains usable offline',async({page,context})=>{
-  const old=new V7Core(NOW);old.execute({type:'recruit-pilot'},NOW);old.execute({type:'assign-pilot',pilotId:1,planeId:'AC0001'},NOW);
-  await start(page,old.snapshot()); await page.getByRole('button',{name:'查看林航 · 飞行员',exact:true}).click();
-  await expect(page.getByLabel('林航岗位')).toHaveValue('AC0001'); await page.getByRole('tab',{name:'履历',exact:true}).click();
-  await expect(page.getByRole('complementary',{name:'员工详情'})).toContainText('历史入职时间未知');
-  await page.evaluate(()=>navigator.serviceWorker.ready.then(()=>true));await page.reload();await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller));
-  await context.setOffline(true);await page.reload();await openOrganization(page);await page.getByRole('button',{name:'查看林航 · 飞行员',exact:true}).click();
-  await expect(page.getByLabel('林航岗位')).toHaveValue('AC0001'); const saved=await exportState(page);expect(saved.career.employees).toHaveLength(1);
-  expect(saved.career.employees[0]!.paidUntil).toBe(old.snapshot().career.pilots[0]!.paidUntil);expect(saved.credits).toBe(old.snapshot().credits);
 });
 test('promotion, portrait return and 150 percent UI scale do not break staffing',async({page})=>{
   await page.setViewportSize({width:844,height:390});await page.addInitScript(key=>localStorage.setItem(key,'150'),UI_SCALE_KEY);await start(page);

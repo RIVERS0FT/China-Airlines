@@ -30,7 +30,7 @@
 
 全局样式入口为 `styles/index.ts`，使用独立 CSS import 保持 PostCSS 的文件级逻辑/物理边界，不能用一个 CSS @import 合并文件而误转换 viewport.css。
 
-`tokens.css` 维护间距、颜色、标题、控件和导航尺寸，断点使用逻辑容器。`styles/navigation.css` 是导航几何的唯一维护位置，原 navigation.css 删除。`layout.css` 只定义公共页面与弹窗结构。场景和美术的历史样式仍作为兼容层保留，不宣称本次已清空全部历史 polish/fixes；后续迁移需在对应模块验证后删除，不增加新的全局 fixes 文件。
+`tokens.css` 维护间距、颜色、标题、控件和导航尺寸，断点使用逻辑容器。`styles/navigation.css` 是导航几何的唯一维护位置，`layout.css` 只定义公共页面与弹窗结构。场景与美术样式按功能模块维护，不增加新的全局 fixes 文件。
 
 公共组件只使用调用方已翻译的标题或现有翻译键，不新增语言判断。页面内部遗留的双语言分支不在本增量内重写，避免覆盖并行本地化工作。
 

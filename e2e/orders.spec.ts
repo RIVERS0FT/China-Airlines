@@ -1,7 +1,5 @@
 import { openGlobal } from './dispatch-helpers.js';
 import { test, expect } from './fixture.js';
-import legacy from '../tests/fixtures/v1-flying.json' with { type: 'json' };
-import { rejectRetiredSave } from './retired-save-helpers.js';
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 }, { width: 667, height: 375 }]) {
   test(`manual loading stays quiet, persists and switches planes at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
@@ -50,8 +48,3 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     expect(errors).toEqual([]);
   });
 }
-
-test('retired v1 import keeps current progress through export and reload',async({page})=>{
-  await page.clock.install({time:new Date('2026-09-12T00:00:00Z')});await page.clock.pauseAt(new Date('2026-09-12T00:00:01Z'));
-  await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await rejectRetiredSave(page,legacy);
-});

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { translateCoreText } from './compat/core-text.js';
-import { translateLegacyUi } from './compat/legacy-ui.js';
+import { translateSourceUi } from './compat/source-ui.js';
 import {
   aircraftNameForLocale,
   aircraftRoleForLocale,
@@ -88,7 +88,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     modelRole: (id, fallback) => aircraftRoleForLocale(locale, id, fallback),
     continentName: source => continentNameForLocale(locale, source),
     text: source => translateCoreText(source, locale),
-    ui: (source, params) => translateLegacyUi(source, locale, params),
+    ui: (source, params) => translateSourceUi(source, locale, params),
   }), [locale]);
 
   return <Context.Provider value={value}>{children}</Context.Provider>;

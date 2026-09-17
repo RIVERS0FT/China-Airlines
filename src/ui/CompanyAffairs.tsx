@@ -34,7 +34,7 @@ export function CompanyChronicle({ game }: { game: GameState }) {
     'paid-flight':en?`${name(m.employeeId)} completed the first recorded paid transport flight.`:`${name(m.employeeId)}完成本阶段首次记录的有偿运输。`,
   })[m.kind];
   return <section className="company-chronicle" aria-label={en?'Company Chronicle':'公司纪事'}>
-    <p>{en?'Key milestones are retained separately from the recent activity log. Unrecorded history is never invented.':'关键经历独立保留，不被日常续约记录覆盖；旧版本未记录的经历不补编。'}</p>
+    <p>{en?'Key milestones are retained separately from the recent activity log. Unrecorded history is never invented.':'关键经历独立保留，不被日常续约记录覆盖；未记录的经历不补编。'}</p>
     {game.talent.milestones.length?<ol>{[...game.talent.milestones].reverse().map(m=><li key={m.kind}><small>{en?'Operating day':'经营第'} {Math.floor(m.at/86400)+1} {en?'':'天'} · {Math.floor(m.at%86400/3600)}:{String(Math.floor(m.at%3600/60)).padStart(2,'0')}</small><strong>{description(m)}</strong></li>)}</ol>:<p>{en?'New milestones will be recorded from this version onward.':'新版本起发生的关键经历将在这里保留。'}</p>}
   </section>;
 }

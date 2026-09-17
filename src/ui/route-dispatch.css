@@ -1,5 +1,5 @@
 /* Independent dispatch screen. Four readouts, an uninterrupted map, local actions.
-   All dimensions derive from these variables; no stacked legacy console offsets. */
+   All dimensions derive from these variables; no stacked console offsets. */
 .aviation-game.dispatch-focused{border:0;border-radius:0;min-height:0}
 .aviation-game.dispatch-focused>.game-hud,.aviation-game.dispatch-focused>.game-dock{display:none}
 .aviation-game .route-dispatch-view{--bar:60px;--edge:16px;--gap:8px;--action:76px;--action-h:78px;--launch:110px;position:relative;background:#399bbf;color:#fff;height:100%;overflow:hidden}
@@ -33,7 +33,7 @@
 .dispatch-auto-badge{background:#fcf2b9;color:#625222;border:1px solid #a98744;border-radius:4px;padding:3px 8px;font-size:12px}
 .dispatch-tip{position:absolute;top:28px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:0 0 0 12px;background:#fffbe5e8;color:#345f61;font-size:12px;border-radius:6px;z-index:3;max-width:80%;white-space:nowrap}
 .aviation-game .dispatch-tip button{width:44px;height:44px;min-height:44px;padding:0;border:0;box-shadow:none;background:transparent;font-size:23px}
-/* Dialogs do not reflow or unmount the map. Their selectors avoid the legacy plan-editor CSS. */
+/* Dialogs do not reflow or unmount the map. Their selectors stay isolated from the plan editor. */
 .dispatch-dialog{width:min(760px,94vw);max-height:88dvh;margin:auto;padding:0;overflow:auto;border:3px solid #42758a;border-radius:12px;background:#faf4df;color:#315264;box-shadow:0 12px 65px #17374370}
 .dispatch-dialog::backdrop{background:#153d5266}
 .dispatch-dialog>header{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:4px 14px;background:linear-gradient(#70b4c9,#3f7a95);color:#fffdeb;border-bottom:2px solid #c6ad60}

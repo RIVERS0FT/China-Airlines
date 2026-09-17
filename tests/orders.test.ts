@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GameCore, validateSave, manifest, waiting, quote, loadSummary, DEMAND_INTERVAL, TURNAROUND, type GameState } from '../src/core/game.js';
 import { aircraftSpecs, STARTER_MODEL } from '../src/core/catalog.js';
-import legacy from './fixtures/v1-flying.json';
 const NOW = 1800000000000;
 const send = (c: GameCore, to: string, planeId = 'AC0001') => {
   const now = c.snapshot().lastWallTime, from = c.snapshot().fleet.find(p => p.id === planeId)!.airportId;
@@ -64,10 +63,7 @@ describe('persistent passenger and cargo orders', () => {
     expect(()=>c.execute({type:'dispatch',planeId:'AC0001',to:'WUH',auto:true},NOW)).toThrow(/飞行员/);
   });
 });
-describe('current saves and retired import rejection',()=>{
-  it('rejects old v1 imports without mutating their data',()=>{
-    const before=structuredClone(legacy);expect(()=>GameCore.imported(legacy,NOW)).toThrow('不再支持');expect(legacy).toEqual(before);
-  });
+describe('current save import and validation',()=>{
   const currentFlying=()=>{const c=new GameCore(NOW);c.execute({type:'load-destination',planeId:'AC0001',to:'PVG'},NOW);c.execute({type:'dispatch',planeId:'AC0001',to:'PVG',auto:false},NOW);return c.snapshot();};
   it('restores a current flight without refilling or advancing an imported clock',()=>{
     const s=currentFlying();expect(validateSave(s)).toEqual(s);const c=GameCore.imported(s,NOW+86400000);expect(c.tick(NOW+86400000).flights).toBe(0);

@@ -1,20 +1,22 @@
 import { aircraftSpecs, emptyUpgrades, retrofitPrice, hangarPrice, UPGRADE_LABEL, type Upgrades, type UpgradeKey, airport, model, routeId, TASKS, upgradePrice, distance } from './catalog.js';
-import { validateSave as validateV8 } from './v8/game.js';
 import { createTalent, recordTalentArrival, recordTalentCommand, talentExecute, validateTalent, type TalentState, type TalentCommand } from './talent.js';
 import { groundServiceQuote } from './organization.js';
-export { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND } from './legacy.js';
-export type { Flight, AdvanceReport } from './legacy.js';
-import { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND, type Plane as LegacyPlane, type Command as LegacyCommand, type AdvanceReport } from './legacy.js';
+export { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND } from './simulation.js';
+export type { AdvanceReport } from './simulation.js';
+import { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND, type Flight as SimulationFlight, type Plane as SimulationPlane, type Command as SimulationCommand, type GameState as SimulationState, type AdvanceReport } from './simulation.js';
 import { validateInfrastructure } from './save-infrastructure.js';
 import { ENERGY_SERVICE_SECONDS, type EnergyBudget } from './energy.js';
 import { resaleValue } from './management.js';
-import { modernModel, emptyTuning, upgradeLimit, upgradeTickets, service, MATERIALS, type Tuning, type Material } from './career-catalog.js';
+import { emptyTuning, upgradeLimit, upgradeTickets, service, MATERIALS, type Tuning, type Material } from './career-catalog.js';
 import { newCareer, careerExecute, careerLevel, bill, consume, stock, warehouseUsed, warehouseCapacity, autoAllowed, onArrival, nextCareerEvent, advanceCareer, type Career, type CareerCommand } from './career.js';
 import { validateCareer, validateTuning } from './save-career.js';
-export const SAVE_VERSION = 9;
+import { railwayDistanceUnits, railwayLegCosts, railwayOrderReward, railwayRevenue, railwayRouteCost } from './economy.js';
+export const SAVE_VERSION = 10;
 export type TutorialState = 'available' | 'active' | 'completed' | 'skipped';
 export const MAX_PLAN_LEGS = 12;
-export interface Plane extends LegacyPlane { upgrades: Upgrades; itinerary: string[]; dispatcher: boolean; energy: EnergyBudget; tuning: Tuning }
+export interface Flight extends SimulationFlight {}
+export interface PlanContract { origin: string; stops: string[]; index: number }
+export interface Plane extends Omit<SimulationPlane, 'flight'> { flight: Flight | null; upgrades: Upgrades; itinerary: string[]; planContract: PlanContract | null; dispatcher: boolean; energy: EnergyBudget; tuning: Tuning }
 export const DEMAND_INTERVAL = 120;
 export const ORDER_LIFETIME = 360;
 export const MAX_WAITING = 24;
@@ -22,10 +24,10 @@ export interface Order {
   id: string; kind: 'passengers' | 'cargo'; from: string; to: string; amount: number;
   reward: number; location: string; createdAt: number; expiresAt: number | null; service: string; product: Material | null;
 }
-export interface GameState extends Omit<import('./legacy.js').GameState, 'version' | 'fleet'> {
-  version: 9; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
+export interface GameState extends Omit<SimulationState, 'version' | 'fleet'> {
+  version: 10; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
 }
-export type Command = LegacyCommand | CareerCommand | TalentCommand
+export type Command = SimulationCommand | CareerCommand | TalentCommand
   | { type: 'load' | 'unload'; planeId: string; orderId: string }
   | { type: 'load-destination'; planeId: string; to: string }
   | { type: 'retrofit'; planeId: string; upgrade: UpgradeKey }
@@ -60,10 +62,8 @@ export function loadSummary(s: GameState, planeId: string) {
   return { passengers: jobs.filter(o => o.kind === 'passengers').reduce((n, o) => n + o.amount, 0),
     cargo: jobs.filter(o => o.kind === 'cargo').reduce((n, o) => n + o.amount, 0) };
 }
-export function orderReward(from: string, to: string, kind: Order['kind'], amount: number, serviceId = 'legacy') {
-  const km = distance(from, to);
-  if (serviceId !== 'legacy') return Math.floor(amount * (Math.floor(km / 4) + 50) * (service(serviceId)?.rate ?? 100) / 100);
-  return Math.round(amount * (kind === 'passengers' ? 100 + km * 0.18 : 300 + km * 0.4));
+export function orderReward(from: string, to: string, _kind: Order['kind'], amount: number, _serviceId = 'general') {
+  return railwayOrderReward(distance(from, to), amount);
 }
 function issue(s: GameState, from: string, to: string, kind: Order['kind'], amount: number, location = from, reward?: number, createdAt = s.simTime, serviceId = kind === 'cargo' ? 'general' : 'tourist') {
   s.orders.push({ id: `JB${s.nextOrderId++}`, from, to, kind, amount, location,
@@ -94,6 +94,7 @@ function planeAtGate(s: GameState, planeId: string) {
   check(s.simTime >= p!.readyAt, '飞机正在地面周转');
   check(!p!.autoRouteId, '请先停止自动往返再手动装卸');
   check(!p!.itinerary.length, '请先取消剩余运输计划');
+  check(!p!.planContract, '请先完成或取消运输计划');
   return p!;
 }
 export function fits(s: GameState, p: Plane, o: Order) {
@@ -116,18 +117,16 @@ export function legQuote(s: GameState, p: Plane, from: string, to: string) {
   check(from !== to, '请选择不同的目的地'); check(a && b, '请先解锁两端机场');
   check(a!.level >= m.level && b!.level >= m.level, `该机型需要两端机场达到 ${m.level} 级`);
   const km = distance(from, to); check(km <= m.range, '航线超出这架飞机的航程');
-  const d = Math.floor(km / 4), factor = 2 ** p.tuning.group;
-  return { km, duration: Math.max(30, Math.floor(d * 450 / m.speed)), cost: Math.max(1, Math.floor(d * m.weight * m.speed * factor * (1 + p.upgrades.capacity) / 400000)) };
+  const d = railwayDistanceUnits(km), cabins = 1 + p.upgrades.capacity + p.tuning.cabins;
+  return { km, duration: Math.max(30, Math.floor(d * 450 / m.speed)), cost: railwayRouteCost(d, m.weight, m.speed, p.tuning.group, cabins) };
 }
 export const flightEnergy = (_p: Plane, seconds: number) => Math.max(1, Math.floor(seconds / 60)) * 60;
 export const energyCapacity = (p: Plane) => aircraftSpecs(p).energy * 60;
 export const planeEnergy = (p: Plane): EnergyBudget => ({ availableSeconds: energyCapacity(p), reservedSeconds: 0, serviceUntil: null });
 export function departureEnergyReason(p: Plane, seconds: number) { return p.energy.serviceUntil !== null ? '地勤补能中，请完成或取消补能' : p.energy.availableSeconds < flightEnergy(p,seconds) ? '能量不足，请到机库补能' : ''; }
 function destinationRevenue(s: GameState, p: Plane, to: string) {
-  const orders = manifest(s,p.id).filter(o=>o.to===to), base=orders.reduce((n,o)=>n+o.reward,0);
-  const m=aircraftSpecs(p), pax=orders.filter(o=>o.kind==='passengers').reduce((n,o)=>n+o.amount,0), cargo=orders.filter(o=>o.kind==='cargo').reduce((n,o)=>n+o.amount,0);
-  const full=pax===m.seats&&cargo===m.cargo;
-  return Math.floor(base * (full ? 1.25 : 1) * 2 ** p.tuning.group * (1 + p.tuning.evolution * .05));
+  const base=manifest(s,p.id).filter(o=>o.to===to).reduce((n,o)=>n+o.reward,0);
+  return railwayRevenue(base, p.tuning.group, p.tuning.evolution);
 }
 export function quote(s: GameState, p: Plane, to: string) {
   const leg = legQuote(s, p, p.airportId, to), total = loadSummary(s, p.id);
@@ -138,7 +137,7 @@ export function planQuote(s: GameState, p: Plane, stops: string[]) {
   check(Array.isArray(stops) && stops.length > 0 && stops.length <= MAX_PLAN_LEGS, '运输计划需要 1 至 12 个航段');
   let from = p.airportId;
   const delivered = new Set<string>();
-  const legs = stops.map(to => {
+  let legs = stops.map(to => {
     const leg = legQuote(s, p, from, to);
     const due = manifest(s,p.id).filter(o=>o.to===to&&!delivered.has(o.id));
     const revenue = due.length ? destinationRevenue(s,p,to) : 0;
@@ -147,17 +146,27 @@ export function planQuote(s: GameState, p: Plane, stops: string[]) {
     const result = { ...leg, from, to, opened, openingCost: 0, revenue };
     from = to; return result;
   });
+  const m = aircraftSpecs(p), cabins = 1 + p.upgrades.capacity + p.tuning.cabins;
+  const costs = railwayLegCosts(legs.map(leg => railwayDistanceUnits(leg.km)), m.weight, m.speed, p.tuning.group, cabins);
+  legs = legs.map((leg, index) => ({ ...leg, cost: costs[index]! }));
   const cost = legs.reduce((n, l) => n + l.cost, 0), revenue = legs.reduce((n, l) => n + l.revenue, 0);
   return { legs, cost, revenue, profit: revenue - cost, openingCost: 0,
     duration: legs.reduce((n, l) => n + l.duration, 0) + (legs.length - 1) * TURNAROUND,
     undelivered: manifest(s, p.id).filter(o => !delivered.has(o.id)).length };
+}
+function departureQuote(s: GameState, p: Plane, to: string) {
+  const result = quote(s, p, to), contract = p.planContract;
+  if (!contract) return result;
+  check(contract.stops[contract.index] === to, '运输计划航段不一致');
+  const planned = planQuote(s, { ...p, airportId: contract.origin, flight: null, itinerary: [], planContract: null }, contract.stops).legs[contract.index]!;
+  return { ...result, cost: planned.cost, profit: result.revenue - planned.cost };
 }
 function depart(s: GameState, p: Plane, to: string, auto: boolean) {
   check(!p.flight, '飞机正在飞行'); check(s.simTime >= p.readyAt, '飞机正在地面周转');
   check(!auto || autoAllowed(s,p), '请分配飞行员并续付工资');
   check(!auto || manifest(s, p.id).every(o => o.to === to), '自动往返只支持全部订单直达，请先卸下中转订单');
   check(!auto || manifest(s, p.id).length > 0, '自动往返需要先装载客货');
-  const q = quote(s, p, to);
+  const q = departureQuote(s, p, to);
   const energyError = departureEnergyReason(p, q.duration); check(!energyError, energyError);
   spend(s, q.cost); p.energy.availableSeconds -= flightEnergy(p,q.duration); p.energy.reservedSeconds = flightEnergy(p,q.duration); s.stats.costs += q.cost;
   const id = ensureRoute(s, p.airportId, to); p.autoRouteId = auto ? id : null;
@@ -171,6 +180,8 @@ function arrive(s: GameState, p: Plane) {
   s.orders = s.orders.filter(o => !ids.has(o.id));
   p.energy.reservedSeconds = 0;
   p.airportId = f.to; p.flight = null; p.readyAt = s.simTime + TURNAROUND;
+  if (p.planContract && p.planContract.stops[p.planContract.index] === f.to)
+    p.planContract = p.itinerary.length ? { ...p.planContract, index: p.planContract.index + 1 } : null;
   s.credits += f.revenue; s.stats.revenue += f.revenue; s.stats.flights++;
   for (const o of delivered) s.stats[o.kind] += o.amount;
   onArrival(s,p,delivered);
@@ -203,10 +214,11 @@ function advance(s: GameState, now: number): AdvanceReport {
     if (next.flight) { arrive(s, next); continue; }
     if (next.itinerary.length) {
       try {
+        if (!next.planContract) next.planContract = { origin: next.airportId, stops: [...next.itinerary], index: 0 };
         depart(s, next, next.itinerary[0]!, false);
         next.itinerary.shift();
       } catch (error) {
-        next.itinerary = []; next.readyAt = s.simTime;
+        next.itinerary = []; next.planContract = null; next.readyAt = s.simTime;
         note(s, `${next.id} 运输计划停止：${error instanceof Error ? error.message : '无法起飞'}`);
       }
       continue;
@@ -311,12 +323,15 @@ export class GameCore {
       }
       case 'dispatch-plan': {
         const p = planeAtGate(s, command.planeId); planQuote(s, p, command.stops);
+        p.planContract = command.stops.length > 1 ? { origin: p.airportId, stops: [...command.stops], index: 0 } : null;
         depart(s, p, command.stops[0]!, false); p.itinerary = command.stops.slice(1);
         note(s, `${p.id} 运输计划开始 · ${command.stops.map(id => airport(id).city).join(' → ')}`); break;
       }
       case 'cancel-plan': {
         const p = s.fleet.find(p => p.id === command.planeId); check(p, '未找到这架飞机');
         check(p!.itinerary.length, '没有剩余运输计划'); p!.itinerary = [];
+        if (p!.flight && p!.planContract) p!.planContract = { ...p!.planContract, stops: p!.planContract.stops.slice(0, p!.planContract.index + 1) };
+        else p!.planContract = null;
         note(s, `${p!.id} 剩余计划已取消，当前航班不受影响`); break;
       }
       case 'load': {
@@ -347,7 +362,7 @@ export class GameCore {
         check(a && a.level >= m.level, `交付机场需要达到 ${m.level} 级`); check(s.fleet.length < s.hangarSlots, '机库机位不足，请先扩建机库');
         check(careerLevel(s)>=m.rank,'公司等级不足');
         spend(s, m.price); const id = `AC${String(s.nextId++).padStart(4, '0')}`;
-        s.fleet.push({ id, modelId: m.id, airportId: command.airportId, readyAt: s.simTime, autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], dispatcher: false, tuning: emptyTuning(), energy: {availableSeconds:m.energy*60,reservedSeconds:0,serviceUntil:null} });
+        s.fleet.push({ id, modelId: m.id, airportId: command.airportId, readyAt: s.simTime, autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], planContract: null, dispatcher: false, tuning: emptyTuning(), energy: {availableSeconds:m.energy*60,reservedSeconds:0,serviceUntil:null} });
         s.fleetPeak = Math.max(s.fleetPeak, s.fleet.length);
         note(s, `${m.name} 加入机队 · ${id}`, -m.price); break;
       }
@@ -386,11 +401,11 @@ export class GameCore {
   }
 }
 
-/** Fresh games never instantiate a retired aircraft or pass through old saves. */
+/** Create a complete state that already conforms to the current schema. */
 function newGame(now: number): GameState {
   const career = newCareer(0, now);
   const plane: Plane = { id: 'AC0001', modelId: 'starter-swift', airportId: 'PEK', readyAt: 0,
-    autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], dispatcher: false,
+    autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], planContract: null, dispatcher: false,
     tuning: emptyTuning(), energy: { availableSeconds: 0, reservedSeconds: 0, serviceUntil: null } };
   plane.energy = planeEnergy(plane);
   const s: GameState = { version: SAVE_VERSION, credits: 18000, simTime: 0, lastWallTime: now, nextId: 2,
@@ -403,24 +418,6 @@ function newGame(now: number): GameState {
   return s;
 }
 
-/** Older saves always pass their frozen validators before any migration. */
-export function migrateV8(value: unknown): GameState {
-  rejectRetiredModels(value);
-  const old = validateV8(value);
-  return { ...old, version: 9, talent: createTalent(old.career.seed, old.simTime) };
-}
-export const migrateV7=migrateV8;
-/** A retired plane may be active, stored or already donated to the museum. */
-function rejectRetiredModels(value: unknown): void {
-  if (!value || typeof value !== 'object') return;
-  const save = value as { version?: unknown; fleet?: unknown; career?: { stored?: unknown; museum?: unknown } };
-  const rejected = () => { throw new Error('此存档包含已移除的旧机型或旧版本，不再支持导入；原进度未被覆盖'); };
-  if (typeof save.version === 'number' && save.version < 7) rejected();
-  for (const list of [save.fleet, save.career?.stored]) if (Array.isArray(list)) {
-    for (const plane of list) if (plane && typeof plane.modelId === 'string' && !modernModel(plane.modelId)) rejected();
-  }
-  if (Array.isArray(save.career?.museum) && save.career.museum.some(id => typeof id === 'string' && !modernModel(id))) rejected();
-}
 export function validateSave(value: unknown): GameState {
   const fail = (): never => { throw new Error('存档结构或经营数据无效，原进度未被覆盖'); };
   const record = (v: unknown, fields: string[]): Record<string, unknown> => {
@@ -434,9 +431,6 @@ export function validateSave(value: unknown): GameState {
   };
   if (!value || typeof value !== 'object' || Array.isArray(value)) return fail();
   const version = (value as { version?: unknown }).version;
-  rejectRetiredModels(value);
-  if (version === 7) return validateSave(migrateV7(value));
-  if (version === 8) return validateSave(migrateV8(value));
   if (version !== SAVE_VERSION) throw new Error('不支持此存档版本；请使用对应版本的游戏');
   const s = structuredClone(value) as GameState;
   record(s, ['version','credits','simTime','lastWallTime','nextId','airports','fleet','routes','stats','claimedTasks','log','orders','nextOrderId','nextDemandAt','hangarSlots','fleetPeak','tutorial','career','talent']);
@@ -457,9 +451,8 @@ export function validateSave(value: unknown): GameState {
   validateCareer(s);
   validateTalent(s);
   validateInfrastructure(s);
-  // v6 validates the expanded registry directly; never relax frozen legacy schemas.
   for (const p of [...s.fleet,...s.career.stored]) {
-    record(p, ['id','modelId','airportId','readyAt','autoRouteId','flight','upgrades','itinerary','dispatcher','energy','tuning']);
+    record(p, ['id','modelId','airportId','readyAt','autoRouteId','flight','upgrades','itinerary','planContract','dispatcher','energy','tuning']);
     validateTuning(p);
     record(p.energy, ['availableSeconds','reservedSeconds','serviceUntil']);
     number(p.energy.availableSeconds, energyCapacity(p));
@@ -477,6 +470,14 @@ export function validateSave(value: unknown): GameState {
     record(p.upgrades, Object.keys(UPGRADE_LABEL));
     for (const key of Object.keys(UPGRADE_LABEL) as UpgradeKey[]) number(p.upgrades[key], upgradeLimit(p,key));
     if (!Array.isArray(p.itinerary) || p.itinerary.length > MAX_PLAN_LEGS - 1) fail();
+    if (p.planContract !== null) {
+      const contract = record(p.planContract, ['origin','stops','index']) as unknown as PlanContract;
+      if (typeof contract.origin !== 'string' || !owned(s,contract.origin) || !Array.isArray(contract.stops) ||
+        contract.stops.length < 1 || contract.stops.length > MAX_PLAN_LEGS ||
+        contract.stops.some((stop,index)=>typeof stop !== 'string' || !owned(s,stop) || stop === (index ? contract.stops[index-1] : contract.origin))) fail();
+      number(contract.index, contract.stops.length - 1);
+      if (p.autoRouteId !== null) fail();
+    }
     number(p.readyAt, 1e12, false);
   }
   const ids = new Set<string>(), airports = new Set(s.airports.map(a => a.id)), planes = new Map(s.fleet.map(p => [p.id, p]));
@@ -487,9 +488,9 @@ export function validateSave(value: unknown): GameState {
     if (!airports.has(o.from) || !airports.has(o.to) || o.from === o.to || !['passengers','cargo'].includes(o.kind)) fail();
     if (number(o.amount, o.kind === 'passengers' ? 500 : 200) < 1) fail();
     number(o.reward); number(o.createdAt, s.simTime, false);
-    if (o.service !== 'legacy' && (!service(o.service) || service(o.service)!.kind !== o.kind)) fail();
+    if (!service(o.service) || service(o.service)!.kind !== o.kind) fail();
     if (o.product !== null) { if (!Object.hasOwn(MATERIALS,o.product) || o.kind !== 'cargo' || o.service !== 'general' || o.reward !== 0 || o.expiresAt !== null) fail(); }
-    else if (Math.abs(o.reward - orderReward(o.from, o.to, o.kind, o.amount,o.service)) > (o.service === 'legacy' ? 1 : 0)) fail();
+    else if (o.reward !== orderReward(o.from,o.to,o.kind,o.amount,o.service)) fail();
     const plane = planes.get(o.location);
     if (plane) {
       if (o.expiresAt !== null || (plane.flight && o.createdAt > plane.flight.departAt) || (!plane.flight && o.to === plane.airportId)) fail();
@@ -511,7 +512,7 @@ export function validateSave(value: unknown): GameState {
     if (p.autoRouteId !== null) {
       if (!p.dispatcher) fail();
       const r = s.routes.find(r => r.id === p.autoRouteId);
-      if (!r || p.itinerary.length || (r.from !== p.airportId && r.to !== p.airportId)) fail();
+      if (!r || p.itinerary.length || p.planContract || (r.from !== p.airportId && r.to !== p.airportId)) fail();
       legQuote(s, p, p.airportId, r!.from === p.airportId ? r!.to : r!.from);
     }
     if (p.flight !== null) {
@@ -520,13 +521,23 @@ export function validateSave(value: unknown): GameState {
       if (typeof f.id !== 'string' || !/^FL[1-9]\d{0,8}$/.test(f.id) || Number(f.id.slice(2)) >= s.nextId || flightIds.has(f.id)) fail();
       flightIds.add(f.id);
       if (f.from !== p.airportId || f.routeId !== routeId(f.from, f.to) || !s.routes.some(r => r.id === f.routeId)) fail();
-      const q = quote(s, p, f.to);
+      const q = departureQuote(s,p,f.to);
       number(f.departAt, s.simTime, false); number(f.arriveAt, 1e12, false);
       if (p.readyAt > f.departAt || f.arriveAt <= s.simTime || f.arriveAt !== f.departAt + q.duration ||
         f.cost !== q.cost || f.revenue !== q.revenue || f.passengers !== total.passengers || f.cargo !== total.cargo) fail();
       if (p.autoRouteId !== null && (p.autoRouteId !== f.routeId || manifest(s, p.id).some(o => o.to !== f.to))) fail();
     } else if (p.readyAt > s.simTime + (p.autoRouteId ? DEMAND_INTERVAL : TURNAROUND)) fail();
+    if (p.planContract) {
+      const contract = p.planContract;
+      const previous = contract.index ? contract.stops[contract.index-1]! : contract.origin;
+      const expectedItinerary = contract.stops.slice(contract.index + (p.flight ? 1 : 0));
+      if (p.airportId !== previous || p.itinerary.join('|') !== expectedItinerary.join('|')) fail();
+      if (p.flight && p.flight.to !== contract.stops[contract.index]) fail();
+      if (!p.flight && !p.itinerary.length) fail();
+      planQuote(s,{...p,airportId:contract.origin,flight:null,itinerary:[],planContract:null},contract.stops);
+    }
     if (p.itinerary.length) {
+      if (!p.planContract) fail();
       const afterCurrent = { ...p, airportId: p.flight?.to ?? p.airportId };
       if (planQuote(s, afterCurrent, p.itinerary).openingCost !== 0) fail();
     }

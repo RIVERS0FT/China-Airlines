@@ -1,7 +1,7 @@
-import { MAX_FLEET } from './legacy.js';
+import { MAX_FLEET } from './simulation.js';
 import { AIRPORTS, ALL_MODELS, TASKS, routeId, model } from './catalog.js';
 import type { GameState } from './game.js';
-/** v6 infrastructure validation. Older schemas keep their frozen 12-airport registry. */
+/** Strict validation for the current infrastructure schema. */
 export function validateInfrastructure(s: GameState): void {
   const fail = (): never => { throw new Error('存档结构或经营数据无效，原进度未被覆盖'); };
   const record = (v: unknown, keys: string[]) => {

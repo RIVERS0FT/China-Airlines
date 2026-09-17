@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GameCore, validateSave, parseSave, energyCapacity, type Command, type GameState } from '../src/core/game.js';
-import { GameCore as V7Core } from '../src/core/v7/game.js';
+import { GameCore, validateSave, energyCapacity, type Command, type GameState } from '../src/core/game.js';
 import { directReports, effectiveManager, employmentPrice, groundServiceQuote, managerCapacity, trainingQuote, type Department, type EmployeeRole } from '../src/core/organization.js';
 import { organizationLayout, ORG_NODE_HEIGHT, ORG_NODE_WIDTH } from '../src/ui/organization-layout.js';
 const NOW = Date.parse('2026-09-14T02:00:00Z');
@@ -13,33 +12,7 @@ function servicing() {
   const c = rich(), e = recruit(c, 'ground'); cmd(c, { type: 'assign-ground', employeeId: e.id, airportId: 'PEK' });
   const s = c.snapshot(); s.fleet[0]!.energy.availableSeconds -= 600; return new GameCore(NOW, s);
 }
-describe('frozen v7 migration and unified employee identity', () => {
-  it('preserves every historical contract, skill, asset and locked flight without new charges', () => {
-    const old = new V7Core(NOW);
-    old.execute({ type: 'recruit-pilot' }, NOW); old.execute({ type: 'assign-pilot', pilotId: 1, planeId: 'AC0001' }, NOW);
-    old.execute({ type: 'train-pilot', pilotId: 1 }, NOW); old.execute({ type: 'start-duty', planeId: 'AC0001', to: 'PVG' }, NOW);
-    const saved = old.snapshot(), s = parseSave(JSON.stringify(saved));
-    expect(s.version).toBe(9); expect(s.credits).toBe(saved.credits); expect(s.fleet).toEqual(saved.fleet); expect(s.orders).toEqual(saved.orders);
-    const { pilots, ...oldCareer } = saved.career, { employees, ...newCareer } = s.career;
-    expect(newCareer).toEqual(oldCareer); expect(employees).toHaveLength(pilots.length);
-    expect(employees[0]).toMatchObject(pilots[0]!); expect(employees[0]!.potential).toBe(10); expect(employees[0]!.joinedAt).toBeNull();
-    expect(validateSave(s)).toEqual(s); expect(new GameCore(NOW, s).snapshot()).toEqual(s);
-    const live = new GameCore(NOW, s); tick(live, s.fleet[0]!.flight!.arriveAt); const arrived = live.snapshot();
-    expect(arrived.stats.flights).toBe(1); expect(arrived.career.employees[0]!.flights).toBe(1);
-    live.tick(live.snapshot().lastWallTime); expect(live.snapshot()).toEqual(arrived);
-  });
-  it('validates v7 strictly before migration and rejects added fields and over-level skills', () => {
-    const c = new V7Core(NOW); c.execute({ type: 'recruit-pilot' }, NOW);
-    const s = c.snapshot(); s.career.pilots[0]!.skill = 11; expect(() => validateSave(s)).toThrow();
-    const bad = c.snapshot() as unknown as { career: Record<string, unknown> }; bad.career.employees = []; expect(() => validateSave(bad)).toThrow();
-    const live = rich().snapshot(); (live.career as unknown as Record<string, unknown>).pilots = []; expect(() => validateSave(live)).toThrow();
-  });
-  it('keeps old maximum-level training and expired wages intact', () => {
-    const c = new V7Core(NOW); c.execute({ type: 'recruit-pilot' }, NOW); const s = c.snapshot();
-    s.career.pilots[0]!.skill = 10; s.career.pilots[0]!.paidUntil = 0;
-    const live = new GameCore(NOW, s); expect(live.snapshot().career.employees[0]!.skill).toBe(10);
-    expect(live.snapshot().career.employees[0]!.paidUntil).toBe(0); rejects(live, { type: 'train-pilot', pilotId: 1 }, /上限/);
-  });
+describe('unified employee identity', () => {
   it('uses bounded, seeded profiles without rerolling on refresh', () => {
     const c = rich(), e = recruit(c); expect(e.potential).toBeGreaterThanOrEqual(6); expect(e.potential).toBeLessThanOrEqual(10);
     expect(recruit(new GameCore(NOW, c.snapshot()))).toEqual(recruit(c));
@@ -151,11 +124,6 @@ describe('ground staffing and immutable service deadlines', () => {
     const reload = new GameCore(run.snapshot().lastWallTime,run.snapshot()); expect(reload.snapshot().fleet[0]!.energy.serviceUntil).toBe(deadline);
     tick(reload,expected-6); const full=reload.snapshot(); expect(full.fleet[0]!.energy.availableSeconds).toBe(energyCapacity(full.fleet[0]!));
     expect(full.fleet[0]!.energy.serviceUntil).toBeNull(); const credits=full.credits; tick(reload,0); expect(reload.snapshot().credits).toBe(credits);
-  });
-  it('preserves a service already started in v7 when adding ground staff after migration', () => {
-    const old=new V7Core(NOW),s=old.snapshot();s.fleet[0]!.energy.availableSeconds-=60;const legacy=new V7Core(NOW,s);
-    legacy.execute({type:'service-energy',planeId:'AC0001'},NOW); const c=new GameCore(NOW,legacy.snapshot()); const e=recruit(c,'ground');
-    cmd(c,{type:'assign-ground',employeeId:e.id,airportId:'PEK'}); expect(c.snapshot().fleet[0]!.energy.serviceUntil).toBe(120);
   });
   it('never grants energy on cancellation or from a read-only quote', () => {
     const c=servicing(),before=c.snapshot(); groundServiceQuote(before,'PEK');expect(c.snapshot()).toEqual(before);

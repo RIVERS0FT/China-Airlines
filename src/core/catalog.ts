@@ -1,6 +1,5 @@
-import { AIRPORTS as DOMESTIC_AIRPORTS } from './catalog-v4.js';
+import { DOMESTIC_AIRPORTS } from './domestic-airports.js';
 import { WORLD_AIRPORTS, type AirportDefinition } from './world-airports.js';
-// Reuse unchanged aircraft/economic fixtures. Never modify a frozen catalogue to add airports.
 export { MODELS, STARTER_MODEL, ALL_MODELS, AIRCRAFT_KIND_LABEL, UPGRADE_LABEL, emptyUpgrades, aircraftSpecs, retrofitPrice,
   hangarPrice, TASKS, model, routeId, upgradePrice } from './career-catalog.js';
 export type { AircraftKind, AircraftModel, UpgradeKey, Upgrades } from './career-catalog.js';

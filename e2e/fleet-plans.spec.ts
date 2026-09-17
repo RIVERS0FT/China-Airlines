@@ -1,7 +1,5 @@
 import { selectCity, closeRouteDetails, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from './fixture.js';
-import { rejectRetiredSave } from './retired-save-helpers.js';
-import v2 from '../tests/fixtures/v2-flying.json' with { type: 'json' };
 let errors: string[];
 test.beforeEach(async({page})=>{ errors=[];page.on('pageerror',e=>errors.push(e.message)); });
 test.afterEach(()=>expect(errors).toEqual([]));
@@ -49,9 +47,6 @@ test('cancel plan in flight only removes onward destinations',async({page})=>{
   await page.getByRole('button',{name:'取消剩余计划',exact:true}).click();await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
   await page.clock.fastForward(400000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');
   await expect(page.locator('.gate-sign')).toContainText('武汉');await expect(page.getByTestId('loaded-order')).not.toHaveCount(0);
-});
-test('retired v2 import keeps the current fleet',async({page})=>{
-  await ready(page);await page.clock.pauseAt(new Date('2026-09-11T00:00:05Z'));await rejectRetiredSave(page,v2);
 });
 test('landscape plan editor and workshop stay reachable',async({page})=>{
   await page.setViewportSize({width:844,height:390});await ready(page);await plan(page);

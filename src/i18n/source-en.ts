@@ -1,13 +1,12 @@
 import type { Locale } from './I18n.js';
 
-// Transitional catalogue for pre-i18n screens. Chinese source strings are stable
-// keys; adding a locale only requires another table, not changes to game state.
+// Current source-text catalogue. Chinese strings are stable display keys;
+// adding a locale does not change game state.
 const en: Readonly<Record<string, string>> = {
   '牛排':'Steak', '草莓':'Strawberries', '西瓜':'Watermelon', '雪花梨':'Pears', '苹果':'Apples', '葡萄':'Grapes', '大米':'Rice', '鲜鱼':'Fish',
   '旅行箱':'Suitcase', '针织衫':'Knitwear', '方便面':'Instant noodles', '毛绒玩具':'Plush toy', '电脑':'Computer', '木箱':'Wooden crate', '邮政包裹':'Postal parcel', '旅行袋':'Travel bag',
   '石油':'Petroleum', '煤炭':'Coal', '宝石':'Gemstone', '药品':'Medicine', '救灾物资':'Relief supplies', '酒类':'Liquor', '羊驼':'Alpaca', '白色货箱':'White cargo chest',
   '查看外观':'Show exterior', '查看机舱':'Show cabin',
-  '此存档包含已移除的旧机型或旧版本，不再支持导入；原进度未被覆盖':'This save contains retired aircraft or an unsupported old version. Your current progress has been kept.',
   '机舱剖视':'Cabin cutaway', '客舱':'Cabin', '货舱':'Cargo',
   '客舱翻页':'Cabin pages', '货舱翻页':'Cargo pages',
   '上一页{section}':'Previous {section} page', '下一页{section}':'Next {section} page',
@@ -60,7 +59,7 @@ const en: Readonly<Record<string, string>> = {
   '19座 · 最大有效载荷2,347 kg':'19 seats · 2,347 kg maximum payload', '最多78座 · 货运型最大载荷9,200 kg':'Up to 78 seats · 9,200 kg freighter payload',
   '最多244座 · 货运型最大载荷28.1 t':'Up to 244 seats · 28.1 t freighter payload', '410座 · 货运型收益载荷133.1 t':'410 seats · 133.1 t freighter revenue payload',
   '4座（含飞行员）· 最大有效载荷407 kg':'4 seats including pilot · 407 kg maximum useful load',
-  '5个系列，13种可购机型。现实原型与容量只用于确定相对级别，游戏压缩为1至18客位、3至14货位；钻石DA40为1客0货且不能扩容。其余已上线机型保留存档9运行数值。':'Five families and thirteen purchasable models. Real aircraft establish relative tiers; game capacity is compressed to 1–18 passenger and 3–14 cargo slots. The Diamond DA40 has one passenger slot, no cargo slot, and no capacity upgrades. Existing aircraft retain their save-v9 operating values.',
+  '5个系列，13种可购机型。现实原型与容量只用于确定相对级别，游戏压缩为1至18客位、3至14货位；钻石DA40为1客0货且不能扩容。新航班统一使用存档10运输公式。':'Five families and thirteen purchasable models. Real aircraft establish relative tiers; game capacity is compressed to 1–18 passenger and 3–14 cargo slots. The Diamond DA40 has one passenger slot, no cargo slot, and no capacity upgrades. New flights use the save-v10 transport formula.',
   '当前航班收支':'Current flight finances', '已付成本':'Cost Paid', '到达交付':'Delivery at Arrival', '本段净收益':'Leg Net Income',
   '飞行中':'In Flight', '抵达':'Arrival', '补能完成':'Service Complete', '下次调度检查':'Next Dispatch Check', '尝试下一段':'Try Next Leg', '可操作':'Ready', '待命':'Ready',
   '客货装载区':'Passenger and cargo loading area', '上一组客货':'Previous traffic group', '下一组客货':'Next traffic group', '客货列表':'Traffic list',
@@ -127,7 +126,7 @@ const en: Readonly<Record<string, string>> = {
   '预计时间含途中周转。城市解锁后无需建设费；只在订单最终目的地交付。后续资金或能量不足，停在实际机场并保留客货。':'Estimated time includes en-route turnaround. Unlocked cities need no construction fee. Orders pay only at their final destination; insufficient funds or energy stops the plan at the actual airport with traffic preserved.',
 };
 
-export function legacyText(source: string, locale: Locale, params: Record<string, string | number> = {}) {
+export function sourceText(source: string, locale: Locale, params: Record<string, string | number> = {}) {
   let template = locale === 'en-US' ? en[source] ?? (source.includes(' · ') ? source.split(' · ').map(part => en[part] ?? part).join(' · ') : source) : source;
   if (locale === 'en-US' && template === source) template = source
     .replace(/每日运输 · 第(\d+)天/, 'Daily Transport · Day $1')

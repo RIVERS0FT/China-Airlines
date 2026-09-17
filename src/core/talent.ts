@@ -30,7 +30,7 @@ function nextCandidate(t: TalentState, department: Department, role: EmployeeRol
   return { id, name: names[(Math.floor((id - 1) / 12) * 3 + (id - 1) % 3 + offset) % names.length]!, department, role,
     potential: 6 + t.seed % 5, trait: (t.seed >>> 8) % 2 ? 'mentor' : 'efficient' };
 }
-/** A separate deterministic stream does not change legacy recruitment or logistics randomness. */
+/** A separate deterministic stream keeps recruitment and logistics randomness independent. */
 export function createTalent(seed: number, at: number): TalentState {
   const t: TalentState = { seed: (seed ^ 0x41c6ce57) >>> 0, nextId: 1, startedAt: at, candidates: [], mentoring: [], milestones: [], deferred: [] };
   for (const group of groups) {
