@@ -22,7 +22,9 @@ npm run test:e2e
 
 ## 合并与部署
 
-在功能分支开发，通过 PR squash 合并并遵守分支保护。日常修改由 RIVERSOFT 生产工作流从本仓库 `main` 构建并发布到 `https://riversoft.top/china-airlines/`；定时检查间隔为 30 分钟，实际调度可能延迟。停止 GitHub Pages 自动发布，不重复生成源码 ZIP 或静态 ZIP；只有用户明确要求离线交付包时才打包。
+在功能分支开发，通过 PR squash 合并并遵守分支保护。日常修改由本仓库 `Deploy China Airlines production` 工作流从 `main` 构建并发布到 `https://riversoft.top/china-airlines/`；它先在托管 Runner 完整验证，再由本仓库现有自建 Runner 使用受限 SSH 命令交给 `game-hk` 校验包并切换不可变版本，失败恢复旧版本。生产机不增加 Runner。RIVERSOFT 主站工作流保留该路径且不再发布游戏。停止 GitHub Pages 自动发布，不重复生成源码 ZIP 或静态 ZIP；只有用户明确要求离线交付包时才打包。
+
+首次启用需要把 `deploy/receive-release.sh` 与 `deploy/production-release.sh` 安装为 `game-hk` 上 root 所有、模式 `0755` 的 `/usr/local/libexec/china-airlines-receive` 与 `/usr/local/libexec/china-airlines-production-release`，并把游戏专用公钥以 `command="/usr/local/libexec/china-airlines-receive",restrict` 写入 `deploy` 的 `authorized_keys`。私钥只放在本仓库 `production` Environment 的 `CHINA_AIRLINES_DEPLOY_KEY`；仓库固定的 `deploy/known_hosts` 钉住生产 SSH 主机公钥。发布目录 `/var/www/riversoft-games/{incoming,releases}` 由 `deploy` 所有；主站仅保留 `/var/www/riversoft/china-airlines` 链接。变更固定接收脚本时应同步更新生产机上的 root 所有副本并核对哈希。`RIVERSOFT_TOKEN` 是创作者令牌，不参与游戏发布。
 
 源码修改完成、生产构建成功、PR 合并和站点部署是不同状态。只有部署工作流成功并验证目标站点提供预期产物后才能宣称上线。权限、套餐或外部服务不足时如实报告，不改变仓库可见性，也不购买服务。
 

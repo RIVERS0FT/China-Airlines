@@ -79,6 +79,6 @@ J(L) = 1 + 1.02^L / 100，L >= 1
 
 每次规则修改必须运行类型检查、核心与持久化测试、根路径与 `/china-airlines/` 子路径生产构建，以及完整 Playwright 流程。浏览器流程覆盖桌面横屏、两种手机横屏、竖屏提示、刷新恢复、导入导出、离线启动和关键经营链路。
 
-生产地址为 `https://riversoft.top/china-airlines/`。RIVERSOFT 的生产工作流从本仓库私有 `main` 使用只读 deploy key 检出源码，经验证后构建并随主站发布包一起部署；30 分钟定时检查新提交，具体上线时刻以工作流和公网验收为准。游戏作为一方静态页面保留 IndexedDB 与 Service Worker，主站首页仍是网页广场。创作者发布令牌及其 10 MiB、opaque-origin 沙箱不承载本游戏。原 GitHub Pages 自动发布停止。
+生产地址为 `https://riversoft.top/china-airlines/`。本仓库私有 `main` 更新后，生产工作流在 GitHub 托管 Runner 上重新执行类型、核心与持久化、子路径构建和完整浏览器验证，再由本仓库现有自建 Runner `VM-0-10-debian` 使用 production 环境中的专用 SSH 密钥上传带 SHA-256 校验的静态包。`game-hk` 不增加 Runner：其 `deploy` 账号的受限 SSH 命令只接受本游戏发布包，并由固定生产脚本写入 `/var/www/riversoft-games/releases/`，把主站预留的 `/var/www/riversoft/china-airlines` 原子切换为本次不可变版本的链接；公开文件哈希不符时恢复旧链接。RIVERSOFT 主站工作流保留该路径，不覆盖游戏，也不把主站部署成功视为游戏上线。发布前后均检查当前 `main`，旧候选不得覆盖新提交。游戏作为一方静态页面保留 IndexedDB 与 Service Worker，主站首页仍是网页广场。创作者发布令牌及其 10 MiB、opaque-origin 沙箱不承载本游戏。原 GitHub Pages 自动发布停止。
 
 未运行或失败的检查必须明确记录。功能分支通过 PR squash 合并；日常修改使用仓库既有部署路径，不重复生成 ZIP。只有实际部署成功并验证目标端点后才能宣称上线。

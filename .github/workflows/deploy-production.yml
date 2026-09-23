@@ -1,0 +1,126 @@
+name: Deploy China Airlines production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: china-airlines-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify and package game
+    if: github.repository == 'meviu523/China-Airlines' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install and verify
+        env:
+          BASE_PATH: /china-airlines/
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run typecheck
+          npm test
+          npm run build
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-cjk
+          npm run test:e2e
+      - name: Check current main and package this revision
+        run: |
+          set -euo pipefail
+          main_sha="$(git ls-remote --exit-code origin refs/heads/main | cut -f1)"
+          test "$main_sha" = "$GITHUB_SHA"
+          test -f dist/index.html
+          test -f dist/sw.js
+          test -f dist/manifest.webmanifest
+          if find dist -type l -print -quit | grep -q .; then
+            echo 'Release contains a symbolic link' >&2
+            exit 1
+          fi
+          printf '%s\n' "$GITHUB_SHA" > dist/release.txt
+          tar -C dist -czf "$RUNNER_TEMP/china-airlines.tgz" .
+          (cd "$RUNNER_TEMP" && sha256sum china-airlines.tgz > china-airlines.tgz.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: china-airlines-production-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/china-airlines.tgz
+            ${{ runner.temp }}/china-airlines.tgz.sha256
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: china-airlines-production-failure-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            artifacts/
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  deploy:
+    name: Deploy verified game
+    needs: verify
+    if: needs.verify.result == 'success'
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://riversoft.top/china-airlines/
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: china-airlines-production-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/china-airlines-artifact
+      - name: Check current main and publish verified package
+        env:
+          DEPLOY_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          CHINA_AIRLINES_DEPLOY_KEY: ${{ secrets.CHINA_AIRLINES_DEPLOY_KEY }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'meviu523/China-Airlines'
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$RUNNER_NAME" = 'VM-0-10-debian'
+          main_sha="$(git ls-remote --exit-code origin refs/heads/main | cut -f1)"
+          test "$main_sha" = "$GITHUB_SHA"
+          cd "$RUNNER_TEMP/china-airlines-artifact"
+          sha256sum --check --strict china-airlines.tgz.sha256
+          archive_sha="$(sha256sum china-airlines.tgz | cut -d' ' -f1)"
+          key_file="$(mktemp)"
+          trap 'rm -f "$key_file"' EXIT
+          chmod 600 "$key_file"
+          printf '%s\n' "$CHINA_AIRLINES_DEPLOY_KEY" > "$key_file"
+          ssh -i "$key_file" -p 2222 -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$GITHUB_WORKSPACE/deploy/known_hosts" \
+            deploy@116.204.134.56 \
+            "publish $DEPLOY_ID $GITHUB_SHA $archive_sha" < china-airlines.tgz
+          test "$(curl --fail --silent --show-error --header 'Cache-Control: no-cache' \
+            "https://riversoft.top/china-airlines/release.txt?release=$GITHUB_SHA")" = "$GITHUB_SHA"
+      - name: Record public acceptance
+        run: |
+          {
+            echo '### China Airlines production'
+            echo
+            echo "- Game revision: \`$GITHUB_SHA\`"
+            echo '- URL: https://riversoft.top/china-airlines/'
+            echo '- Release: checksum-verified, previous immutable revision kept for rollback'
+            echo '- Public checks: index, service worker, manifest and release identity match the package'
+          } >> "$GITHUB_STEP_SUMMARY"
