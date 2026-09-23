@@ -130,6 +130,9 @@ test('an idle globe does not redraw for clock-only updates, but camera input pai
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   await page.getByRole('button', { name: '制定路线', exact: true }).click();
   const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-renderer', 'ready');
+  // The 3D aircraft layer loads separately and legitimately invalidates one frame.
+  // Measure idle paints only after that startup transition has completed.
+  await expect(host).toHaveAttribute('data-aircraft-status', /^(ready|fallback)$/);
   await page.clock.runFor(100);
   const frames = Number(await host.getAttribute('data-render-count')); expect(frames).toBeGreaterThan(0);
   await page.clock.runFor(500);
