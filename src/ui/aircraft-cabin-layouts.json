@@ -1,0 +1,336 @@
+{
+  "starter-swift": {
+    "family": "light",
+    "revision": "v7",
+    "interior": {
+      "x": 410,
+      "y": 190,
+      "width": 790,
+      "height": 220
+    },
+    "decks": {
+      "passengers": {
+        "x": 420,
+        "y": 200,
+        "width": 350,
+        "height": 195,
+        "floorY": 380,
+        "count": 3
+      },
+      "cargo": {
+        "x": 790,
+        "y": 200,
+        "width": 390,
+        "height": 195,
+        "floorY": 380,
+        "count": 2
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/starter-swift-exterior-v7.png"
+  },
+  "swift-p": {
+    "family": "light",
+    "revision": "v7",
+    "interior": {
+      "x": 300,
+      "y": 200,
+      "width": 810,
+      "height": 220
+    },
+    "decks": {
+      "passengers": {
+        "x": 315,
+        "y": 210,
+        "width": 780,
+        "height": 195,
+        "floorY": 390,
+        "count": 4
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/swift-p-exterior-v7.png"
+  },
+  "swift-f": {
+    "family": "light",
+    "revision": "v7",
+    "interior": {
+      "x": 500,
+      "y": 210,
+      "width": 610,
+      "height": 220
+    },
+    "decks": {
+      "cargo": {
+        "x": 520,
+        "y": 225,
+        "width": 570,
+        "height": 190,
+        "floorY": 400,
+        "count": 3
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/swift-f-exterior-v7.png"
+  },
+  "swift-m": {
+    "family": "light",
+    "revision": "v7",
+    "interior": {
+      "x": 380,
+      "y": 190,
+      "width": 800,
+      "height": 230
+    },
+    "decks": {
+      "passengers": {
+        "x": 395,
+        "y": 205,
+        "width": 350,
+        "height": 200,
+        "floorY": 390,
+        "count": 2
+      },
+      "cargo": {
+        "x": 770,
+        "y": 205,
+        "width": 390,
+        "height": 200,
+        "floorY": 390,
+        "count": 2
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/swift-m-exterior-v7.png"
+  },
+  "heron-p": {
+    "family": "regional",
+    "revision": "v7",
+    "interior": {
+      "x": 235,
+      "y": 205,
+      "width": 1010,
+      "height": 205
+    },
+    "decks": {
+      "passengers": {
+        "x": 250,
+        "y": 215,
+        "width": 980,
+        "height": 180,
+        "floorY": 380,
+        "count": 8
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/heron-p-exterior-v7.png"
+  },
+  "heron-f": {
+    "family": "regional",
+    "revision": "v7",
+    "interior": {
+      "x": 235,
+      "y": 210,
+      "width": 1030,
+      "height": 215
+    },
+    "decks": {
+      "cargo": {
+        "x": 250,
+        "y": 225,
+        "width": 1000,
+        "height": 185,
+        "floorY": 395,
+        "count": 6
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/heron-f-exterior-v7.png"
+  },
+  "heron-m": {
+    "family": "regional",
+    "revision": "v7",
+    "interior": {
+      "x": 235,
+      "y": 200,
+      "width": 1050,
+      "height": 220
+    },
+    "decks": {
+      "passengers": {
+        "x": 250,
+        "y": 215,
+        "width": 500,
+        "height": 190,
+        "floorY": 390,
+        "count": 4
+      },
+      "cargo": {
+        "x": 780,
+        "y": 215,
+        "width": 485,
+        "height": 190,
+        "floorY": 390,
+        "count": 3
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/heron-m-exterior-v7.png"
+  },
+  "albatross-p": {
+    "family": "heavy",
+    "revision": "v7",
+    "interior": {
+      "x": 155,
+      "y": 215,
+      "width": 1100,
+      "height": 190
+    },
+    "decks": {
+      "passengers": {
+        "x": 170,
+        "y": 225,
+        "width": 1070,
+        "height": 165,
+        "floorY": 375,
+        "count": 12
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/albatross-p-exterior-v7.png"
+  },
+  "albatross-f": {
+    "family": "heavy",
+    "revision": "v7",
+    "interior": {
+      "x": 175,
+      "y": 215,
+      "width": 1080,
+      "height": 200
+    },
+    "decks": {
+      "cargo": {
+        "x": 190,
+        "y": 225,
+        "width": 1050,
+        "height": 175,
+        "floorY": 385,
+        "count": 9
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/albatross-f-exterior-v7.png"
+  },
+  "albatross-m": {
+    "family": "heavy",
+    "revision": "v7",
+    "interior": {
+      "x": 155,
+      "y": 210,
+      "width": 1110,
+      "height": 205
+    },
+    "decks": {
+      "passengers": {
+        "x": 170,
+        "y": 225,
+        "width": 535,
+        "height": 175,
+        "floorY": 385,
+        "count": 6
+      },
+      "cargo": {
+        "x": 730,
+        "y": 225,
+        "width": 520,
+        "height": 175,
+        "floorY": 385,
+        "count": 5
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/albatross-m-exterior-v7.png"
+  },
+  "aurora-p": {
+    "family": "heavy",
+    "revision": "v7",
+    "interior": {
+      "x": 135,
+      "y": 190,
+      "width": 1060,
+      "height": 210
+    },
+    "decks": {
+      "passengers": {
+        "x": 155,
+        "y": 205,
+        "width": 1020,
+        "height": 180,
+        "floorY": 370,
+        "count": 18
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/aurora-p-exterior-v7.png"
+  },
+  "aurora-f": {
+    "family": "heavy",
+    "revision": "v7",
+    "interior": {
+      "x": 220,
+      "y": 210,
+      "width": 970,
+      "height": 205
+    },
+    "decks": {
+      "cargo": {
+        "x": 240,
+        "y": 225,
+        "width": 930,
+        "height": 175,
+        "floorY": 385,
+        "count": 14
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/aurora-f-exterior-v7.png"
+  },
+  "aurora-m": {
+    "family": "heavy",
+    "revision": "v7",
+    "interior": {
+      "x": 180,
+      "y": 185,
+      "width": 1020,
+      "height": 220
+    },
+    "decks": {
+      "passengers": {
+        "x": 200,
+        "y": 200,
+        "width": 480,
+        "height": 190,
+        "floorY": 375,
+        "count": 9
+      },
+      "cargo": {
+        "x": 705,
+        "y": 200,
+        "width": 475,
+        "height": 190,
+        "floorY": 375,
+        "count": 7
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/aurora-m-exterior-v7.png"
+  },
+  "diamond-da40": {
+    "family": "light",
+    "revision": "v7",
+    "interior": {
+      "x": 340,
+      "y": 170,
+      "width": 620,
+      "height": 235
+    },
+    "decks": {
+      "passengers": {
+        "x": 365,
+        "y": 185,
+        "width": 570,
+        "height": 205,
+        "floorY": 375,
+        "count": 1
+      }
+    },
+    "exteriorSource": "art/aircraft-exteriors-v7/diamond-da40-exterior-v7.png"
+  }
+}

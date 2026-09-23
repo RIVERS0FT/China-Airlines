@@ -2,14 +2,14 @@ import { model } from '../core/catalog.js';
 import type { Plane, Order } from '../core/game.js';
 import { passengerFrame } from './passenger-art.js';
 import { cargoAppearance } from './cargo-art.js';
-import layerLayouts from './aircraft-layer-layouts.json';
+import layerLayouts from './aircraft-cabin-layouts.json';
 import format from './aircraft-canvas.json';
 
 export type CabinFamily = 'light' | 'regional' | 'heavy';
 export interface CabinAnchor { id: string; kind: Order['kind']; x: number; floorY: number; width: number; z: number }
 export interface PaintedDeck { x: number; y: number; width: number; height: number; floorY: number; count: number }
 export interface CabinArtLayout {
-  modelId: string; family: CabinFamily; direction: 'left'; hull: string; exterior: string;
+  modelId: string; family: CabinFamily; direction: 'left'; exterior: string;
   canvas: { width: number; height: number };
   interior: { x: number; y: number; width: number; height: number };
   decks: Partial<Record<Order['kind'], PaintedDeck>>;
@@ -28,13 +28,13 @@ const silhouettes = ['a', 'b', 'c', 'd', 'e', 'f'].map(id => {
 const envelopeHeight = Math.max(1, ...silhouettes.map(frame => frame.scale));
 const envelopeWidth = Math.max(SEAT.width / SEAT.height, ...silhouettes.map(frame => frame.halfWidth * 2));
 
-/** Registered PNGs share their full canvas; registration metadata is build-time only. */
+/** Interior geometry is a read-only projection; only the exterior uses an image. */
 export function cabinArtLayout(plane: Pick<Plane, 'modelId'>): CabinArtLayout {
   const aircraft = model(plane.modelId), registered = layerLayouts[aircraft.id as keyof typeof layerLayouts];
   const family = registered.family as CabinFamily;
-  const revision = 'revision' in registered ? registered.revision : 'v4';
+  const revision = registered.revision;
   return { modelId: aircraft.id, family, direction: 'left',
-    hull: `aircraft-${aircraft.id}-cutaway-${revision}.png`, exterior: `aircraft-${aircraft.id}-exterior-${revision}.png`,
+    exterior: `aircraft-${aircraft.id}-exterior-${revision}.png`,
     canvas: format.canvas, interior: registered.interior, decks: registered.decks };
 }
 

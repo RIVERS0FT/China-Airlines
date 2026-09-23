@@ -1,5 +1,54 @@
 [
   {
+    "file": "aircraft-albatross-f-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 314839,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-albatross-m-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 365395,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-albatross-p-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 353308,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-aurora-f-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 382335,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-aurora-m-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 410480,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-aurora-p-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 431316,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-diamond-da40-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 443133,
+    "mode": "RGBA"
+  },
+  {
     "file": "aircraft-flight-v1.png",
     "width": 1408,
     "height": 640,
@@ -12,88 +61,53 @@
     "transparentPixels": 557858
   },
   {
-    "file": "aircraft-heavy-cargo-v2.png",
-    "width": 1000,
-    "height": 450,
-    "bytes": 157724,
-    "mode": "RGBA",
-    "alphaRange": [
-      0,
-      255
-    ],
-    "transparentPixels": 359849
+    "file": "aircraft-heron-f-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 379626,
+    "mode": "RGBA"
   },
   {
-    "file": "aircraft-heavy-passenger-v2.png",
-    "width": 1000,
-    "height": 450,
-    "bytes": 152708,
-    "mode": "RGBA",
-    "alphaRange": [
-      0,
-      255
-    ],
-    "transparentPixels": 361956
+    "file": "aircraft-heron-m-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 401176,
+    "mode": "RGBA"
   },
   {
-    "file": "aircraft-light-cargo-v2.png",
-    "width": 1000,
-    "height": 450,
-    "bytes": 124768,
-    "mode": "RGBA",
-    "alphaRange": [
-      0,
-      255
-    ],
-    "transparentPixels": 376732
+    "file": "aircraft-heron-p-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 455909,
+    "mode": "RGBA"
   },
   {
-    "file": "aircraft-light-passenger-v2.png",
-    "width": 1000,
-    "height": 450,
-    "bytes": 121233,
-    "mode": "RGBA",
-    "alphaRange": [
-      0,
-      255
-    ],
-    "transparentPixels": 388488
+    "file": "aircraft-starter-swift-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 493558,
+    "mode": "RGBA"
   },
   {
-    "file": "aircraft-regional-cargo-v2.png",
-    "width": 1000,
-    "height": 450,
-    "bytes": 129939,
-    "mode": "RGBA",
-    "alphaRange": [
-      0,
-      255
-    ],
-    "transparentPixels": 373241
+    "file": "aircraft-swift-f-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 414414,
+    "mode": "RGBA"
   },
   {
-    "file": "aircraft-regional-passenger-v2.png",
-    "width": 1000,
-    "height": 450,
-    "bytes": 132708,
-    "mode": "RGBA",
-    "alphaRange": [
-      0,
-      255
-    ],
-    "transparentPixels": 375550
+    "file": "aircraft-swift-m-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 485223,
+    "mode": "RGBA"
   },
   {
-    "file": "aircraft-v1.png",
-    "width": 1408,
-    "height": 640,
-    "bytes": 542970,
-    "mode": "RGBA",
-    "alphaRange": [
-      0,
-      255
-    ],
-    "transparentPixels": 541645
+    "file": "aircraft-swift-p-exterior-v7.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 448819,
+    "mode": "RGBA"
   },
   {
     "file": "airport-day-v1.jpg",

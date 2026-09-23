@@ -7,7 +7,6 @@ import { controller } from '../runtime.js';
 import { ignore } from './Panels.js';
 import { useI18n } from '../i18n/I18n.js';
 import { paintedAnchors, paintedDeck, cabinPlacement, type CabinArtLayout } from './cabin-art-layout.js';
-import { artAsset } from './art-assets.js';
 
 export function CabinDeck({ deck, art, game, plane, busy, focusKey, footerIndex, footerCount }: {
   deck: CabinDeckData; art: CabinArtLayout; game: GameState; plane: Plane; busy: boolean; focusKey: number; footerIndex: number; footerCount: number;
@@ -54,8 +53,7 @@ export function CabinDeck({ deck, art, game, plane, busy, focusKey, footerIndex,
             '--occupant-offset': `${place.occupantOffsetX}px`, '--furniture-width': `${place.furnitureWidth}px`, '--furniture-height': `${place.furnitureHeight}px`,
             '--floor-bottom': `${place.furnitureBottom}px`, '--furniture-offset': `${place.furnitureOffsetX}px`, '--painted-ground': `${place.ground}px`, '--deck-height': `${room.height}px`,
           } as CSSProperties}>
-          <div className="cabin-furniture-clip"><img className={`cabin-place-art ${deck.kind === 'passengers' ? 'cabin-seat-rear' : 'cabin-pallet'}`}
-            src={artAsset(deck.kind === 'passengers' ? 'cabin-seat-v3.png' : 'cabin-pallet-v3.png')} alt="" aria-hidden="true" draggable={false}/></div>
+          <div className="cabin-furniture-clip"><div className={`cabin-place-art ${deck.kind === 'passengers' ? 'cabin-seat-rear' : 'cabin-pallet'}`} aria-hidden="true"/></div>
           {order
             ? <OrderCard cabin order={order} state={orderPresentation(game, plane, order, busy)} onClick={() => { strip.current?.focus(); ignore(controller.command({ type: 'unload', planeId: plane.id, orderId: order.id })); }}/>
             : item ? <div className={`cabin-empty ${deck.kind}`} data-testid="cabin-empty-place" aria-label={ui(deck.kind === 'passengers' ? '空座位' : '空货位')}><span>{ui(deck.kind === 'passengers' ? '空座位' : '空货位')}</span></div> : null}

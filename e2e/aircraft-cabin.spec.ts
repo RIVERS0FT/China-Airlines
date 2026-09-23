@@ -44,8 +44,9 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
     await expect(page.getByTestId('cabin-passengers').locator('header strong')).toContainText('3/3');
     await expect(page.getByTestId('cabin-cargo').locator('header strong')).toContainText('2/2');
     await expect(page.getByTestId('plane-art')).toHaveAttribute('data-facing', 'left');
-    expect(await page.locator('.cutaway-airframe, .cabin-place-art').evaluateAll(elements => elements.every(el => new DOMMatrix(getComputedStyle(el).transform).a === 1))).toBe(true);
-    expect(await page.locator('.cutaway-airframe, .cabin-place-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
+    expect(await page.locator('.aircraft-exterior-art, .cabin-place-art').evaluateAll(elements => elements.every(el => new DOMMatrix(getComputedStyle(el).transform).a === 1))).toBe(true);
+    expect(await page.locator('.aircraft-exterior-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
+    await expect(page.getByTestId('procedural-cabin-shell')).toBeVisible();
     expect(await page.locator('.job-art[data-passenger-variant], .job-art[data-cargo-type]').evaluateAll(elements => elements.every(el => new DOMMatrix(getComputedStyle(el).transform).a === 1))).toBe(true);
     for (const sprite of await page.locator('.cabin-passengers .job-art').all()) await expect(sprite).toHaveAttribute('data-pose', 'seated');
     for (const sprite of await page.locator('.apron-queue .job-art[data-passenger-variant]').all()) await expect(sprite).toHaveAttribute('data-pose', 'standing');
@@ -102,7 +103,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
         expect(Math.abs(hip - seat)).toBeLessThan(.01);
         expect(Math.abs(foot - ground)).toBeLessThan(.01);
         await expect(anchor.locator('.cabin-seat-front')).toHaveCount(0);
-        await expect(anchor.locator('.cabin-place-art')).toHaveAttribute('src', /cabin-seat-v3\.png$/);
+        await expect(anchor.locator('.cabin-place-art')).toHaveClass(/cabin-seat-rear/);
         const anatomy = passengerFrame((await card.getAttribute('data-order-id'))!, 'seated').anchors;
         // Check rendered pixels as well as model metadata: CSS offsets/scaling
         // must preserve the actual hip-to-cushion contact in both axes.
@@ -196,7 +197,7 @@ test('English cabin and offline unload restore the same order without a translat
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => true));
   await page.reload(); await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await context.setOffline(true); await page.reload();
-  expect(await page.locator('.cutaway-airframe, .cabin-place-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
+  expect(await page.locator('.aircraft-exterior-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
   await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toBeVisible();
   await expect(page.getByTestId('loaded-order').locator('.job-art')).toHaveAttribute('data-pose', 'seated');
   await page.getByTestId('loaded-order').click();
@@ -207,7 +208,7 @@ test('English cabin and offline unload restore the same order without a translat
 });
 
 for (const family of ['swift', 'heron', 'albatross', 'aurora']) for (const role of ['p', 'f', 'm']) {
-  test(`layered cabin artwork and anchors for ${family}-${role}`, async ({ page }) => {
+  test(`procedural cabin and anchors for ${family}-${role}`, async ({ page }) => {
     const state = new GameCore(NOW).snapshot(); state.fleet[0]!.modelId = `${family}-${role}`;
     state.airports.find(a => a.id === state.fleet[0]!.airportId)!.level = 3;
     await start(page, state);
@@ -220,7 +221,7 @@ for (const family of ['swift', 'heron', 'albatross', 'aurora']) for (const role 
       await expect(card.locator('..')).toHaveAttribute('data-anchor-id', /^(passengers|cargo)-\d+$/);
       await card.click({ trial: true });
     }
-    expect(await page.locator('.cutaway-airframe, .cabin-place-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
+    expect(await page.locator('.aircraft-exterior-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
     await page.screenshot({ path: `artifacts/cabin-${family}-${role}.png` });
   });
 }

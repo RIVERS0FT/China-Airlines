@@ -66,7 +66,7 @@ for i in range(6):
     cell = atlas.crop((col * atlas.width // 3, row * atlas.height // 2,
                        (col + 1) * atlas.width // 3, (row + 1) * atlas.height // 2))
     fit_sprite(cell, (256, 320)).save(OUTPUT / f'passenger-{i + 1:02}-v1.png', optimize=True)
-for name, size in [('cargo', (256, 256)), ('aircraft', (1408, 640)), ('aircraft-flight', (1408, 640))]:
+for name, size in [('cargo', (256, 256)), ('aircraft-flight', (1408, 640))]:
     if not (SOURCE / f'{name}-green.png').exists():
         continue
     keyed = prepare_green(name)

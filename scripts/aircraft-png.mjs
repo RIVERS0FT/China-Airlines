@@ -46,26 +46,3 @@ export function encodePng({width,height,data}){
   for(let y=0;y<height;y++){raw[y*(stride+1)]=1;for(let x=0;x<stride;x++)raw[y*(stride+1)+1+x]=(data[y*stride+x]-(x>=4?data[y*stride+x-4]:0))&255;}
   return Buffer.concat([signature,chunk('IHDR',header),chunk('IDAT',deflateSync(raw,{level:6})),chunk('IEND',Buffer.alloc(0))]);
 }
-/** One-time legacy registration, with premultiplied-alpha bilinear sampling. */
-export function registerLayer(source,canvas,bounds){
-  if(![bounds.x,bounds.y,bounds.width,bounds.height].every(Number.isFinite)||bounds.width<=0||bounds.height<=0)throw new Error('Invalid registration');
-  const {width,height}=canvas,data=Buffer.alloc(width*height*4);
-  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
-    const sx=(x+.5-bounds.x)/bounds.width*source.width-.5,sy=(y+.5-bounds.y)/bounds.height*source.height-.5;
-    const x0=Math.floor(sx),y0=Math.floor(sy),dx=sx-x0,dy=sy-y0;
-    let a=0,r=0,g=0,b=0;
-    for(let j=0;j<2;j++)for(let k=0;k<2;k++){
-      const px=x0+k,py=y0+j;if(px<0||py<0||px>=source.width||py>=source.height)continue;
-      const i=(py*source.width+px)*4,w=(k?dx:1-dx)*(j?dy:1-dy)*source.data[i+3]/255;
-      a+=w;r+=source.data[i]*w;g+=source.data[i+1]*w;b+=source.data[i+2]*w;
-    }
-    const i=(y*width+x)*4;if(a>0){data[i]=Math.round(r/a);data[i+1]=Math.round(g/a);data[i+2]=Math.round(b/a);data[i+3]=Math.round(a*255);}
-  }
-  return {width,height,data};
-}
-export function composite(base,near){
-  if(base.width!==near.width||base.height!==near.height)throw new Error('Layers must share a canvas');
-  const data=Buffer.alloc(base.data.length);
-  for(let i=0;i<data.length;i+=4){const a=near.data[i+3]/255,b=base.data[i+3]/255*(1-a),sum=a+b;if(sum){for(let c=0;c<3;c++)data[i+c]=Math.round((near.data[i+c]*a+base.data[i+c]*b)/sum);data[i+3]=Math.round(sum*255);}}
-  return {width:base.width,height:base.height,data};
-}

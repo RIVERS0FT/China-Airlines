@@ -55,7 +55,6 @@ describe('one aircraft canvas and fixed furniture', () => {
       if (model.cargo) expect(paintedAnchors(art, 'cargo'), model.id).toHaveLength(model.cargo);
       else expect(art.decks.cargo, model.id).toBeUndefined();
       const revision = 'v7';
-      expect(art.hull, model.id).toBe(`aircraft-${model.id}-cutaway-${revision}.png`);
       expect(art.exterior, model.id).toBe(`aircraft-${model.id}-exterior-${revision}.png`);
       expect(model.art, model.id).toBe(art.exterior);
     }

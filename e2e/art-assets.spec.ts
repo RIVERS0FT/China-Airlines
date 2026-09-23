@@ -29,7 +29,7 @@ test('local art decodes and remains available after offline reload', async ({ pa
   await page.getByTestId('waiting-order').first().click();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   expect(await page.locator('.toast').allTextContents()).toEqual([]);
-  await expect(page.locator('.cutaway-airframe')).toBeVisible();
+  await expect(page.locator('.aircraft-exterior-art')).toBeVisible();
   await expect(page.getByTestId('aircraft-cabin').getByTestId('loaded-order')).toHaveCount(1);
   await expect(page.getByTestId('loaded-order').locator('.job-art')).toHaveAttribute('data-pose', 'seated');
   await expect(page.getByTestId('loaded-order').locator('.job-art image')).toHaveAttribute('href', /passenger-standing-seated-v2\.png$/);

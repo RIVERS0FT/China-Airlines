@@ -7,7 +7,7 @@ const en: Readonly<Record<string, string>> = {
   '旅行箱':'Suitcase', '针织衫':'Knitwear', '方便面':'Instant noodles', '毛绒玩具':'Plush toy', '电脑':'Computer', '木箱':'Wooden crate', '邮政包裹':'Postal parcel', '旅行袋':'Travel bag',
   '石油':'Petroleum', '煤炭':'Coal', '宝石':'Gemstone', '药品':'Medicine', '救灾物资':'Relief supplies', '酒类':'Liquor', '羊驼':'Alpaca', '白色货箱':'White cargo chest',
   '查看外观':'Show exterior', '查看机舱':'Show cabin',
-  '机舱剖视':'Cabin cutaway', '客舱':'Cabin', '货舱':'Cargo',
+  '机舱信息':'Cabin details', '客舱':'Cabin', '货舱':'Cargo',
   '客舱翻页':'Cabin pages', '货舱翻页':'Cargo pages',
   '上一页{section}':'Previous {section} page', '下一页{section}':'Next {section} page',
   '机内乘客':'Passengers aboard', '机内货物':'Cargo aboard',

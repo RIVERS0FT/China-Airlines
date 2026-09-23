@@ -3,7 +3,7 @@ import { loadSummary, type GameState, type Plane } from '../core/game.js';
 import { artAsset } from './art-assets.js';
 import { FlightSky } from './FlightSky.js';
 import { useI18n } from '../i18n/I18n.js';
-import { CutawayCabin } from './CutawayCabin.js';
+import { AircraftCabin } from './AircraftCabin.js';
 
 /** Painted scene and aircraft; capacity overlays remain read-only projections of real orders. */
 export function AviationScene({ game, plane, onCabin, busy, cabinFocusKey }: {
@@ -23,7 +23,7 @@ export function AviationScene({ game, plane, onCabin, busy, cabinFocusKey }: {
       <g fill="#fff" opacity=".8" className="scene-clouds"><path d="M70 120c-40-20-6-52 23-36 9-58 91-42 87 2 56-12 69 42 26 42H70ZM945 67c-10-22 19-41 42-26 5-49 76-39 81 5 42-18 78 20 42 39H960Z"/><path d="M490 63c-9-20 19-31 36-19 8-30 56-24 57 3 36-5 38 20 15 20H490Z"/></g>
       <image href={artAsset('airport-day-v1.jpg')} width="1440" height="520" preserveAspectRatio="xMidYMid slice"/>
     </svg>}
-    {plane && !flying && <CutawayCabin key={plane.id} game={game} plane={plane} busy={busy} focusKey={cabinFocusKey} onInspect={onCabin}/>}
+    {plane && !flying && <AircraftCabin key={plane.id} game={game} plane={plane} busy={busy} focusKey={cabinFocusKey} onInspect={onCabin}/>}
     {plane && flying && <button className="airplane-display" onClick={onCabin} aria-label={t('flight.view')} data-testid="plane-art">
       <svg viewBox="0 -24 1000 378" role="img" aria-label={t('flight.sceneLabel', { model: modelName(plane.modelId, m!.name) })}>
         <image data-testid="aircraft-sprite" href={artAsset(m!.art)} x="95" y="0" width="810" height="310"/>

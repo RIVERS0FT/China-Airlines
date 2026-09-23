@@ -53,7 +53,7 @@ for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
     expect(await label.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (width! < 1000) {
-      const bodyWidth = (await page.locator('.cutaway-airframe').boundingBox())!.width * .9;
+      const bodyWidth = (await page.locator('.aircraft-exterior-art').boundingBox())!.width * .9;
       expect(bodyWidth).toBeGreaterThan(width! * .4);
     }
     await page.screenshot({ path:`artifacts/loading-queue-${width}.png` });

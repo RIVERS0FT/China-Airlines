@@ -1,0 +1,136 @@
+{
+  "revision": "v7",
+  "direction": "left",
+  "canvas": {
+    "width": 1536,
+    "height": 590
+  },
+  "aircraft": [
+    {
+      "id": "starter-swift",
+      "prototype": "Cessna 408 SkyCourier",
+      "capacity": {
+        "passengers": 3,
+        "cargo": 2
+      },
+      "exterior": "starter-swift-exterior-v7.png"
+    },
+    {
+      "id": "diamond-da40",
+      "prototype": "Diamond DA40 NG",
+      "capacity": {
+        "passengers": 1,
+        "cargo": 0
+      },
+      "exterior": "diamond-da40-exterior-v7.png"
+    },
+    {
+      "id": "swift-p",
+      "prototype": "Cessna 408 SkyCourier Passenger",
+      "capacity": {
+        "passengers": 4,
+        "cargo": 0
+      },
+      "exterior": "swift-p-exterior-v7.png"
+    },
+    {
+      "id": "swift-f",
+      "prototype": "Cessna 408 SkyCourier Freighter",
+      "capacity": {
+        "passengers": 0,
+        "cargo": 3
+      },
+      "exterior": "swift-f-exterior-v7.png"
+    },
+    {
+      "id": "swift-m",
+      "prototype": "Cessna 408 SkyCourier",
+      "capacity": {
+        "passengers": 2,
+        "cargo": 2
+      },
+      "exterior": "swift-m-exterior-v7.png"
+    },
+    {
+      "id": "heron-p",
+      "prototype": "ATR 72-600",
+      "capacity": {
+        "passengers": 8,
+        "cargo": 0
+      },
+      "exterior": "heron-p-exterior-v7.png"
+    },
+    {
+      "id": "heron-f",
+      "prototype": "ATR 72-600F",
+      "capacity": {
+        "passengers": 0,
+        "cargo": 6
+      },
+      "exterior": "heron-f-exterior-v7.png"
+    },
+    {
+      "id": "heron-m",
+      "prototype": "ATR 72-600 Combi",
+      "capacity": {
+        "passengers": 4,
+        "cargo": 3
+      },
+      "exterior": "heron-m-exterior-v7.png"
+    },
+    {
+      "id": "albatross-p",
+      "prototype": "Airbus A321XLR",
+      "capacity": {
+        "passengers": 12,
+        "cargo": 0
+      },
+      "exterior": "albatross-p-exterior-v7.png"
+    },
+    {
+      "id": "albatross-f",
+      "prototype": "Airbus A321P2F",
+      "capacity": {
+        "passengers": 0,
+        "cargo": 9
+      },
+      "exterior": "albatross-f-exterior-v7.png"
+    },
+    {
+      "id": "albatross-m",
+      "prototype": "Airbus A321XLR",
+      "capacity": {
+        "passengers": 6,
+        "cargo": 5
+      },
+      "exterior": "albatross-m-exterior-v7.png"
+    },
+    {
+      "id": "aurora-p",
+      "prototype": "Boeing 747-8I",
+      "capacity": {
+        "passengers": 18,
+        "cargo": 0
+      },
+      "exterior": "aurora-p-exterior-v7.png"
+    },
+    {
+      "id": "aurora-f",
+      "prototype": "Boeing 747-8F",
+      "capacity": {
+        "passengers": 0,
+        "cargo": 14
+      },
+      "exterior": "aurora-f-exterior-v7.png"
+    },
+    {
+      "id": "aurora-m",
+      "prototype": "Boeing 747-8I / 747-8F",
+      "capacity": {
+        "passengers": 9,
+        "cargo": 7
+      },
+      "exterior": "aurora-m-exterior-v7.png"
+    }
+  ]
+}
