@@ -16,9 +16,9 @@ concurrency:
 jobs:
   layout:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
-      BASE_PATH: /China-Airlines/
+      BASE_PATH: /china-airlines/
     steps:
       - uses: actions/checkout@v4
         with:

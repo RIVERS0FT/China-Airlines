@@ -12,7 +12,7 @@ npm run build
 npm run test:e2e
 ```
 
-根路径和 `BASE_PATH=/China-Airlines/` 子路径必须分别构建并运行浏览器流程。生产输出为 `dist/`，需要 HTTP/HTTPS 静态托管；双击 HTML 不属于支持的运行方式。
+根路径和 `BASE_PATH=/china-airlines/` 子路径必须分别构建并运行浏览器流程。生产输出为 `dist/`，需要 HTTP/HTTPS 静态托管；双击 HTML 不属于支持的运行方式。
 
 ## 验收边界
 
@@ -22,7 +22,7 @@ npm run test:e2e
 
 ## 合并与部署
 
-在功能分支开发，通过 PR squash 合并并遵守分支保护。日常修改使用仓库既有 Pages 构建和部署路径，不重复生成源码 ZIP 或静态 ZIP；只有用户明确要求离线交付包时才打包。
+在功能分支开发，通过 PR squash 合并并遵守分支保护。日常修改由 RIVERSOFT 生产工作流从本仓库 `main` 构建并发布到 `https://riversoft.top/china-airlines/`；定时检查间隔为 30 分钟，实际调度可能延迟。停止 GitHub Pages 自动发布，不重复生成源码 ZIP 或静态 ZIP；只有用户明确要求离线交付包时才打包。
 
 源码修改完成、生产构建成功、PR 合并和站点部署是不同状态。只有部署工作流成功并验证目标站点提供预期产物后才能宣称上线。权限、套餐或外部服务不足时如实报告，不改变仓库可见性，也不购买服务。
 

@@ -28,7 +28,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-子路径构建使用 `BASE_PATH=/China-Airlines/`。生产产物必须通过 HTTP/HTTPS 托管，不能直接双击 HTML。提交前同时验证根路径与子路径构建、桌面和手机横屏、竖屏提示、刷新恢复、导入导出与离线启动。
+生产子路径构建使用 `BASE_PATH=/china-airlines/`，正式入口为 `https://riversoft.top/china-airlines/`。RIVERSOFT 生产工作流从本仓库 `main` 构建并部署；游戏仓库不再自动发布 GitHub Pages。生产产物必须通过 HTTP/HTTPS 托管，不能直接双击 HTML。提交前同时验证根路径与子路径构建、桌面和手机横屏、竖屏提示、刷新恢复、导入导出与离线启动。
 
 开发约定见 [AGENTS.md](AGENTS.md)，部署及交付边界见 [DELIVERY.md](docs/DELIVERY.md)。源码完成、构建成功与站点部署是三个独立结果；没有部署回执时不得宣称已上线。
 

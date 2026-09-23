@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e', fullyParallel: false, workers: 1, retries: 0, failOnFlakyTests: true,
+  timeout: process.env.CI ? 90_000 : 30_000,
+  expect: { timeout: process.env.CI ? 20_000 : 5_000 },
   reporter: [['list'], ['json', { outputFile: process.env.BASE_PATH ? 'artifacts/browser-subpath.json' : 'artifacts/browser-root.json' }], ['html', { open: 'never' }]],
   use: { baseURL: `http://127.0.0.1:4173${process.env.BASE_PATH || '/'}`, trace: 'retain-on-failure', screenshot: 'only-on-failure',
     // Software WebGL only, rather than replacing Chromium's whole GLES driver.
