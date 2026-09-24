@@ -19,12 +19,12 @@ export function orderBlockReason(game: GameState, plane: Plane | undefined, orde
   if (aboard) return waiting(game, plane.airportId).length >= MAX_WAITING ? '机场候运区已满' : '';
   const specs = aircraftSpecs(plane), total = loadSummary(game, plane.id);
   if (order.kind === 'passengers') {
-    if (!specs.seats) return '纯货机不载客';
+    if (!specs.seats) return '请先分配客位';
     return total.passengers + order.amount > specs.seats ? '剩余客舱不足' : '';
   }
   const special = service(order.service)?.special;
   if(special && special !== 'none' && plane.tuning.special !== special)return special==='cold'?'需要冷链货舱':'需要工业货舱';
-  if (!specs.cargo) return '纯客机不载货';
+  if (!specs.cargo) return '请先分配货位';
   return total.cargo + order.amount > specs.cargo ? '剩余货舱不足' : '';
 }
 

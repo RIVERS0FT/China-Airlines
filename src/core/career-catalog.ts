@@ -4,12 +4,11 @@ import {
   type Upgrades,
 } from "./aircraft-basics.js";
 export {
-  AIRCRAFT_KIND_LABEL,
   UPGRADE_LABEL,
   emptyUpgrades,
   routeId,
 } from "./aircraft-basics.js";
-export type { AircraftKind, UpgradeKey, Upgrades } from "./aircraft-basics.js";
+export type { UpgradeKey, Upgrades } from "./aircraft-basics.js";
 export interface Tuning {
   group: number;
   cabins: number;
@@ -29,9 +28,7 @@ export interface AircraftModel {
   family: string;
   name: string;
   role: string;
-  kind: "mixed" | "passengers" | "cargo";
-  seats: number;
-  cargo: number;
+  capacity: number;
   range: number;
   speed: number;
   price: number;
@@ -56,8 +53,6 @@ const families = [
     price: 7000,
     level: 1,
     rank: 1,
-    seats: 4,
-    cargo: 3,
     weight: 220,
     energy: 200,
     art: "light",
@@ -74,8 +69,6 @@ const families = [
     price: 26000,
     level: 1,
     rank: 3,
-    seats: 8,
-    cargo: 6,
     weight: 380,
     energy: 280,
     art: "regional",
@@ -92,8 +85,6 @@ const families = [
     price: 85000,
     level: 2,
     rank: 6,
-    seats: 12,
-    cargo: 9,
     weight: 560,
     energy: 400,
     art: "heavy",
@@ -110,8 +101,6 @@ const families = [
     price: 220000,
     level: 3,
     rank: 10,
-    seats: 18,
-    cargo: 14,
     weight: 750,
     energy: 600,
     art: "heavy",
@@ -125,10 +114,8 @@ const DA40_MODEL: AircraftModel = {
   id: "diamond-da40",
   family: "diamond",
   name: "钻石 DA40",
-  role: "轻型短途客运",
-  kind: "passengers",
-  seats: 1,
-  cargo: 0,
+  role: "1 格轻型机身",
+  capacity: 1,
   range: 1730,
   speed: 285,
   price: 4000,
@@ -143,49 +130,34 @@ const DA40_MODEL: AircraftModel = {
     capacity: "4座（含飞行员）· 最大有效载荷407 kg",
   },
 };
-const FAMILY_MODELS = families.flatMap((f) =>
-  (["passengers", "cargo", "mixed"] as const).map((kind, i) => {
-    const id = `${f.id}-${["p", "f", "m"][i]}`;
-    return {
-      id,
-      family: f.id,
-      name: `${f.name} ${["客运型", "货运型", "客货型"][i]}`,
-      role: `${["纯客运输", "专业货运", "灵活客货"][i]}`,
-      kind,
-      seats:
-        kind === "cargo"
-          ? 0
-          : kind === "mixed"
-            ? Math.ceil(f.seats / 2)
-            : f.seats,
-      cargo:
-        kind === "passengers"
-          ? 0
-          : kind === "mixed"
-            ? Math.ceil(f.cargo / 2)
-            : f.cargo,
-      range: f.range,
-      speed: f.speed,
-      price: Math.round(f.price * [1, 0.95, 1.1][i]!),
-      level: f.level,
-      costKm: 0.12,
-      weight: f.weight,
-      energy: f.energy,
-      rank: f.rank,
-      art: `aircraft-${id}-exterior-${AIRCRAFT_ART_REVISION}.png`,
-      reference: f.reference,
-    };
-  }),
-);
+// Ten distinct game capacity grades reuse ten independent, original v7 exteriors.
+// The suffix only identifies the existing art asset; it is never a service type.
+const grades = [
+  ['swift-p', 0, 2, '雨燕 I', 5500, 1],
+  ['swift-m', 0, 3, '雨燕 II', 7000, 1],
+  ['swift-f', 0, 4, '雨燕 III', 9000, 1],
+  ['heron-p', 1, 5, '苍鹭 I', 18000, 3],
+  ['heron-m', 1, 6, '苍鹭 II', 25000, 4],
+  ['heron-f', 1, 7, '苍鹭 III', 33000, 5],
+  ['albatross-p', 2, 8, '信天翁 I', 65000, 6],
+  ['albatross-m', 2, 9, '信天翁 II', 85000, 8],
+  ['aurora-p', 3, 10, '极光', 150000, 10],
+] as const;
+const FAMILY_MODELS: AircraftModel[] = grades.map(([id, familyIndex, capacity, name, price, rank]) => {
+  const f = families[familyIndex];
+  return { id, family: f.id, name, role: `${capacity} 格通用机身`, capacity,
+    range: f.range, speed: f.speed, price, level: f.level, costKm: 0.12,
+    weight: f.weight, energy: f.energy, rank,
+    art: `aircraft-${id}-exterior-${AIRCRAFT_ART_REVISION}.png`, reference: f.reference };
+});
 export const MODELS: readonly AircraftModel[] = [DA40_MODEL, ...FAMILY_MODELS];
 export const STARTER_MODEL: AircraftModel = {
-  ...FAMILY_MODELS[2]!,
+  ...FAMILY_MODELS[1]!,
   id: "starter-swift",
   name: "雨燕 初航号",
-  seats: 3,
-  cargo: 2,
+  capacity: 5,
   price: 6000,
-  role: "初始客货机",
+  role: "初始通用机身",
   art: `aircraft-starter-swift-exterior-${AIRCRAFT_ART_REVISION}.png`,
 };
 export const ALL_MODELS: readonly AircraftModel[] = [STARTER_MODEL, ...MODELS];
@@ -200,15 +172,15 @@ export function aircraftSpecs(p: {
   modelId: string;
   upgrades: Upgrades;
   tuning?: Tuning;
+  allocation?: { passengers: number; cargo: number };
 }) {
   const m = model(p.modelId),
     t = p.tuning ?? emptyTuning();
   const level = (n: number) => RAILWAY_LEVELS[Math.min(99, Math.max(0, n))]!;
-  const cabins = 1 + p.upgrades.capacity + t.cabins;
   return {
     ...m,
-    seats: m.seats * cabins,
-    cargo: m.cargo * cabins,
+    seats: p.allocation?.passengers ?? 0,
+    cargo: p.allocation?.cargo ?? 0,
     range: Math.floor((m.range * level(p.upgrades.range)[1]) / 1000),
     speed: Math.floor((m.speed * level(p.upgrades.engine)[2]) / 1000),
     weight: Math.floor((m.weight * level(p.upgrades.efficiency)[3]) / 1000),
@@ -220,8 +192,14 @@ export const retrofitPrice = (
   key: keyof Upgrades,
 ) =>
   Math.ceil(model(p.modelId).price * 0.025 * (1 + p.upgrades[key] * 0.12));
-export const upgradeLimit = (p: { modelId: string }, key: keyof Upgrades) =>
-  key === "capacity" ? (p.modelId === DA40_MODEL.id ? 0 : 9) : 99;
+export const cabinAllocationPrice = (
+  current: { passengers: number; cargo: number },
+  next: { passengers: number; cargo: number },
+) => Math.max(0, next.passengers + next.cargo - current.passengers - current.cargo) * 120 +
+  Math.max(0, next.passengers - current.passengers) * 80 +
+  Math.max(0, next.cargo - current.cargo) * 100;
+export const upgradeLimit = (_p: { modelId: string }, key: keyof Upgrades) =>
+  key === "capacity" ? 0 : 99;
 export const upgradeTickets = (
   p: { modelId: string; upgrades: Upgrades },
   key: keyof Upgrades,

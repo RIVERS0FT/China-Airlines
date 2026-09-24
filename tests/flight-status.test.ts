@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GameCore, manifest, planQuote, validateSave } from '../src/core/game.js';
+import { GameCore, manifest, planQuote, validateSave } from './configured-game.js';
 import { currentFlight, flightStatus, fleetStatuses } from '../src/ui/flight-status.js';
 const NOW = 1_800_000_000_000, ID = 'AC0001';
 function prepared() {
@@ -71,7 +71,7 @@ describe('fleet state navigation',()=>{
     expect(fleetStatuses(s,'ready')).toHaveLength(1);c.tick(NOW+(first.arriveAt+8)*1000);s=c.snapshot();expect(fleetStatuses(s,'ready')).toHaveLength(2);
   });
   it('does not invent a new flight or income while an automatic route waits',()=>{
-    let s=prepared().snapshot();s.orders=[];const c=new GameCore(NOW,s);
+    let s=prepared().snapshot();s.orders=[];s.credits=100000;const c=new GameCore(NOW,s);
     c.execute({type:'hire-dispatcher',planeId:ID},NOW);c.execute({type:'start-duty',planeId:ID,to:'PVG'},NOW);s=c.snapshot();const row=flightStatus(s,s.fleet[0]!);
     expect(row.phase).toBe('automatic');expect(row.nextEvent).toBe('下次调度检查');expect(row.flight).toBeNull();
     expect(row.remaining).toBe(s.nextDemandAt-s.simTime);expect(row.to).toBe('PVG');expect(fleetStatuses(s,'ready')).toHaveLength(1);

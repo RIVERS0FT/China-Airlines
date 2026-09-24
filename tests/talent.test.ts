@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GameCore, validateSave, type Command } from '../src/core/game.js';
+import { GameCore, validateSave, type Command } from './configured-game.js';
 import { companyAffairs, createTalent } from '../src/core/talent.js';
 import { organizationLayout } from '../src/ui/organization-layout.js';
 const NOW = Date.parse('2026-09-14T02:00:00Z');

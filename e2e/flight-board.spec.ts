@@ -1,11 +1,12 @@
 import { displayScale } from './display-helpers.js';
 import { selectCity, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from './fixture.js';
-import { GameCore, planQuote, type GameState } from '../src/core/game.js';
+import { GameCore, planQuote, type GameState } from './configured-game.js';
 const NOW = Date.parse('2026-09-11T00:00:00Z'), ID = 'AC0001';
 const money = (n:number) => `¥ ${Math.round(n).toLocaleString('zh-CN')}`;
 function prepared() {
-  const c=new GameCore(NOW);c.execute({type:'hire-dispatcher',planeId:ID},NOW);
+  const funded=new GameCore(NOW).snapshot();funded.credits=1000000;
+  const c=new GameCore(NOW,funded);c.execute({type:'hire-dispatcher',planeId:ID},NOW);
   c.execute({type:'unlock',airportId:'WUH'},NOW);
   c.execute({type:'buy',modelId:'swift-f',airportId:'PEK'},NOW);
   c.execute({type:'load-destination',planeId:ID,to:'PVG'},NOW);

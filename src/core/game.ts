@@ -1,4 +1,4 @@
-import { aircraftSpecs, emptyUpgrades, retrofitPrice, hangarPrice, UPGRADE_LABEL, type Upgrades, type UpgradeKey, airport, model, routeId, TASKS, upgradePrice, distance } from './catalog.js';
+import { aircraftSpecs, emptyUpgrades, retrofitPrice, cabinAllocationPrice, hangarPrice, UPGRADE_LABEL, type Upgrades, type UpgradeKey, airport, model, routeId, TASKS, upgradePrice, distance } from './catalog.js';
 import { createTalent, recordTalentArrival, recordTalentCommand, talentExecute, validateTalent, type TalentState, type TalentCommand } from './talent.js';
 import { groundServiceQuote } from './organization.js';
 export { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND } from './simulation.js';
@@ -11,7 +11,7 @@ import { emptyTuning, upgradeLimit, upgradeTickets, service, MATERIALS, type Tun
 import { newCareer, careerExecute, careerLevel, bill, consume, stock, warehouseUsed, warehouseCapacity, autoAllowed, onArrival, nextCareerEvent, advanceCareer, type Career, type CareerCommand } from './career.js';
 import { validateCareer, validateTuning } from './save-career.js';
 import { railwayDistanceUnits, railwayLegCosts, railwayOrderReward, railwayRevenue, railwayRouteCost } from './economy.js';
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;
 export type TutorialState = 'available' | 'active' | 'completed' | 'skipped';
 export const MAX_PLAN_LEGS = 12;
 export interface Flight extends SimulationFlight {}
@@ -25,12 +25,13 @@ export interface Order {
   reward: number; location: string; createdAt: number; expiresAt: number | null; service: string; product: Material | null;
 }
 export interface GameState extends Omit<SimulationState, 'version' | 'fleet'> {
-  version: 10; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
+  version: 11; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
 }
 export type Command = SimulationCommand | CareerCommand | TalentCommand
   | { type: 'load' | 'unload'; planeId: string; orderId: string }
   | { type: 'load-destination'; planeId: string; to: string }
   | { type: 'retrofit'; planeId: string; upgrade: UpgradeKey }
+  | { type: 'allocate-cabin'; planeId: string; passengers: number; cargo: number }
   | { type: 'expand-hangar' }
   | { type: 'refresh-demand'; airportId: string }
   | { type: 'dispatch-plan' | 'open-plan-routes'; planeId: string; stops: string[] }
@@ -117,7 +118,7 @@ export function legQuote(s: GameState, p: Plane, from: string, to: string) {
   check(from !== to, '请选择不同的目的地'); check(a && b, '请先解锁两端机场');
   check(a!.level >= m.level && b!.level >= m.level, `该机型需要两端机场达到 ${m.level} 级`);
   const km = distance(from, to); check(km <= m.range, '航线超出这架飞机的航程');
-  const d = railwayDistanceUnits(km), cabins = 1 + p.upgrades.capacity + p.tuning.cabins;
+  const d = railwayDistanceUnits(km), cabins = Math.max(1, Math.ceil((p.allocation.passengers + p.allocation.cargo) / 5));
   return { km, duration: Math.max(30, Math.floor(d * 450 / m.speed)), cost: railwayRouteCost(d, m.weight, m.speed, p.tuning.group, cabins) };
 }
 export const flightEnergy = (_p: Plane, seconds: number) => Math.max(1, Math.floor(seconds / 60)) * 60;
@@ -146,7 +147,7 @@ export function planQuote(s: GameState, p: Plane, stops: string[]) {
     const result = { ...leg, from, to, opened, openingCost: 0, revenue };
     from = to; return result;
   });
-  const m = aircraftSpecs(p), cabins = 1 + p.upgrades.capacity + p.tuning.cabins;
+  const m = aircraftSpecs(p), cabins = Math.max(1, Math.ceil((p.allocation.passengers + p.allocation.cargo) / 5));
   const costs = railwayLegCosts(legs.map(leg => railwayDistanceUnits(leg.km)), m.weight, m.speed, p.tuning.group, cabins);
   legs = legs.map((leg, index) => ({ ...leg, cost: costs[index]! }));
   const cost = legs.reduce((n, l) => n + l.cost, 0), revenue = legs.reduce((n, l) => n + l.revenue, 0);
@@ -306,6 +307,19 @@ export class GameCore {
         const price = retrofitPrice(p, key); bill(s, price, upgradeTickets(p,key)); p.upgrades[key]++;
         note(s, `${p.id} ${UPGRADE_LABEL[key]}升至 ${p.upgrades[key]} 级`, -price); break;
       }
+      case 'allocate-cabin': {
+        const p = planeAtGate(s, command.planeId), capacity = model(p.modelId).capacity;
+        const passengers = command.passengers, cargo = command.cargo;
+        check(Number.isSafeInteger(passengers) && Number.isSafeInteger(cargo) && passengers >= 0 && cargo >= 0 && passengers + cargo <= capacity, '客货容量分配无效');
+        const loaded = loadSummary(s, p.id);
+        check(loaded.passengers <= passengers && loaded.cargo <= cargo, '请先卸下超出新容量的客货');
+        check(p.tuning.special === 'none' || cargo > 0, '请先拆除专业货舱');
+        check(passengers !== p.allocation.passengers || cargo !== p.allocation.cargo, '客货容量未变化');
+        const price = cabinAllocationPrice(p.allocation, { passengers, cargo });
+        spend(s, price);
+        p.allocation = { passengers, cargo };
+        note(s, `${p.id} 改装为 ${passengers} 客位 / ${cargo} 货位`, -price); break;
+      }
       case 'expand-hangar': {
         check(s.hangarSlots < MAX_FLEET, '机库已达到最高容量');
         const price = hangarPrice(s.hangarSlots); spend(s, price); s.hangarSlots = Math.min(MAX_FLEET, s.hangarSlots + 2);
@@ -362,7 +376,7 @@ export class GameCore {
         check(a && a.level >= m.level, `交付机场需要达到 ${m.level} 级`); check(s.fleet.length < s.hangarSlots, '机库机位不足，请先扩建机库');
         check(careerLevel(s)>=m.rank,'公司等级不足');
         spend(s, m.price); const id = `AC${String(s.nextId++).padStart(4, '0')}`;
-        s.fleet.push({ id, modelId: m.id, airportId: command.airportId, readyAt: s.simTime, autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], planContract: null, dispatcher: false, tuning: emptyTuning(), energy: {availableSeconds:m.energy*60,reservedSeconds:0,serviceUntil:null} });
+        s.fleet.push({ id, modelId: m.id, allocation: { passengers: 0, cargo: 0 }, airportId: command.airportId, readyAt: s.simTime, autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], planContract: null, dispatcher: false, tuning: emptyTuning(), energy: {availableSeconds:m.energy*60,reservedSeconds:0,serviceUntil:null} });
         s.fleetPeak = Math.max(s.fleetPeak, s.fleet.length);
         note(s, `${m.name} 加入机队 · ${id}`, -m.price); break;
       }
@@ -404,7 +418,7 @@ export class GameCore {
 /** Create a complete state that already conforms to the current schema. */
 function newGame(now: number): GameState {
   const career = newCareer(0, now);
-  const plane: Plane = { id: 'AC0001', modelId: 'starter-swift', airportId: 'PEK', readyAt: 0,
+  const plane: Plane = { id: 'AC0001', modelId: 'starter-swift', allocation: { passengers: 0, cargo: 0 }, airportId: 'PEK', readyAt: 0,
     autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], planContract: null, dispatcher: false,
     tuning: emptyTuning(), energy: { availableSeconds: 0, reservedSeconds: 0, serviceUntil: null } };
   plane.energy = planeEnergy(plane);
@@ -452,7 +466,12 @@ export function validateSave(value: unknown): GameState {
   validateTalent(s);
   validateInfrastructure(s);
   for (const p of [...s.fleet,...s.career.stored]) {
-    record(p, ['id','modelId','airportId','readyAt','autoRouteId','flight','upgrades','itinerary','planContract','dispatcher','energy','tuning']);
+    record(p, ['id','modelId','allocation','airportId','readyAt','autoRouteId','flight','upgrades','itinerary','planContract','dispatcher','energy','tuning']);
+    record(p.allocation, ['passengers','cargo']);
+    number(p.allocation.passengers, model(p.modelId).capacity);
+    number(p.allocation.cargo, model(p.modelId).capacity);
+    if (p.allocation.passengers + p.allocation.cargo > model(p.modelId).capacity ||
+      (p.tuning.special !== 'none' && p.allocation.cargo === 0)) fail();
     validateTuning(p);
     record(p.energy, ['availableSeconds','reservedSeconds','serviceUntil']);
     number(p.energy.availableSeconds, energyCapacity(p));

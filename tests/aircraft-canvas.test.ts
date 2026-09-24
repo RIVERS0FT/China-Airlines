@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ALL_MODELS } from '../src/core/catalog.js';
-import { GameCore, waiting } from '../src/core/game.js';
+import { GameCore, waiting } from './configured-game.js';
 import { cabinArtLayout, paintedAnchors, paintedDeck, cabinPlacement, fitAircraft } from '../src/ui/cabin-art-layout.js';
 import { passengerFrame } from '../src/ui/passenger-art.js';
 
@@ -22,7 +22,7 @@ describe('one aircraft canvas and fixed furniture', () => {
     }
   });
   for (const model of ALL_MODELS) it(`${model.id}: empty and all occupied slots keep the same furniture and painted floor`, () => {
-    const art = cabinArtLayout({ modelId: model.id });
+    const art = cabinArtLayout({ modelId: model.id, allocation: { passengers: Math.ceil(model.capacity / 2), cargo: Math.floor(model.capacity / 2) } });
     for (const kind of ['passengers', 'cargo'] as const) {
       if (!art.decks[kind]) continue;
       const room = paintedDeck(art, kind), anchor = paintedAnchors(art, kind)[0]!;
@@ -49,10 +49,9 @@ describe('one aircraft canvas and fixed furniture', () => {
   });
   it('uses every model capacity as its reviewed cabin rhythm', () => {
     for (const model of ALL_MODELS) {
-      const art = cabinArtLayout({ modelId: model.id });
-      if (model.seats) expect(paintedAnchors(art, 'passengers'), model.id).toHaveLength(model.seats);
-      else expect(art.decks.passengers, model.id).toBeUndefined();
-      if (model.cargo) expect(paintedAnchors(art, 'cargo'), model.id).toHaveLength(model.cargo);
+      const art = cabinArtLayout({ modelId: model.id, allocation: { passengers: Math.ceil(model.capacity / 2), cargo: Math.floor(model.capacity / 2) } });
+      expect(paintedAnchors(art, 'passengers'), model.id).toHaveLength(Math.ceil(model.capacity / 2));
+      if (model.capacity > 1) expect(paintedAnchors(art, 'cargo'), model.id).toHaveLength(Math.floor(model.capacity / 2));
       else expect(art.decks.cargo, model.id).toBeUndefined();
       const revision = 'v7';
       expect(art.exterior, model.id).toBe(`aircraft-${model.id}-exterior-${revision}.png`);

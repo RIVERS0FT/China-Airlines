@@ -1,6 +1,6 @@
 import { test, expect, type Page } from './fixture.js';
 import { selectCity, launchRoute } from './dispatch-helpers.js';
-import { GameCore } from '../src/core/game.js';
+import { GameCore } from './configured-game.js';
 
 async function openMap(page: Page) {
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { cargoAppearance } from '../src/ui/cargo-art.js';
 import { CARGO_ART } from '../src/ui/cargo-art-catalog.js';
 import { MATERIALS } from '../src/core/career-catalog.js';
-import { GameCore, validateSave, waiting } from '../src/core/game.js';
+import { GameCore, validateSave, waiting } from './configured-game.js';
 
 const NOW = 1_800_000_000_000;
 describe('reference cargo categories are decoration', () => {

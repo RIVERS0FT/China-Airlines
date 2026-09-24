@@ -13,7 +13,7 @@ import {
   manifest,
   planQuote,
   quote,
-} from '../src/core/game.js';
+} from './configured-game.js';
 
 const NOW = 1_800_000_000_000;
 const PLANE = 'AC0001';

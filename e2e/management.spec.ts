@@ -1,11 +1,11 @@
 import { selectCity, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from './fixture.js';
-import type { GameState } from '../src/core/game.js';
+import type { GameState } from './configured-game.js';
 let errors:string[];
 test.beforeEach(async({page})=>{errors=[];page.on('pageerror',e=>errors.push(e.message));});
 test.afterEach(()=>expect(errors).toEqual([]));
 async function ready(page:Page){await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');}
-async function secondPlane(page:Page){await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'纯货机',exact:true}).click();await page.getByRole('button',{name:'购买雨燕 货运型',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await page.getByRole('button',{name:'关闭飞机商店'}).click();await openGlobal(page, '机队管理');await page.getByRole('button',{name:/雨燕 货运型.*AC0002/}).click();}
+async function secondPlane(page:Page){await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 III',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await page.getByRole('button',{name:'关闭飞机商店'}).click();await openGlobal(page, '机队管理');await page.getByRole('button',{name:/雨燕 III.*AC0002/}).click();}
 async function chooseShanghai(page:Page){await selectCity(page, 'PEK');await selectCity(page, 'PVG');await expect(await detailValue(page, 'plan-summary')).toContainText('1 段');}
 
 /** Observe only the committed main slot; never change storage to make a test pass.
@@ -36,12 +36,12 @@ async function savedTutorial(page: Page) {
 
 test('hire and confirm or cancel empty-aircraft resale with persistent money',async({page})=>{
   await ready(page);await secondPlane(page);await expect(page.getByTestId('crew-status')).toContainText('未雇用');
-  await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await expect(page.getByTestId('crew-status')).toContainText('已雇用');await expect(page.getByTestId('credits')).toHaveText('¥ 9,550');
+  await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await expect(page.getByTestId('crew-status')).toContainText('已雇用');await expect(page.getByTestId('credits')).toHaveText('¥ 7,200');
   page.once('dialog',d=>void d.accept());await page.getByRole('button',{name:'人员下岗',exact:true}).click();await page.getByRole('button',{name:'出售这架飞机',exact:true}).scrollIntoViewIfNeeded();await page.screenshot({path:'artifacts/desktop-crew-sale.png'});
   await page.getByRole('button',{name:'出售这架飞机',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   page.once('dialog',d=>void d.accept());await page.getByRole('button',{name:'出售这架飞机',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
-  await expect(page.getByTestId('credits')).toHaveText('¥ 12,875');await expect(page.getByRole('button',{name:'出售这架飞机',exact:true})).toBeDisabled();
-  await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('credits')).toHaveText('¥ 12,875');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 11,700');await expect(page.getByRole('button',{name:'出售这架飞机',exact:true})).toBeDisabled();
+  await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('credits')).toHaveText('¥ 11,700');
 });
 test('hangar duty can start for a reachable unlocked city without route purchase',async({page})=>{
   await ready(page);await openGlobal(page, '机队管理');await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();
@@ -77,13 +77,13 @@ test('narrow landscape personnel controls and skip remain reachable',async({page
   await page.getByRole('button',{name:'跳过引导',exact:true}).click();
   // A click schedules an asynchronous save. Read its committed result, not a
   // deliberately suppressed toast, before navigating away or testing absence.
-  await expect.poll(() => savedTutorial(page)).toMatchObject({ tutorial: 'skipped', credits: 9550, fleetSize: 2 });
+  await expect.poll(() => savedTutorial(page)).toMatchObject({ tutorial: 'skipped', credits: 7200, fleetSize: 2 });
   expect((await savedTutorial(page)).revision).toBeGreaterThan(previous.revision);
   await expect(page.getByTestId('tutorial')).toHaveCount(0);
   await expect(page.getByRole('button',{name:'存档设置',exact:true})).toContainText('已存档');
   await expect(page.locator('.toast')).toHaveCount(0);
   await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
-  await expect(page.getByTestId('credits')).toHaveText('¥ 9,550');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 7,200');
   await expect(page.getByTestId('tutorial')).toHaveCount(0);
   expect((await savedTutorial(page)).tutorial).toBe('skipped');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

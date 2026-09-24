@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GameCore, manifest, waiting } from '../src/core/game.js';
+import { GameCore, manifest, waiting } from './configured-game.js';
 import { airportTraffic, airportDirectory, airportScene } from '../src/ui/airport-presentation.js';
 import { orderBlockReason } from '../src/ui/order-presentation.js';
 const NOW = 1_800_000_000_000;

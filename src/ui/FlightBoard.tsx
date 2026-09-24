@@ -1,6 +1,6 @@
 import { energyText } from './EnergyService.js';
 import { useId, useRef, useState } from 'react';
-import { aircraftSpecs, AIRCRAFT_KIND_LABEL, airport } from '../core/catalog.js';
+import { aircraftSpecs, airport } from '../core/catalog.js';
 import type { GameState } from '../core/game.js';
 import { currentFlight, fleetStatuses, type FlightPhase } from './flight-status.js';
 import { duration, money } from './Panels.js';
@@ -28,7 +28,7 @@ export function FlightBoard({ game, selectedId, onSelect }: {
 }) {
   const [filter, setFilter] = useState<'all' | FlightPhase>('all'), [search, setSearch] = useState('');
   const input = useRef<HTMLInputElement>(null), listId = useId();
-  const { ui, airportName, modelName, modelRole } = useI18n();
+  const { ui, airportName, modelName } = useI18n();
   const phaseName = (phase: FlightPhase) => ui(phaseLabels[phase]);
   const all = fleetStatuses(game), term = search.trim().toLowerCase();
   const shown = all.filter(status => {
@@ -70,7 +70,7 @@ export function FlightBoard({ game, selectedId, onSelect }: {
       {shown.map(status => {
         const p = game.fleet.find(p => p.id === status.planeId)!, spec = aircraftSpecs(p), f = status.flight;
         return <article key={p.id} className={`flight-card phase-${status.phase}`} data-testid="flight-row" data-plane-id={p.id} data-phase={status.phase} data-current={selectedId === p.id}>
-          <header><div><strong>{modelName(p.modelId,spec.name)} · {p.id}</strong><small>{modelRole(p.modelId,AIRCRAFT_KIND_LABEL[spec.kind])}{selectedId === p.id ? ` · ${ui('当前查看')}` : ''}</small></div><span className="flight-status-tag">{ui(status.label)}</span></header>
+          <header><div><strong>{modelName(p.modelId,spec.name)} · {p.id}</strong><small>总容量 {spec.capacity} 格 · 客位 {spec.seats} / 货位 {spec.cargo}{selectedId === p.id ? ` · ${ui('当前查看')}` : ''}</small></div><span className="flight-status-tag">{ui(status.label)}</span></header>
           <div className="flight-route"><strong>{airportName(status.from,airport(status.from).city)}{status.to ? ` → ${airportName(status.to,airport(status.to).city)}` : ui('航空港')}</strong><span>{f ? f.id : ui('地面状态')}</span></div>
           {f && <progress className="fleet-flight-progress" aria-label={`${p.id} ${ui('航班')}`} max={1} value={f.progress}/>}
           <p className="flight-clock">{status.remaining === null ? ui('可进入机场继续装载') : ui('{time} 后{event}',{time:duration(status.remaining),event:ui(status.nextEvent)})}</p>

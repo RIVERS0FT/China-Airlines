@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { describe, expect, it, vi } from 'vitest';
 import { Box3, Group, Mesh, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { GameCore } from '../src/core/game.js';
+import { GameCore } from './configured-game.js';
 const currentFlying=()=>{const c=new GameCore(1800000000000);c.execute({type:'dispatch',planeId:'AC0001',to:'PVG',auto:false},1800000000000);return c.snapshot();};
 import { aircraftFrame, projectAircraftFrame } from '../src/ui/globe-aircraft-pose.js';
 import { dot, globeCamera, greatCircle, screenPoint, toVector, viewVector } from '../src/ui/globe-geometry.js';

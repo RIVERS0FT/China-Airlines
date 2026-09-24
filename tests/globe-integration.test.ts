@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { ALL_MODELS, MODELS, aircraftSpecs, model } from '../src/core/catalog.js';
-import { GameCore, loadSummary, validateSave } from '../src/core/game.js';
+import { GameCore, loadSummary, validateSave } from './configured-game.js';
 const NOW = 1_800_000_000_000;
 
 describe('current aircraft registry and save boundary', () => {
   it('keeps thirteen purchasable models and a three-seat two-cargo starter', () => {
     const c=new GameCore(NOW);c.execute({type:'load-destination',planeId:'AC0001',to:'PVG'},NOW);
     const s=c.snapshot(),p=s.fleet[0]!;
-    expect(ALL_MODELS).toHaveLength(14);expect(MODELS).toHaveLength(13);
+    expect(ALL_MODELS).toHaveLength(11);expect(MODELS).toHaveLength(10);
     expect(p.modelId).toBe('starter-swift');expect(aircraftSpecs(p)).toMatchObject({seats:3,cargo:2});
     expect(loadSummary(s,p.id)).toEqual({passengers:3,cargo:2});expect(validateSave(s)).toEqual(s);
     const fresh=new GameCore(NOW).snapshot();expect(fresh.log[0]!.amount).toBe(fresh.credits);

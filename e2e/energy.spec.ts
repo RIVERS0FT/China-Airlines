@@ -1,7 +1,7 @@
-import { GameCore, flightEnergy } from '../src/core/game.js';
+import { GameCore, flightEnergy } from './configured-game.js';
 import { selectCity, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
 import { test, expect, type Page } from './fixture.js';
-import { quote, planQuote, type GameState } from '../src/core/game.js';
+import { quote, planQuote, type GameState } from './configured-game.js';
 const CAP=12000;
 const NOW = Date.parse('2026-09-12T00:00:00Z'), ID = 'AC0001';
 const money=(n:number)=>`¥ ${Math.round(n).toLocaleString('zh-CN')}`;

@@ -1,6 +1,6 @@
 import { displayScale } from './display-helpers.js';
-import { test, expect, prepareAirportSession } from './fixture.js';
-import { GameCore } from '../src/core/game.js';
+import { test, expect, prepareAirportSession, allocateCabin } from './fixture.js';
+import { GameCore } from './configured-game.js';
 import { selectCity } from './dispatch-helpers.js';
 
 const NOW = Date.parse('2026-09-12T00:00:00Z');
@@ -9,6 +9,7 @@ test('hidden fleet markers do not hide the selected aircraft or mutate flight ac
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   const core = new GameCore(NOW);
   core.execute({ type: 'buy', modelId: 'swift-f', airportId: 'PEK' }, NOW);
+  core.execute({ type: 'allocate-cabin', planeId: 'AC0002', passengers: 2, cargo: 2 }, NOW);
   core.execute({ type: 'load-destination', planeId: 'AC0001', to: 'PVG' }, NOW);
   core.execute({ type: 'load-destination', planeId: 'AC0002', to: 'PVG' }, NOW);
   core.execute({ type: 'dispatch', planeId: 'AC0001', to: 'PVG', auto: false }, NOW);
@@ -98,6 +99,7 @@ test('touching a city on the canvas selects it once and preserves automatic mode
   page.on('pageerror', error => errors.push(error.message));
   try {
     await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
+    await allocateCabin(page, 'AC0001', 3, 2);
     await page.getByRole('button',{name:'机队管理',exact:true}).click();await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await page.getByRole('button',{name:'关闭机队管理'}).click();
     await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
     await page.getByRole('button', { name: '制定路线', exact: true }).click();
@@ -121,7 +123,7 @@ test('touching a city on the canvas selects it once and preserves automatic mode
     await tapShanghai();
     await expect(canvas).toHaveAttribute('data-preview-path', 'PVG');
     await expect(page.getByTestId('auto-route-badge')).toHaveText('自动往返');
-    await expect(page.getByTestId('credits')).toHaveText('¥ 16,200');
+    await expect(page.getByTestId('credits')).toHaveText('¥ 15,160');
     await page.getByTestId('dispatch').click();
     await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();
     await expect(page.getByRole('button', { name: '停止自动往返', exact: true })).toBeVisible();

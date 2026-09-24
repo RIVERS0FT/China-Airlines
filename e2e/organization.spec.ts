@@ -1,6 +1,6 @@
 import { test, expect, type Page } from './fixture.js';
 import { readFile } from 'node:fs/promises';
-import { GameCore, type GameState } from '../src/core/game.js';
+import { GameCore, type GameState } from './configured-game.js';
 import { openGlobal } from './dispatch-helpers.js';
 import { UI_SCALE_KEY } from '../src/ui/viewport.js';
 const NOW = Date.parse('2026-09-14T02:00:00Z');
@@ -41,7 +41,7 @@ for (const [width,height] of [[1440,900],[844,390],[667,375]] as const) test(`co
   await expect(tree.locator('[data-employee-id="1"]')).toBeInViewport({ratio:FULL_VISIBILITY});
   await expect(tree.locator('[data-employee-id="2"]')).toBeInViewport({ratio:FULL_VISIBILITY});
   await page.screenshot({path:`artifacts/company-organization-${width}.png`});
-  const state=await exportState(page); expect(state.version).toBe(10); expect(state.career.employees).toHaveLength(3); expect(Object.keys(state.career)).not.toContain('pilots');
+  const state=await exportState(page); expect(state.version).toBe(11); expect(state.career.employees).toHaveLength(3); expect(Object.keys(state.career)).not.toContain('pilots');
   expect(state.career.employees[0]).toMatchObject({name:'林航',planeId:'AC0001',managerId:3,skill:1}); expect(state.career.employees[1]!.airportId).toBe('PEK');
   await page.reload(); await openOrganization(page); await page.getByRole('button',{name:'查看林航 · 飞行员',exact:true}).click();
   await expect(page.getByLabel('林航直属上级')).toHaveValue('3'); await expect(page.getByLabel('林航岗位')).toHaveValue('AC0001');

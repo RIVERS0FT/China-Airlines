@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GameCore, manifest, waiting, MAX_WAITING } from '../src/core/game.js';
+import { GameCore, manifest, waiting, MAX_WAITING } from './configured-game.js';
 import { aircraftSpecs } from '../src/core/catalog.js';
 import { careerExecute } from '../src/core/career.js';
 import { taskItems, taskOverview } from '../src/ui/task-presentation.js';

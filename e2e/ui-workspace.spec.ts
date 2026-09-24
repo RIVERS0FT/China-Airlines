@@ -76,13 +76,11 @@ test('work page switches preserve fleet tabs and shop category without keeping h
   await nav.getByRole('button',{name:'机队管理',exact:true}).click();
   await page.getByRole('tab',{name:'航班',exact:true}).click();
   await nav.getByRole('button',{name:'飞机商店',exact:true}).click();
-  await page.getByRole('button',{name:'全部机型',exact:true}).click();
   await expect(page.getByTestId('page-fleet')).toHaveCount(0);
   await nav.getByRole('button',{name:'机队管理',exact:true}).click();
   await expect(page.getByRole('tab',{name:'航班',exact:true})).toHaveAttribute('aria-selected','true');
   await nav.getByRole('button',{name:'飞机商店',exact:true}).click();
-  await expect(page.getByRole('button',{name:'全部机型',exact:true})).toHaveAttribute('aria-pressed','true');
-  await expect(page.getByTestId('shop-aircraft')).toHaveCount(13);
+  await expect(page.getByTestId('shop-aircraft')).toHaveCount(10);
   const da40 = page.getByTestId('shop-aircraft').filter({ has: page.getByRole('heading', { name: '钻石 DA40', exact: true }) });
   await expect(da40).toHaveCount(1);
   await expect(da40.locator('.aircraft-reference')).toContainText('Diamond DA40 NG');

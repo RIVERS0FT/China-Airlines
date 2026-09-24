@@ -156,7 +156,7 @@ export const zhCNMessages = {
   'settings.offlineReady': '资源缓存已就绪，可在断网后重新打开。',
   'settings.offlineFirst': '首次访问需要网络；缓存完成后才能离线启动。',
   'settings.saveCompatibility': '离线经营与存档格式',
-  'settings.saveCompatibilityHelp': '最多补算8小时。导入不补算文件时间；仅支持当前v10存档。版本不符、未知机型或数据损坏会拒绝导入且不会覆盖现有进度。',
+  'settings.saveCompatibilityHelp': '最多补算8小时。导入不补算文件时间；仅支持当前v11存档。旧版存档无法自动迁移；版本不符、未知机型或数据损坏会拒绝导入且不会覆盖现有进度。',
   'settings.persistence': '保留本地存储',
   'settings.persistenceHelp': '申请不能替代导出备份。',
   'settings.persistenceApply': '申请保留',

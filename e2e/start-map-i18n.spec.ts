@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { GameCore } from '../src/core/game.js';
+import { GameCore } from './configured-game.js';
 
 test('title enters the map, keeps Map leftmost, and switches the core flow to English', async ({ page }) => {
   await page.goto('./');

@@ -144,6 +144,7 @@ export function App() {
   function finishDeparture() { mapReturn.current = null; navigate({ type: 'open', page: 'airport' }); setAboard(true); }
   function locateTutorial(target: string) {
     if (target === 'tasks') setModal('tasks');
+    else if (target === 'fleet') openFleet();
     else if (target === 'map') showMap();
     else { navigate({ type: 'open', page: 'airport' }); setAboard(false); }
   }

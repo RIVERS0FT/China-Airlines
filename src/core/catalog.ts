@@ -1,8 +1,8 @@
 import { DOMESTIC_AIRPORTS } from './domestic-airports.js';
 import { WORLD_AIRPORTS, type AirportDefinition } from './world-airports.js';
-export { MODELS, STARTER_MODEL, ALL_MODELS, AIRCRAFT_KIND_LABEL, UPGRADE_LABEL, emptyUpgrades, aircraftSpecs, retrofitPrice,
+export { MODELS, STARTER_MODEL, ALL_MODELS, UPGRADE_LABEL, emptyUpgrades, aircraftSpecs, retrofitPrice, cabinAllocationPrice,
   hangarPrice, TASKS, model, routeId, upgradePrice } from './career-catalog.js';
-export type { AircraftKind, AircraftModel, UpgradeKey, Upgrades } from './career-catalog.js';
+export type { AircraftModel, UpgradeKey, Upgrades } from './career-catalog.js';
 export { CONTINENTS, type Continent, type AirportDefinition } from './world-airports.js';
 export const AIRPORTS: readonly AirportDefinition[] = [
   ...DOMESTIC_AIRPORTS.map(a => ({ ...a, continent: '亚洲' as const })), ...WORLD_AIRPORTS

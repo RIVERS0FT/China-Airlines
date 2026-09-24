@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GameCore, flightEnergy, planQuote, validateSave } from '../src/core/game.js';
+import { GameCore, flightEnergy, planQuote, validateSave } from './configured-game.js';
 import { dispatchPresentation } from '../src/ui/dispatch-presentation.js';
 const NOW=1_800_000_000_000,ID='AC0001';
 function prepared() { const c=new GameCore(NOW); c.execute({type:'hire-dispatcher',planeId:ID},NOW); c.execute({type:'unlock',airportId:'WUH'},NOW); c.execute({type:'load-destination',planeId:ID,to:'PVG'},NOW); return c; }

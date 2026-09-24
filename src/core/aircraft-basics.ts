@@ -1,13 +1,5 @@
-export type AircraftKind = 'mixed' | 'passengers' | 'cargo';
-
-export const AIRCRAFT_KIND_LABEL = {
-  mixed: '客货两用',
-  passengers: '纯客机',
-  cargo: '纯货机',
-} as const;
-
 export const UPGRADE_LABEL = {
-  capacity: '舱位扩充',
+  capacity: '舱位配置',
   engine: '发动机',
   range: '航程改装',
   efficiency: '节能改装',

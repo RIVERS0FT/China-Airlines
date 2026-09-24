@@ -48,7 +48,9 @@ class Controller {
       await this.run(async () => {
         const loaded = await this.db.load(); this.revision = loaded.revision;
         if (!loaded.state && loaded.hasData) {
-          useGame.setState({ recovery: true, error: '主存档与备份均无法读取。请导入有效存档，或确认重新开始。' }); return;
+          useGame.setState({ recovery: true, error: loaded.incompatibleVersion
+            ? '检测到版本不兼容的存档。当前仅接受 v11；原数据未被覆盖。请先保留浏览器数据，确认版本后再决定是否重新开始。'
+            : '主存档与备份均无法读取。请导入有效存档，或确认重新开始。' }); return;
         }
         this.core = new GameCore(Date.now(), loaded.state ?? undefined);
         this.advance(); await this.persist();

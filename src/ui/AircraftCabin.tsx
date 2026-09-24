@@ -6,6 +6,7 @@ import { cabinArtLayout, fitAircraft } from './cabin-art-layout.js';
 import { artAsset } from './art-assets.js';
 import { CabinDeck } from './CabinDeck.js';
 import './aircraft-cabin.css';
+import './cabin-allocation.css';
 
 /** One canvas, one measured scale, one mounted set of real orders. */
 export function AircraftCabin({ game, plane, busy, focusKey, onInspect }: { game: GameState; plane: Plane; busy: boolean; focusKey: number; onInspect: () => void }) {
@@ -25,7 +26,7 @@ export function AircraftCabin({ game, plane, busy, focusKey, onInspect }: { game
     if (focusKey > 0 && !exterior) interior.current?.querySelector<HTMLElement>('.cabin-places')?.focus({ preventScroll: true });
   }, [focusKey, exterior]);
   const rect = art.interior;
-  const floor = Math.max(...decks.map(deck => art.decks[deck.kind]!.floorY)) - rect.y;
+  const floor = (decks.length ? Math.max(...decks.map(deck => art.decks[deck.kind]!.floorY)) : rect.y + rect.height * .88) - rect.y;
   return <div ref={frame} className="airplane-display cabin-aircraft" data-testid="plane-art" data-cabin-plane-id={plane.id} data-model-id={art.modelId} data-exterior={exterior || undefined}
     data-cabin-family={art.family} data-facing={art.direction} data-anchor-debug={debug || undefined}>
     <div className="aircraft-canvas" data-testid="aircraft-canvas" data-art-scale={fit.scale} style={{ width: art.canvas.width, height: art.canvas.height,
@@ -37,7 +38,7 @@ export function AircraftCabin({ game, plane, busy, focusKey, onInspect }: { game
           <div className="cabin-shell-windows"/>
           <div className="cabin-shell-floor" style={{ top: floor }}/>
         </div>
-        {decks.map((deck, index) => <CabinDeck key={`${plane.id}-${deck.kind}`} deck={deck} art={art} game={game} plane={plane} busy={busy} focusKey={focusKey} footerIndex={index} footerCount={decks.length}/>)}
+        {decks.length ? decks.map((deck, index) => <CabinDeck key={`${plane.id}-${deck.kind}`} deck={deck} art={art} game={game} plane={plane} busy={busy} focusKey={focusKey} footerIndex={index} footerCount={decks.length}/>) : <p className="cabin-unallocated">尚未配置客货舱位，请前往机队管理改装。</p>}
       </div>
     </div>
     <button className="cabin-inspect" aria-label={ui('查看机上客货')} onClick={onInspect}>{ui('机舱信息')}</button>

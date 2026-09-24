@@ -1,10 +1,10 @@
 import { selectCity, detailValue, launchRoute, leaveMap, openGlobal } from './dispatch-helpers.js';
-import { test, expect, prepareAirportSession, type Page } from './fixture.js';
+import { test, expect, prepareAirportSession, allocateCabin, type Page } from './fixture.js';
 import { readFile } from 'node:fs/promises';
 let pageErrors:string[]=[];
 test.beforeEach(async({page})=>{pageErrors=[];page.on('pageerror',e=>pageErrors.push(e.message));});
 test.afterEach(()=>{expect(pageErrors).toEqual([]);});
-async function ready(page:Page){await prepareAirportSession(page);await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('airport-scene')).toBeVisible();}
+async function ready(page:Page){await prepareAirportSession(page);await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('airport-scene')).toBeVisible();if(await page.getByTestId('passenger-capacity').textContent()==='旅客 0 / 0 人')await allocateCabin(page,'AC0001',3,2);}
 async function settings(page:Page){if(await page.locator('.game-modal').isVisible())await page.locator('.game-modal>header button').click();await openGlobal(page, '存档设置');await expect(page.getByRole('dialog')).toBeVisible();}
 async function chooseShanghai(page:Page){
 
@@ -27,7 +27,7 @@ test('desktop loading, first flight, reward, and reload',async({page})=>{
 });
 test('purchase, export, invalid import, and valid restore',async({page})=>{
   await ready(page);page.on('dialog',dialog=>void dialog.accept());
-  await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 客货型',exact:true}).click();
+  await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 II',exact:true}).click();
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await settings(page);
   const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'导出存档',exact:true}).click();const download=await downloadPromise;
   const raw=await readFile((await download.path())!,'utf8');expect(JSON.parse(raw).fleet).toHaveLength(2);
@@ -46,7 +46,7 @@ test('cached airport and PixiJS map start offline without external requests',asy
   await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller));await context.setOffline(true);await page.reload();
   await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('airport-scene')).toBeVisible();
   await page.getByRole('button',{name:'地图',exact:true}).click();await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer','ready');
-  await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 客货型',exact:true}).click();
+  await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 II',exact:true}).click();
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   expect(requests.filter(url=>/^https?:/.test(url)&&new URL(url).origin!==origin)).toEqual([]);
 });
@@ -71,6 +71,6 @@ test('a competing tab cannot overwrite the first writer and recovery stays reach
 test('captures airport, network, and collection with no overflow',async({page})=>{
   await ready(page);await page.screenshot({path:'artifacts/desktop-airport.png',fullPage:true});
   await page.getByRole('button',{name:'地图',exact:true}).click();await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer','ready');await page.screenshot({path:'artifacts/desktop-map.png',fullPage:true});
-  await openGlobal(page, '飞机商店');await expect(page.getByRole('group',{name:'机型分类'})).toBeVisible();await expect(page.getByTestId('shop-aircraft')).toHaveCount(4);
+  await openGlobal(page, '飞机商店');await expect(page.getByTestId('shop-aircraft')).toHaveCount(10);
   await page.screenshot({path:'artifacts/desktop-shop.png',fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

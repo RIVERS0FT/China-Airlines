@@ -7,7 +7,7 @@ const NOW=Date.parse('2026-09-16T00:00:00Z');
 for(const model of ALL_MODELS)test(`procedural cabin covers ${model.id} without remounting or changing orders`,async({page})=>{
   await page.clock.install({time:new Date(NOW)});await page.clock.pauseAt(new Date(NOW+1000));
   await page.goto('./');await expect(page.getByTestId('aircraft-cabin')).toBeVisible();
-  const s=new GameCore(NOW).snapshot();s.fleet[0]!.modelId=model.id;s.fleet[0]!.energy={availableSeconds:model.energy*60,reservedSeconds:0,serviceUntil:null};s.airports.forEach(a=>a.level=3);
+  const s=new GameCore(NOW).snapshot();s.fleet[0]!.modelId=model.id;s.fleet[0]!.allocation={passengers:Math.ceil(model.capacity/2),cargo:Math.floor(model.capacity/2)};s.fleet[0]!.energy={availableSeconds:model.energy*60,reservedSeconds:0,serviceUntil:null};s.airports.forEach(a=>a.level=3);
   await page.getByRole('button',{name:'存档设置',exact:true}).click();page.once('dialog',d=>void d.accept());
   await page.getByLabel('选择存档文件').setInputFiles({name:'current-aircraft.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(s))});
   await expect(page.getByRole('status').filter({hasText:'存档导入成功'})).toBeVisible();
@@ -57,13 +57,13 @@ for(const model of ALL_MODELS)test(`procedural cabin covers ${model.id} without 
   await expect(cabin.getByTestId('procedural-cabin-shell')).toBeVisible();
   await expect(frame.locator('img[src*="cutaway"]')).toHaveCount(0);
   await expect.poll(()=>frame.locator('img').evaluateAll(nodes=>nodes.every(n=>(n as HTMLImageElement).complete&&(n as HTMLImageElement).naturalWidth>0))).toBe(true);
-  await expect(page.locator('.cabin-deck')).toHaveCount(model.seats&&model.cargo?2:1);
-  if(model.seats&&model.cargo){
+  await expect(page.locator('.cabin-deck')).toHaveCount(model.capacity>1?2:1);
+  if(model.capacity>1){
     const passengers=(await page.getByTestId('cabin-passengers').boundingBox())!,cargo=(await page.getByTestId('cabin-cargo').boundingBox())!;
     expect(cargo.x).toBeGreaterThanOrEqual(passengers.x+passengers.width-.5);expect(cargo.y).toBeCloseTo(passengers.y,0);
   }
-  if(model.seats)await expect(page.getByTestId('cabin-passengers').locator('.cabin-anchor')).toHaveCount(model.seats);
-  if(model.cargo)await expect(page.getByTestId('cabin-cargo').locator('.cabin-anchor')).toHaveCount(model.cargo);
+  await expect(page.getByTestId('cabin-passengers').locator('.cabin-anchor')).toHaveCount(Math.ceil(model.capacity/2));
+  if(model.capacity>1)await expect(page.getByTestId('cabin-cargo').locator('.cabin-anchor')).toHaveCount(Math.floor(model.capacity/2));
   const ids=await cabin.getByTestId('loaded-order').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('data-order-id')));
   await cabin.evaluate(n=>n.setAttribute('data-mount-marker','kept'));
   await page.screenshot({path:`artifacts/aircraft-layers-${model.id}-interior.png`});

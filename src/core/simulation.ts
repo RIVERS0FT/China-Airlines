@@ -18,6 +18,7 @@ export interface Flight {
 export interface Plane {
   id: string;
   modelId: string;
+  allocation: { passengers: number; cargo: number };
   airportId: string;
   readyAt: number;
   autoRouteId: string | null;

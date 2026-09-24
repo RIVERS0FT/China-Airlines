@@ -417,6 +417,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       const p: Plane = {
         id: `AC${String(s.nextId++).padStart(4, "0")}`,
         modelId: m.id,
+        allocation: { passengers: 0, cargo: 0 },
         airportId: command.airportId,
         readyAt: s.simTime,
         autoRouteId: null,
@@ -469,7 +470,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
     }
     case "specialize-plane": {
       const p = emptyPlane(s, command.planeId);
-      guard(model(p.modelId).cargo > 0, "纯客机无法安装专业货舱");
+      guard(p.allocation.cargo > 0, "请先分配货位");
       guard(
         ["none", "cold", "industrial"].includes(command.special),
         "未知专业货舱",

@@ -1,4 +1,4 @@
-import { test, expect, prepareAirportSession, type Page } from './fixture.js';
+import { test, expect, prepareAirportSession, allocateCabin, type Page } from './fixture.js';
 import { airport } from '../src/core/catalog.js';
 import { projectGeo, type GlobeCamera } from '../src/ui/globe-geometry.js';
 import { displayScale } from './display-helpers.js';
@@ -9,6 +9,7 @@ async function ready(page: Page) {
   await page.clock.install({ time: new Date('2026-09-13T02:00:00Z') });
   await page.goto('./');
   await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
+  if ((await page.getByTestId('passenger-capacity').textContent())?.includes('0 / 0')) await allocateCabin(page, 'AC0001', 3, 2);
 }
 
 for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 150], [667, 375, 100]] as const) {
@@ -51,7 +52,7 @@ for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 150], [667, 37
       await expect(page.getByTestId('map-unlocked-count')).toContainText('已解锁 3 / 50 城市');
       await detail.getByRole('button', { name: '返回地图', exact: true }).click();
       await expect(map).toHaveAttribute('data-preview-path', '');
-      await expect(page.getByTestId('credits')).toHaveText('¥ 10,000');
+      await expect(page.getByTestId('credits')).toHaveText('¥ 8,960');
       await page.screenshot({ path: `artifacts/map-browsing-${width}.png` });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.getByRole('button', { name: '机场装载', exact: true }).click();
@@ -65,7 +66,7 @@ for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 150], [667, 37
       await expect(page.getByRole('dialog')).toHaveCount(0);
       await page.getByRole('button', { name: '取消起飞', exact: true }).click();
       await page.reload();
-      await expect(page.getByTestId('credits')).toHaveText('¥ 10,000');
+      await expect(page.getByTestId('credits')).toHaveText('¥ 8,960');
       await expect(page.locator(`[data-order-id="${id}"]`)).toHaveAttribute('data-load-state', 'loaded');
       await expect(page.getByTestId('flights-count')).toHaveText('0 班');
       await page.getByRole('button', { name: '制定路线', exact: true }).click();
@@ -85,7 +86,7 @@ test('map search and unlock work without WebGL, cancellation and insufficient fu
   await ready(page);
   await page.getByRole('button', { name: '地图', exact: true }).click();
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer', 'fallback');
-  await expect(page.getByRole('status')).toContainText('查找城市');
+  await expect(page.locator('.map-fallback')).toContainText('查找城市');
   await selectCity(page, 'WUH');
   await page.getByRole('button', { name: '返回地图', exact: true }).click();
   await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');

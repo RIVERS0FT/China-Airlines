@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AIRPORTS, distance, routeId } from '../src/core/catalog.js';
-import { GameCore, OFFLINE_LIMIT, parseSave, quote, TURNAROUND, validateSave, type GameState } from '../src/core/game.js';
+import { GameCore, OFFLINE_LIMIT, parseSave, quote, TURNAROUND, validateSave, type GameState } from './configured-game.js';
 const NOW=1_800_000_000_000;
 function flying(auto=false){const core=new GameCore(NOW);if(auto)core.execute({type:'hire-dispatcher',planeId:'AC0001'},NOW);core.execute({type:'load-destination',planeId:'AC0001',to:'PVG'},NOW);core.execute({type:'dispatch',planeId:'AC0001',to:'PVG',auto},NOW);return core;}
 describe('catalog and fresh game',()=>{
@@ -9,7 +9,7 @@ describe('catalog and fresh game',()=>{
   it('does not leak mutable state through snapshots',()=>{const core=new GameCore(NOW),s=core.snapshot();s.credits=1;s.fleet[0]!.airportId='URC';expect(core.snapshot().credits).toBe(18000);expect(core.snapshot().fleet[0]!.airportId).toBe('PEK');});
 });
 describe('commands and economics',()=>{
-  it('unlocks and upgrades airports and purchases a delivered aircraft',()=>{const setup=new GameCore(NOW).snapshot();setup.credits=30000;const core=new GameCore(NOW,setup);core.execute({type:'unlock',airportId:'WUH'},NOW);core.execute({type:'buy',modelId:'swift-m',airportId:'WUH'},NOW);expect(core.snapshot().fleet[1]!.airportId).toBe('WUH');expect(core.snapshot().credits).toBe(14300);core.execute({type:'upgrade',airportId:'PEK'},NOW);expect(core.snapshot().airports[0]!.level).toBe(2);});
+  it('unlocks and upgrades airports and purchases a delivered aircraft',()=>{const setup=new GameCore(NOW).snapshot();setup.credits=30000;const core=new GameCore(NOW,setup);core.execute({type:'unlock',airportId:'WUH'},NOW);core.execute({type:'buy',modelId:'swift-m',airportId:'WUH'},NOW);expect(core.snapshot().fleet[1]!.airportId).toBe('WUH');expect(core.snapshot().credits).toBe(15000);core.execute({type:'upgrade',airportId:'PEK'},NOW);expect(core.snapshot().airports[0]!.level).toBe(2);});
   it('keeps the route record command free and idempotent while rejecting invalid endpoints',()=>{const core=new GameCore(NOW);expect(()=>core.execute({type:'unlock',airportId:'PEK'},NOW)).toThrow();expect(()=>core.execute({type:'route',from:'PEK',to:'PEK'},NOW)).toThrow();const credits=core.snapshot().credits;core.execute({type:'route',from:'PEK',to:'PVG'},NOW);expect(core.snapshot().routes).toHaveLength(1);core.execute({type:'route',from:'PVG',to:'PEK'},NOW);expect(core.snapshot().routes).toHaveLength(1);expect(core.snapshot().credits).toBe(credits);});
   it('rejects unaffordable purchase without subtracting funds',()=>{const core=new GameCore(NOW);expect(()=>core.execute({type:'buy',modelId:'aurora-m',airportId:'PEK'},NOW)).toThrow();expect(core.snapshot().credits).toBe(18000);});
   it('allows direct travel between unlocked airports and rejects locked destinations',()=>{const core=new GameCore(NOW);core.execute({type:'dispatch',planeId:'AC0001',to:'PVG',auto:false},NOW);expect(core.snapshot().fleet[0]!.flight?.to).toBe('PVG');expect(core.snapshot().routes.map(r=>r.id)).toContain('PEK-PVG');const other=new GameCore(NOW);expect(()=>other.execute({type:'dispatch',planeId:'AC0001',to:'URC',auto:false},NOW)).toThrow(/解锁/);expect(()=>other.execute({type:'route',from:'PEK',to:'URC'},NOW)).toThrow(/解锁/);});

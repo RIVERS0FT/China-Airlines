@@ -9,7 +9,7 @@ import {
   energyCapacity,
   type Command,
   type GameState,
-} from "../src/core/game.js";
+} from "./configured-game.js";
 import { aircraftSpecs, MODELS, distance } from "../src/core/catalog.js";
 import {
   inventory,
@@ -42,13 +42,13 @@ function unchanged(c: GameCore, command: Command) {
   expect(c.snapshot()).toEqual(s);
 }
 describe("current economy and contracts", () => {
-  it("starts without gems and offers thirteen distinct role models", () => {
+  it("starts without gems and offers ten capacity grades", () => {
     const s = new GameCore(NOW).snapshot();
-    expect(s.version).toBe(10);
+    expect(s.version).toBe(11);
     expect(s.credits).toBe(18000);
     expect(s.career.tickets).toBe(24);
     expect(JSON.stringify(s)).not.toMatch(/gem|diamond/);
-    expect(MODELS).toHaveLength(13);
+    expect(MODELS).toHaveLength(10);
     expect(aircraftSpecs(s.fleet[0]!)).toMatchObject({
       seats: 3,
       cargo: 2,
@@ -86,7 +86,6 @@ describe("current economy and contracts", () => {
     const c = rich(),
       before = aircraftSpecs(c.snapshot().fleet[0]!);
     for (const upgrade of [
-      "capacity",
       "engine",
       "range",
       "efficiency",
@@ -94,7 +93,7 @@ describe("current economy and contracts", () => {
       cmd(c, { type: "retrofit", planeId: ID, upgrade });
     cmd(c, { type: "power-upgrade", planeId: ID });
     const m = aircraftSpecs(c.snapshot().fleet[0]!);
-    expect(m.seats).toBe(before.seats * 2);
+    expect(m.seats).toBe(before.seats);
     expect(m.range).toBe(2100);
     expect(m.speed).toBe(378);
     expect(m.weight).toBe(209);
@@ -202,6 +201,7 @@ describe("physical production and transport", () => {
     unchanged(c, { type: "claim-trade", airportId: "PEK", weekly: false });
     cmd(c, { type: "buy", modelId: "swift-f", airportId: "PEK" });
     const id = c.snapshot().fleet.at(-1)!.id;
+    cmd(c, { type: "allocate-cabin", planeId: id, passengers: 0, cargo: 4 });
     cmd(c, {
       type: "transport-resource",
       planeId: id,

@@ -1,6 +1,6 @@
-import { GameCore, SAVE_VERSION, flightEnergy } from '../src/core/game.js';
+import { GameCore, SAVE_VERSION, flightEnergy } from './configured-game.js';
 import { describe, expect, it } from 'vitest';
-import { validateSave, quote, manifest, planQuote, type Command } from '../src/core/game.js';
+import { validateSave, quote, manifest, planQuote, type Command } from './configured-game.js';
 import { ENERGY_SERVICE_SECONDS as SERVICE, energyRequired, energyDepartureReason } from '../src/core/energy.js';
 import { flightStatus, fleetStatuses } from '../src/ui/flight-status.js';
 import { loadingLock } from '../src/ui/order-presentation.js';

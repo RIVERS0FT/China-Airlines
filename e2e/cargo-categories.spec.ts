@@ -1,6 +1,6 @@
 import { test, expect } from './fixture.js';
 import { readFile } from 'node:fs/promises';
-import { GameCore, orderReward, validateSave, type GameState } from '../src/core/game.js';
+import { GameCore, orderReward, validateSave, type GameState } from './configured-game.js';
 import { cargoAppearance } from '../src/ui/cargo-art.js';
 import { CARGO_ART } from '../src/ui/cargo-art-catalog.js';
 

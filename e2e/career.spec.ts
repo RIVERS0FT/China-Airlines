@@ -1,6 +1,6 @@
-import { test, expect, type Page } from './fixture.js';
+import { test, expect, allocateCabin, type Page } from './fixture.js';
 import { readFile } from "node:fs/promises";
-import { GameCore, type GameState } from "../src/core/game.js";
+import { GameCore, type GameState } from "./configured-game.js";
 import { openGlobal, selectCity, launchRoute } from "./dispatch-helpers.js";
 const NOW = Date.parse("2026-09-13T02:00:00Z");
 async function setup(page: Page, saved?: GameState) {
@@ -64,7 +64,7 @@ for (const [width, height] of [[1440, 900],[844, 390],[667, 375]])
     expect(decoded).toBe(true);
     await page.screenshot({ path: `artifacts/career-logistics-${width}.png` });
     const saved = await exportState(page);
-    expect(saved.version).toBe(10);
+    expect(saved.version).toBe(11);
     expect(saved.career.employees[0]?.planeId).toBe("AC0001");
     expect(saved.career.claimed).toContain("checkin-0");
     expect(Object.keys(saved.career)).not.toContain("gems");
@@ -77,9 +77,9 @@ for (const [width, height] of [[1440, 900],[844, 390],[667, 375]])
 test("factory goods load onto a cargo plane, arrive in another city and fulfil one trade", async ({page}) => {
   await setup(page, funded());
   await openGlobal(page, "飞机商店");
-  await page.getByRole("button", { name: "纯货机", exact: true }).click();
-  await page.getByRole("button", { name: "购买雨燕 货运型", exact: true }).click();
+  await page.getByRole("button", { name: "购买雨燕 III", exact: true }).click();
   await page.getByRole("button", { name: "关闭飞机商店" }).click();
+  await allocateCabin(page, 'AC0002', 0, 4);
   await openGlobal(page, "经营中心");
   await page.getByRole("tab", { name: "物流园" }).click();
   await page.getByRole("button", { name: /制造工厂 Lv.0/ }).click();

@@ -157,7 +157,7 @@ export const enUSMessages = {
   'settings.offlineReady': 'Resources are cached and the game can be reopened offline.',
   'settings.offlineFirst': 'The first visit requires a connection. Offline launch is available after caching finishes.',
   'settings.saveCompatibility': 'Offline Progress & Save Format',
-  'settings.saveCompatibilityHelp': 'Offline progress is capped at 8 hours. Imports do not advance file time. Only current v10 saves are supported. A mismatched version, unknown aircraft, or corrupt data rejects the import without overwriting current progress.',
+  'settings.saveCompatibilityHelp': 'Offline progress is capped at 8 hours. Imports do not advance file time. Only current v11 saves are supported. Older saves do not migrate automatically. A mismatched version, unknown aircraft, or corrupt data rejects the import without overwriting current progress.',
   'settings.persistence': 'Persistent Local Storage',
   'settings.persistenceHelp': 'This request does not replace exported backups.',
   'settings.persistenceApply': 'Request',
@@ -212,12 +212,12 @@ const airports = {
 } as const;
 
 const aircraft = {
-  'starter-swift':{name:'Swift First Flight',role:'Starter mixed-use aircraft'},
-  'diamond-da40':{name:'Diamond DA40',role:'Light short-haul passenger aircraft'},
-  'swift-p':{name:'Swift Passenger',role:'Light passenger aircraft'}, 'swift-f':{name:'Swift Freighter',role:'Light cargo aircraft'}, 'swift-m':{name:'Swift Mixed',role:'Light mixed-use aircraft'},
-  'heron-p':{name:'Heron Passenger',role:'Regional passenger aircraft'}, 'heron-f':{name:'Heron Freighter',role:'Regional cargo aircraft'}, 'heron-m':{name:'Heron Mixed',role:'Regional mixed-use aircraft'},
-  'albatross-p':{name:'Albatross Passenger',role:'Heavy passenger aircraft'}, 'albatross-f':{name:'Albatross Freighter',role:'Heavy cargo aircraft'}, 'albatross-m':{name:'Albatross Mixed',role:'Heavy mixed-use aircraft'},
-  'aurora-p':{name:'Aurora Passenger',role:'Long-range passenger aircraft'}, 'aurora-f':{name:'Aurora Freighter',role:'Long-range cargo aircraft'}, 'aurora-m':{name:'Aurora Mixed',role:'Long-range mixed-use aircraft'},
+  'starter-swift':{name:'Swift First Flight',role:'Starter airframe'},
+  'diamond-da40':{name:'Diamond DA40',role:'1-slot light airframe'},
+  'swift-p':{name:'Swift I',role:'2-slot airframe'}, 'swift-m':{name:'Swift II',role:'3-slot airframe'}, 'swift-f':{name:'Swift III',role:'4-slot airframe'},
+  'heron-p':{name:'Heron I',role:'5-slot airframe'}, 'heron-m':{name:'Heron II',role:'6-slot airframe'}, 'heron-f':{name:'Heron III',role:'7-slot airframe'},
+  'albatross-p':{name:'Albatross I',role:'8-slot airframe'}, 'albatross-m':{name:'Albatross II',role:'9-slot airframe'},
+  'aurora-p':{name:'Aurora',role:'10-slot airframe'},
   'starter-lark':{name:'Lark 6',role:'Starter light mixed-use aircraft'}, lark:{name:'Lark 70',role:'Regional mixed-use aircraft'}, swallow:{name:'Swallow 160',role:'Medium-range mixed-use aircraft'}, horizon:{name:'Horizon 280',role:'Long-range mixed-use aircraft'},
   'lark-p':{name:'Lark 90P',role:'Regional passenger aircraft'}, 'lark-f':{name:'Lark 8F',role:'Regional cargo aircraft'}, 'swallow-p':{name:'Swallow 190P',role:'Mainline passenger aircraft'}, 'swallow-f':{name:'Swallow 24F',role:'Mainline cargo aircraft'},
   'horizon-p':{name:'Horizon 330P',role:'Wide-body passenger aircraft'}, 'horizon-f':{name:'Horizon 50F',role:'Wide-body cargo aircraft'},

@@ -1,8 +1,9 @@
 import { test, expect, type Page } from './fixture.js';
-import { GameCore, manifest, orderReward, validateSave, type GameState } from '../src/core/game.js';
+import { GameCore, manifest, orderReward, validateSave, type GameState } from './configured-game.js';
 import { readFile } from 'node:fs/promises';
 
 import { passengerFrame } from '../src/ui/passenger-art.js';
+import { ALL_MODELS } from '../src/core/catalog.js';
 
 const NOW = 1_800_000_000_000;
 async function start(page: Page, state?: GameState) {
@@ -140,7 +141,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
 }
 
 test('new loads reveal their cabin page; paging is read-only and saves restore real identities', async ({ page }) => {
-  const core = new GameCore(NOW), state = core.snapshot(); state.fleet[0]!.upgrades.capacity = 4;
+  const core = new GameCore(NOW), state = core.snapshot(); state.fleet[0]!.modelId = 'aurora-p'; state.fleet[0]!.allocation = { passengers: 10, cargo: 0 }; state.airports[0]!.level = 3;
   await start(page, state);
   const first = page.getByTestId('waiting-order').first(), firstId = await first.getAttribute('data-order-id');
   await first.click();
@@ -169,12 +170,12 @@ test('new loads reveal their cabin page; paging is read-only and saves restore r
 });
 
 for (const modelId of ['swift-p', 'swift-f']) test(`single compartment for ${modelId}`, async ({ page }) => {
-  const state = new GameCore(NOW).snapshot(); state.fleet[0]!.modelId = modelId;
+  const state = new GameCore(NOW).snapshot(); state.fleet[0]!.modelId = modelId; state.fleet[0]!.allocation = modelId === 'swift-p' ? { passengers: 2, cargo: 0 } : { passengers: 0, cargo: 4 };
   await start(page, state);
   await expect(page.locator('.cabin-deck')).toHaveCount(1);
   await expect(page.getByTestId(modelId === 'swift-p' ? 'cabin-passengers' : 'cabin-cargo')).toBeVisible();
   await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
-  await expect(page.getByTestId('loaded-order')).toHaveCount(modelId === 'swift-p' ? 4 : 3);
+  await expect(page.getByTestId('loaded-order')).toHaveCount(modelId === 'swift-p' ? 2 : 4);
 });
 
 test('current aggregate groups retain real quantities through cabin import and export', async ({ page }) => {
@@ -207,13 +208,14 @@ test('English cabin and offline unload restore the same order without a translat
   await expect(page.locator(`.apron-queue [data-order-id="${id}"] .job-art`)).toHaveAttribute('data-pose', 'standing');
 });
 
-for (const family of ['swift', 'heron', 'albatross', 'aurora']) for (const role of ['p', 'f', 'm']) {
-  test(`procedural cabin and anchors for ${family}-${role}`, async ({ page }) => {
-    const state = new GameCore(NOW).snapshot(); state.fleet[0]!.modelId = `${family}-${role}`;
+for (const model of ALL_MODELS) {
+  test(`procedural cabin and anchors for ${model.id}`, async ({ page }) => {
+    const state = new GameCore(NOW).snapshot(); state.fleet[0]!.modelId = model.id; state.fleet[0]!.energy.availableSeconds = model.energy * 60;
+    state.fleet[0]!.allocation = { passengers: Math.ceil(model.capacity / 2), cargo: Math.floor(model.capacity / 2) };
     state.airports.find(a => a.id === state.fleet[0]!.airportId)!.level = 3;
     await start(page, state);
-    await expect(page.getByTestId('plane-art')).toHaveAttribute('data-cabin-family', family === 'swift' ? 'light' : family === 'heron' ? 'regional' : 'heavy');
-    await expect(page.locator('.cabin-deck')).toHaveCount(role === 'm' ? 2 : 1);
+    await expect(page.getByTestId('plane-art')).toHaveAttribute('data-cabin-family', model.family === 'swift' || model.family === 'diamond' ? 'light' : model.family === 'heron' ? 'regional' : 'heavy');
+    await expect(page.locator('.cabin-deck')).toHaveCount(model.capacity > 1 ? 2 : 1);
     await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
     const ids = await page.getByTestId('loaded-order').evaluateAll(elements => elements.map(el => el.getAttribute('data-order-id')));
     expect(new Set(ids).size).toBe(ids.length);
@@ -222,6 +224,6 @@ for (const family of ['swift', 'heron', 'albatross', 'aurora']) for (const role 
       await card.click({ trial: true });
     }
     expect(await page.locator('.aircraft-exterior-art').evaluateAll(elements => elements.every(el => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))).toBe(true);
-    await page.screenshot({ path: `artifacts/cabin-${family}-${role}.png` });
+    await page.screenshot({ path: `artifacts/cabin-${model.id}.png` });
   });
 }

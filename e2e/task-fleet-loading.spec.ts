@@ -1,5 +1,5 @@
 import { test, expect, type Page } from './fixture.js';
-import { GameCore, waiting, validateSave, type GameState } from '../src/core/game.js';
+import { GameCore, waiting, validateSave, type GameState } from './configured-game.js';
 import { displayScale } from './display-helpers.js';
 const NOW = Date.parse('2026-09-13T02:00:00Z'), ID = 'AC0001';
 async function setup(page: Page, state?: GameState) {
@@ -76,7 +76,7 @@ test('flight inspection opens aircraft details without modifying the flight or u
   await expect(page.getByRole('main', { name: '机队管理', exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: '飞机', exact: true })).toBeFocused();
   await expect(page.locator('.hangar-selector [aria-pressed=true]')).toContainText(ID);
-  await expect(page.getByRole('button', { name: '升级舱位扩充', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '确认客货改装', exact: true })).toBeDisabled();
   await page.locator('.fleet-manifest summary').click();
   await expect(page.getByTestId('fleet-onboard-order')).toHaveCount(5);
   for (const item of await page.getByTestId('fleet-onboard-order').all()) {

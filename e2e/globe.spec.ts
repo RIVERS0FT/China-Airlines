@@ -1,7 +1,7 @@
 import { displayScale } from './display-helpers.js';
 import { test, expect, type Page } from './fixture.js';
 import { AIRPORTS, airport } from '../src/core/catalog.js';
-import { GameCore } from '../src/core/game.js';
+import { GameCore } from './configured-game.js';
 import { projectGeo, type GlobeCamera } from '../src/ui/globe-geometry.js';
 import { selectCity, launchRoute, routeDetails } from './dispatch-helpers.js';
 const NOW = Date.parse('2026-09-12T00:00:00Z');
@@ -95,7 +95,7 @@ test('two-finger zoom never appends a destination on finger release', async ({ p
 test('Pacific multi-leg arcs and global selection preserve camera and read-only previews', async ({ page }) => {
   const s = new GameCore(NOW).snapshot(); s.credits = 5000000; s.career.xp=20000; const c = new GameCore(NOW, s);
   for (const id of ['NRT', 'ANC', 'YVR']) { c.execute({ type: 'unlock', airportId: id }, NOW); c.execute({ type: 'upgrade', airportId: id }, NOW); c.execute({ type: 'upgrade', airportId: id }, NOW); }
-  c.execute({ type: 'buy', modelId: 'aurora-m', airportId: 'NRT' }, NOW);
+  c.execute({ type: 'buy', modelId: 'aurora-p', airportId: 'NRT' }, NOW);
   await ready(page); await page.getByRole('button', { name: '存档设置', exact: true }).click();
   page.once('dialog', d => void d.accept());
   await page.getByLabel('选择存档文件').setInputFiles({ name: 'global-plan.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(c.snapshot())) });

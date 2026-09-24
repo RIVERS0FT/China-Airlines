@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { GameCore, validateSave } from '../src/core/game.js';
+import { GameCore, validateSave } from './configured-game.js';
 const NOW = 1_800_000_000_000;
 function routeWithTwoPlanes(): GameCore {
   const core = new GameCore(NOW);
   core.execute({ type: 'buy', modelId: 'swift-m', airportId: 'PEK' }, NOW);
+  core.execute({ type: 'allocate-cabin', planeId: 'AC0002', passengers: 2, cargo: 1 }, NOW);
   core.execute({ type: 'route', from: 'PEK', to: 'PVG' }, NOW);
   for (const plane of core.snapshot().fleet) {
     // v0.4 requires a real dispatcher contract on newly purchased aircraft.

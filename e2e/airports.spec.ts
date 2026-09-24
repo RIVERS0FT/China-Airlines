@@ -1,5 +1,5 @@
 import { selectCity, inspectCity, routeDetails, launchRoute, openGlobal } from './dispatch-helpers.js';
-import { test, expect, type Page } from './fixture.js';
+import { test, expect, allocateCabin, type Page } from './fixture.js';
 let errors: string[];
 test.beforeEach(async ({ page }) => { errors = []; page.on('pageerror', e => errors.push(e.message)); });
 test.afterEach(() => expect(errors).toEqual([]));
@@ -83,9 +83,10 @@ test('purchase into an empty inspected airport enables only local aircraft loadi
   await page.getByRole('button', { name: '进入候机大厅', exact: true }).click();
   await openGlobal(page, '飞机商店');
   await expect(page.getByLabel('交付机场', { exact: true })).toHaveValue('PVG');
-  await page.getByRole('button', { name: '购买雨燕 客货型', exact: true }).click();
+  await page.getByRole('button', { name: '购买雨燕 II', exact: true }).click();
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   await page.getByRole('button', { name: '关闭飞机商店' }).click();
+  await allocateCabin(page, 'AC0002', 2, 1);
   await expect(page.locator('.plane-status')).toContainText('AC0002');
   await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
   await expect(page.getByTestId('loaded-order')).not.toHaveCount(0);

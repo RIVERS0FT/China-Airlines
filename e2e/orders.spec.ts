@@ -32,7 +32,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     expect(await page.locator('.toast').allTextContents()).toEqual([]);
 
     await openGlobal(page, '飞机商店');
-    await page.getByRole('button', { name: '购买雨燕 客货型', exact: true }).click();
+    await page.getByRole('button', { name: '购买雨燕 II', exact: true }).click();
     await page.getByRole('button', { name: '关闭飞机商店' }).click();
     // Important non-loading confirmations must not be globally hidden.
     await expect(page.locator('.toast')).toBeVisible();

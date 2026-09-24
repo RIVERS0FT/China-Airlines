@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GameCore, validateSave, manifest, waiting, quote, loadSummary, DEMAND_INTERVAL, TURNAROUND, type GameState } from '../src/core/game.js';
+import { GameCore, validateSave, manifest, waiting, quote, loadSummary, DEMAND_INTERVAL, TURNAROUND, type GameState } from './configured-game.js';
 import { aircraftSpecs, STARTER_MODEL } from '../src/core/catalog.js';
 const NOW = 1800000000000;
 const send = (c: GameCore, to: string, planeId = 'AC0001') => {
@@ -38,7 +38,7 @@ describe('persistent passenger and cargo orders', () => {
   it('pays only at final destination and transfers the same order to another plane',()=>{
     const c=new GameCore(NOW),o=waiting(c.snapshot(),'PEK')[0]!;
     c.execute({type:'unlock',airportId:'WUH'},NOW);c.execute({type:'buy',modelId:'swift-m',airportId:'WUH'},NOW);
-    const second=c.snapshot().fleet[1]!.id;c.execute({type:'load',planeId:'AC0001',orderId:o.id},NOW);
+    const second=c.snapshot().fleet[1]!.id;c.execute({type:'allocate-cabin',planeId:second,passengers:3,cargo:0},NOW);c.execute({type:'load',planeId:'AC0001',orderId:o.id},NOW);
     send(c,'WUH');expect(c.snapshot().stats.revenue).toBe(0);expect(manifest(c.snapshot(),'AC0001')[0]!.id).toBe(o.id);
     const now=c.snapshot().lastWallTime;c.execute({type:'unload',planeId:'AC0001',orderId:o.id},now);
     c.execute({type:'load',planeId:second,orderId:o.id},now);expect(quote(c.snapshot(),c.snapshot().fleet[1]!,'PVG').revenue).toBe(o.reward);

@@ -10,7 +10,7 @@ test('Chinese help explains the complete first-flight loop and uses the ticket i
 
   await openGlobal(page, '操作帮助');
   const dialog = page.getByRole('dialog', { name: '起航指南', exact: true });
-  for (const heading of ['首航三步', '快速开始', '球面地图', '经营入口', '资源与结算'])
+  for (const heading of ['首次起航', '快速开始', '球面地图', '经营入口', '资源与结算'])
     await expect(dialog.getByRole('heading', { name: heading, exact: true })).toBeVisible();
   await expect(dialog).toContainText('最终目的地');
   await expect(dialog).toContainText('路线预览只读');
@@ -26,7 +26,7 @@ test('English help displays English headings only', async ({ page }) => {
   await expect(page.getByTestId('fleet-count')).toHaveText('1 aircraft');
   await openGlobal(page, 'Help');
   const dialog = page.getByRole('dialog', { name: 'Flight Guide', exact: true });
-  for (const heading of ['Your first flight in three steps', 'Quick Start', 'Globe Map', 'Operations', 'Resources & Settlement'])
+  for (const heading of ['Your first flight', 'Quick Start', 'Globe Map', 'Operations', 'Resources & Settlement'])
     await expect(dialog.getByRole('heading', { name: heading, exact: true })).toBeVisible();
   await expect(dialog).not.toContainText(/首航|快速开始|球面地图|经营入口|资源与结算/);
 });

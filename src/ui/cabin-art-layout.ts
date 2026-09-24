@@ -29,13 +29,25 @@ const envelopeHeight = Math.max(1, ...silhouettes.map(frame => frame.scale));
 const envelopeWidth = Math.max(SEAT.width / SEAT.height, ...silhouettes.map(frame => frame.halfWidth * 2));
 
 /** Interior geometry is a read-only projection; only the exterior uses an image. */
-export function cabinArtLayout(plane: Pick<Plane, 'modelId'>): CabinArtLayout {
+export function cabinArtLayout(plane: Pick<Plane, 'modelId'> & Partial<Pick<Plane, 'allocation'>>): CabinArtLayout {
   const aircraft = model(plane.modelId), registered = layerLayouts[aircraft.id as keyof typeof layerLayouts];
   const family = registered.family as CabinFamily;
   const revision = registered.revision;
+  const allocation = plane.allocation ?? { passengers: 0, cargo: 0 };
+  const interior = registered.interior;
+  const active = (['passengers', 'cargo'] as const).filter(kind => allocation[kind] > 0);
+  const decks: CabinArtLayout['decks'] = {};
+  active.forEach((kind, index) => {
+    const half = active.length === 2;
+    const x = interior.x + (half ? index * interior.width / 2 : 0);
+    const width = half ? interior.width / 2 : interior.width;
+    decks[kind] = { x, y: interior.y, width, height: interior.height,
+      floorY: interior.y + interior.height * .88,
+      count: Math.min(allocation[kind], half ? 5 : 8) };
+  });
   return { modelId: aircraft.id, family, direction: 'left',
     exterior: `aircraft-${aircraft.id}-exterior-${revision}.png`,
-    canvas: format.canvas, interior: registered.interior, decks: registered.decks };
+    canvas: format.canvas, interior, decks };
 }
 
 export function paintedDeck(art: CabinArtLayout, kind: Order['kind']): PaintedDeck {

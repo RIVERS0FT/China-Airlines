@@ -1,5 +1,5 @@
 import { selectCity, closeRouteDetails, detailValue, launchRoute, openGlobal } from './dispatch-helpers.js';
-import { test, expect, type Page } from './fixture.js';
+import { test, expect, allocateCabin, type Page } from './fixture.js';
 let errors: string[];
 test.beforeEach(async({page})=>{ errors=[];page.on('pageerror',e=>errors.push(e.message)); });
 test.afterEach(()=>expect(errors).toEqual([]));
@@ -20,19 +20,19 @@ async function plan(page:Page){
 }
 test('specialist purchase, real cargo loading, workshop retrofit and hangar expansion',async({page})=>{
   await ready(page);await openGlobal(page, '飞机商店');
-  await page.getByRole('button',{name:'纯货机',exact:true}).click();await expect(page.getByTestId('shop-aircraft')).toHaveCount(4);
+  await expect(page.getByTestId('shop-aircraft')).toHaveCount(10);
   await page.screenshot({path:'artifacts/desktop-specialist-shop.png'});
-  await page.getByRole('button',{name:'购买雨燕 货运型',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
-  await page.getByRole('button',{name:'关闭飞机商店'}).click();await page.getByRole('button',{name:'下一架飞机'}).click();
+  await page.getByRole('button',{name:'购买雨燕 III',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
+  await page.getByRole('button',{name:'关闭飞机商店'}).click();await allocateCabin(page,'AC0002',0,4);await page.getByRole('button',{name:'下一架飞机'}).click();
   await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 0 人');
-  await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await expect(page.getByTestId('loaded-order')).toHaveCount(3);
+  await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await expect(page.getByTestId('loaded-order')).toHaveCount(4);
   await openGlobal(page, '机队管理');
-  await page.getByRole('button',{name:/雨燕 货运型.*AC0002/}).click();
+  await page.getByRole('button',{name:/雨燕 III.*AC0002/}).click();
   await page.getByRole('button',{name:'升级发动机',exact:true}).click();await expect(page.getByTestId('upgrade-engine')).toContainText('Lv.1');
   await page.getByRole('button',{name:/^扩建 2 个机位/}).click();await expect(page.getByTestId('hangar-capacity')).toHaveText('机位 2 / 6');
   await page.screenshot({path:'artifacts/desktop-hangar.png'});
   await page.reload();await openGlobal(page, '机队管理');await expect(page.getByTestId('hangar-capacity')).toHaveText('机位 2 / 6');
-  await page.getByRole('button',{name:/雨燕 货运型.*AC0002/}).click();await expect(page.getByTestId('upgrade-engine')).toContainText('Lv.1');
+  await page.getByRole('button',{name:/雨燕 III.*AC0002/}).click();await expect(page.getByTestId('upgrade-engine')).toContainText('Lv.1');
 });
 test('click-order route executes two legs, survives reload and does not pay twice',async({page})=>{
   await ready(page);await plan(page);await page.screenshot({path:'artifacts/desktop-plan.png'});
@@ -53,8 +53,8 @@ test('landscape plan editor and workshop stay reachable',async({page})=>{
   await expect(page.getByRole('button',{name:'检票起飞',exact:true})).toBeInViewport();
   await page.screenshot({path:'artifacts/landscape-plan.png'});
   await openGlobal(page, '机队管理');
-  await page.getByRole('button',{name:'升级舱位扩充',exact:true}).scrollIntoViewIfNeeded();await page.getByRole('button',{name:'升级舱位扩充',exact:true}).click();
-  await expect(page.getByTestId('upgrade-capacity')).toContainText('Lv.1');
+  await expect(page.getByTestId('upgrade-capacity')).toHaveCount(0);
+  await expect(page.locator('.cabin-allocation')).toContainText('总容量 5 格');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:'artifacts/landscape-workshop.png'});
 });

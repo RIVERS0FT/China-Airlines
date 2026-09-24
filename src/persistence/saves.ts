@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import { validateSave, type GameState } from '../core/game.js';
+import { SAVE_VERSION, validateSave, type GameState } from '../core/game.js';
 interface SaveRecord { slot: 'main' | 'backup'; revision: number; savedAt: number; state: GameState }
 export class SaveConflictError extends Error {
   constructor() { super('另一个窗口已经更新存档。此窗口已停止写入，请重新载入。'); }
@@ -11,13 +11,14 @@ export class SaveRepository extends Dexie {
     // Database schema version is independent of GameState.version.
     this.version(1).stores({ saves: 'slot' });
   }
-  async load(): Promise<{ state: GameState | null; revision: number; recovered: boolean; hasData: boolean }> {
+  async load(): Promise<{ state: GameState | null; revision: number; recovered: boolean; hasData: boolean; incompatibleVersion: boolean }> {
     return this.transaction('r', this.saves, async () => {
       const main = await this.saves.get('main'), backup = await this.saves.get('backup');
       const revision = main?.revision ?? 0;
-      if (main) { try { return { state: validateSave(main.state), revision, recovered: false, hasData: true }; } catch { /* Try a verified backup. */ } }
-      if (backup) { try { return { state: validateSave(backup.state), revision, recovered: true, hasData: true }; } catch { /* Never replace corrupt saves silently. */ } }
-      return { state: null, revision, recovered: false, hasData: Boolean(main || backup) };
+      if (main) { try { return { state: validateSave(main.state), revision, recovered: false, hasData: true, incompatibleVersion: false }; } catch { /* Try a verified backup. */ } }
+      if (backup) { try { return { state: validateSave(backup.state), revision, recovered: true, hasData: true, incompatibleVersion: false }; } catch { /* Never replace corrupt saves silently. */ } }
+      const incompatibleVersion = [main, backup].some(record => record?.state?.version !== undefined && record.state.version !== SAVE_VERSION);
+      return { state: null, revision, recovered: false, hasData: Boolean(main || backup), incompatibleVersion };
     });
   }
   async save(state: GameState, expectedRevision: number): Promise<number> {

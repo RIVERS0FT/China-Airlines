@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GameCore, validateSave, energyCapacity, type Command, type GameState } from '../src/core/game.js';
+import { GameCore, validateSave, energyCapacity, type Command, type GameState } from './configured-game.js';
 import { directReports, effectiveManager, employmentPrice, groundServiceQuote, managerCapacity, trainingQuote, type Department, type EmployeeRole } from '../src/core/organization.js';
 import { organizationLayout, ORG_NODE_HEIGHT, ORG_NODE_WIDTH } from '../src/ui/organization-layout.js';
 const NOW = Date.parse('2026-09-14T02:00:00Z');

@@ -1,7 +1,8 @@
 import { manifest, type GameState, type Plane } from './game.js';
-export interface GuideStep { id: string; number: number; title: string; text: string; target: string; screen: 'airport' | 'map' | 'tasks' }
+export interface GuideStep { id: string; number: number; title: string; text: string; target: string; screen: 'airport' | 'map' | 'tasks' | 'fleet' }
 /** Derive progress from actual actions. Never simulate clicks or award money. */
 export function guideStep(game: GameState, plane: Plane, screen: 'airport' | 'map', _to: string): GuideStep {
+  if (plane.allocation.passengers + plane.allocation.cargo === 0) return { id: 'configure', number: 1, title: '先配置客货舱位', text: '初航号交付时没有客位或货位。打开机队管理，在总容量 5 格内分配客位与货位并确认改装。', target: '.fleet-status-button', screen: 'fleet' };
   if (game.claimedTasks.includes('first-flight')) return { id: 'done', number: 6, title: '首航培训完成', text: '继续解锁机场、收集飞机与安排中转。引导不会额外发钱或重置进度。', target: '.game-dock', screen: 'airport' };
   if (game.stats.flights > 0) return { id: 'reward', number: 5, title: '领取首航奖励', text: '打开运营任务，领取「第一道航迹」奖励。每项奖励只能领取一次。', target: '[data-guide="tasks"]', screen: 'tasks' };
   if (game.fleet.some(p => p.flight)) return { id: 'flight', number: 4, title: '观察航班到达', text: '飞机按时间抵达，最终目的地订单才结算。可以切换其他飞机，不必一直盯着动画。', target: '.scene-wrap', screen: 'airport' };

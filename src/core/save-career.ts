@@ -62,7 +62,7 @@ export function validateTuning(p: Plane) {
     fail();
   const m = ALL_MODELS.find((m) => m.id === p.modelId);
   if (!m) fail();
-  if (!m!.cargo && p.tuning.special !== "none")
+  if (!p.allocation?.cargo && p.tuning.special !== "none")
     fail();
 }
 export function validateCareer(s: GameState) {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GameCore, validateSave, manifest, taskProgress, type GameState } from '../src/core/game.js';
+import { GameCore, validateSave, manifest, taskProgress, type GameState } from './configured-game.js';
 import { DISPATCHER_PRICE, resaleValue } from '../src/core/management.js';
 import { guideStep } from '../src/core/onboarding.js';
 const NOW=1800000000000, ID='AC0001';
@@ -15,7 +15,7 @@ describe('dispatcher contracts and real supply',()=>{
   });
   it('rejects hiring without funds',()=>{const s=purchase().snapshot();s.credits=DISPATCHER_PRICE-1;const c=new GameCore(NOW,s);unchanged(c,()=>c.execute({type:'hire-dispatcher',planeId:'AC0002'},NOW));});
   it('allows unstaffed manual flight but refuses auto and in-flight hiring',()=>{
-    const c=purchase();c.execute({type:'load-destination',planeId:'AC0002',to:'PVG'},NOW);
+    const c=purchase();c.execute({type:'allocate-cabin',planeId:'AC0002',passengers:3,cargo:1},NOW);c.execute({type:'load-destination',planeId:'AC0002',to:'PVG'},NOW);
     unchanged(c,()=>c.execute({type:'dispatch',planeId:'AC0002',to:'PVG',auto:true},NOW));c.execute({type:'dispatch',planeId:'AC0002',to:'PVG',auto:false},NOW);
     expect(c.snapshot().fleet[1]!.flight).not.toBeNull();unchanged(c,()=>c.execute({type:'hire-dispatcher',planeId:'AC0002'},NOW));
   });
@@ -50,7 +50,7 @@ describe('dispatcher contracts and real supply',()=>{
 });
 describe('safe resale and lifetime fleet milestones',()=>{
   it('recovers hull and actual upgrade investment without transport income',()=>{
-    const c=purchase();c.execute({type:'retrofit',planeId:'AC0002',upgrade:'engine'},NOW);const s=c.snapshot(),value=resaleValue(s.fleet[1]!);expect(value).toBe(3366);
+    const c=purchase();c.execute({type:'retrofit',planeId:'AC0002',upgrade:'engine'},NOW);const s=c.snapshot(),value=resaleValue(s.fleet[1]!);expect(value).toBe(4556);
     c.execute({type:'sell-plane',planeId:'AC0002'},NOW);expect(c.snapshot().credits).toBe(s.credits+value);expect(c.snapshot().stats).toEqual(s.stats);expect(c.snapshot().hangarSlots).toBe(s.hangarSlots);expect(c.snapshot().orders).toEqual(s.orders);
   });
   it('rejects the last plane and repeated sale',()=>{
@@ -58,7 +58,7 @@ describe('safe resale and lifetime fleet milestones',()=>{
     unchanged(c,()=>c.execute({type:'sell-plane',planeId:ID},NOW));expect(validateSave(c.snapshot())).toEqual(c.snapshot());
   });
   it('never deletes loaded jobs on sale',()=>{
-    const c=purchase();c.execute({type:'load-destination',planeId:'AC0002',to:'PVG'},NOW);unchanged(c,()=>c.execute({type:'sell-plane',planeId:'AC0002'},NOW));
+    const c=purchase();c.execute({type:'allocate-cabin',planeId:'AC0002',passengers:3,cargo:1},NOW);c.execute({type:'load-destination',planeId:'AC0002',to:'PVG'},NOW);unchanged(c,()=>c.execute({type:'sell-plane',planeId:'AC0002'},NOW));
     for(const o of manifest(c.snapshot(),'AC0002'))c.execute({type:'unload',planeId:'AC0002',orderId:o.id},NOW);const jobs=c.snapshot().orders;c.execute({type:'sell-plane',planeId:'AC0002'},NOW);expect(c.snapshot().orders).toEqual(jobs);
   });
   it('rejects flight and turnaround, then permits an empty ready aircraft',()=>{

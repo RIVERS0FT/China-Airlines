@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GameCore } from '../src/core/game.js';
+import { GameCore } from './configured-game.js';
 import { passengerDestinationCounts, passengerDestinationKey } from '../src/ui/passenger-destinations.js';
 
 const NOW = 1800000000000;

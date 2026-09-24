@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GameCore, manifest, waiting, validateSave } from '../src/core/game.js';
+import { GameCore, manifest, waiting, validateSave } from './configured-game.js';
 import { aircraftSpecs } from '../src/core/catalog.js';
 import { cabinLayout, cabinPage, orderArtFile } from '../src/ui/cabin-layout.js';
 import { passengerFrame } from '../src/ui/passenger-art.js';
@@ -58,13 +58,14 @@ describe('real orders inside the aircraft', () => {
   });
   it('keeps every current model mapped to an in-bounds left-facing cabin', () => {
     for (const aircraft of ALL_MODELS) {
-      const art = cabinArtLayout({ modelId: aircraft.id });
+      const allocation = { passengers: Math.ceil(aircraft.capacity / 2), cargo: Math.floor(aircraft.capacity / 2) };
+      const art = cabinArtLayout({ modelId: aircraft.id, allocation });
       expect(art.direction).toBe('left');
       expect(art.interior.x).toBeGreaterThan(0);
       expect(art.interior.y).toBeGreaterThan(0);
       expect(art.interior.x + art.interior.width).toBeLessThan(art.canvas.width);
       expect(art.interior.y + art.interior.height).toBeLessThan(art.canvas.height);
-      expect(Object.keys(art.decks).sort()).toEqual([...(aircraft.seats ? ['passengers'] : []), ...(aircraft.cargo ? ['cargo'] : [])].sort());
+      expect(Object.keys(art.decks).sort()).toEqual([...(allocation.passengers ? ['passengers'] : []), ...(allocation.cargo ? ['cargo'] : [])].sort());
       for (const kind of ['passengers', 'cargo'] as const) {
         if (!art.decks[kind]) continue;
         const room = paintedDeck(art, kind), anchors = paintedAnchors(art, kind);
@@ -124,14 +125,16 @@ describe('real orders inside the aircraft', () => {
     core.execute({ type: 'load-destination', planeId: ID, to: 'PVG' }, NOW);
     core.execute({ type: 'buy', modelId: 'swift-f', airportId: 'PEK' }, NOW);
     const state = core.snapshot(), cargoPlane = state.fleet[1]!;
-    expect(cabinLayout(state, cargoPlane)).toEqual([{ kind: 'cargo', capacity: 3, used: 0, orders: [] }]);
-    cargoPlane.modelId = 'swift-p'; cargoPlane.upgrades.capacity = 2;
-    expect(cabinLayout(state, cargoPlane)).toEqual([{ kind: 'passengers', capacity: 12, used: 0, orders: [] }]);
+    expect(cabinLayout(state, cargoPlane)).toEqual([]);
+    cargoPlane.allocation = { passengers: 0, cargo: 4 };
+    expect(cabinLayout(state, cargoPlane)).toEqual([{ kind: 'cargo', capacity: 4, used: 0, orders: [] }]);
+    cargoPlane.allocation = { passengers: 4, cargo: 0 };
+    expect(cabinLayout(state, cargoPlane)).toEqual([{ kind: 'passengers', capacity: 4, used: 0, orders: [] }]);
   });
 
   it('pages every order and empty slot without changing capacity or the snapshot', () => {
     const core = new GameCore(NOW), state = core.snapshot(), plane = state.fleet[0]!;
-    plane.upgrades.capacity = 9;
+    plane.allocation = { passengers: 5, cargo: 0 };
     const enlarged = new GameCore(NOW, validateSave(state));
     enlarged.execute({ type: 'load-destination', planeId: ID, to: 'PVG' }, NOW);
     const loaded = enlarged.snapshot(), before = structuredClone(loaded);
