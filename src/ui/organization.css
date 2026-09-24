@@ -19,9 +19,6 @@
 .org-workspace.has-detail { grid-template-columns:minmax(0,1fr) minmax(240px,30%); }
 .org-tree-area { display:flex; flex-direction:column; min-height:0; min-width:0; }
 .org-tree-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 0 8px; flex-shrink:0; }
-.org-filter { display:flex; align-items:center; gap:4px; }
-.company-organization .org-filter button { border:0; background:transparent; min-width:58px; }
-.company-organization .org-filter button[aria-pressed=true] { background:#d9e6e9; color:#204c63; }
 .org-view-menu { position:relative; z-index:5; }
 .org-view-menu summary,.org-pending summary { cursor:pointer; font-size:12px; padding:8px; min-height:44px; box-sizing:border-box; }
 .org-view-tools { position:absolute; top:46px; right:0; min-width:220px; display:grid; gap:6px; border:1px solid #b8cdd2; padding:10px; border-radius:8px; background:#fffefa; box-shadow:0 8px 22px #203b4a24; }

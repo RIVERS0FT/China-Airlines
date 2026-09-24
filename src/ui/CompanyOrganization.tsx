@@ -25,8 +25,8 @@ function assignmentReason(s: GameState, e: Employee) {
   const p=s.fleet.find(p=>p.id===e.planeId);
   return Boolean(p&&(p.flight||p.autoRouteId||p.itinerary.length||p.energy.serviceUntil!==null||p.readyAt>s.simTime));
 }
-export function CompanyOrganization({ game, busy, onPlane, onAirport, onClose, initialEmployeeId, initialTraining = false }: {
-  game: GameState; busy: boolean; onPlane?: (id: string) => void; onAirport?: (id: string) => void; onClose?: () => void;
+export function CompanyOrganization({ game, busy, onPlane, onAirport, initialEmployeeId, initialTraining = false }: {
+  game: GameState; busy: boolean; onPlane?: (id: string) => void; onAirport?: (id: string) => void;
   initialEmployeeId?: number | null; initialTraining?: boolean;
 }) {
   const { locale, airportName, text }=useI18n(), en=locale==='en-US', view=useGame();
@@ -36,14 +36,13 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport, onClose, i
   const [tab,setTab]=useState<DetailTab>(initialTraining?'training':'assignment');
   const [panel,setPanel]=useState<'recruit'|'affairs'|'chronicle'|null>(null);
   const [job,setJob]=useState('flight-specialist'), [candidateId,setCandidateId]=useState<number|null>(null);
-  const [filter,setFilter]=useState<Department|'all'>('all');
   const [collapsed,setCollapsed]=useState<Record<Department,boolean>>({flight:false,ground:false});
   const [pendingOpen,setPendingOpen]=useState(false), [zoom,setZoom]=useState(.8);
   const viewport=useRef<HTMLDivElement>(null), previousCount=useRef(people.length);
   const drag=useRef<{id:number;x:number;y:number;left:number;top:number}|null>(null);
   const {scale}=useGameViewport();
   const selected=people.find(e=>e.id===selectedId);
-  const layout=organizationLayout(game,collapsed,filter);
+  const layout=organizationLayout(game,collapsed);
   const [department,role]=job.split('-') as [Department,EmployeeRole];
   const price=employmentPrice({department,role},true), vacancies=staffIn(game,department,role).length<staffLimit(department,role);
   const candidates=game.talent.candidates.filter(c=>c.department===department&&c.role===role);
@@ -88,7 +87,6 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport, onClose, i
         <button aria-expanded={panel==='affairs'} onClick={()=>setPanel(panel==='affairs'?null:'affairs')}>{say('公司事务','Affairs')} {affairs.length>0&&<b>{affairs.length}</b>}</button>
         <button aria-expanded={panel==='chronicle'} onClick={()=>setPanel(panel==='chronicle'?null:'chronicle')}>{say('公司纪事','Chronicle')}</button>
         <button className="org-primary" aria-expanded={panel==='recruit'} onClick={()=>setPanel(panel==='recruit'?null:'recruit')}>{say('招募','Recruit')}</button>
-        {onClose&&<button onClick={onClose} aria-label={say('关闭公司组织','Close Company Organization')}>×</button>}
       </div>
     </header>
     {view.error&&<p className="org-warning" role="alert">{text(view.error)}</p>}
@@ -110,9 +108,7 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport, onClose, i
       </section>:panel==='affairs'?<CompanyAffairs game={game} busy={busy} onEmployee={select}/>:<CompanyChronicle game={game}/>}
     </div>:<div className={`org-workspace${selected?' has-detail':''}`}>
       <div className="org-tree-area">
-        <div className="org-tree-toolbar"><div className="org-filter" role="group" aria-label={say('部门筛选','Department filter')}>
-          {(['all','flight','ground'] as const).map(d=><button key={d} aria-pressed={filter===d} onClick={()=>setFilter(d)}>{d==='all'?say('全部','All'):d==='flight'?say('飞行部','Flight'):say('地勤部','Ground')}</button>)}
-        </div><details className="org-view-menu"><summary>{say('视图','View')}</summary><div className="org-view-tools" aria-label={say('组织树显示控制','Organization view controls')}>
+        <div className="org-tree-toolbar"><details className="org-view-menu"><summary>{say('视图','View')}</summary><div className="org-view-tools" aria-label={say('组织树显示控制','Organization view controls')}>
           {(['flight','ground'] as const).map(d=><button key={d} aria-expanded={!collapsed[d]} onClick={()=>setCollapsed(old=>({...old,[d]:!old[d]}))}>{say(`${collapsed[d]?'展开':'折叠'}${d==='flight'?'飞行部':'地勤部'}`,`${collapsed[d]?'Expand':'Collapse'} ${d==='flight'?'Flight':'Ground'}`)}</button>)}
           <span className="org-zoom"><button aria-label={say('缩小组织树','Zoom out organization')} disabled={zoom<=.5} onClick={()=>setZoom(z=>Math.max(.5,Math.round((z-.1)*10)/10))}>−</button><output aria-label={say('组织树缩放','Organization zoom')}>{Math.round(zoom*100)}%</output><button aria-label={say('放大组织树','Zoom in organization')} disabled={zoom>=1.5} onClick={()=>setZoom(z=>Math.min(1.5,Math.round((z+.1)*10)/10))}>＋</button></span>
           <button onClick={()=>{setZoom(.8);if(viewport.current){viewport.current.scrollTop=0;viewport.current.scrollLeft=0;}}}>{say('复位','Reset')}</button>

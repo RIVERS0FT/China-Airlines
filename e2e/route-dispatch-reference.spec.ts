@@ -12,7 +12,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     await page.goto('./');
     await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
     await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
-    await page.getByRole('button', { name: '制定路线', exact: true }).click();
+    await page.getByRole('button', { name: '制定航线', exact: true }).click();
     await page.getByRole('button', { name: '关闭选路提示', exact: true }).click();
     const canvas = page.getByTestId('map-canvas');
     await expect(canvas).toHaveAttribute('data-renderer', 'ready');
@@ -105,7 +105,7 @@ test('the city dialog remains a complete route input when WebGL is unavailable',
   });
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
-  await page.getByRole('button',{name:'制定路线',exact:true}).click();
+  await page.getByRole('button',{name:'制定航线',exact:true}).click();
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer','fallback');
   await selectCity(page,'PVG'); await expect(page.getByTestId('dispatch')).toBeEnabled(); await launchRoute(page);
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();

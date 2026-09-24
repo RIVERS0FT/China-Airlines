@@ -64,7 +64,7 @@ for (const zoom of [75, 100, 150]) test(`scaled map pointer hits the projected a
     await page.getByRole('button', {name:'存档设置', exact:true}).click();
     await page.getByRole('button', {name:`${zoom}%`, exact:true}).click();
     await page.getByRole('button', {name:'关闭存档设置', exact:true}).click();
-    await page.getByRole('button', {name:'制定路线', exact:true}).click();
+    await page.getByRole('button', {name:'制定航线', exact:true}).click();
     await page.getByRole('button', {name:'关闭选路提示', exact:true}).click();
     const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-renderer','ready');
     await expect(host).toHaveAttribute('data-camera',/radius/);

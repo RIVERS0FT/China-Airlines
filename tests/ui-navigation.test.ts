@@ -16,7 +16,7 @@ describe('UI navigation', () => {
         expect(before.scene).toBe(scene);
         expect(state).not.toBe(before);
       }
-      expect(navigationReducer(state, { type: 'return' })).toEqual({ page: scene, scene });
+      expect(navigationReducer(state, { type: 'open', page: scene })).toEqual({ page: scene, scene });
     }
   });
   it('replaces rather than stacks active pages', () => {

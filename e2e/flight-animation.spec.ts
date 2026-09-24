@@ -108,7 +108,7 @@ for (const config of [
   await expect(page.locator('.is-flying .flight-clouds-far')).toHaveCSS('animation-duration', '32s');
   await expect(page.locator('.is-flying .flight-sky')).toHaveCSS('pointer-events', 'none');
   await page.getByRole('button', { name: '机队管理', exact: true }).click();
-  await page.getByRole('button', { name: '关闭机队管理', exact: true }).click();
+  await page.getByRole('navigation',{name:'主导航'}).getByRole('button',{name:'机场装载',exact:true}).click();
   await expect(cruise(page)).toHaveCSS('animation-name', 'start-aircraft-cruise');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(cruise(page)).toHaveCSS('animation-name', 'none');
@@ -132,8 +132,10 @@ test('real departure, offline reload and arrival do not depend on animation call
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   await importState(page, state);
   await expect(cruise(page)).toHaveCount(0);
-  await page.getByRole('button', { name: '制定路线', exact: true }).click();
+  await page.getByRole('button', { name: '制定航线', exact: true }).click();
   await selectCity(page, 'PVG'); await launchRoute(page);
+  await expect(page.locator('.toast')).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: '主导航' }).getByRole('button', { name: '制定航线', exact: true })).toHaveCount(0);
   await expect(cruise(page)).toHaveCSS('animation-name', 'start-aircraft-cruise');
   await expect(page.getByTestId('credits')).toHaveText(money(state.credits - flight.cost));
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => true));
@@ -148,6 +150,7 @@ test('real departure, offline reload and arrival do not depend on animation call
   const resume = page.getByRole('button', { name: '继续经营', exact: true });
   if (await resume.isVisible()) await resume.click();
   await expect(cruise(page)).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: '主导航' }).getByRole('button', { name: '制定航线', exact: true })).toBeVisible();
   await expect(page.getByTestId('aircraft-cabin')).toBeVisible();
   await expect(page.getByTestId('credits')).toHaveText(money(state.credits - flight.cost + flight.revenue));
   await page.reload();

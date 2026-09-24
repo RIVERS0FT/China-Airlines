@@ -65,7 +65,7 @@ test('a real autosave write failure remains visible with a recovery entry on the
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   await page.clock.install({ time: new Date(NOW) }); await page.clock.pauseAt(new Date(NOW + 1000));
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
-  await page.getByRole('button', { name: '制定路线', exact: true }).click(); await selectCity(page, 'PVG');
+  await page.getByRole('button', { name: '制定航线', exact: true }).click(); await selectCity(page, 'PVG');
   const canvas = page.getByTestId('map-canvas');
   await expect(canvas).toHaveAttribute('data-renderer', 'ready');
   await page.clock.runFor(50); // Canvas attributes are produced by the real Pixi ticker.
@@ -100,9 +100,9 @@ test('touching a city on the canvas selects it once and preserves automatic mode
   try {
     await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
     await allocateCabin(page, 'AC0001', 3, 2);
-    await page.getByRole('button',{name:'机队管理',exact:true}).click();await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await page.getByRole('button',{name:'关闭机队管理'}).click();
+    await page.getByRole('button',{name:'机队管理',exact:true}).click();await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await page.getByRole('button',{name:'机场装载'}).click();
     await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
-    await page.getByRole('button', { name: '制定路线', exact: true }).click();
+    await page.getByRole('button', { name: '制定航线', exact: true }).click();
     const canvas = page.getByTestId('map-canvas');
     await expect(canvas).toHaveAttribute('data-renderer', 'ready');
     await expect(canvas).toHaveAttribute('data-camera', /scale/);

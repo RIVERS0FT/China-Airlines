@@ -29,7 +29,7 @@ test('destination stations group different destinations while preserving individ
     for (const item of await group.getByTestId('waiting-order').all()) await expect(item).toHaveAttribute('aria-label', new RegExp(`前往${city}`));
   }
   await page.getByRole('group', { name: '前往武汉的客货', exact: true }).getByTestId('waiting-order').first().click();
-  await page.getByRole('button', { name: '查看机上客货', exact: true }).click();
+  await expect(page.getByRole('button', { name: '隐藏机舱', exact: true })).toBeVisible();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   await expect(page.getByRole('group', { name: '前往武汉的客货', exact: true }).locator('.destination-station')).toHaveText('武汉');
   await page.screenshot({ path: 'artifacts/destination-stations-loaded.png' });
@@ -87,16 +87,16 @@ test('loading and unloading move an order between the apron and cabin without a 
   await expect(page.locator('.apron-queue').locator(`[data-order-id="${id}"]`)).toHaveCount(1);
   await expect(loaded.locator('.job-state')).toHaveCount(0);
   await loaded.click();
-  await page.getByRole('button', { name: '查看机上客货', exact: true }).click();
+  await expect(page.getByRole('button', { name: '查看机上客货', exact: true })).toHaveCount(0);
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   await page.getByRole('button', { name: '机场装载', exact: true }).click();
   await expect(page.getByTestId('waiting-order')).toHaveCount(11);
 });
 
-test('airport loading button returns from the onboard list', async ({ page }) => {
+test('loaded orders stay visible in the default cabin after using airport navigation', async ({ page }) => {
   await page.goto('./');
   await page.getByTestId('waiting-order').first().click();
-  await page.getByRole('button', { name: '查看机上客货', exact: true }).click();
+  await expect(page.getByRole('button', { name: '隐藏机舱', exact: true })).toBeVisible();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   await page.getByRole('button', { name: '机场装载', exact: true }).click();
   await expect(page.getByTestId('waiting-order')).toHaveCount(11);
@@ -115,7 +115,8 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
       const control = page.getByRole('button', { name: button, exact: true });
       await control.click();
       await expect(page.getByRole(role, { name: title, exact: true })).toBeVisible();
-      await page.keyboard.press('Escape');
+      if (role === 'main') await page.getByRole('navigation', { name: '主导航' }).getByRole('button', { name: '机场装载', exact: true }).click();
+      else await page.keyboard.press('Escape');
       await expect(page.getByRole('dialog')).toHaveCount(0);
       await expect(page.locator('.ui-page')).toHaveCount(0);
     }

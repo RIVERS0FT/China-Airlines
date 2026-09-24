@@ -28,8 +28,11 @@ async function exported(page: Page): Promise<GameState> {
   return state;
 }
 
-for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
-  for (const zoom of [75, 100, 125, 150]) test(`real cabin stays inside the aircraft at ${width}x${height} / ${zoom}%`, async ({ page }) => {
+// Pair the three layout sizes with all four scale settings; display-scaling.spec.ts
+// checks the scale behavior itself, so the full 3 × 4 cabin cross-product would
+// largely repeat the same loading, geometry, and unloading assertions.
+for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 75], [844, 390, 125], [667, 375, 150]] as const) {
+  test(`real cabin stays inside the aircraft at ${width}x${height} / ${zoom}%`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await page.addInitScript(zoom => localStorage.setItem('china-airlines:ui-scale:v1', String(zoom)), zoom);
     await start(page);
@@ -52,7 +55,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
     for (const sprite of await page.locator('.cabin-passengers .job-art').all()) await expect(sprite).toHaveAttribute('data-pose', 'seated');
     for (const sprite of await page.locator('.apron-queue .job-art[data-passenger-variant]').all()) await expect(sprite).toHaveAttribute('data-pose', 'standing');
     expect(await page.locator('.cabin-order .job-info, .cabin-deck header').evaluateAll(elements => elements.every(el => getComputedStyle(el).transform === 'none'))).toBe(true);
-    await page.getByRole('button', { name: '查看机上客货', exact: true }).click({ trial: true });
+    await page.getByRole('button', { name: '隐藏机舱', exact: true }).click({ trial: true });
     for (const header of await page.locator('.cabin-deck>header').all()) {
       const box = (await header.boundingBox())!;
       expect(await header.evaluate(el => {
@@ -157,12 +160,12 @@ test('new loads reveal their cabin page; paging is read-only and saves restore r
   await expect(deck.getByRole('button', { name: '下一页客舱' })).toBeDisabled();
   const lastPage = await deck.locator('nav span').textContent();
   await deck.locator('.cabin-place-art').first().evaluate(node => node.setAttribute('data-same-seat', 'true'));
-  await page.getByRole('button', { name: '查看外观', exact: true }).click();
+  await page.getByRole('button', { name: '隐藏机舱', exact: true }).click();
   await page.setViewportSize({ width: 844, height: 390 });
-  await page.getByRole('button', { name: '查看机舱', exact: true }).click();
+  await page.getByRole('button', { name: '显示机舱', exact: true }).click();
   await expect(deck.locator('nav span')).toHaveText(lastPage!);
   await expect(deck.locator('.cabin-place-art').first()).toHaveAttribute('data-same-seat', 'true');
-  await page.getByRole('button', { name: '查看机上客货', exact: true }).click();
+  await page.getByRole('group', { name: '机内乘客', exact: true }).focus();
   await expect(page.getByRole('group', { name: '机内乘客', exact: true })).toBeFocused();
   expect(await exported(page)).toEqual(before);
   await page.reload();

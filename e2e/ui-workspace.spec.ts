@@ -35,9 +35,19 @@ for (const config of cases) test(`shared workspaces stay usable ${config.width}/
     expect(body.y + body.height).toBeLessThanOrEqual(dock.y + 1);
     expect(body.height).toBeGreaterThan(100);
     expect(await frame.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+    if (name === 'organization') {
+      const gap = await frame.evaluate(el => el.querySelector('.org-page-heading')!.getBoundingClientRect().top - el.getBoundingClientRect().top);
+      expect(gap).toBeLessThanOrEqual(1);
+    }
     if (name !== 'organization') {
       const header = frame.locator('.ui-page-header');
       await expect(header).toBeInViewport();
+      const gap = await frame.evaluate(el => {
+        const header = el.querySelector('.ui-page-header')!.getBoundingClientRect();
+        const content = el.querySelector('.ui-scroll-region')!.firstElementChild!.getBoundingClientRect();
+        return content.top - header.bottom;
+      });
+      expect(gap).toBeLessThanOrEqual(1);
       const before = (await header.boundingBox())!;
       const scroll = frame.locator('.ui-scroll-region');
       await expect(scroll).toHaveCount(1);
@@ -45,7 +55,7 @@ for (const config of cases) test(`shared workspaces stay usable ${config.width}/
       await scroll.evaluate(el => { el.scrollTop = el.scrollHeight; });
       const after = (await header.boundingBox())!;
       expect(after.y).toBeCloseTo(before.y,1);
-      await expect(header.locator('button')).toBeInViewport();
+      await expect(header.locator('button')).toHaveCount(0);
       await scroll.evaluate(el => { el.scrollTop = 0; });
     }
     await page.screenshot({path:`artifacts/workspace-${name}-${config.width}-${config.zoom}-${config.locale}.png`});
@@ -67,6 +77,25 @@ for (const config of cases) test(`shared workspaces stay usable ${config.width}/
   await expect(settingsButton).toBeFocused();
   await expect(page.getByTestId('page-career')).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test('the single cabin control remembers its visibility across main navigation', async ({ page }) => {
+  await page.goto('./');
+  const nav = page.getByRole('navigation', { name: '主导航' });
+  const cabin = page.getByTestId('aircraft-cabin');
+  await expect(page.getByRole('button', { name: '隐藏机舱', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: '隐藏机舱', exact: true }).click();
+  await expect(cabin).toHaveAttribute('inert', '');
+  await nav.getByRole('button', { name: '飞机商店', exact: true }).click();
+  await nav.getByRole('button', { name: '机场装载', exact: true }).click();
+  await expect(page.getByRole('button', { name: '显示机舱', exact: true })).toHaveAttribute('aria-pressed', 'false');
+  await expect(cabin).toHaveAttribute('inert', '');
+  await page.getByRole('button', { name: '显示机舱', exact: true }).click();
+  await nav.getByRole('button', { name: '公司组织', exact: true }).click();
+  await expect(page.locator('.org-filter')).toHaveCount(0);
+  await nav.getByRole('button', { name: '机场装载', exact: true }).click();
+  await expect(page.getByRole('button', { name: '隐藏机舱', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(cabin).not.toHaveAttribute('inert', '');
 });
 
 test('work page switches preserve fleet tabs and shop category without keeping hidden work DOM',async({page}) => {

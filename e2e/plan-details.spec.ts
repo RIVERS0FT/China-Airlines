@@ -10,7 +10,7 @@ for (const width of [1440, 844]) {
     await page.goto('./');
     await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
     await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
-    await page.getByRole('button', { name: '制定路线', exact: true }).click();
+    await page.getByRole('button', { name: '制定航线', exact: true }).click();
     await selectCity(page, 'WUH');
     await page.getByRole('button', { name: /^解锁机场/ }).click();
     await expect(page.getByTestId('credits')).toHaveText('¥ 10,000');

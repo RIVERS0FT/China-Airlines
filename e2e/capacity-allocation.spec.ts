@@ -13,7 +13,7 @@ test('a purchased two-slot aircraft stays empty until the player allocates its c
   await expect(cards.first()).toContainText('总容量 1 格');
   await expect(cards.last()).toContainText('总容量 10 格');
   await page.getByRole('button', { name: '购买雨燕 I', exact: true }).click();
-  await page.getByRole('button', { name: '关闭飞机商店' }).click();
+  await page.getByRole('button', { name: '机场装载' }).click();
   await page.getByRole('button', { name: '机队管理', exact: true }).click();
   await page.locator('.hangar-selector button').filter({ hasText: 'AC0002' }).click();
   const allocation = page.locator('.cabin-allocation');
@@ -24,7 +24,7 @@ test('a purchased two-slot aircraft stays empty until the player allocates its c
   await allocation.getByRole('spinbutton', { name: '客位' }).fill('1');
   await allocation.getByRole('button', { name: '确认客货改装' }).click();
   await expect(allocation).toContainText('已分配 2 格');
-  await page.getByRole('button', { name: '关闭机队管理' }).click();
+  await page.getByRole('button', { name: '机场装载' }).click();
   await page.getByRole('button', { name: '下一架飞机' }).click();
   await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 1 人');
   await expect(page.getByTestId('cargo-capacity')).toHaveText('货物 0 / 1 吨');

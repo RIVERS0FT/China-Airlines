@@ -44,12 +44,12 @@ export function App() {
   const [modal, setModal] = useState<ModalName | null>(null);
   const [fleetTab, setFleetTab] = useState<FleetTab | undefined>();
   const [fleetEntry, setFleetEntry] = useState(0);
+  const [cabinVisible, setCabinVisible] = useState(true);
   const [browsedAirport, setBrowsedAirport] = useState<string | null>(null);
   const [detailAirport, setDetailAirport] = useState('PEK');
   const [detailBack, setDetailBack] = useState<'directory' | 'map' | 'close'>('directory');
   const mapReturn = useRef<{ planeId: string; browsedAirport: string | null; aboard: boolean } | null>(null);
   const routeUnlockResume = useRef<(() => void) | null>(null);
-  const workspaceOpener = useRef<HTMLElement | null>(null);
   const context = game ? airportScene(game, planeId, browsedAirport) : null;
   const plane = context?.plane, current = context?.airportId ?? 'PEK';
   const to = game?.airports.some(a => a.id === destination && a.id !== current)
@@ -71,18 +71,7 @@ export function App() {
   }, [playing, screen]);
 
   function openPage(page: WorkPage) {
-    workspaceOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     navigate({ type: 'open', page }); setModal(null);
-  }
-  function closePage() {
-    const opener = workspaceOpener.current;
-    navigate({ type: 'return' });
-    // Focus restoration does not depend on animation or the simulation clock.
-    queueMicrotask(() => {
-      if (document.querySelector('dialog[open]')) return;
-      const target = opener?.isConnected && opener.getClientRects().length ? opener : document.querySelector<HTMLElement>('.game-dock [aria-current="page"]');
-      target?.focus({ preventScroll: true });
-    });
   }
   function openOrganization(id: number | null = null, training = false) { setOrganizationTarget({ id, training }); openPage('organization'); }
   function openFleet(tab?: FleetTab) {
@@ -165,7 +154,7 @@ export function App() {
     tasks:t('modal.tasks'), settings:t('common.settings'), help:t('modal.help'), 'airport-detail':t('modal.airportDetails'),
   };
   const detailBackLabel = detailBack === 'directory' ? (locale === 'zh-CN' ? '返回机场目录' : 'Back to Directory')
-    : detailBack === 'map' ? (mapMode === 'browse' ? (locale === 'zh-CN' ? '返回地图' : 'Back to Map') : (locale === 'zh-CN' ? '返回制定路线' : 'Back to Route Plan'))
+    : detailBack === 'map' ? (mapMode === 'browse' ? (locale === 'zh-CN' ? '返回地图' : 'Back to Map') : (locale === 'zh-CN' ? '返回制定航线' : 'Back to Route Plan'))
     : (locale === 'zh-CN' ? '返回机场装载' : 'Back to Airport');
   const blocking = view.blocked && <div className="blocking-screen" role="alert"><h2>{t('status.blocked')}</h2><p>{t('status.blockedText')}</p><button className="primary" onClick={() => location.reload()}>{t('status.reload')}</button></div>;
   const rotate = <div className="rotate-screen"><Icon name="rotate"/><h2>{t('rotate.title')}</h2><p>{t('rotate.subtitle')}</p></div>;
@@ -178,18 +167,18 @@ export function App() {
   return <>
     <GameShell page={navigation.page} modalOpen={Boolean(modal && (game || modal === 'settings'))} training={navigation.page === 'airport' && game?.tutorial === 'active' && Boolean(plane) && !modal}
       header={<TopStatusBar hidden={isDispatch} onFleet={() => openFleet('flights')} onHelp={() => setModal('help')} onSettings={() => setModal('settings')}/>}
-      navigation={game && <MainNavigation page={navigation.page} onNavigate={selectPage} departure={{ disabled: !plane || view.busy || Boolean(flight) || Boolean(cooling) || plane?.energy.serviceUntil !== null, reason: departureReason, onClick: () => showMap() }}/> }>
+      navigation={game && <MainNavigation page={navigation.page} onNavigate={selectPage} departure={{ hidden: Boolean(flight), disabled: !plane || view.busy || Boolean(cooling) || plane?.energy.serviceUntil !== null, reason: departureReason, onClick: () => showMap() }}/> }>
       {navigation.page === 'airport' && game && plane && game.tutorial === 'active' && !modal && <Tutorial game={game} plane={plane} screen={screen} destination={to} busy={view.busy} onLocate={locateTutorial}/>}
       {!game ? <main className="startup"><h2>{view.booting ? t('start.loading') : t('startup.missing')}</h2><p>{view.error}</p><button onClick={() => setModal('settings')}>{t('startup.recover')}</button></main> : <main className="game-workspace" style={{ display: workPage ? 'none' : undefined }} aria-label={screen === 'airport' ? t('nav.airport') : mapMode === 'browse' ? t('map.a11yBrowse') : t('map.a11yPlan')}>
         {screen === 'map' ? <Network key={`${plane?.id}-${mapMode}`} mode={mapMode} onInspect={(id, afterUnlock) => inspectAirport(id, afterUnlock, 'map')} game={game} plane={plane} destination={destination} setDestination={setDestination} onReturn={returnFromMap} onDepart={finishDeparture} busy={view.busy}/>
-          : context && <AirportWorkspace game={game} context={context} busy={view.busy} aboard={aboard} orderViewKey={orderViewKey} onInspect={id => inspectAirport(id)} onSelectPlane={selectPlane} onCycle={cycle} onCabin={() => flight ? openFleet('flights') : showOrders(true)} onTasks={() => setModal('tasks')}/>}
+          : context && <AirportWorkspace game={game} context={context} busy={view.busy} aboard={aboard} orderViewKey={orderViewKey} cabinVisible={cabinVisible} onToggleCabin={() => setCabinVisible(value => !value)} onInspect={id => inspectAirport(id)} onSelectPlane={selectPlane} onCycle={cycle} onCabin={() => flight ? openFleet('flights') : showOrders(true)} onTasks={() => setModal('tasks')}/>}
       </main>}
-      {game && workPage && <PageFrame key={workPage} page={workPage} title={pageTitles[workPage]} closeLabel={t('modal.close', { title: pageTitles[workPage] })} onClose={closePage} layout={workPage === 'organization' ? 'tree' : 'workspace'}>
+      {game && workPage && <PageFrame key={workPage} page={workPage} title={pageTitles[workPage]} layout={workPage === 'organization' ? 'tree' : 'workspace'}>
         {workPage === 'career' ? <CareerHub game={game} busy={view.busy} selected={plane?.id ?? context?.selected.id} airportId={current}/>
           : workPage === 'airports' ? <AirportDirectory game={game} onInspect={id => inspectAirport(id, undefined, 'directory')}/>
           : workPage === 'shop' ? <Shop game={game} busy={view.busy} selected={current}/>
           : workPage === 'fleet' ? <FleetManagement key={fleetEntry} onEmployee={id => openOrganization(id)} game={game} busy={view.busy} selectedPlaneId={plane?.id ?? context?.selected.id} initialTab={fleetTab} onSelect={selectPlane}/>
-          : <CompanyOrganization game={game} busy={view.busy} initialEmployeeId={organizationTarget.id} initialTraining={organizationTarget.training} onClose={closePage} onPlane={selectPlane} onAirport={visitAirport}/>}
+          : <CompanyOrganization game={game} busy={view.busy} initialEmployeeId={organizationTarget.id} initialTraining={organizationTarget.training} onPlane={selectPlane} onAirport={visitAirport}/>}
       </PageFrame>}
     </GameShell>
     <OverlayHost>

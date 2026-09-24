@@ -25,7 +25,7 @@ async function expectMobileHeightBudget(page: import('@playwright/test').Page, v
   const previous = await page.getByRole('button', { name: '上一组客货', exact: true }).boundingBox();
   const next = await page.getByRole('button', { name: '下一组客货', exact: true }).boundingBox();
   const loading = await page.getByRole('button', { name: '机场装载', exact: true }).boundingBox();
-  const launch = await page.getByRole('button', { name: '制定路线', exact: true }).boundingBox();
+  const launch = await page.getByRole('button', { name: '制定航线', exact: true }).boundingBox();
   expect(previous).not.toBeNull();
   expect(next).not.toBeNull();
   expect(loading).not.toBeNull();
@@ -47,7 +47,7 @@ test('desktop airport uses the polished game hierarchy without changing real dat
   await expect(page.getByTestId('waiting-order')).toHaveCount(12);
   await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 3 人');
 
-  const launch = page.getByRole('button', { name: '制定路线', exact: true });
+  const launch = page.getByRole('button', { name: '制定航线', exact: true });
   await expect(launch).toBeVisible();
   const box = await launch.boundingBox();
   expect(box).not.toBeNull();
@@ -64,7 +64,7 @@ test('844x390 landscape gives the aircraft scene the primary height share', asyn
   await page.setViewportSize({ width: 844, height: 390 });
   await ready(page);
 
-  const launch = page.getByRole('button', { name: '制定路线', exact: true });
+  const launch = page.getByRole('button', { name: '制定航线', exact: true });
   await expect(launch).toBeInViewport();
   const box = await launch.boundingBox();
   expect(box).not.toBeNull();

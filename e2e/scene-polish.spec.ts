@@ -62,7 +62,7 @@ for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
 for (const [width, height] of [[1440,900],[844,390]]) {
   test(`map draws numbered click-order draft and clears it at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width: width!, height: height! }); await ready(page);
-    await page.getByRole('button', { name:'制定路线', exact:true }).click();
+    await page.getByRole('button', { name:'制定航线', exact:true }).click();
     const canvas = page.getByTestId('map-canvas');
     await expect(canvas).toHaveAttribute('data-renderer','ready');
     await expect(canvas).toHaveAttribute('data-preview-path','');
@@ -95,14 +95,14 @@ for (const [width, height] of [[1440,900],[844,390]]) {
     await expect(lockedDetail).toBeVisible();
     await expect(page.locator('.network-controls')).toHaveCount(0);
     await expect(lockedDetail.getByRole('button', { name:/^解锁机场/ })).toBeVisible();
-    await lockedDetail.getByRole('button', { name:'返回制定路线', exact:true }).click();
+    await lockedDetail.getByRole('button', { name:'返回制定航线', exact:true }).click();
     await expect(page.getByTestId('credits')).toHaveText(money!);
     await expect(page.getByTestId('flights-count')).toHaveText('0 班');
   });
 }
 test('flight hides loading area and restores it after arrival', async ({ page }) => {
   await ready(page); await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
-  await page.getByRole('button', { name:'制定路线', exact:true }).click();await chooseShanghai(page);await launchRoute(page);
+  await page.getByRole('button', { name:'制定航线', exact:true }).click();await chooseShanghai(page);await launchRoute(page);
   await expect(page.locator('.apron-queue')).toHaveCount(0);
   await expect(page.getByTestId('loaded-order')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /^同目的地装载：/ }).first()).toHaveCount(0);

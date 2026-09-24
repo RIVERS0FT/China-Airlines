@@ -18,7 +18,7 @@ async function start(page: Page, saved?: unknown) {
 async function openOrganization(page:Page) { await openGlobal(page,'公司组织'); await expect(page.locator('.organization-workspace')).toBeVisible(); await expect(page.getByRole('region',{name:'公司组织架构树',exact:true})).toBeVisible(); }
 async function recruit(page:Page,job:string,name:string) { await page.getByRole('button',{name:'招募',exact:true}).click(); const target=page.getByRole('button',{name:/^招募(飞行员|地勤专员|飞行部经理|地勤部经理)$/}); expect(await target.evaluate(el=>parseFloat(getComputedStyle(el).minHeight))).toBeGreaterThanOrEqual(44); await page.getByLabel('招募岗位',{exact:true}).selectOption(job); await page.getByRole('button',{name:`招募${name}`,exact:true}).click(); }
 async function exportState(page:Page) {
-  await page.getByRole('button',{name:'关闭公司组织'}).click(); await openGlobal(page,'存档设置'); const pending=page.waitForEvent('download');
+  await page.getByRole('navigation',{name:'主导航'}).getByRole('button',{name:'机场装载',exact:true}).click(); await openGlobal(page,'存档设置'); const pending=page.waitForEvent('download');
   await page.getByRole('button',{name:'导出存档',exact:true}).click(); const download=await pending;
   const saved=JSON.parse(await readFile((await download.path())!,'utf8')) as GameState;
   await page.getByRole('button',{name:'关闭存档设置'}).click(); return saved;

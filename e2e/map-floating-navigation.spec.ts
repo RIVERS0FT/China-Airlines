@@ -20,7 +20,7 @@ for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 100], [667, 37
     await expect(page.locator('.game-hud')).toBeVisible();
     await expect(page.locator('.world-map-toolbar,.map-controls,.map-plane-toggle')).toHaveCount(0);
     await expect(page.getByRole('button', { name: '返回机场', exact: true })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: '查找城市', exact: true })).toBeInViewport();
+    await expect(page.getByRole('button', { name: '查找城市', exact: true })).toHaveCount(0);
     await expect(nav).toHaveCSS('position', 'absolute');
     await expect(nav).toHaveCSS('pointer-events', 'none');
     await expect(nav).toHaveCSS('background-image', 'none');

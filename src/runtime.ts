@@ -81,7 +81,8 @@ class Controller {
       // Keep routine loading/transfer logs out of toasts that obscure the orders;
       // clear any previous success notice too. Errors and recovery notices are separate.
       const quiet = command.type === 'tutorial' || command.type === 'load'
-        || command.type === 'unload' || command.type === 'load-destination';
+        || command.type === 'unload' || command.type === 'load-destination'
+        || command.type === 'dispatch' || command.type === 'dispatch-plan';
       useGame.setState({ notice: quiet ? null : this.core.snapshot().log[0]?.text ?? '操作完成' });
     });
   }

@@ -112,7 +112,7 @@ export function CareerHub({
       <div className="career-banner">
         <img src={artAsset("pilot-avatar-v1.png")} alt="" />
         <div>
-          <strong>{ui("公司 Lv.{level} · 从一架飞机到全球航网",{level:careerLevel(game)})}</strong>
+          <strong>{ui("公司 Lv.{level}",{level:careerLevel(game)})}</strong>
           <span>
             {ui("经验 {xp} · 营业第 {day} 天 · {time} 后刷新",{xp:c.xp,day:c.day+1,time:duration(c.nextDayAt-game.simTime)})}
           </span>
@@ -135,15 +135,13 @@ export function CareerHub({
           </button>
         ))}
       </div>
-      <div className="career-feedback" aria-live="polite">
+      {(view.error || view.notice) && <div className="career-feedback" aria-live="polite">
         {view.error ? (
           <span role="alert">{text(view.error)}</span>
-        ) : view.notice ? (
-          <span role="status">{text(view.notice)}</span>
         ) : (
-          <span>{ui("运输、收藏与生产共同推动公司成长。")}</span>
+          <span role="status">{text(view.notice)}</span>
         )}
-      </div>
+      </div>}
       <div role="tabpanel" aria-label={ui(tab)} className="career-body">
         {tab === "机体工坊" && (
           <>
@@ -445,7 +443,7 @@ export function CareerHub({
                 locked,
               )}
             </div>
-            <p>装载后返回机场“制定路线”；可随航中转，最终目的地才入库。</p>
+            <p>装载后返回机场“制定航线”；可随航中转，最终目的地才入库。</p>
             <h3>研发与贸易</h3>
             <div className="career-actions">
               {action(

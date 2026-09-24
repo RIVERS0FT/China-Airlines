@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
-    name: verify (${{ matrix.name }}, shard ${{ matrix.shard }}/2)
+    name: verify (${{ matrix.name }}, shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
@@ -23,12 +23,24 @@ jobs:
           - name: root
             base_path: ''
             shard: 2
+          - name: root
+            base_path: ''
+            shard: 3
+          - name: root
+            base_path: ''
+            shard: 4
           - name: subpath
             base_path: /china-airlines/
             shard: 1
           - name: subpath
             base_path: /china-airlines/
             shard: 2
+          - name: subpath
+            base_path: /china-airlines/
+            shard: 3
+          - name: subpath
+            base_path: /china-airlines/
+            shard: 4
     env:
       BASE_PATH: ${{ matrix.base_path }}
     steps:
@@ -59,9 +71,9 @@ jobs:
           sudo apt-get install -y fonts-noto-cjk
           mkdir -p artifacts
       - name: Browser verification (${{ matrix.name }})
-        # Each shard keeps the configured single worker and zero retries.
-        # Both shards are required; no test filters or reduced assertions.
-        run: npm run test:e2e -- --shard=${{ matrix.shard }}/2
+        # One browser per runner avoids competing software WebGL renderers.
+        # All four shards are required; no test filters or reduced assertions.
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
       - name: Upload compact verification reports
         if: always()
         uses: actions/upload-artifact@v4

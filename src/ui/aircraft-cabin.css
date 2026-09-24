@@ -39,11 +39,10 @@
 .cabin-aircraft .cabin-order .job-price{display:block;white-space:nowrap;max-width:100%;font-size:calc(12 * var(--cabin-ui-unit));color:#ffd74d;line-height:calc(13 * var(--cabin-ui-unit));text-align:center;font-variant-numeric:tabular-nums}
 .cabin-order .job-quantity{position:absolute;right:0;top:0;z-index:2;font-size:calc(11 * var(--cabin-ui-unit));background:#3f576b;color:white;border-radius:4px;padding:1px 4px}
 .cabin-aircraft .cabin-empty>span{font-size:calc(11 * var(--cabin-ui-unit));color:#fffde8}
-.aviation-game .cabin-inspect,.aviation-game .cabin-toggle{position:absolute;left:3%;height:44px;min-height:44px;padding:3px 9px;border:1px solid #9eaba0;border-radius:7px;background:#fffbea;color:#52695f;font-size:12px;box-shadow:0 2px 0 #263e4420;z-index:10}
-.aviation-game .cabin-inspect{top:61%}.aviation-game .cabin-toggle{top:43%}
+.aviation-game .cabin-toggle{position:absolute;left:3%;top:43%;height:44px;min-height:44px;padding:3px 9px;border:1px solid #9eaba0;border-radius:7px;background:#fffbea;color:#52695f;font-size:12px;box-shadow:0 2px 0 #263e4420;z-index:10}
 [data-exterior] .cabin-interior{visibility:hidden}
 .cabin-aircraft button:focus-visible,.cabin-places:focus-visible{outline:3px solid #e69b34;outline-offset:-3px;z-index:6}
 .aviation-game:not(.dispatch-focused) .scene-caption{pointer-events:none}
 [data-anchor-debug] .cabin-anchor{outline:1px dashed #ff257c}
 [data-anchor-debug] .cabin-anchor:after{content:attr(data-anchor-id);position:absolute;left:50%;bottom:var(--floor-bottom);transform:translateX(-50%);color:#fff;background:#b31551;font:10px monospace;pointer-events:none;z-index:9}
-@media(max-height:600px) and (orientation:landscape){.aviation-game:not(.dispatch-focused) .airplane-display.cabin-aircraft{height:410px}.aviation-game .cabin-inspect,.aviation-game .cabin-toggle{left:2%;padding-inline:5px;font-size:11px}.aviation-game .apron-queue .order-cargo .job-info:has(.cargo-name){flex-basis:30px}.aviation-game .apron-queue .cargo-name{font-size:10px;line-height:11px}}
+@media(max-height:600px) and (orientation:landscape){.aviation-game:not(.dispatch-focused) .airplane-display.cabin-aircraft{height:410px}.aviation-game .cabin-toggle{left:2%;padding-inline:5px;font-size:11px}.aviation-game .apron-queue .order-cargo .job-info:has(.cargo-name){flex-basis:30px}.aviation-game .apron-queue .cargo-name{font-size:10px;line-height:11px}}

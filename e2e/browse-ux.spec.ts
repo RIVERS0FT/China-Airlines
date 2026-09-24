@@ -65,13 +65,14 @@ test('airport empty results offer a reset and reopening preserves the current se
   await expect(directory.getByLabel('搜索机场', { exact: true })).toHaveValue('');
   await expect(directory).toBeVisible();
   await directory.getByLabel('搜索机场', { exact: true }).fill('PEK');
-  await directory.getByRole('button', { name: '关闭机场目录', exact: true }).click();
+  await page.getByRole('navigation', { name: '主导航' }).getByRole('button', { name: '机场装载', exact: true }).click();
   await expect(directory).toHaveCount(0);
   await page.getByRole('button', { name: '机场目录', exact: true }).click();
   await expect(directory.getByLabel('搜索机场', { exact: true })).toHaveValue('PEK');
   await expect(directory.getByRole('listitem')).toHaveCount(1);
-  await directory.getByRole('button', { name: '关闭机场目录', exact: true }).focus();
   await page.keyboard.press('Escape');
+  await expect(directory).toBeVisible();
+  await page.getByRole('navigation', { name: '主导航' }).getByRole('button', { name: '机场装载', exact: true }).click();
   await expect(directory).toHaveCount(0);
 });
 
@@ -121,7 +122,7 @@ test('fleet search combines with every ground-state filter and recovers from no 
 
 test('dispatch backdrop dismisses only deliberate outside clicks and preserves the map draft', async ({ page }) => {
   await page.setViewportSize({ width: 844, height: 390 }); await ready(page);
-  await page.getByRole('button', { name: '制定路线', exact: true }).click();
+  await page.getByRole('button', { name: '制定航线', exact: true }).click();
   await selectCity(page, 'PVG');
   const map = page.getByTestId('map-canvas');
   await expect(map).toHaveAttribute('data-preview-path', 'PVG');

@@ -5,7 +5,7 @@ let errors:string[];
 test.beforeEach(async({page})=>{errors=[];page.on('pageerror',e=>errors.push(e.message));});
 test.afterEach(()=>expect(errors).toEqual([]));
 async function ready(page:Page){await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');}
-async function secondPlane(page:Page){await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 III',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await page.getByRole('button',{name:'关闭飞机商店'}).click();await openGlobal(page, '机队管理');await page.getByRole('button',{name:/雨燕 III.*AC0002/}).click();}
+async function secondPlane(page:Page){await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 III',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await page.getByRole('button',{name:'机场装载'}).click();await openGlobal(page, '机队管理');await page.getByRole('button',{name:/雨燕 III.*AC0002/}).click();}
 async function chooseShanghai(page:Page){await selectCity(page, 'PEK');await selectCity(page, 'PVG');await expect(await detailValue(page, 'plan-summary')).toContainText('1 段');}
 
 /** Observe only the committed main slot; never change storage to make a test pass.
@@ -47,13 +47,13 @@ test('hangar duty can start for a reachable unlocked city without route purchase
   await ready(page);await openGlobal(page, '机队管理');await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();
   await expect(page.getByLabel('值勤目的地',{exact:true})).toHaveValue('PVG');
   await page.getByRole('button',{name:'启动自动值勤',exact:true}).click();await expect(page.getByTestId('crew-status')).toContainText('自动值勤');
-  await page.getByRole('button',{name:'停止自动值勤',exact:true}).click();await expect(page.getByRole('button',{name:'人员下岗',exact:true})).toBeDisabled();await page.getByRole('button',{name:'关闭机队管理'}).click();
+  await page.getByRole('button',{name:'停止自动值勤',exact:true}).click();await expect(page.getByRole('button',{name:'人员下岗',exact:true})).toBeDisabled();await page.getByRole('navigation',{name:'主导航'}).getByRole('button',{name:'机场装载',exact:true}).click();
   await openGlobal(page, '机场装载');await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();await page.clock.fastForward(400000);await expect(page.getByTestId('flights-count')).toHaveText('1 班');await expect(page.getByTestId('loaded-order')).toHaveCount(0);
 });
 for(const width of [1440,844])test(`guided real first flight persists at ${width}`,async({page})=>{
   await page.setViewportSize({width,height:width===1440?900:390});await ready(page);await openGlobal(page, '操作帮助');await page.getByRole('button',{name:'开始分步引导',exact:true}).click();
   await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','load');await expect(page.getByTestId('waiting-order').first()).toHaveClass(/tutorial-target/);await page.screenshot({path:`artifacts/tutorial-loading-${width}.png`});
-  await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','map');await page.getByRole('button',{name:'制定路线',exact:true}).click();
+  await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','map');await page.getByRole('button',{name:'制定航线',exact:true}).click();
   await expect(page.getByTestId('tutorial')).toHaveCount(0);await expect(page.getByRole('button',{name:'选择目的城市',exact:true})).toBeVisible();await chooseShanghai(page);
   await launchRoute(page);await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','flight');await page.reload();await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','flight');
   await page.clock.fastForward(400000);await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','reward');await page.getByRole('button',{name:'查看首航任务',exact:true}).click();
@@ -70,7 +70,7 @@ for(const width of [1440,844])test(`guided real first flight persists at ${width
 test('narrow landscape personnel controls and skip remain reachable',async({page})=>{
   await page.setViewportSize({width:667,height:375});await ready(page);await secondPlane(page);await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await expect(page.getByTestId('crew-status')).toContainText('已雇用');
   page.once('dialog',d=>void d.accept());await page.getByRole('button',{name:'人员下岗',exact:true}).click();await page.getByRole('button',{name:'出售这架飞机',exact:true}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'出售这架飞机',exact:true})).toBeInViewport();await page.screenshot({path:'artifacts/landscape-personnel.png'});
-  await page.getByRole('button',{name:'关闭机队管理'}).click();await openGlobal(page, '操作帮助');await page.getByRole('button',{name:'开始分步引导',exact:true}).click();
+  await page.getByRole('navigation',{name:'主导航'}).getByRole('button',{name:'机场装载',exact:true}).click();await openGlobal(page, '操作帮助');await page.getByRole('button',{name:'开始分步引导',exact:true}).click();
   await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','load');
   await expect.poll(async () => (await savedTutorial(page)).tutorial).toBe('active');
   const previous = await savedTutorial(page);

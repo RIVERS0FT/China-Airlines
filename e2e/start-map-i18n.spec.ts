@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { GameCore } from './configured-game.js';
+import { airport } from '../src/core/catalog.js';
+import { projectGeo, type GlobeCamera } from '../src/ui/globe-geometry.js';
+import { displayScale } from './display-helpers.js';
 
 test('title enters the map, keeps Map leftmost, and switches the core flow to English', async ({ page }) => {
   await page.goto('./');
@@ -17,11 +20,14 @@ test('title enters the map, keeps Map leftmost, and switches the core flow to En
   expect(labels.slice(0, 7)).toEqual(['Map', 'Airport', 'Directory', 'Fleet', 'Aircraft Shop', 'Organization', 'Operations']);
   await expect(page.locator('.game-dock>button').first()).toHaveClass(/active/);
 
-  await page.getByRole('button', { name: 'Find City', exact: true }).click();
-  await page.getByRole('searchbox', { name: 'Search Airports', exact: true }).fill('London');
-  await expect(page.getByLabel('Choose City', { exact: true }).locator('option')).toContainText(['Choose a city', 'London · Europe · Locked']);
-  await page.getByRole('button', { name: 'Close Choose City', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'Choose City', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Find City', exact: true })).toHaveCount(0);
+  const map = page.getByTestId('map-canvas');
+  const camera = JSON.parse((await map.getAttribute('data-camera'))!) as GlobeCamera;
+  const point = projectGeo(airport('PVG'), camera), box = (await map.boundingBox())!, scale = await displayScale(page);
+  expect(point.visible).toBe(true);
+  await page.mouse.click(box.x + point.x * scale, box.y + point.y * scale);
+  await expect(page.getByRole('dialog', { name: 'Airport Details', exact: true })).toContainText('Shanghai Airport');
+  await page.getByRole('button', { name: 'Back to Map', exact: true }).click();
   await page.getByRole('button', { name: 'Airport', exact: true }).click();
   await expect(page.getByTestId('airport-scene')).toBeVisible();
   await expect(page.locator('.gate-sign')).toContainText('Beijing Airport');
@@ -59,7 +65,7 @@ for (const viewport of [{ width: 844, height: 390 }, { width: 667, height: 375 }
     await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer', 'ready');
     await expect(page.getByRole('button', { name: 'Operations', exact: true })).toBeInViewport();
     await expect(page.locator('.world-map-toolbar')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Find City', exact: true })).toBeInViewport();
+    await expect(page.getByRole('button', { name: 'Find City', exact: true })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `artifacts/start-map-en-${viewport.width}.png` });
   });

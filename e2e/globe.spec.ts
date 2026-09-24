@@ -19,7 +19,7 @@ test.afterEach(async ({ page }) => expect(await page.evaluate(() => (window as u
 for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
   test(`rotatable globe and foreign unlock/flight are usable at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width: width!, height: height! }); await ready(page, true);
-    await page.getByRole('button', { name: '制定路线', exact: true }).click();
+    await page.getByRole('button', { name: '制定航线', exact: true }).click();
     const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-renderer', 'ready');
     await expect(host).toHaveAttribute('data-projection', 'orthographic'); await expect(host).toHaveAttribute('data-art-version', '2'); await expect(host).toHaveAttribute('data-camera', /radius/);
     await expect(host).toHaveAttribute('data-route-visual', 'parabolic'); await expect(host).toHaveAttribute('data-aircraft-visual', '3d');
@@ -63,7 +63,7 @@ test('global directory keeps continent and country searches across inspection', 
   await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
 });
 test('far-side markers are not clickable and rotation/cancel never changes the draft', async ({ page }) => {
-  await ready(page); await page.getByRole('button', { name: '制定路线', exact: true }).click();
+  await ready(page); await page.getByRole('button', { name: '制定航线', exact: true }).click();
   await page.getByRole('button', { name: '关闭选路提示', exact: true }).click();
   const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-camera', /radius/);
   const camera = JSON.parse((await host.getAttribute('data-camera'))!) as GlobeCamera, bounds = (await host.boundingBox())!;
@@ -80,7 +80,7 @@ test('far-side markers are not clickable and rotation/cancel never changes the d
   await expect(host).toHaveAttribute('data-preview-path', ''); await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
 });
 test('two-finger zoom never appends a destination on finger release', async ({ page }) => {
-  await ready(page); await page.getByRole('button', { name: '制定路线', exact: true }).click();
+  await ready(page); await page.getByRole('button', { name: '制定航线', exact: true }).click();
   await page.getByRole('button', { name: '关闭选路提示', exact: true }).click();
   const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-camera', /radius/);
   const old = JSON.parse((await host.getAttribute('data-camera'))!) as GlobeCamera, b = (await host.boundingBox())!, x = b.x + old.cx * await displayScale(page), y = b.y + old.cy * await displayScale(page);
@@ -101,7 +101,7 @@ test('Pacific multi-leg arcs and global selection preserve camera and read-only 
   await page.getByLabel('选择存档文件').setInputFiles({ name: 'global-plan.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(c.snapshot())) });
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架'); await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
   await page.getByRole('button', { name: '机队管理概览', exact: true }).click(); await page.getByRole('button', { name: '查看AC0002飞机', exact: true }).click();await expect(page.getByRole('tab', { name: '飞机', exact: true })).toHaveAttribute('aria-selected', 'true');await page.getByRole('button', { name: '前往这架飞机', exact: true }).click();
-  await page.getByRole('button', { name: '制定路线', exact: true }).click(); await selectCity(page, 'ANC'); await selectCity(page, 'YVR');
+  await page.getByRole('button', { name: '制定航线', exact: true }).click(); await selectCity(page, 'ANC'); await selectCity(page, 'YVR');
   const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-preview-path', 'ANC,YVR');
   const camera = await host.getAttribute('data-camera'), credits = await page.getByTestId('credits').textContent();
   await routeDetails(page); await expect(page.getByTestId('plan-leg')).toHaveCount(2); await page.keyboard.press('Escape');
@@ -115,7 +115,7 @@ test('world search and foreign flight remain usable when WebGL fails', async ({ 
       return type.includes('webgl') ? null : Reflect.apply(get, this, [type, ...args]);
     } as typeof get;
   });
-  await ready(page); await page.getByRole('button', { name: '制定路线', exact: true }).click();
+  await ready(page); await page.getByRole('button', { name: '制定航线', exact: true }).click();
   await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer', 'fallback');
   await page.getByRole('button', { name: '选择目的城市', exact: true }).click(); await page.getByLabel('搜索全球机场', { exact: true }).fill('不存在');
   await expect(page.getByRole('dialog', { name: '选择城市' }).getByRole('status')).toContainText('没有符合条件');
@@ -128,7 +128,7 @@ test('world search and foreign flight remain usable when WebGL fails', async ({ 
 test('an idle globe does not redraw for clock-only updates, but camera input paints a new frame', async ({ page }) => {
   await page.clock.install({ time: new Date(NOW) }); await page.clock.pauseAt(new Date(NOW + 1000));
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
-  await page.getByRole('button', { name: '制定路线', exact: true }).click();
+  await page.getByRole('button', { name: '制定航线', exact: true }).click();
   const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-renderer', 'ready');
   // The 3D aircraft layer loads separately and legitimately invalidates one frame.
   // Measure idle paints only after that startup transition has completed.

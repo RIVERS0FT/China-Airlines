@@ -14,7 +14,7 @@ import { passengerDestinationCounts, passengerDestinationKey } from './passenger
 import { useI18n } from '../i18n/I18n.js';
 import { artAsset } from './art-assets.js';
 import type { MapAircraftLayer } from './MapAircraftLayer.js';
-interface Props { planning: boolean; game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; preview?: RoutePreview | null; showOthers: boolean; onToggleOthers: () => void }
+interface Props { planning: boolean; game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; onOpenCities: () => void; preview?: RoutePreview | null; showOthers: boolean; onToggleOthers: () => void }
 const geography = new Map(AIRPORTS.map(a => [a.id, toVector(a)]));
 const land = LAND_VERTICES.map(([lon, lat]) => toVector({ lon, lat }));
 const landCoastEdges = boundaryEdges(LAND_FACES);
@@ -111,7 +111,7 @@ export function MapView(props: Props) {
         };
         // Only painted overlays exclude labels. Empty dock space is still map.
         const overlayElements = latest.current.planning ? [] : [...(element.closest('.aviation-game')?.querySelectorAll<HTMLElement>(
-          '.game-dock > button, .world-map-search, .world-map-guide, .globe-hint, .map-disclaimer'
+          '.game-dock > button, .world-map-guide'
         ) ?? [])];
         let labelExclusions: MapBox[] = [];
         const resize = () => {
@@ -375,9 +375,7 @@ export function MapView(props: Props) {
   return <section className="map-area globe-area" aria-label={props.planning ? i18n.t('map.routeMap') : i18n.t('map.map')} aria-describedby={props.planning ? "route-preview-description" : undefined}>
     <div className="map-canvas" ref={host} data-testid="map-canvas" data-projection="orthographic" data-art-version="2" data-route-visual="parabolic" data-aircraft-visual="model" data-renderer={status}/>
     {props.planning && <p id="route-preview-description" className="sr-only" data-testid="route-preview" data-legs={props.preview?.legs.length ?? 0}>{previewDescription(props.preview)}</p>}
-    {status === 'fallback' && <div className="map-fallback" role="status">{i18n.t('map.fallback', { control:props.planning ? i18n.t('map.destination') : i18n.t('map.find') })}</div>}
-    <div className="globe-hint" aria-hidden="true"><strong>{i18n.t('map.globeTitle')}</strong><span>{i18n.t('map.globeHint')}</span>{!props.planning && <span data-testid="map-unlocked-count">{i18n.t('map.unlocked', { open: props.game.airports.length, total: AIRPORTS.length })}</span>}</div>
+    {status === 'fallback' && <div className="map-fallback" role="status"><p>{i18n.t(props.planning ? 'map.fallbackPlan' : 'map.fallbackBrowse')}</p>{!props.planning && <button type="button" aria-haspopup="dialog" onClick={props.onOpenCities}>{i18n.t('map.selectCity')}</button>}</div>}
     {props.planning && <button className="map-plane-toggle" aria-label={props.showOthers ? i18n.t('map.hideOthers') : i18n.t('map.showOthers')} aria-pressed={!props.showOthers} onClick={props.onToggleOthers}><span>{props.showOthers ? i18n.t('map.hide') : i18n.t('map.show')}</span><strong>{i18n.t('map.otherAircraft')}</strong></button>}
-    <small className="map-disclaimer">{i18n.t('map.disclaimer')}</small>
   </section>;
 }

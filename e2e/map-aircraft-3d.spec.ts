@@ -49,7 +49,9 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
     const bounds = (await host.boundingBox())!;
     const scale = bounds.width / await host.evaluate(node => node.clientWidth);
     const clip = { x: bounds.x + (camera.cx - 38) * scale, y: bounds.y + (camera.cy - 58) * scale, width: 76 * scale, height: 76 * scale };
-    const visible = await page.screenshot({ clip });
+    // Keep the pixels used by the assertion as evidence; another full-frame
+    // readback can stall software WebGL on a shared CI runner.
+    const visible = await page.screenshot({ clip, path: `artifacts/map-aircraft-a-${width}.png` });
     const hidden = await page.screenshot({ clip, style: '.map-aircraft-layer { visibility: hidden !important; }' });
     const changed = await page.evaluate(async ({ a, b }) => {
       async function pixels(data: string) {
@@ -63,7 +65,6 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
       return changed;
     }, { a: visible.toString('base64'), b: hidden.toString('base64') });
     expect(changed, 'the downloaded GLB must visibly render, not merely report ready').toBeGreaterThan(60);
-    await page.screenshot({ path: `artifacts/map-aircraft-a-${width}.png` });
     await host.locator('canvas').focus();
     for (let i = 0; i < 18; i++) await page.keyboard.press('ArrowRight');
     await expect(layer).toHaveAttribute('data-instances', '0');
@@ -90,7 +91,7 @@ networkFailureTest('model failure and context loss preserve the existing plane a
   await expect(page.getByTestId('map-aircraft-canvas')).toHaveCount(0);
   await page.getByRole('button', { name: '机场装载', exact: true }).click();
   await page.unroute('**/models/low-poly-airliner.glb');
-  await page.getByRole('button', { name: '制定路线', exact: true }).click();
+  await page.getByRole('button', { name: '制定航线', exact: true }).click();
   await expect(host).toHaveAttribute('data-aircraft-status', 'ready');
   await page.getByTestId('map-aircraft-canvas').evaluate(canvas => canvas.dispatchEvent(new Event('webglcontextlost')));
   await expect(host).toHaveAttribute('data-aircraft-status', 'fallback');
@@ -132,7 +133,7 @@ test('a real flight uses A while still advancing the original business state', a
   await page.clock.install({ time: new Date('2026-09-15T00:00:00Z') });
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
-  await page.getByRole('button', { name: '制定路线', exact: true }).click();
+  await page.getByRole('button', { name: '制定航线', exact: true }).click();
   await selectCity(page, 'PVG'); await launchRoute(page);
   await page.getByRole('button', { name: '地图', exact: true }).click();
   const host = page.getByTestId('map-canvas');
@@ -164,7 +165,7 @@ test('different in-flight aircraft types share A geometry and hiding others hide
   await page.getByRole('button', { name: '查看AC0003飞机', exact: true }).click();
   await expect(page.getByRole('tab', { name: '飞机', exact: true })).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('button', { name: '前往这架飞机', exact: true }).click();
-  await page.getByRole('button', { name: '制定路线', exact: true }).click();
+  await page.getByRole('button', { name: '制定航线', exact: true }).click();
   const host = page.getByTestId('map-canvas'), layer = page.getByTestId('map-aircraft-canvas');
   await expect(host).toHaveAttribute('data-aircraft-status', 'ready');
   await expect(host).toHaveAttribute('data-visible-plane-models', 'AC0001:low-poly-airliner.glb,AC0002:low-poly-airliner.glb');

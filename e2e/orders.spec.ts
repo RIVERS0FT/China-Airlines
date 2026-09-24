@@ -17,7 +17,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     // Sample immediately after the saved state is published; a retrying absence
     // assertion could incorrectly pass after the old four-second toast expires.
     expect(await page.locator('.toast').allTextContents()).toEqual([]);
-    await page.getByRole('button', { name: '查看机上客货' }).click();
+    await expect(page.getByRole('button', { name: '隐藏机舱', exact: true })).toBeVisible();
     await expect(page.getByTestId('loaded-order')).toHaveCount(1);
     await page.getByTestId('loaded-order').first().click();
     await expect(page.getByTestId('loaded-order')).toHaveCount(0);
@@ -33,7 +33,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
 
     await openGlobal(page, '飞机商店');
     await page.getByRole('button', { name: '购买雨燕 II', exact: true }).click();
-    await page.getByRole('button', { name: '关闭飞机商店' }).click();
+    await page.getByRole('button', { name: '机场装载' }).click();
     // Important non-loading confirmations must not be globally hidden.
     await expect(page.locator('.toast')).toBeVisible();
     await page.getByRole('button', { name: '下一架飞机' }).click();

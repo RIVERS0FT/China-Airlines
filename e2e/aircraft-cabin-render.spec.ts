@@ -67,7 +67,7 @@ for(const model of ALL_MODELS)test(`procedural cabin covers ${model.id} without 
   const ids=await cabin.getByTestId('loaded-order').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('data-order-id')));
   await cabin.evaluate(n=>n.setAttribute('data-mount-marker','kept'));
   await page.screenshot({path:`artifacts/aircraft-layers-${model.id}-interior.png`});
-  await page.getByRole('button',{name:'查看外观',exact:true}).click();
+  await page.getByRole('button',{name:'隐藏机舱',exact:true}).click();
   await expect(view).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-exterior-${revision}.png$`));
   await expect(cabin).toHaveAttribute('inert','');await expect(cabin).toHaveAttribute('data-mount-marker','kept');
   await expect(cabin.getByTestId('procedural-cabin-shell')).toBeHidden();
@@ -86,7 +86,7 @@ for(const model of ALL_MODELS)test(`procedural cabin covers ${model.id} without 
   await page.setViewportSize({width:844,height:390});
   await page.clock.runFor(34);
   await sameCanvas();
-  await page.getByRole('button',{name:'查看机舱',exact:true}).click();
+  await page.getByRole('button',{name:'显示机舱',exact:true}).click();
   await expect(view).toHaveAttribute('src',new RegExp(`aircraft-${model.id}-exterior-${revision}.png$`));
   await expect(cabin).not.toHaveAttribute('inert','');await expect(cabin).toHaveAttribute('data-mount-marker','kept');
   await expect(cabin.getByTestId('procedural-cabin-shell')).toBeVisible();

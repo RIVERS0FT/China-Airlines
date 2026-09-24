@@ -48,7 +48,7 @@ for (const [width, height] of [[1440, 900],[844, 390],[667, 375]])
     await page.getByRole("button", { name: "招募飞行员" }).click();
     await page.getByLabel("林航岗位").selectOption("AC0001");
     await expect(page.getByLabel("林航岗位")).toHaveValue("AC0001");
-    await page.getByRole("button", { name: "关闭公司组织" }).click();
+    await page.getByRole('navigation',{name:'主导航'}).getByRole('button',{name:'机场装载',exact:true}).click();
     await openGlobal(page, "经营中心");
     await expect(page.getByRole("main", { name: "公司经营中心" })).toBeVisible();
     for (const name of ["机体工坊","物流园","物资商店","航空展馆","机场运营"]) {
@@ -78,7 +78,7 @@ test("factory goods load onto a cargo plane, arrive in another city and fulfil o
   await setup(page, funded());
   await openGlobal(page, "飞机商店");
   await page.getByRole("button", { name: "购买雨燕 III", exact: true }).click();
-  await page.getByRole("button", { name: "关闭飞机商店" }).click();
+  await page.getByRole("button", { name: "机场装载" }).click();
   await allocateCabin(page, 'AC0002', 0, 4);
   await openGlobal(page, "经营中心");
   await page.getByRole("tab", { name: "物流园" }).click();
@@ -95,10 +95,10 @@ test("factory goods load onto a cargo plane, arrive in another city and fulfil o
   await page.getByLabel("物资目的地").selectOption("PVG");
   await page.getByRole("button", { name: "物资装机", exact: true }).click();
   await expect(page.locator(".career-feedback")).toContainText("航空餐食已装机");
-  await page.getByRole("button", { name: "关闭公司经营中心" }).click();
+  await page.getByRole('navigation',{name:'主导航'}).getByRole('button',{name:'机场装载',exact:true}).click();
   await page.getByRole("button", { name: "下一架飞机" }).click();
   await expect(page.getByTestId("loaded-order")).toHaveCount(1);
-  await page.getByRole("button", { name: "制定路线", exact: true }).click();
+  await page.getByRole("button", { name: "制定航线", exact: true }).click();
   await selectCity(page, "PVG");
   await launchRoute(page);
   await expect(page.getByRole("region", { name: "客货列表" })).toHaveCount(0);

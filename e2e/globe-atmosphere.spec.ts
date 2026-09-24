@@ -52,7 +52,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
       const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
       await page.setViewportSize({ width, height }); await page.goto('./');
       await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
-      await page.getByRole('button', { name: planning ? '制定路线' : '地图', exact: true }).click();
+      await page.getByRole('button', { name: planning ? '制定航线' : '地图', exact: true }).click();
       if (planning) await page.getByRole('button', { name: '关闭选路提示', exact: true }).click();
       await expectClearBackdrop(page, `atmosphere-${mode}-${width}-initial`);
       const host = page.getByTestId('map-canvas'), frames = Number(await host.getAttribute('data-render-count'));

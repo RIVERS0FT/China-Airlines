@@ -1,4 +1,7 @@
 import { expect, type Page } from '@playwright/test';
+import { airport } from '../src/core/catalog.js';
+import { projectGeo, wrapLongitude, type GlobeCamera } from '../src/ui/globe-geometry.js';
+import { displayScale } from './display-helpers.js';
 
 /** Exercise visible entry points and never force-click a hidden control. */
 export async function closeRouteDetails(page: Page) {
@@ -8,9 +11,33 @@ export async function closeRouteDetails(page: Page) {
 export async function openCities(page: Page) {
   await closeRouteDetails(page);
   if (!await page.getByRole('dialog', { name: '选择城市', exact: true }).isVisible())
-    await page.getByRole('button', { name: /^(选择目的城市|查找城市)$/, exact: true }).click();
+    await page.getByRole('button', { name: /^(选择目的城市|选择城市)$/, exact: true }).click();
 }
 export async function selectCity(page: Page, id: string) {
+  if (await page.locator('.world-map-view').isVisible()) {
+    const map = page.getByTestId('map-canvas');
+    if (await map.getAttribute('data-renderer') === 'ready') {
+      await expect(map).toHaveAttribute('data-camera', /radius/);
+      const target = airport(id), scale = await displayScale(page);
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const camera = JSON.parse((await map.getAttribute('data-camera'))!) as GlobeCamera;
+        const point = projectGeo(target, camera), box = (await map.boundingBox())!;
+        if (point.visible) {
+          await page.mouse.click(box.x + point.x * scale, box.y + point.y * scale);
+          return;
+        }
+        const lon = Math.max(-60, Math.min(60, wrapLongitude(target.lon - camera.lon)));
+        const lat = Math.max(-40, Math.min(40, target.lat - camera.lat));
+        const x = box.x + camera.cx * scale, y = box.y + camera.cy * scale;
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        await page.mouse.move(x - lon * camera.radius * camera.scale / 70 * scale,
+          y + lat * camera.radius * camera.scale / 70 * scale, { steps: 10 });
+        await page.mouse.up();
+      }
+      throw new Error(`Could not rotate ${id} onto the visible globe`);
+    }
+  }
   await openCities(page);
   await page.getByLabel('选择机场', { exact: true }).selectOption(id);
   await expect(page.getByRole('dialog', { name: '选择城市', exact: true })).toHaveCount(0);

@@ -14,7 +14,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     const title = page.locator('.airport-titlebar');
     const orders = page.locator('.apron-queue');
     const dock = page.locator('.game-dock');
-    const depart = page.getByRole('button', { name: '制定路线', exact: true });
+    const depart = page.getByRole('button', { name: '制定航线', exact: true });
 
     await expect(hud).toBeVisible();
     await expect(scene).toBeVisible();

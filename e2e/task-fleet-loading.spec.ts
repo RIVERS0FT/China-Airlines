@@ -31,7 +31,7 @@ test('one task entrance claims the initial gift exactly once and retains the air
   const dock = page.getByRole('navigation', { name: '主导航' });
   await expect(dock.getByRole('button')).toHaveCount(8);
   await expect(dock.locator(':scope > button > span')).toHaveText([
-    '地图', '机场装载', '机场目录', '机队管理', '飞机商店', '公司组织', '经营中心', '制定路线',
+    '地图', '机场装载', '机场目录', '机队管理', '飞机商店', '公司组织', '经营中心', '制定航线',
   ]);
   for (const name of ['运营任务', '奖励', '航班', '改装']) await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
   const selected = await page.locator('.plane-status').textContent(), credits = await page.getByTestId('credits').textContent();
@@ -182,7 +182,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`airpo
     expect(labelBox.x + labelBox.width).toBeLessThanOrEqual(buttonBox.x + buttonBox.width + 1);
     ordinaryWidth ||= buttonBox.width; ordinaryIconWidth ||= iconBox.width;
   }
-  const depart = dock.getByRole('button', { name: '制定路线', exact: true });
+  const depart = dock.getByRole('button', { name: '制定航线', exact: true });
   const departBox = (await depart.boundingBox())!, departIcon = (await depart.locator(':scope > .painted-icon').boundingBox())!, departLabel = (await depart.locator(':scope > span').boundingBox())!;
   expect(departBox.width).toBeGreaterThan(ordinaryWidth * 1.2);
   expect(departIcon.width).toBeGreaterThan(ordinaryIconWidth);

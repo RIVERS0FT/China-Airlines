@@ -3,13 +3,13 @@ import { DEPARTMENTS, directReports, staffIn, type Department, type Employee } f
 export const ORG_NODE_WIDTH = 122, ORG_NODE_HEIGHT = 124;
 export interface OrganizationNode { employee: Employee; x: number; y: number }
 /** Siblings share a rank. Department headings and vacant jobs never become fictitious managers. */
-export function organizationLayout(s: GameState, collapsed: Record<Department, boolean>, filter: Department | 'all' = 'all') {
-  const departments = (['flight','ground'] as const).filter(d => filter === 'all' || d === filter);
+export function organizationLayout(s: GameState, collapsed: Record<Department, boolean>) {
+  const departments = ['flight','ground'] as const;
   const width = departments.length * 456 + 32, founder = { x: (width - ORG_NODE_WIDTH) / 2, y: 8 };
   const nodes: OrganizationNode[] = [], edges: { path: string; direct: boolean }[] = [];
   const labels: { x: number; y: number; text: string }[] = [];
   const vacant: { department: Department; x: number; y: number }[] = [];
-  const pending = s.career.employees.filter(e => e.role === 'specialist' && e.managerId === null && !e.planeId && !e.airportId && (filter === 'all' || e.department === filter));
+  const pending = s.career.employees.filter(e => e.role === 'specialist' && e.managerId === null && !e.planeId && !e.airportId);
   let bottom = 360;
   for (const [i, department] of departments.entries()) {
     const left = 32 + i * 456, center = left + 204, manager = staffIn(s, department, 'manager')[0];

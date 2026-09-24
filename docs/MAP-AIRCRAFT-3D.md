@@ -1,6 +1,6 @@
 # 地图统一 3D 飞机
 
-用户于2026-09-15选定 A 款 Low Poly Airliner，并提供原始 GLB。首版仅替换浏览地图与制定路线中的飞机，不扩展到机场场景、机库或商店，不代表所有游戏机型的真实外形。
+用户于2026-09-15选定 A 款 Low Poly Airliner，并提供原始 GLB。首版仅替换浏览地图与制定航线中的飞机，不扩展到机场场景、机库或商店，不代表所有游戏机型的真实外形。
 
 ## 资源与渲染
 
@@ -30,5 +30,5 @@
 - 根路径 `npm run build` 与 `BASE_PATH=/China-Airlines/` 子路径生产构建通过；模型及署名进入两个版本的 PWA 预缓存。构建保留大块体积提示，新增按需加载的3D模块约625kB、gzip约159kB。
 - 根路径 Chromium 全量168项通过，报告 `artifacts/browser-root.json`。
 - 子路径 Chromium 全量首次167项通过、1项失败：既有离线测试将4173端口写死，误将4174的同站点请求判为外部请求。已改为使用测试配置的站点 origin；该项在根路径和子路径各复测1项通过。原始报告 `artifacts/browser-subpath.json`，复测报告 `artifacts/browser-root-offline-recheck.json` 和 `artifacts/browser-subpath-offline-recheck.json`；未改动离线业务实现。
-- 桌面1440×900、手机横屏844×390与667×375、竖屏提示、刷新恢复、导入导出、离线启动均覆盖。截图为 `artifacts/map-aircraft-a-1440.png`、`artifacts/map-aircraft-a-844.png`、`artifacts/map-aircraft-a-667.png` 与 `artifacts/map-aircraft-a-departure.png`。
+- 桌面1440×900、手机横屏844×390与667×375、竖屏提示、刷新恢复、导入导出、离线启动均覆盖。前三张模型区域截图 `artifacts/map-aircraft-a-1440.png`、`artifacts/map-aircraft-a-844.png`、`artifacts/map-aircraft-a-667.png` 直接复用真实像素断言的裁剪截图，不额外读取全屏 WebGL 画面；起飞场景另存 `artifacts/map-aircraft-a-departure.png`。失败截图和 Trace 仍保留。
 - 本节记录提交前的本地验收，后续合并与部署以对应 PR 和 Pages 工作流结果为准；未实测真实手机GPU、Safari或Firefox。

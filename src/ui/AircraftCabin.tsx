@@ -9,10 +9,10 @@ import './aircraft-cabin.css';
 import './cabin-allocation.css';
 
 /** One canvas, one measured scale, one mounted set of real orders. */
-export function AircraftCabin({ game, plane, busy, focusKey, onInspect }: { game: GameState; plane: Plane; busy: boolean; focusKey: number; onInspect: () => void }) {
+export function AircraftCabin({ game, plane, busy, focusKey, visible, onToggle }: { game: GameState; plane: Plane; busy: boolean; focusKey: number; visible: boolean; onToggle: () => void }) {
   const { ui } = useI18n();
   const frame = useRef<HTMLDivElement>(null), interior = useRef<HTMLDivElement>(null);
-  const [exterior, setExterior] = useState(false), [size, setSize] = useState({ width: 0, height: 0 });
+  const [size, setSize] = useState({ width: 0, height: 0 });
   const decks = cabinLayout(game, plane), art = cabinArtLayout(plane), fit = fitAircraft(size.width, size.height, art.canvas);
   const debug = import.meta.env.DEV && new URLSearchParams(location.search).has('cabinAnchors');
   useLayoutEffect(() => {
@@ -21,18 +21,17 @@ export function AircraftCabin({ game, plane, busy, focusKey, onInspect }: { game
     const observer = new ResizeObserver(measure); observer.observe(element); measure();
     return () => observer.disconnect();
   }, []);
-  useEffect(() => { if (focusKey > 0) setExterior(false); }, [focusKey]);
   useEffect(() => {
-    if (focusKey > 0 && !exterior) interior.current?.querySelector<HTMLElement>('.cabin-places')?.focus({ preventScroll: true });
-  }, [focusKey, exterior]);
+    if (focusKey > 0 && visible) interior.current?.querySelector<HTMLElement>('.cabin-places')?.focus({ preventScroll: true });
+  }, [focusKey, visible]);
   const rect = art.interior;
   const floor = (decks.length ? Math.max(...decks.map(deck => art.decks[deck.kind]!.floorY)) : rect.y + rect.height * .88) - rect.y;
-  return <div ref={frame} className="airplane-display cabin-aircraft" data-testid="plane-art" data-cabin-plane-id={plane.id} data-model-id={art.modelId} data-exterior={exterior || undefined}
+  return <div ref={frame} className="airplane-display cabin-aircraft" data-testid="plane-art" data-cabin-plane-id={plane.id} data-model-id={art.modelId} data-exterior={!visible || undefined}
     data-cabin-family={art.family} data-facing={art.direction} data-anchor-debug={debug || undefined}>
     <div className="aircraft-canvas" data-testid="aircraft-canvas" data-art-scale={fit.scale} style={{ width: art.canvas.width, height: art.canvas.height,
       left: fit.left, top: fit.top, visibility: fit.scale ? 'visible' : 'hidden', transform: `scale(${fit.scale})`, '--cabin-ui-unit': `${1 / (fit.scale || 1)}px` } as CSSProperties}>
       <img className="aircraft-exterior-art" data-testid="aircraft-view" src={artAsset(art.exterior)} alt="" aria-hidden="true" draggable={false}/>
-      <div ref={interior} inert={exterior} aria-hidden={exterior || undefined} className={`cabin-overlay cabin-interior ${decks.length === 1 ? 'single-deck' : 'stacked-decks'}`}
+      <div ref={interior} inert={!visible} aria-hidden={!visible || undefined} className={`cabin-overlay cabin-interior ${decks.length === 1 ? 'single-deck' : 'stacked-decks'}`}
         style={{ left: rect.x, top: rect.y, width: rect.width, height: rect.height }} data-testid="aircraft-cabin">
         <div className="cabin-shell" data-testid="procedural-cabin-shell" aria-hidden="true">
           <div className="cabin-shell-windows"/>
@@ -41,7 +40,6 @@ export function AircraftCabin({ game, plane, busy, focusKey, onInspect }: { game
         {decks.length ? decks.map((deck, index) => <CabinDeck key={`${plane.id}-${deck.kind}`} deck={deck} art={art} game={game} plane={plane} busy={busy} focusKey={focusKey} footerIndex={index} footerCount={decks.length}/>) : <p className="cabin-unallocated">尚未配置客货舱位，请前往机队管理改装。</p>}
       </div>
     </div>
-    <button className="cabin-inspect" aria-label={ui('查看机上客货')} onClick={onInspect}>{ui('机舱信息')}</button>
-    <button className="cabin-toggle" aria-pressed={exterior} onClick={() => setExterior(value => !value)}>{ui(exterior ? '查看机舱' : '查看外观')}</button>
+    <button className="cabin-toggle" aria-pressed={visible} onClick={onToggle}>{ui(visible ? '隐藏机舱' : '显示机舱')}</button>
   </div>;
 }

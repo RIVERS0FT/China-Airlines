@@ -17,7 +17,6 @@
 .aviation-game .route-dispatch-view .map-canvas{filter:saturate(1.05);width:100%;height:100%}
 .aviation-game .route-dispatch-view .map-plane-toggle{position:absolute;left:var(--edge);bottom:calc(var(--edge) + var(--action-h) + 14px);width:78px;min-height:60px;padding:4px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(#7fdaed,#3196bf);color:#fffce0;border:2px solid #2f6078;border-radius:6px;text-shadow:0 1px #1f4d65;z-index:3;font-size:14px}
 .aviation-game .route-dispatch-view .map-plane-toggle strong{font-size:13px}
-.aviation-game .route-dispatch-view .map-disclaimer{top:32px;right:8px;bottom:auto;writing-mode:vertical-rl;color:#ffed64;text-shadow:0 1px 2px #214c43;font-size:11px;letter-spacing:2px;z-index:2;pointer-events:none}
 .aviation-game .route-dispatch-view .map-fallback{left:20%;right:20%;top:28%;width:auto;transform:none;background:#fff7e2ed;color:#294858;padding:14px;text-align:center;border-radius:6px}
 .aviation-game .dispatch-route-buttons{position:absolute;left:var(--edge);bottom:var(--edge);display:flex;gap:var(--gap);z-index:3}
 .aviation-game .route-dispatch-view .route-console-button{width:var(--action);height:var(--action-h);min-height:var(--action-h);display:flex;flex-direction:column;gap:3px;padding:4px;border:3px solid #326d88;border-radius:8px;background:linear-gradient(#a0ebf4,#48bbdb 54%,#298bb5);box-shadow:inset 0 2px #e0ffff,0 2px #215269;color:#fff9df;text-shadow:0 2px #27516b;font-size:18px;line-height:1.2}
@@ -66,6 +65,5 @@
  .aviation-game .route-dispatch-view .dispatch-readout{grid-template-columns:1.04fr 1.06fr 1fr .92fr;gap:6px;padding-inline:5px}
  .aviation-game .dispatch-readout .dispatch-stat{gap:4px;font-size:12px}
  .dispatch-stat>strong{font-size:15px;padding-inline:4px}.dispatch-destination i{margin-left:2px;font-size:11px}
- .aviation-game .route-dispatch-view .map-disclaimer{font-size:10px;right:3px}
  .dispatch-warning{max-width:230px}
 }

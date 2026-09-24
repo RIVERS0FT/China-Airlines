@@ -12,9 +12,9 @@ import { OrderBoard } from './OrderBoard.js';
 import { ignore } from './Panels.js';
 
 /** Airport-specific scene composition; the shell owns navigation and page size. */
-export function AirportWorkspace({ game, context, busy, aboard, orderViewKey, onInspect, onSelectPlane, onCycle, onCabin, onTasks }: {
-  game: GameState; context: ReturnType<typeof airportScene>; busy: boolean; aboard: boolean; orderViewKey: number;
-  onInspect: (id: string) => void; onSelectPlane: (id: string) => void; onCycle: (direction: number) => void; onCabin: () => void; onTasks: () => void;
+export function AirportWorkspace({ game, context, busy, aboard, orderViewKey, cabinVisible, onToggleCabin, onInspect, onSelectPlane, onCycle, onCabin, onTasks }: {
+  game: GameState; context: ReturnType<typeof airportScene>; busy: boolean; aboard: boolean; orderViewKey: number; cabinVisible: boolean;
+  onToggleCabin: () => void; onInspect: (id: string) => void; onSelectPlane: (id: string) => void; onCycle: (direction: number) => void; onCabin: () => void; onTasks: () => void;
 }) {
   const { t, duration, airportName, modelName, ui } = useI18n();
   const { plane, airportId: current } = context;
@@ -36,7 +36,7 @@ export function AirportWorkspace({ game, context, busy, aboard, orderViewKey, on
     <div className="scene-wrap">
       {context.pinned && <button className="return-selected-plane" onClick={() => onSelectPlane(context.selected.id)}>{t('airport.backPlane', { id:context.selected.id })}</button>}
       {plane && plane.itinerary.length > 0 && <div className="itinerary-banner" data-testid="active-plan">{t('airport.onward', { route:plane.itinerary.map(city).join(' → ') })}</div>}
-      <AviationScene game={game} plane={plane} busy={busy} cabinFocusKey={aboard ? orderViewKey : 0} onCabin={onCabin}/><AirportSceneTools game={game} plane={plane} onTasks={onTasks}/>
+      <AviationScene game={game} plane={plane} busy={busy} cabinFocusKey={aboard ? orderViewKey : 0} cabinVisible={cabinVisible} onToggleCabin={onToggleCabin} onCabin={onCabin}/><AirportSceneTools game={game} plane={plane} onTasks={onTasks}/>
       <button className="switch-plane previous" aria-label={t('airport.previousPlane')} disabled={context.choices.length < 2} onClick={() => onCycle(-1)}>◀</button><button className="switch-plane next" aria-label={t('airport.nextPlane')} disabled={context.choices.length < 2} onClick={() => onCycle(1)}>▶</button>
       {flight && <div className="air-progress"><span>{city(flight.from)}</span><progress aria-label={t('flight.progress', { from:city(flight.from), to:city(flight.to) })} max={1} value={Math.max(0, (game.simTime - flight.departAt) / (flight.arriveAt - flight.departAt))}/><span>{city(flight.to)}</span></div>}
       {status?.flight && <div className="scene-flight-summary"><FlightMoney flight={status.flight}/></div>}

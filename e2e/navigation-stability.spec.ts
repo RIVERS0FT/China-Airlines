@@ -83,6 +83,8 @@ for (const config of cases) {
       await expect(ordinary(page).nth(index)).toHaveAttribute('aria-current', 'page');
       await expectStable(page, baseline);
       await page.keyboard.press('Escape');
+      await expect(page.locator('.ui-page')).toHaveCount(1);
+      await ordinary(page).nth(1).click();
       await expect(page.locator('.ui-page')).toHaveCount(0);
       await expect(page.locator('dialog[open]')).toHaveCount(0);
       await expectStable(page, baseline);
@@ -106,6 +108,8 @@ for (const config of cases) {
     await expect(page.locator('dialog[open]')).toHaveCount(0);
     await expectStable(page, baseline);
     await page.keyboard.press('Escape');
+    await expect(page.getByTestId('page-career')).toBeVisible();
+    await ordinary(page).nth(0).click();
     await expect(page.locator('.ui-page')).toHaveCount(0);
     await expect(page.locator('.world-map-view')).toBeVisible();
     await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-camera', camera!);

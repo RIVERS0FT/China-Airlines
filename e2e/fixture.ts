@@ -18,7 +18,7 @@ export async function allocateCabin(page: Page, planeId: string, passengers: num
   await allocation.getByRole('spinbutton', { name: '货位' }).fill(String(cargo));
   await allocation.getByRole('button', { name: '确认客货改装' }).click();
   await expect(allocation).toContainText(`已分配 ${passengers + cargo} 格`);
-  await page.locator('[data-page="fleet"] .ui-close-button').click();
+  await page.locator('.game-dock>button').nth(1).click();
 }
 
 /** Existing gameplay specs begin in the airport workspace. The title/default-map

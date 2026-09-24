@@ -4,4 +4,3 @@
 .aviation-game .map-area.is-compact .map-controls{top:7px;right:9px;bottom:auto;flex-direction:row;gap:5px}
 .aviation-game .map-area.is-compact .map-controls button{width:34px;height:34px;min-height:34px;font-size:18px;padding:2px}
 .aviation-game .map-area.is-compact .map-legend{left:12px;bottom:7px;font-size:10px;gap:12px}
-.aviation-game .map-area.is-compact .map-disclaimer{right:10px;bottom:7px;font-size:9px;letter-spacing:0}

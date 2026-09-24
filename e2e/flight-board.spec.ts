@@ -57,7 +57,7 @@ test('fleet filters switch scenes only and the workshop keeps the chosen aircraf
   await page.getByRole('button',{name:`查看${second}飞机`}).click();await expect(page.getByRole('tab', { name: '飞机', exact: true })).toHaveAttribute('aria-selected', 'true');await page.getByRole('button', { name: '前往这架飞机', exact: true }).click();await expect(page.locator('.plane-status')).toContainText(second);
   await expect(page.locator('.aviation-stage.is-flying')).toHaveCount(0);await expect(page.getByTestId('credits')).toHaveText(money(s.credits));
   await openGlobal(page, '机队管理');await expect(page.locator('.hangar-selector button[aria-pressed=true]')).toContainText(second);
-  await page.getByRole('button',{name:'关闭机队管理'}).click();await openGlobal(page, '机队管理概览');
+  await page.getByRole('navigation',{name:'主导航'}).getByRole('button',{name:'机场装载',exact:true}).click();await openGlobal(page, '机队管理概览');
   await page.getByRole('button',{name:/^飞行中的飞机/}).click();await page.getByRole('button',{name:`查看${ID}飞机`}).click();await expect(page.getByRole('tab', { name: '飞机', exact: true })).toHaveAttribute('aria-selected', 'true');await page.getByRole('button', { name: '前往这架飞机', exact: true }).click();
   await expect(page.locator('.aviation-stage.is-flying')).toBeVisible();await expect(page.getByTestId('credits')).toHaveText(money(s.credits));
 });
@@ -69,7 +69,7 @@ test('a next leg appears only after departure and final delivery cannot be repea
   await openGlobal(page, '机队管理概览');await expect(page.locator(`[data-plane-id="${ID}"] .flight-route`)).toContainText('武汉 → 上海');
   await page.clock.fastForward(1_200_000);await page.getByRole('button',{name:/^飞行中的飞机/}).click();await expect(page.getByTestId('flight-row')).toHaveCount(0);
   await expect(page.getByText('当前没有飞行中的飞机。',{exact:true})).toBeVisible();await page.getByRole('button',{name:'显示全部飞机',exact:true}).click();await expect(page.getByTestId('flight-row')).toHaveCount(2);
-  await page.getByRole('button',{name:'关闭机队管理'}).click();const credits=money(s0.credits-q.cost+q.revenue);
+  await page.getByRole('navigation',{name:'主导航'}).getByRole('button',{name:'机场装载',exact:true}).click();const credits=money(s0.credits-q.cost+q.revenue);
   await expect(page.getByTestId('credits')).toHaveText(credits);await expect(page.getByTestId('flights-count')).toHaveText('3 班');
   await page.reload();await expect(page.getByTestId('credits')).toHaveText(credits);await expect(page.getByTestId('flights-count')).toHaveText('3 班');
 });
@@ -102,6 +102,8 @@ for(const viewport of [{width:1440,height:900},{width:844,height:390},{width:667
   if(viewport.width>=1000)await expect(row.getByRole('group',{name:'当前航班收支'})).toBeInViewport();
   await page.getByRole('button',{name:`查看${ID}飞机`}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:`查看${ID}飞机`})).toBeInViewport();
   await page.screenshot({path:`artifacts/fleet-board-${viewport.width}.png`});await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByTestId('page-fleet')).toHaveCount(0);await expect(page.getByRole('button',{name:'机队管理概览',exact:true})).toBeFocused();
+  await expect(page.getByTestId('page-fleet')).toBeVisible();
+  const airportNav=page.getByRole('navigation',{name:'主导航'}).getByRole('button',{name:'机场装载',exact:true});await airportNav.click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByTestId('page-fleet')).toHaveCount(0);await expect(airportNav).toBeFocused();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

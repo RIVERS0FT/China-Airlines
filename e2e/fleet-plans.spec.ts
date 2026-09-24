@@ -6,7 +6,7 @@ test.afterEach(()=>expect(errors).toEqual([]));
 async function ready(page:Page){await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');}
 async function plan(page:Page){
   await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();
-  await page.getByRole('button',{name:'制定路线',exact:true}).click();
+  await page.getByRole('button',{name:'制定航线',exact:true}).click();
   await expect(page.getByRole('button',{name:'选择目的城市',exact:true})).toBeVisible();
   await selectCity(page, 'WUH');
   const detail=page.getByRole('dialog',{name:'机场详情',exact:true});
@@ -23,7 +23,7 @@ test('specialist purchase, real cargo loading, workshop retrofit and hangar expa
   await expect(page.getByTestId('shop-aircraft')).toHaveCount(10);
   await page.screenshot({path:'artifacts/desktop-specialist-shop.png'});
   await page.getByRole('button',{name:'购买雨燕 III',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
-  await page.getByRole('button',{name:'关闭飞机商店'}).click();await allocateCabin(page,'AC0002',0,4);await page.getByRole('button',{name:'下一架飞机'}).click();
+  await page.getByRole('button',{name:'机场装载'}).click();await allocateCabin(page,'AC0002',0,4);await page.getByRole('button',{name:'下一架飞机'}).click();
   await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 0 人');
   await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await expect(page.getByTestId('loaded-order')).toHaveCount(4);
   await openGlobal(page, '机队管理');

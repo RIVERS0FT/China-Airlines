@@ -27,6 +27,7 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
   const inFlight = Boolean(active), from = plane?.airportId ?? 'PEK';
   const preview = !browsing && plane && !inFlight ? routePreview(game, plane, stops) : null;
   function dismissTip() { if (!browsing) { tipSeen = true; setTip(false); } }
+  function openCities() { dismissTip(); setCitySearch(''); setContinent('all'); setCitiesOpen(true); }
   function appendUnlockedStop(id: string) {
     if (browsing || !plane || inFlight || id === (stops.at(-1) ?? plane.airportId) || stops.length >= MAX_PLAN_LEGS) return;
     setStops(previous => {
@@ -61,8 +62,7 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
       <div className="dispatch-stat dispatch-cost"><span>{t('map.cost')}</span><strong data-testid="network-cost">{summary ? formatMoney(summary.cost) : stops.length ? '—' : formatMoney(0)}</strong></div>
     </div>}
     <div className="network-map">
-      <MapView game={game} plane={plane} selected={destination} onSelect={chooseAirport} preview={preview} planning={!browsing} showOthers={browsing || showOthers} onToggleOthers={() => { dismissTip(); setShowOthers(value => !value); }}/>
-      {browsing && <button type="button" className="world-map-search" aria-haspopup="dialog" onClick={() => { setCitySearch(''); setContinent('all'); setCitiesOpen(true); }}>{t('map.find')}</button>}
+      <MapView game={game} plane={plane} selected={destination} onSelect={chooseAirport} onOpenCities={openCities} preview={preview} planning={!browsing} showOthers={browsing || showOthers} onToggleOthers={() => { dismissTip(); setShowOthers(value => !value); }}/>
       {browsing && <p className="world-map-guide">{t('map.guide')}</p>}
       {!browsing && tip && !active && <div className="dispatch-tip" role="status"><span>{t('map.routeTip')}</span><button aria-label={t('map.closeTip')} onClick={dismissTip}>×</button></div>}
       {!browsing && <PlanControls game={game} plane={plane} stops={stops} setStops={value => { dismissTip(); setStops(value); if (value.length !== 1) setAuto(false); }} auto={auto} setAuto={setAuto} busy={busy} onDepart={onDepart} onCancel={onReturn} onDetails={dismissTip}/>}

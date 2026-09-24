@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
-  testDir: './e2e', fullyParallel: false, workers: 1, retries: 0, failOnFlakyTests: true,
+  testDir: './e2e', fullyParallel: false, workers: process.env.CI ? 1 : 2, retries: 0, failOnFlakyTests: true,
+  maxFailures: process.env.CI ? 1 : 0,
   timeout: process.env.CI ? 90_000 : 30_000,
   expect: { timeout: process.env.CI ? 20_000 : 5_000 },
   reporter: [['list'], ['json', { outputFile: process.env.BASE_PATH ? 'artifacts/browser-subpath.json' : 'artifacts/browser-root.json' }], ['html', { open: 'never' }]],
