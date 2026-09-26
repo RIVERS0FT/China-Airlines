@@ -15,7 +15,12 @@
     "build": "node scripts/verify-aircraft-exteriors.mjs && node scripts/icons.mjs && tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test:e2e": "playwright test",
-    "art:verify": "node scripts/verify-aircraft-exteriors.mjs"
+    "art:verify": "node scripts/verify-aircraft-exteriors.mjs",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:assets": "vitest run tests/assets",
+    "test:flows": "playwright test e2e/flows",
+    "test:ui": "playwright test e2e/functional e2e/presentation"
   },
   "dependencies": {
     "dexie": "^4.2.0",

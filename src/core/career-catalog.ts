@@ -43,7 +43,7 @@ export interface AircraftModel {
     capacity: string;
   };
 }
-const AIRCRAFT_ART_REVISION = "v7";
+const AIRCRAFT_ART_REVISION = "v8";
 const families = [
   {
     id: "swift",
@@ -118,30 +118,30 @@ const DA40_MODEL: AircraftModel = {
   capacity: 1,
   range: 1730,
   speed: 285,
-  price: 4000,
+  price: 2300,
   level: 1,
   costKm: 0.12,
   weight: 140,
   energy: 180,
   rank: 1,
-  art: "aircraft-diamond-da40-exterior-v7.png",
+  art: "aircraft-diamond-da40-exterior-v8.png",
   reference: {
     prototype: "Diamond DA40 NG",
     capacity: "4座（含飞行员）· 最大有效载荷407 kg",
   },
 };
-// Ten distinct game capacity grades reuse ten independent, original v7 exteriors.
+// Ten capacity grades each have an independent original exterior.
 // The suffix only identifies the existing art asset; it is never a service type.
 const grades = [
   ['swift-p', 0, 2, '雨燕 I', 5500, 1],
-  ['swift-m', 0, 3, '雨燕 II', 7000, 1],
-  ['swift-f', 0, 4, '雨燕 III', 9000, 1],
-  ['heron-p', 1, 5, '苍鹭 I', 18000, 3],
-  ['heron-m', 1, 6, '苍鹭 II', 25000, 4],
-  ['heron-f', 1, 7, '苍鹭 III', 33000, 5],
-  ['albatross-p', 2, 8, '信天翁 I', 65000, 6],
-  ['albatross-m', 2, 9, '信天翁 II', 85000, 8],
-  ['aurora-p', 3, 10, '极光', 150000, 10],
+  ['swift-m', 0, 3, '雨燕 II', 8500, 1],
+  ['swift-f', 0, 4, '雨燕 III', 12500, 1],
+  ['heron-p', 1, 5, '苍鹭 I', 22000, 3],
+  ['heron-m', 1, 6, '苍鹭 II', 32000, 4],
+  ['heron-f', 1, 7, '苍鹭 III', 45000, 5],
+  ['albatross-p', 2, 8, '信天翁 I', 80000, 6],
+  ['albatross-m', 2, 9, '信天翁 II', 115000, 8],
+  ['aurora-p', 3, 10, '极光', 180000, 10],
 ] as const;
 const FAMILY_MODELS: AircraftModel[] = grades.map(([id, familyIndex, capacity, name, price, rank]) => {
   const f = families[familyIndex];
@@ -151,23 +151,13 @@ const FAMILY_MODELS: AircraftModel[] = grades.map(([id, familyIndex, capacity, n
     art: `aircraft-${id}-exterior-${AIRCRAFT_ART_REVISION}.png`, reference: f.reference };
 });
 export const MODELS: readonly AircraftModel[] = [DA40_MODEL, ...FAMILY_MODELS];
-export const STARTER_MODEL: AircraftModel = {
-  ...FAMILY_MODELS[1]!,
-  id: "starter-swift",
-  name: "雨燕 初航号",
-  capacity: 5,
-  price: 6000,
-  role: "初始通用机身",
-  art: `aircraft-starter-swift-exterior-${AIRCRAFT_ART_REVISION}.png`,
-};
-export const ALL_MODELS: readonly AircraftModel[] = [STARTER_MODEL, ...MODELS];
+export const ALL_MODELS: readonly AircraftModel[] = MODELS;
 export const model = (id: string): AircraftModel => {
   const m = ALL_MODELS.find((m) => m.id === id);
   if (!m) throw new Error("未知机型");
   return m;
 };
-export const modernModel = (id: string) =>
-  id === STARTER_MODEL.id || MODELS.some((m) => m.id === id);
+export const modernModel = (id: string) => MODELS.some((m) => m.id === id);
 export function aircraftSpecs(p: {
   modelId: string;
   upgrades: Upgrades;
@@ -198,6 +188,14 @@ export const cabinAllocationPrice = (
 ) => Math.max(0, next.passengers + next.cargo - current.passengers - current.cargo) * 120 +
   Math.max(0, next.passengers - current.passengers) * 80 +
   Math.max(0, next.cargo - current.cargo) * 100;
+export function growthPrice(p: { modelId: string; tuning: Tuning }, key: 'group' | 'evolution' | 'power') {
+  const next = p.tuning[key] + 1, price = model(p.modelId).price;
+  const gold = key === 'group' ? Math.ceil(price * 0.2 * next ** 1.5 / 100) * 100
+    : key === 'evolution' ? Math.ceil(price * 0.08 * next / 100) * 100 : next * 500;
+  return { gold, tickets: next * 2 };
+}
+// Building an aircraft must not create a buy-parts/assemble/resell money loop.
+export const assemblyPrice = (modelId: string) => Math.ceil(model(modelId).price * 0.6);
 export const upgradeLimit = (_p: { modelId: string }, key: keyof Upgrades) =>
   key === "capacity" ? 0 : 99;
 export const upgradeTickets = (
@@ -351,7 +349,7 @@ export const CAREER_TASKS = [
     title: "三城航网",
     metric: "airports",
     target: 3,
-    gold: 3000,
+    gold: 1800,
     tickets: 12,
   },
   {
@@ -359,7 +357,7 @@ export const CAREER_TASKS = [
     title: "稳定班期",
     metric: "flights",
     target: 10,
-    gold: 5000,
+    gold: 2500,
     tickets: 20,
   },
   {
@@ -406,7 +404,7 @@ export const CAREER_TASKS = [
 
 export const TASKS = OLD_TASKS.map((t, i) => ({
   ...t,
-  reward: [1500, 3000, 4000, 6000][i]!,
+  reward: [1500, 1200, 4000, 3000][i]!,
 }));
 export const hangarPrice = (slots: number) => 2000 + slots * 500;
-export const upgradePrice = (level: number) => (level === 1 ? 6000 : 18000);
+export const upgradePrice = (level: number) => (level === 1 ? 8000 : 24000);

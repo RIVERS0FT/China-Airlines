@@ -47,7 +47,7 @@ export function AirportDirectory({ game, onInspect }: { game: GameState; onInspe
   return <section ref={root} className="airport-directory">
     <PageToolbar className="airport-directory-tools">
       <div role="group" aria-label={ui('机场筛选')} className="airport-filters">
-        {(['open', 'locked', 'all'] as const).map(kind => <button key={kind} type="button" aria-pressed={filter === kind} onClick={() => changeFilter(kind)}>
+        {(['open', 'locked', 'all'] as const).map(kind => <button key={kind} type="button" data-guide={kind === 'locked' ? 'locked-airports' : undefined} aria-pressed={filter === kind} onClick={() => changeFilter(kind)}>
           {kind === 'open' ? ui('已开放 {count}', { count:game.airports.length }) : kind === 'locked' ? ui('未开放 {count}', { count:AIRPORTS.length - game.airports.length }) : ui('全部 {count}', { count:AIRPORTS.length })}
         </button>)}
       </div>

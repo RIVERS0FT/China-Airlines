@@ -1,0 +1,137 @@
+import { test, expect } from '../helpers/configured-airport.js';
+import { GameCore, orderReward, validateSave } from '../helpers/configured-game.js';
+import { selectCity, launchRoute } from '../helpers/dispatch-helpers.js';
+
+test('destination stations group different destinations while preserving individual loading', async ({ page }) => {
+  const now = Date.now(), core = new GameCore(now);
+  core.execute({ type: 'unlock', airportId: 'WUH' }, now);
+  const state = core.snapshot();
+  const orders = state.orders.filter(order => order.location === 'PEK');
+  orders.forEach((order, index) => {
+    order.to = index % 2 ? 'WUH' : 'PVG';
+    order.reward = orderReward(order.from, order.to, order.kind, order.amount, order.service);
+  });
+  validateSave(state);
+  await page.goto('./');
+  page.on('dialog', dialog => void dialog.accept());
+  await page.getByRole('button', { name: '存档设置', exact: true }).click();
+  await page.getByLabel('选择存档文件').setInputFiles({ name: 'stations.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(state)) });
+  await expect(page.getByTestId('credits')).toHaveText('¥ 11,500');
+  await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
+  await expect(page.locator('.destination-station')).toHaveCount(2);
+  for (const city of ['上海', '武汉']) {
+    const group = page.getByRole('group', { name: `前往${city}的客货`, exact: true });
+    await expect(group.getByTestId('waiting-order')).toHaveCount(orders.length / 2);
+    await expect(group.locator('.destination-station')).toHaveCount(1);
+    const sign = (await group.locator('.destination-station').boundingBox())!;
+    const passenger = (await group.getByTestId('waiting-order').first().boundingBox())!;
+    expect(sign.x + sign.width).toBeLessThanOrEqual(passenger.x);
+    for (const item of await group.getByTestId('waiting-order').all()) await expect(item).toHaveAttribute('aria-label', new RegExp(`前往${city}`));
+  }
+  await page.getByRole('group', { name: '前往武汉的客货', exact: true }).getByTestId('waiting-order').first().click();
+  await expect(page.getByRole('button', { name: '隐藏机舱', exact: true })).toBeVisible();
+  await expect(page.getByTestId('loaded-order')).toHaveCount(1);
+  await expect(page.getByRole('group', { name: '前往武汉的客货', exact: true }).locator('.destination-station')).toHaveText('武汉');
+  await page.screenshot({ path: 'artifacts/destination-stations-loaded.png' });
+});
+
+test('first flight is guided through the mission without a bottom tutorial entry', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-09-12T00:00:00Z') });
+  await page.goto('./');
+  await expect(page.locator('.start-guide, .dock-status')).toHaveCount(0);
+  // Claim the initial gift, then the persistent entrance resumes the first-flight guide.
+  await page.getByRole('button', { name: '任务中心', exact: true }).click();
+  await page.locator('[data-task-id="checkin-0"]').getByRole('button', { name: '领取奖励', exact: true }).click();
+  await page.getByRole('button', { name: '关闭任务中心', exact: true }).click();
+  await expect(page.locator('.airport-mission')).toContainText('装载首航订单');
+  await page.getByRole('button', { name: '任务中心', exact: true }).click();
+  await expect(page.getByTestId('first-flight-task')).toContainText('装载首航订单');
+  await page.getByRole('button', { name: '前往装载', exact: true }).click();
+  await page.getByTestId('waiting-order').first().click();
+  await expect(page.locator('.airport-mission')).toContainText('制定首航路线');
+  await page.getByRole('button', { name: '任务中心', exact: true }).click();
+  await page.getByRole('button', { name: '规划首航', exact: true }).click();
+  await selectCity(page, 'PEK'); await selectCity(page, 'PVG'); await launchRoute(page);
+  await expect(page.locator('.airport-mission')).toContainText('观察航班到达');
+  await page.reload();
+  await expect(page.locator('.airport-mission')).toContainText('观察航班到达');
+  await page.clock.fastForward(400_000);
+  const resume = page.getByRole('button', { name: '继续经营', exact: true });
+  if (await resume.isVisible()) await resume.click();
+  await expect(page.locator('.airport-mission')).toContainText('领取首航奖励');
+  await page.getByRole('button', { name: '任务中心', exact: true }).click();
+  await page.locator('[data-task-id="first-flight"]').getByRole('button', { name: '领取奖励', exact: true }).click();
+  await page.getByRole('tab', { name: /^已领取/ }).click();
+  await expect(page.locator('[data-task-id="first-flight"]').getByRole('button', { name: '已领取', exact: true })).toBeDisabled();
+  await expect(page.getByTestId('first-flight-task')).toHaveCount(0);
+});
+
+test('loading and unloading move an order between the apron and cabin without a toolbar', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.getByTestId('waiting-order')).toHaveCount(12);
+  await expect(page.locator('.job-quantity')).toHaveCount(0);
+  await expect(page.locator('.order-toolbar')).toHaveCount(0);
+  const item = page.getByTestId('waiting-order').first();
+  const id = await item.getAttribute('data-order-id');
+  const price = await item.locator('.job-price').textContent();
+  await item.click();
+  const loaded = page.locator(`[data-order-id="${id}"]`);
+  await expect(loaded).toHaveAttribute('data-testid', 'loaded-order');
+  await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toHaveCount(1);
+  await expect(page.locator('.apron-queue').locator(`[data-order-id="${id}"]`)).toHaveCount(0);
+  await expect(loaded.locator('.cabin-destination')).toHaveText('上海');
+  await expect(loaded.locator('.job-price')).toHaveText(price!);
+  await expect(loaded.locator('.job-state')).toHaveCount(0);
+  await loaded.click();
+  await expect(loaded).toHaveAttribute('data-testid', 'waiting-order');
+  await expect(page.locator('.apron-queue').locator(`[data-order-id="${id}"]`)).toHaveCount(1);
+  await expect(loaded.locator('.job-state')).toHaveCount(0);
+  await loaded.click();
+  await expect(page.getByRole('button', { name: '查看机上客货', exact: true })).toHaveCount(0);
+  await expect(page.getByTestId('loaded-order')).toHaveCount(1);
+  await page.getByRole('button', { name: '机场装载', exact: true }).click();
+  await expect(page.getByTestId('waiting-order')).toHaveCount(11);
+});
+
+test('loaded orders stay visible in the default cabin after using airport navigation', async ({ page }) => {
+  await page.goto('./');
+  await page.getByTestId('waiting-order').first().click();
+  await expect(page.getByRole('button', { name: '隐藏机舱', exact: true })).toBeVisible();
+  await expect(page.getByTestId('loaded-order')).toHaveCount(1);
+  await page.getByRole('button', { name: '机场装载', exact: true }).click();
+  await expect(page.getByTestId('waiting-order')).toHaveCount(11);
+});
+
+for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
+  test(`airport entry buttons actually open their destination at ${width}`, async ({ page }) => {
+    await page.setViewportSize({ width: width!, height: height! });
+    await page.goto('./');
+    await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
+    for (const [button, title, role] of [
+      ['机队管理概览', '机队管理', 'main'], ['机场目录', '机场目录', 'main'], ['机队管理', '机队管理', 'main'],
+      ['飞机商店', '飞机商店', 'main'], ['任务中心', '任务中心', 'dialog'], ['操作帮助', '起航指南', 'dialog'],
+      ['存档设置', '本地存档与设置', 'dialog'], ['当前机场详情', '机场详情', 'dialog'],
+    ] as const) {
+      const control = page.getByRole('button', { name: button, exact: true });
+      await control.click();
+      await expect(page.getByRole(role, { name: title, exact: true })).toBeVisible();
+      if (role === 'main') await page.getByRole('navigation', { name: '主导航' }).getByRole('button', { name: '机场装载', exact: true }).click();
+      else await page.keyboard.press('Escape');
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      await expect(page.locator('.ui-page')).toHaveCount(0);
+    }
+    await expect(page.locator('.airport-shortcuts')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '显示机体客货示意', exact: true })).toHaveCount(0);
+    await expect(page.locator('.cabin-overlay')).toBeVisible();
+    await expect(page.locator('.airport-nameplate')).toHaveCount(0);
+    await expect(page.locator('.destination-station')).toHaveCount(1);
+    await expect(page.locator('.destination-station')).toHaveText('上海');
+    await expect(page.locator('.job-destination')).toHaveCount(0);
+    const occupant = page.getByTestId('waiting-order').first();
+    expect(await occupant.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
+    expect(await occupant.evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('0px');
+    await expect(occupant).toHaveAttribute('data-load-state', 'waiting');
+    expect(await occupant.locator('.job-info').evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('0px');
+    await page.screenshot({ path: `artifacts/airport-controls-${width}.png` });
+  });
+}

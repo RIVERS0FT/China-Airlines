@@ -7,8 +7,6 @@
 .aviation-game .dispatch-readout .dispatch-stat{display:flex;gap:10px;align-items:center;min-width:0;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#fff;font-size:17px;text-shadow:0 1px 2px #111;white-space:nowrap}
 .dispatch-stat>span{font-weight:800;flex-shrink:0}
 .dispatch-stat>strong{position:relative;min-width:0;flex:1;background:linear-gradient(#252b28,#343b36);border:2px solid #242825;border-radius:4px;padding:4px 8px;box-shadow:inset 0 2px 4px #1118;font-size:23px;font-variant-numeric:tabular-nums;font-weight:600;line-height:30px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
-.dispatch-destination i{font-size:13px;float:right;margin-left:6px;font-style:normal;color:#cbd3bf}
-.aviation-game .dispatch-readout .dispatch-destination:hover{background:transparent}.dispatch-destination:hover strong{border-color:#83c8d5}
 .dispatch-profit>strong,.dispatch-cost>strong{color:#ff5348}
 .aviation-game .dispatch-readout .dispatch-time{position:relative}
 .aviation-game .dispatch-time:after{content:'';position:absolute;z-index:-1;left:-12px;right:-12px;bottom:-17px;height:18px;border:0 solid #161b1a;border-width:0 3px 3px;border-radius:0 0 24px 24px;background:#303434}
@@ -64,6 +62,6 @@
  .aviation-game .route-dispatch-view{--action:54px;--gap:5px}
  .aviation-game .route-dispatch-view .dispatch-readout{grid-template-columns:1.04fr 1.06fr 1fr .92fr;gap:6px;padding-inline:5px}
  .aviation-game .dispatch-readout .dispatch-stat{gap:4px;font-size:12px}
- .dispatch-stat>strong{font-size:15px;padding-inline:4px}.dispatch-destination i{margin-left:2px;font-size:11px}
+ .dispatch-stat>strong{font-size:15px;padding-inline:4px}
  .dispatch-warning{max-width:230px}
 }

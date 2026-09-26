@@ -1,0 +1,17 @@
+{
+  "tool": "built-in image_gen",
+  "generatedAt": "2026-09-26",
+  "processing": "Original generated PNG files copied unchanged to public/art. No raster edits or alpha removal.",
+  "images": [
+    {
+      "file": "flight-cloudscape-v1.png",
+      "source": "exec-1c65553f-2ba5-4cb5-a069-ae5bd0ddcdce.png",
+      "prompt": "Use case: stylized-concept. Asset type: original 2D airline management game flight background, landscape 1536x1024. Create a beautifully hand-painted anime game panoramic sky above a sea of clouds. Bright cerulean sky blending into pale cyan atmospheric horizon, warm ivory sunlit cumulus banks across the LOWER THIRD, tiny distant layered blue mountains glimpsed below the clouds. Clean airy central 60 percent for a separately composited side-view airplane. Polished soft painterly shading, coherent blue-white-gold palette matching an illustrated airport game. Natural daylight, serene sense of altitude, crisp but not photorealistic. The cloud banks remain low and the horizon is level. Left and right edges have comparable light and cloud density. No airplane, no objects in center, no people, no buildings, no text, no letters, no logo, no frame, no UI. Full-bleed opaque background. Save the generated image; the project will layer its existing aircraft over this art."
+    },
+    {
+      "file": "flight-cloud-bank-v1.png",
+      "source": "exec-acc90e9c-7e37-4d0f-9843-c6c19156dce0.png",
+      "prompt": "Use case: stylized-concept. Asset type: original standalone 2D cloud sprite for airline management game parallax, wide landscape canvas 1536x1024 with true transparent background. One elongated graceful bank of fluffy white cumulus clouds, soft ivory sunlit rounded upper lobes, faint powder-blue and lavender shading beneath, delicately fading wispy edges, restrained hand-painted anime game illustration, bright blue-white-gold aviation game aesthetic. Occupy the middle horizontal band, preserve large fully transparent margins on all four sides; no cropping. Strong readable silhouette and subtle translucent edge wisps. The image must contain ONLY the cloud bank on actual alpha transparency. NO colored backdrop, NO sky, NO rectangular gradient, NO checkerboard pattern baked into pixels, NO ground, no aircraft, no text, no frame, no watermark."
+    }
+  ]
+}

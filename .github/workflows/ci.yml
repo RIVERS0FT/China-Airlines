@@ -61,7 +61,7 @@ jobs:
           npm audit --omit=dev --audit-level=moderate --json > artifacts/npm-audit-runtime.json
       - name: Typecheck
         run: npm run typecheck
-      - name: Domain and persistence tests
+      - name: Unit functions, company lifecycle and persistence tests
         run: npm test -- --reporter=default --reporter=json --outputFile=artifacts/unit-tests.json
       - name: Production build (${{ matrix.name }})
         run: npm run build

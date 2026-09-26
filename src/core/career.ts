@@ -9,6 +9,8 @@ import {
   CAREER_TASKS,
   emptyTuning,
   modernModel,
+  growthPrice,
+  assemblyPrice,
   type Material,
   type Building,
 } from "./career-catalog.js";
@@ -117,7 +119,7 @@ export const newCareer = (simTime: number, now: number): Career => ({
   nextDayAt: simTime + (86400 - ((Math.floor(now / 1000) + 28800) % 86400)),
   seed: 1709,
   nextId: 1,
-  airportPeak: 2,
+  airportPeak: 1,
   inventory: inventory(),
   warehouses: {},
   stored: [],
@@ -398,7 +400,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
     }
     case "assemble-plane": {
       const m = model(command.modelId);
-      guard(modernModel(m.id) && m.id !== "starter-swift", "该机型不可组装");
+      guard(modernModel(m.id), "该机型不可组装");
       guard(careerLevel(s) >= m.rank, "公司等级不足");
       guard(
         s.airports.some(
@@ -413,7 +415,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
         engine: m.level,
         blueprint: 1,
       });
-      bill(s, Math.floor(m.price * 0.3), m.level * 2);
+      bill(s, assemblyPrice(m.id), m.level * 2);
       const p: Plane = {
         id: `AC${String(s.nextId++).padStart(4, "0")}`,
         modelId: m.id,
@@ -463,7 +465,8 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       guard(p.tuning[key] < limit, "已达到最高等级");
       guard(key !== "evolution" || p.tuning.group >= 2, "编队2级后可进化");
       const n = p.tuning[key] + 1;
-      bill(s, n * 500, n * 2);
+      const price = growthPrice(p, key);
+      bill(s, price.gold, price.tickets);
       if (key !== "power") consume(c.inventory, { frame: n, engine: n });
       p.tuning[key]++;
       return "机体成长完成";
@@ -651,7 +654,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
     case "close-airport": {
       const id = command.airportId;
       guard(!c.employees.some(e => e.airportId === id), '请先调离当地地勤人员');
-      guard(!["PEK", "PVG"].includes(id), "初始枢纽不能关闭");
+      guard(id !== "PEK", "初始枢纽不能关闭");
       guard(
         s.airports.some((a) => a.id === id),
         "机场未开放",

@@ -16,7 +16,7 @@ export function TaskCenter({ game, plane, busy, onNext, onEmployee }: {
   const { ui, text, locale } = useI18n();
   const [filter, setFilter] = useState<TaskState>(() => items.some(t => t.state === 'claimable') ? 'claimable' : 'active');
   const tabs = useRef<HTMLDivElement>(null);
-  const next = plane ? guideStep(game, plane, 'airport', '') : null;
+  const next = guideStep(game, plane, 'airport', '');
   const shown = items.filter(t => t.state === filter);
   return <section className="task-center content-page">
     <div className="task-center-summary"><strong>{ui('任务与奖励')}</strong><span>{ui('运营资金 {credits} · 点券 {tickets}',{credits:money(game.credits),tickets:game.career.tickets})}</span></div>
@@ -35,7 +35,7 @@ export function TaskCenter({ game, plane, busy, onNext, onEmployee }: {
       {shown.map(t => <article className={`task-card task-${t.state}`} key={t.key} data-task-id={t.id}>
         <div className="task-icon"><Icon name="task"/></div>
         <div className="task-body"><small>{ui(t.category)}</small><h3 id={`task-name-${t.id}`}>{ui(t.title)}</h3><p>{ui(t.description)}</p>
-          {t.id === 'first-flight' && t.state !== 'claimed' && next && <div className="task-next-step" data-testid="first-flight-task"><strong>{next.number}/6 · {ui(next.title)}</strong><p>{ui(next.text.replace('客货卡片', '旅客或货物'))}</p>{t.state === 'active' && <button disabled={busy} onClick={() => onNext(next.id)}>{ui(next.id === 'map' ? '规划首航' : next.id === 'flight' ? '查看首航航班' : '前往装载')}</button>}</div>}
+          {t.id === 'first-flight' && t.state !== 'claimed' && next && <div className="task-next-step" data-testid="first-flight-task"><strong>{next.number}/8 · {ui(next.title)}</strong><p>{ui(next.text.replace('客货卡片', '旅客或货物'))}</p>{t.state === 'active' && <button disabled={busy} onClick={() => onNext(next.id)}>{ui(next.id === 'unlock' ? '购买上海机场' : next.id === 'buy' ? '前往飞机商店' : next.id === 'configure' ? '配置容量' : next.id === 'map' ? '规划首航' : next.id === 'flight' ? '查看首航航班' : '前往装载')}</button>}</div>}
           <progress max={t.target} value={Math.min(t.target, t.progress)} aria-label={ui(t.title)}/><small>{Math.min(t.target, t.progress)} / {t.target}{t.state === 'active' && t.reason ? ` · ${ui(t.reason)}` : ''}</small>
         </div>
         <div className="task-reward"><strong>{[t.gold ? `+ ${money(t.gold)}` : '', t.tickets ? ui('{count} 点券',{count:t.tickets}) : '', ui(t.extra)].filter(Boolean).join(' · ')}</strong>

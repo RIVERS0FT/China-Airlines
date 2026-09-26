@@ -87,7 +87,8 @@ export function MapView(props: Props) {
         }));
         if (cancelled) { app.destroy(true, { children: true }); return; }
         const initial = latest.current.plane;
-        let camera = globeCamera(element.clientWidth, element.clientHeight, initial ? fromVector(aircraftSurfacePoint(initial, latest.current.game.simTime)) : airport(latest.current.selected));
+        const firstRoute = latest.current.planning && latest.current.game.tutorial === 'active' && latest.current.game.stats.flights === 0 && !initial?.flight;
+        let camera = globeCamera(element.clientWidth, element.clientHeight, firstRoute ? airport('PVG') : initial ? fromVector(aircraftSurfacePoint(initial, latest.current.game.simTime)) : airport(latest.current.selected), firstRoute ? 3 : 1);
         let dirty = true, lastGame: GameState | null = null, focused = latest.current.selected, lastPreview = '', lastOthers = true, snapshotAt = performance.now();
         const ensurePlaneTexture = (file: string) => {
           if (planeTextures.has(file) || pendingPlaneTextures.has(file)) return;
@@ -98,6 +99,12 @@ export function MapView(props: Props) {
           }).catch(() => undefined).finally(() => pendingPlaneTextures.delete(file));
         };
         const publishCamera = () => { element.dataset.camera = JSON.stringify(camera); dirty = true; };
+        const locateGuideAirport = () => {
+          if (!latest.current.planning || latest.current.game.tutorial !== 'active') return;
+          const city = airport('PVG');
+          camera.lat = city.lat; camera.lon = city.lon; camera.scale = Math.max(3, camera.scale); publishCamera();
+        };
+        element.addEventListener('guide-locate-airport', locateGuideAirport);
         const fallBackAircraft = () => {
           aircraftLayer?.dispose(); aircraftLayer = undefined;
           element.dataset.aircraftStatus = 'fallback'; element.dataset.aircraftVisual = 'model'; dirty = true;
@@ -186,6 +193,7 @@ export function MapView(props: Props) {
             e.preventDefault(); camera.lon = wrapLongitude(camera.lon + (e.key === 'ArrowRight' ? 10 : e.key === 'ArrowLeft' ? -10 : 0));
             camera.lat = Math.max(-90, Math.min(90, camera.lat + (e.key === 'ArrowUp' ? 10 : e.key === 'ArrowDown' ? -10 : 0))); publishCamera();
           } else if (['+', '=', '-'].includes(e.key)) { e.preventDefault(); zoom(e.key === '-' ? .8 : 1.25); }
+          else if (e.key === 'Enter') { e.preventDefault(); latest.current.onOpenCities(); }
         };
         canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
         canvas.addEventListener('touchstart', suppressTouchMouse, { passive: false });
@@ -352,6 +360,7 @@ export function MapView(props: Props) {
         dispose = () => {
           modelAbort.abort(); aircraftLayer?.dispose(); reducedMotion.removeEventListener('change', motionChanged);
           window.removeEventListener('gameviewportchange', resize); window.removeEventListener('resize', resize);
+          element.removeEventListener('guide-locate-airport', locateGuideAirport);
           renderLoop.destroy(); observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move);
           canvas.removeEventListener('pointerup', up); canvas.removeEventListener('pointercancel', up); canvas.removeEventListener('touchstart', suppressTouchMouse); canvas.removeEventListener('wheel', wheel); canvas.removeEventListener('keydown', keydown);
         };
@@ -375,7 +384,7 @@ export function MapView(props: Props) {
   return <section className="map-area globe-area" aria-label={props.planning ? i18n.t('map.routeMap') : i18n.t('map.map')} aria-describedby={props.planning ? "route-preview-description" : undefined}>
     <div className="map-canvas" ref={host} data-testid="map-canvas" data-projection="orthographic" data-art-version="2" data-route-visual="parabolic" data-aircraft-visual="model" data-renderer={status}/>
     {props.planning && <p id="route-preview-description" className="sr-only" data-testid="route-preview" data-legs={props.preview?.legs.length ?? 0}>{previewDescription(props.preview)}</p>}
-    {status === 'fallback' && <div className="map-fallback" role="status"><p>{i18n.t(props.planning ? 'map.fallbackPlan' : 'map.fallbackBrowse')}</p>{!props.planning && <button type="button" aria-haspopup="dialog" onClick={props.onOpenCities}>{i18n.t('map.selectCity')}</button>}</div>}
+    {status === 'fallback' && <div className="map-fallback" role="status"><p>{i18n.t(props.planning ? 'map.fallbackPlan' : 'map.fallbackBrowse')}</p><button type="button" aria-haspopup="dialog" onClick={props.onOpenCities}>{i18n.t('map.selectCity')}</button></div>}
     {props.planning && <button className="map-plane-toggle" aria-label={props.showOthers ? i18n.t('map.hideOthers') : i18n.t('map.showOthers')} aria-pressed={!props.showOthers} onClick={props.onToggleOthers}><span>{props.showOthers ? i18n.t('map.hide') : i18n.t('map.show')}</span><strong>{i18n.t('map.otherAircraft')}</strong></button>}
   </section>;
 }

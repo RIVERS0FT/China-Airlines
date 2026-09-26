@@ -25,7 +25,7 @@ export function AircraftService({ game, plane, busy }: { game: GameState; plane:
     ignore(controller.command({ type: 'sell-plane', planeId: plane.id }));
   }
   return <div className="aircraft-services">
-    <section className="crew-card" aria-label="随航调度员">
+    <section className="crew-card" tabIndex={-1} aria-label="随航调度员">
       <header><span className="crew-avatar" aria-hidden="true">调</span><div><h3>随航调度员</h3><p data-testid="crew-status">{plane.dispatcher ? plane.autoRouteId ? '已上岗 · 自动值勤' : '已雇用 · 等待安排' : '未雇用 · 手动经营'}</p></div></header>
       <p>只装真实直达客货，按机型容量装载；无订单就等待，不空飞刷收益。</p>
       <small>招募 {money(DISPATCHER_PRICE)}＋3点券，含7天工资。经营中心可调岗、续付工资与训练技能。</small>

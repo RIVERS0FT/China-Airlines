@@ -1,115 +1,5 @@
 [
   {
-    "file": "aircraft-albatross-f-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 314839,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-albatross-m-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 365395,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-albatross-p-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 353308,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-aurora-f-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 382335,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-aurora-m-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 410480,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-aurora-p-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 431316,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-diamond-da40-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 443133,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-flight-v1.png",
-    "width": 1408,
-    "height": 640,
-    "bytes": 476738,
-    "mode": "RGBA",
-    "alphaRange": [
-      0,
-      255
-    ],
-    "transparentPixels": 557858
-  },
-  {
-    "file": "aircraft-heron-f-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 379626,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-heron-m-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 401176,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-heron-p-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 455909,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-starter-swift-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 493558,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-swift-f-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 414414,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-swift-m-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 485223,
-    "mode": "RGBA"
-  },
-  {
-    "file": "aircraft-swift-p-exterior-v7.png",
-    "width": 1536,
-    "height": 590,
-    "bytes": 448819,
-    "mode": "RGBA"
-  },
-  {
     "file": "airport-day-v1.jpg",
     "width": 1536,
     "height": 1024,
@@ -566,5 +456,103 @@
       255
     ],
     "transparentPixels": 77438
+  },
+  {
+    "file": "aircraft-albatross-m-exterior-v8.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 383410,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-albatross-p-exterior-v8.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 369878,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-aurora-p-exterior-v8.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 441598,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-diamond-da40-exterior-v8.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 539537,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-flight-v2.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 535355,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-heron-f-exterior-v8.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 516579,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-heron-m-exterior-v8.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 513190,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-heron-p-exterior-v8.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 474156,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-swift-f-exterior-v8.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 559225,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-swift-m-exterior-v8.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 503298,
+    "mode": "RGBA"
+  },
+  {
+    "file": "aircraft-swift-p-exterior-v8.png",
+    "width": 1536,
+    "height": 590,
+    "bytes": 566272,
+    "mode": "RGBA"
+  },
+  {
+    "file": "tutorial-guide-v1.png",
+    "width": 640,
+    "height": 800,
+    "bytes": 497193,
+    "mode": "RGBA"
+  },
+  {
+    "file": "flight-cloudscape-v1.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 1849021,
+    "mode": "RGB"
+  },
+  {
+    "file": "flight-cloud-bank-v1.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 1299716,
+    "mode": "RGBA"
   }
 ]

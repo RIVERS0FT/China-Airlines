@@ -10,8 +10,7 @@
 :is(.ui-page,.ui-dialog) .flight-search-controls{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px;margin:12px 0}
 :is(.ui-page,.ui-dialog) .flight-extra-filter{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:150px}
 :is(.ui-page,.ui-dialog) .flight-extra-filter select{min-height:44px;max-width:100%;padding:8px;border:1px solid #799ca9;border-radius:6px;color:#294e62;background:#fffef2;font-size:16px}
-:is(.ui-page,.ui-dialog) .flight-card[data-current=true]{border-color:#316d89;box-shadow:inset 4px 0 #316d89}
-:is(.ui-page,.ui-dialog) :is(.flight-clock,.flight-money){font-variant-numeric:tabular-nums}
+:is(.ui-page,.ui-dialog) :is(.fleet-roster-clock,.flight-money){font-variant-numeric:tabular-nums}
 :is(.ui-page,.ui-dialog) .airport-card:focus-visible,:is(.ui-page,.ui-dialog) .fleet-operations button:focus-visible{outline:3px solid #995018;outline-offset:2px}
 @media(max-width:750px){
  :is(.ui-page,.ui-dialog) .airport-directory-tools{align-items:flex-end}

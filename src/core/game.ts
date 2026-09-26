@@ -10,8 +10,8 @@ import { resaleValue } from './management.js';
 import { emptyTuning, upgradeLimit, upgradeTickets, service, MATERIALS, type Tuning, type Material } from './career-catalog.js';
 import { newCareer, careerExecute, careerLevel, bill, consume, stock, warehouseUsed, warehouseCapacity, autoAllowed, onArrival, nextCareerEvent, advanceCareer, type Career, type CareerCommand } from './career.js';
 import { validateCareer, validateTuning } from './save-career.js';
-import { railwayDistanceUnits, railwayLegCosts, railwayOrderReward, railwayRevenue, railwayRouteCost } from './economy.js';
-export const SAVE_VERSION = 11;
+import { distanceUnits, legOperatingCosts, baseOrderReward, transportRevenue, routeOperatingCost } from './economy.js';
+export const SAVE_VERSION = 13;
 export type TutorialState = 'available' | 'active' | 'completed' | 'skipped';
 export const MAX_PLAN_LEGS = 12;
 export interface Flight extends SimulationFlight {}
@@ -25,7 +25,7 @@ export interface Order {
   reward: number; location: string; createdAt: number; expiresAt: number | null; service: string; product: Material | null;
 }
 export interface GameState extends Omit<SimulationState, 'version' | 'fleet'> {
-  version: 11; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
+  version: 13; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
 }
 export type Command = SimulationCommand | CareerCommand | TalentCommand
   | { type: 'load' | 'unload'; planeId: string; orderId: string }
@@ -64,7 +64,7 @@ export function loadSummary(s: GameState, planeId: string) {
     cargo: jobs.filter(o => o.kind === 'cargo').reduce((n, o) => n + o.amount, 0) };
 }
 export function orderReward(from: string, to: string, _kind: Order['kind'], amount: number, _serviceId = 'general') {
-  return railwayOrderReward(distance(from, to), amount);
+  return baseOrderReward(distance(from, to), amount);
 }
 function issue(s: GameState, from: string, to: string, kind: Order['kind'], amount: number, location = from, reward?: number, createdAt = s.simTime, serviceId = kind === 'cargo' ? 'general' : 'tourist') {
   s.orders.push({ id: `JB${s.nextOrderId++}`, from, to, kind, amount, location,
@@ -118,8 +118,8 @@ export function legQuote(s: GameState, p: Plane, from: string, to: string) {
   check(from !== to, '请选择不同的目的地'); check(a && b, '请先解锁两端机场');
   check(a!.level >= m.level && b!.level >= m.level, `该机型需要两端机场达到 ${m.level} 级`);
   const km = distance(from, to); check(km <= m.range, '航线超出这架飞机的航程');
-  const d = railwayDistanceUnits(km), cabins = Math.max(1, Math.ceil((p.allocation.passengers + p.allocation.cargo) / 5));
-  return { km, duration: Math.max(30, Math.floor(d * 450 / m.speed)), cost: railwayRouteCost(d, m.weight, m.speed, p.tuning.group, cabins) };
+  const d = distanceUnits(km);
+  return { km, duration: Math.max(30, Math.floor(d * 450 / m.speed)), cost: routeOperatingCost(d, m.weight, m.speed, p.tuning.group, m.capacity) };
 }
 export const flightEnergy = (_p: Plane, seconds: number) => Math.max(1, Math.floor(seconds / 60)) * 60;
 export const energyCapacity = (p: Plane) => aircraftSpecs(p).energy * 60;
@@ -127,7 +127,7 @@ export const planeEnergy = (p: Plane): EnergyBudget => ({ availableSeconds: ener
 export function departureEnergyReason(p: Plane, seconds: number) { return p.energy.serviceUntil !== null ? '地勤补能中，请完成或取消补能' : p.energy.availableSeconds < flightEnergy(p,seconds) ? '能量不足，请到机库补能' : ''; }
 function destinationRevenue(s: GameState, p: Plane, to: string) {
   const base=manifest(s,p.id).filter(o=>o.to===to).reduce((n,o)=>n+o.reward,0);
-  return railwayRevenue(base, p.tuning.group, p.tuning.evolution);
+  return transportRevenue(base, p.tuning.group, p.tuning.evolution);
 }
 export function quote(s: GameState, p: Plane, to: string) {
   const leg = legQuote(s, p, p.airportId, to), total = loadSummary(s, p.id);
@@ -147,8 +147,8 @@ export function planQuote(s: GameState, p: Plane, stops: string[]) {
     const result = { ...leg, from, to, opened, openingCost: 0, revenue };
     from = to; return result;
   });
-  const m = aircraftSpecs(p), cabins = Math.max(1, Math.ceil((p.allocation.passengers + p.allocation.cargo) / 5));
-  const costs = railwayLegCosts(legs.map(leg => railwayDistanceUnits(leg.km)), m.weight, m.speed, p.tuning.group, cabins);
+  const m = aircraftSpecs(p);
+  const costs = legOperatingCosts(legs.map(leg => distanceUnits(leg.km)), m.weight, m.speed, p.tuning.group, m.capacity);
   legs = legs.map((leg, index) => ({ ...leg, cost: costs[index]! }));
   const cost = legs.reduce((n, l) => n + l.cost, 0), revenue = legs.reduce((n, l) => n + l.revenue, 0);
   return { legs, cost, revenue, profit: revenue - cost, openingCost: 0,
@@ -375,8 +375,11 @@ export class GameCore {
         const m = model(command.modelId), a = owned(s, command.airportId);
         check(a && a.level >= m.level, `交付机场需要达到 ${m.level} 级`); check(s.fleet.length < s.hangarSlots, '机库机位不足，请先扩建机库');
         check(careerLevel(s)>=m.rank,'公司等级不足');
+        const { passengers, cargo } = command;
+        check(Number.isSafeInteger(passengers) && Number.isSafeInteger(cargo) && passengers >= 0 && cargo >= 0 &&
+          passengers + cargo > 0 && passengers + cargo <= m.capacity, '请完成有效的购机选配，至少分配一个客位或货位');
         spend(s, m.price); const id = `AC${String(s.nextId++).padStart(4, '0')}`;
-        s.fleet.push({ id, modelId: m.id, allocation: { passengers: 0, cargo: 0 }, airportId: command.airportId, readyAt: s.simTime, autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], planContract: null, dispatcher: false, tuning: emptyTuning(), energy: {availableSeconds:m.energy*60,reservedSeconds:0,serviceUntil:null} });
+        s.fleet.push({ id, modelId: m.id, allocation: { passengers, cargo }, airportId: command.airportId, readyAt: s.simTime, autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], planContract: null, dispatcher: false, tuning: emptyTuning(), energy: {availableSeconds:m.energy*60,reservedSeconds:0,serviceUntil:null} });
         s.fleetPeak = Math.max(s.fleetPeak, s.fleet.length);
         note(s, `${m.name} 加入机队 · ${id}`, -m.price); break;
       }
@@ -418,16 +421,12 @@ export class GameCore {
 /** Create a complete state that already conforms to the current schema. */
 function newGame(now: number): GameState {
   const career = newCareer(0, now);
-  const plane: Plane = { id: 'AC0001', modelId: 'starter-swift', allocation: { passengers: 0, cargo: 0 }, airportId: 'PEK', readyAt: 0,
-    autoRouteId: null, flight: null, upgrades: emptyUpgrades(), itinerary: [], planContract: null, dispatcher: false,
-    tuning: emptyTuning(), energy: { availableSeconds: 0, reservedSeconds: 0, serviceUntil: null } };
-  plane.energy = planeEnergy(plane);
-  const s: GameState = { version: SAVE_VERSION, credits: 18000, simTime: 0, lastWallTime: now, nextId: 2,
-    airports: [{ id: 'PEK', level: 1 }, { id: 'PVG', level: 1 }], fleet: [plane], routes: [],
+  const s: GameState = { version: SAVE_VERSION, credits: 18000, simTime: 0, lastWallTime: now, nextId: 1,
+    airports: [{ id: 'PEK', level: 1 }], fleet: [], routes: [],
     stats: { flights: 0, passengers: 0, cargo: 0, revenue: 0, costs: 0 }, claimedTasks: [],
-    log: [{ at: 0, text: '公司成立 · 北京与上海机场已开放', amount: 18000 }],
-    orders: [], nextOrderId: 1, nextDemandAt: DEMAND_INTERVAL, hangarSlots: 4, fleetPeak: 1,
-    tutorial: 'available', career, talent: createTalent(career.seed, 0) };
+    log: [{ at: 0, text: '公司成立 · 从北京开始经营', amount: 18000 }],
+    orders: [], nextOrderId: 1, nextDemandAt: DEMAND_INTERVAL, hangarSlots: 4, fleetPeak: 0,
+    tutorial: 'active', career, talent: createTalent(career.seed, 0) };
   replenish(s);
   return s;
 }

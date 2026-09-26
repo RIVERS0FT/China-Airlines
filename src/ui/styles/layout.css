@@ -9,9 +9,7 @@
 .ui-page :is(.ui-page-toolbar,.career-tabs) :is(button,select,input[type=search]),.ui-page .airport-world-filter select{min-height:var(--ui-control-size)}
 .ui-page :is(.content-page,.airport-directory,.fleet-management,.career-hub){width:100%;height:auto;max-height:none;min-height:0;margin:0;padding:0;overflow:visible;background:transparent}
 .ui-page :is(.airport-directory-tools,.shop-toolbar,.fleet-management-toolbar,.career-tabs){position:sticky;top:0;z-index:2;justify-content:flex-start;gap:var(--ui-space-2);margin:0 0 var(--ui-space-3);padding:var(--ui-space-2) 0;background:var(--ui-paper)}
-.ui-page :is(.airport-filters,.shop-categories,.fleet-management-tabs,.career-tabs){justify-content:flex-start}
-.ui-page .fleet-management-toolbar>.fleet-management-tabs{position:static;margin:0;padding:0}
-.ui-page .fleet-management-toolbar>.fleet-employee-link{margin:0}
+.ui-page :is(.airport-filters,.shop-categories,.career-tabs){justify-content:flex-start}
 .ui-page :is(.aircraft-card,.airport-card){border-radius:var(--ui-radius);box-shadow:none}
 .ui-page :is(.shop-grid,.fleet-grid,.airport-cards){gap:var(--ui-space-3)}
 .ui-page .content-page{flex:initial}

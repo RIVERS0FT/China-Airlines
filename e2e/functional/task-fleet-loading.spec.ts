@@ -1,0 +1,190 @@
+import { test, expect, type Page } from '../helpers/configured-airport.js';
+import { GameCore, waiting, validateSave, type GameState } from '../helpers/configured-game.js';
+import { displayScale } from '../helpers/display-helpers.js';
+const NOW = Date.parse('2026-09-13T02:00:00Z'), ID = 'AC0001';
+async function setup(page: Page, state?: GameState) {
+  await page.clock.install({ time: new Date(NOW) });
+  await page.clock.pauseAt(new Date(NOW + 1000));
+  await page.goto('./');
+  await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
+  if (state) {
+    validateSave(state);
+    await page.getByRole('button', { name: '存档设置', exact: true }).click();
+    page.once('dialog', dialog => void dialog.accept());
+    await page.getByLabel('选择存档文件').setInputFiles({ name: 'task-fleet-loading.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(state)) });
+    await expect(page.getByTestId('credits')).toHaveText(`¥ ${state.credits.toLocaleString('zh-CN')}`);
+    await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
+  }
+}
+function mixed() {
+  const core = new GameCore(NOW);
+  const people = waiting(core.snapshot(), 'PEK').filter(o => o.kind === 'passengers');
+  for (const order of people.slice(1, 4)) core.execute({ type: 'load', planeId: ID, orderId: order.id }, NOW);
+  return core.snapshot();
+}
+
+test('one task entrance claims the initial gift exactly once and retains the aircraft and state filters', async ({ page }) => {
+  await setup(page);
+  const entry = page.getByRole('button', { name: '任务中心', exact: true });
+  await expect(entry).toHaveCount(1); await expect(entry).toContainText('可领取 1');
+  await expect(page.locator('.airport-shortcuts')).toHaveCount(0);
+  const dock = page.getByRole('navigation', { name: '主导航' });
+  await expect(dock.getByRole('button')).toHaveCount(8);
+  await expect(dock.locator(':scope > button > span')).toHaveText([
+    '地图', '机场装载', '机场目录', '机队管理', '飞机商店', '公司组织', '经营中心', '制定航线',
+  ]);
+  for (const name of ['运营任务', '奖励', '航班', '改装']) await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
+  const selected = await page.locator('.plane-status').textContent(), credits = await page.getByTestId('credits').textContent();
+  await entry.click();
+  await expect(page.getByRole('tab', { name: /^可领取/ })).toHaveAttribute('aria-selected', 'true');
+  const gift = page.locator('[data-task-id="checkin-0"]');
+  await gift.getByRole('button', { name: '领取奖励', exact: true }).click();
+  await expect(page.getByRole('tab', { name: /^可领取/ })).toContainText('0');
+  await expect(page.getByRole('tab', { name: /^可领取/ })).toBeFocused();
+  await page.keyboard.press('End');
+  await expect(page.getByRole('tab', { name: /^已领取/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(gift.getByRole('button', { name: '已领取', exact: true })).toBeDisabled();
+  const selectedTab = page.getByRole('tab', { name: /^已领取/ });
+  await selectedTab.hover();
+  // Check the final color, not an intermediate frame of the existing CSS transition.
+  await expect(selectedTab).toHaveCSS('background-color', 'rgb(34, 107, 145)');
+  await page.getByRole('button', { name: '关闭任务中心', exact: true }).click();
+  await expect(page.locator('.plane-status')).toHaveText(selected!);
+  await expect(page.getByTestId('credits')).toHaveText(credits!);
+  // Ticket rewards update the read-only HUD balance, not the career navigation button.
+  await expect(page.getByTestId('tickets-count')).toHaveText('29 券');
+  await expect(dock.getByRole('button', { name: '经营中心', exact: true })).toHaveText('经营中心');
+  await expect(entry).not.toContainText('可领取');
+  await page.reload();
+  await expect(page.getByTestId('tickets-count')).toHaveText('29 券');
+  await entry.click();
+  await expect(page.getByRole('tab', { name: /^进行中/ })).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('tab', { name: /^已领取/ }).click();
+  await expect(gift.getByRole('button', { name: '已领取', exact: true })).toBeDisabled();
+  await page.screenshot({ path: 'artifacts/unified-task-center.png' });
+});
+
+test('flight inspection opens aircraft details without modifying the flight or unloading its manifest', async ({ page }) => {
+  const core = new GameCore(NOW);
+  core.execute({ type: 'load-destination', planeId: ID, to: 'PVG' }, NOW);
+  core.execute({ type: 'dispatch', planeId: ID, to: 'PVG', auto: false }, NOW);
+  const state = core.snapshot(); await setup(page, state);
+  const scene = await page.locator('.plane-status').textContent();
+  await page.getByRole('button', { name: '机队管理概览', exact: true }).click();
+  await expect(page.getByTestId('page-fleet').getByRole('tab')).toHaveCount(0);
+  await page.getByRole('button', { name: `查看${ID}飞机`, exact: true }).click();
+  await expect(page.getByRole('main', { name: '机队管理', exact: true })).toBeVisible();
+  await expect(page.locator('#fleet-detail-heading')).toBeFocused();
+  await expect(page.locator('.fleet-roster-item[data-current=true]')).toContainText(ID);
+  await expect(page.getByRole('button', { name: '确认客货改装', exact: true })).toBeDisabled();
+  await expect(page.locator('.fleet-manifest')).toHaveCount(0);
+  await expect(page.getByText(/机上清单/)).toHaveCount(0);
+  await expect(page.locator('.fleet-detail')).toContainText('机上 5 单');
+  await page.getByRole('button', { name: '前往这架飞机', exact: true }).click();
+  await expect(page.locator('.plane-status')).toHaveText(scene!);
+  await expect(page.getByTestId('credits')).toHaveText(`¥ ${state.credits.toLocaleString('zh-CN')}`);
+});
+
+for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three loading states remain distinct across apron and cabin at ${width}`, async ({ page }) => {
+  const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+  await page.setViewportSize({ width: width!, height: height! }); await setup(page, mixed());
+  const board = page.getByRole('region', { name: '客货列表', exact: true });
+  await expect(page.locator('[data-load-state=loaded]')).toHaveCount(3);
+  for (const state of ['loaded', 'waiting', 'blocked']) {
+    const card = page.locator(`[data-load-state=${state}]`).first();
+    await card.scrollIntoViewIfNeeded();
+    await expect(card.locator('.job-state')).toHaveCount(0);
+    if (state === 'loaded') await expect(card.locator('.cabin-destination')).not.toBeEmpty();
+    if (state === 'blocked') { await expect(card).toBeDisabled(); await expect(card).toHaveAccessibleName(/剩余客舱不足/); }
+    else await expect(card).toBeEnabled();
+    const scale = await displayScale(page), plate = (await card.locator('.job-info').boundingBox())!;
+    const figure = (await card.locator('.job-figure').boundingBox())!, art = (await card.locator('.job-art').boundingBox())!;
+    expect(art.y + art.height).toBeLessThanOrEqual(figure.y + figure.height + 1);
+    if (state === 'loaded') {
+      const anchor = card.locator('..');
+      const anchorBox = (await anchor.boundingBox())!;
+      const furniture = (await anchor.locator('.cabin-place-art').boundingBox())!;
+      expect(Math.abs(plate.x + plate.width / 2 - (anchorBox.x + anchorBox.width / 2))).toBeLessThan(1);
+      expect(plate.y).toBeGreaterThanOrEqual(art.y + art.height - 1);
+      expect(plate.y).toBeGreaterThanOrEqual(furniture.y + furniture.height - 1);
+      expect((await card.boundingBox())!.height / scale).toBeGreaterThanOrEqual(44 - .01);
+    } else expect(figure.y + figure.height).toBeLessThanOrEqual(plate.y + 1);
+    let previousBottom = plate.y;
+    // The first waiting order in this fixture is cargo; its name sits above the fare.
+    const textRows = state === 'loaded' ? ['.cabin-destination', '.job-price'] : state === 'waiting' ? ['.cargo-name', '.job-price'] : ['.job-price'];
+    for (const cls of textRows) {
+      const text = (await card.locator(cls).boundingBox())!;
+      expect(text.x).toBeGreaterThanOrEqual(plate.x - 1); expect(text.x + text.width).toBeLessThanOrEqual(plate.x + plate.width + 1);
+      expect(text.y).toBeGreaterThanOrEqual(previousBottom - 1);
+      previousBottom = text.y + text.height;
+      expect(text.y + text.height).toBeLessThanOrEqual(plate.y + plate.height + 1);
+    }
+    expect(await card.locator('.job-price').evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11);
+    expect(plate.height / scale).toBeGreaterThanOrEqual((state === 'loaded' ? 30 : 24) - 0.01);
+    expect(plate.height / scale).toBeLessThanOrEqual(70);
+    await expect(card.locator('.job-info > *')).toHaveCount(textRows.length);
+    await expect(card.locator('.job-marker, .cargo-service-name')).toHaveCount(0);
+    expect(await card.locator('.job-info').evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
+    expect(await card.locator('.job-info').evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('0px');
+  }
+  const blockedId = await page.locator('[data-load-state=blocked]').first().getAttribute('data-order-id');
+  const loaded = page.getByTestId('loaded-order').first(), id = await loaded.getAttribute('data-order-id');
+  await loaded.scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toHaveCount(1);
+  await loaded.click();
+  const same = page.locator(`[data-order-id="${id}"]`);
+  await expect(same).toHaveAttribute('data-load-state', 'waiting');
+  expect(await page.locator('.toast').allTextContents()).toEqual([]);
+  await expect(same.locator('.job-transfer-tag')).toHaveText('中转');
+  await expect(board.locator(`[data-order-id="${id}"]`)).toHaveCount(1);
+  await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toHaveCount(0);
+  await expect(page.locator(`[data-order-id="${blockedId}"]`)).toHaveAttribute('data-load-state', 'waiting');
+  await same.click(); await expect(same).toHaveAttribute('data-load-state', 'loaded');
+  await expect(board.locator(`[data-order-id="${id}"]`)).toHaveCount(0);
+  await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toHaveCount(1);
+  expect(await page.locator('.toast').allTextContents()).toEqual([]);
+  await expect(page.locator(`[data-order-id="${blockedId}"]`)).toHaveAttribute('data-load-state', 'blocked');
+  await board.focus(); await page.keyboard.press('Home');
+  await page.screenshot({ path: `artifacts/loading-three-states-${width}.png` });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test('pointer drag cannot load an order and does not swallow a subsequent keyboard activation', async ({ page }) => {
+  await setup(page);
+  const card = page.getByTestId('waiting-order').first(), id = await card.getAttribute('data-order-id');
+  const box = (await card.boundingBox())!;
+  await page.mouse.move(box.x + box.width * .25, box.y + box.height * .6);
+  await page.mouse.down(); await page.mouse.move(box.x + box.width * .8, box.y + box.height * .6, { steps: 5 }); await page.mouse.up();
+  await expect(page.getByTestId('loaded-order')).toHaveCount(0);
+  await card.focus(); await page.keyboard.press('Enter');
+  await expect(page.locator(`[data-order-id="${id}"]`)).toHaveAttribute('data-load-state', 'loaded');
+  await page.getByTestId('loaded-order').click();
+  await expect(page.getByTestId('loaded-order')).toHaveCount(0);
+});
+
+for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`airport dock labels float over their icons at ${width}`, async ({ page }) => {
+  await page.setViewportSize({ width: width!, height: height! });
+  await setup(page);
+  const dock = page.getByRole('navigation', { name: '主导航', exact: true });
+  const names = ['地图', '机场装载', '机场目录', '机队管理', '飞机商店', '公司组织', '经营中心'];
+  let ordinaryWidth = 0, ordinaryIconWidth = 0;
+  for (const name of names) {
+    const button = dock.getByRole('button', { name, exact: true });
+    const icon = button.locator(':scope > .painted-icon'), label = button.locator(':scope > span');
+    const buttonBox = (await button.boundingBox())!, iconBox = (await icon.boundingBox())!, labelBox = (await label.boundingBox())!;
+    expect(await label.evaluate(el => getComputedStyle(el).position), `${name} label should overlay its icon`).toBe('absolute');
+    expect(labelBox.y).toBeLessThan(iconBox.y + iconBox.height - 1);
+    expect(labelBox.y + labelBox.height).toBeLessThanOrEqual(buttonBox.y + buttonBox.height + 1);
+    expect(labelBox.x).toBeGreaterThanOrEqual(buttonBox.x - 1);
+    expect(labelBox.x + labelBox.width).toBeLessThanOrEqual(buttonBox.x + buttonBox.width + 1);
+    ordinaryWidth ||= buttonBox.width; ordinaryIconWidth ||= iconBox.width;
+  }
+  const depart = dock.getByRole('button', { name: '制定航线', exact: true });
+  const departBox = (await depart.boundingBox())!, departIcon = (await depart.locator(':scope > .painted-icon').boundingBox())!, departLabel = (await depart.locator(':scope > span').boundingBox())!;
+  expect(departBox.width).toBeGreaterThan(ordinaryWidth * 1.2);
+  expect(departIcon.width).toBeGreaterThan(ordinaryIconWidth);
+  expect(departLabel.y).toBeLessThan(departIcon.y + departIcon.height - 1);
+  await page.screenshot({ path: `artifacts/airport-floating-dock-${width}.png` });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

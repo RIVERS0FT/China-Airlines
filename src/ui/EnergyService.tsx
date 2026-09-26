@@ -12,7 +12,7 @@ export function EnergyService({ game, plane, busy }: { game: GameState; plane: P
   const { ui } = useI18n();
   const e = plane.energy, servicing = e.serviceUntil !== null;
   const reason = plane.flight ? `飞行中，当前航段已预留 ${energyText(e.reservedSeconds)} 点` : plane.autoRouteId ? '请先停止自动值勤' : plane.itinerary.length ? '请先取消剩余计划' : plane.readyAt > game.simTime ? '地面周转中' : '';
-  return <section className="energy-service" aria-label={ui('飞机能量管理')}>
+  return <section className="energy-service" tabIndex={-1} aria-label={ui('飞机能量管理')}>
     <header><h3><Icon name="energy"/>{ui('飞机能量')}</h3><strong data-testid="hangar-energy">{energyText(e.availableSeconds)} / {energyCapacity(plane) / ENERGY_SECONDS_PER_POINT} {ui('点')}</strong></header>
     <progress aria-label={ui('可用能量')} value={e.availableSeconds} max={energyCapacity(plane)}/>
     <p>{ui('每整分钟消耗1点，不足一分钟至少1点；起飞预留、到达释放。')}</p>

@@ -25,7 +25,7 @@ export function AirportDetails({ game, id, busy, backLabel = '返回机场目录
     <div className="airport-detail-hero"><div><h3>{t('airport.name',{city:city(a.id)})}</h3><p>{airportRegion(a.id,a.region)} · {a.level ? ui('{value} 级机场',{value:a.level}) : ui('尚未开放')}</p></div><button onClick={onBack}>{backLabel === '返回机场目录' ? ui('返回机场目录') : backLabel}</button></div>
     <div className="airport-detail-actions">
       {a.level > 0 && <><button className="primary" onClick={() => onVisit(id)}>{ui('进入候机大厅')}</button><button onClick={() => onRoute(id)}>{ui('安排飞机飞来')}</button></>}
-      {a.level < 3 ? <button disabled={busy || game.credits < price} onClick={() => ignore(changeAirport())}>
+      {a.level < 3 ? <button data-guide={!a.level ? 'unlock-airport' : undefined} disabled={busy || game.credits < price} onClick={() => ignore(changeAirport())}>
         {a.level ? ui('升级机场') : ui('解锁机场')} {money(price)}
       </button> : <strong>{ui('机场已满级')}</strong>}
       {a.level < 3 && game.credits < price && <span className="airport-funds">{ui('运营资金不足')}</span>}

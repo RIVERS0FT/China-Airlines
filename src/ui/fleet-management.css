@@ -1,0 +1,76 @@
+/* Functional hierarchy: find an aircraft, inspect its task, then manage it. */
+.fleet-workspace{display:grid;grid-template-columns:minmax(300px,.72fr) minmax(0,1.6fr);align-items:start;gap:var(--ui-space-4)}
+.fleet-workspace>*{min-width:0}
+.ui-page .fleet-management .fleet-management-toolbar{position:static;justify-content:space-between;margin-bottom:var(--ui-space-3);padding-block:var(--ui-space-3);border-bottom:1px solid var(--ui-line)}
+.ui-page .fleet-management :is(button,select,input){min-height:var(--ui-control-size)}
+.fleet-management .fleet-operations{padding:0}
+.fleet-management .flight-board-toolbar{margin:0}
+.fleet-management .flight-board-toolbar>div{display:grid;grid-template-columns:1fr 1fr;gap:var(--ui-space-2);width:100%}
+.fleet-management .flight-board-toolbar button{justify-content:space-between;gap:var(--ui-space-2);text-align:left}
+.fleet-management .flight-search-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--ui-space-2);margin:var(--ui-space-3) 0}
+.fleet-management .browse-search-control{gap:var(--ui-space-2)}
+.fleet-management .browse-result-summary{margin:var(--ui-space-3) 0;font-size:12px}
+.fleet-management .fleet-roster{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--ui-space-2)}
+.fleet-roster-item{min-width:0}
+.fleet-management .fleet-roster-item .flight-enter{display:flex;flex-direction:column;align-items:stretch;gap:7px;width:100%;margin:0;padding:12px;text-align:left;border:1px solid var(--ui-line);border-radius:var(--ui-radius);background:var(--ui-paper);color:var(--ui-ink)}
+.fleet-management .fleet-roster-item .flight-enter:hover{background:var(--ui-surface)}
+.fleet-management .fleet-roster-item .flight-enter[aria-pressed=true]{border-color:var(--ui-accent);background:#e6f1ed;box-shadow:inset 4px 0 var(--ui-accent)}
+.fleet-roster-identity{display:flex;align-items:center;gap:8px;min-width:0}
+.fleet-roster-identity>img{width:62px;height:42px;object-fit:contain;flex-shrink:0}
+.fleet-roster-identity>span:not(.flight-status-tag){display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+.fleet-roster-identity strong{font-size:15px;overflow-wrap:anywhere}
+.fleet-roster-identity small{font-size:11px;color:var(--ui-muted)}
+.fleet-roster-identity .flight-status-tag{padding:4px 6px;white-space:nowrap}
+.fleet-roster-item .flight-route{font-size:14px;font-weight:700}
+.fleet-roster-clock{font-size:12px;color:#396775}
+.fleet-roster-load{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 8px;font-size:11px;color:#526d66;font-variant-numeric:tabular-nums}
+.fleet-detail{min-width:0}
+.fleet-detail-header{display:flex;align-items:center;justify-content:space-between;gap:var(--ui-space-2);margin-bottom:var(--ui-space-3)}
+.fleet-detail-header h3{margin:0;font-size:21px;scroll-margin-top:var(--ui-space-3);overflow-wrap:anywhere}
+.fleet-detail-header h3 small{font-size:13px;color:var(--ui-muted);white-space:nowrap}
+.fleet-detail-header h3:focus-visible{outline:3px solid var(--ui-gold);outline-offset:2px}
+.fleet-detail-header button,.fleet-filtered-selection button{flex-shrink:0;padding:8px 12px;border:1px solid var(--ui-line);border-radius:var(--ui-radius);background:var(--ui-surface);color:var(--ui-ink)}
+.fleet-filtered-selection{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:#f7e9c7;font-size:12px}
+.fleet-aircraft-hero{display:flex;align-items:center;gap:var(--ui-space-4);padding:var(--ui-space-3);border:1px solid var(--ui-line);border-radius:var(--ui-radius);background:linear-gradient(110deg,#dcece6,#fffbed)}
+.fleet-aircraft-art{width:180px;height:100px;object-fit:contain;flex-shrink:0}
+.fleet-aircraft-specs{display:flex;flex:1;flex-direction:column;gap:8px;font-size:13px}
+.fleet-management .fleet-airport-action{display:flex;flex-direction:column;gap:5px;padding:12px;border:1px solid #9b8456;border-radius:var(--ui-radius);color:#655025;background:#f7dea1;white-space:nowrap;font-weight:700}
+.fleet-airport-action small{font-size:11px;font-weight:400}
+.fleet-action-shortcuts{display:flex;flex-wrap:wrap;gap:var(--ui-space-2);margin:var(--ui-space-3) 0}
+.fleet-action-shortcuts button{flex:1;min-width:90px;padding:8px;border:1px solid var(--ui-line);border-radius:var(--ui-radius);background:var(--ui-surface);color:var(--ui-ink)}
+.fleet-workshop section[tabindex]{scroll-margin-top:var(--ui-space-3)}
+.fleet-workshop section[tabindex]:focus-visible{outline:3px solid var(--ui-gold);outline-offset:2px}
+.fleet-mission{margin:var(--ui-space-3) 0;padding:var(--ui-space-4);border:1px solid var(--ui-line);border-radius:var(--ui-radius);background:var(--ui-surface)}
+.fleet-mission>header{display:flex;align-items:center;gap:var(--ui-space-2);margin-bottom:var(--ui-space-3)}
+.fleet-mission h3{margin:0;font-size:15px}
+.fleet-mission>header>small{margin-left:auto}
+.fleet-mission-route{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:13px}
+.fleet-mission-route strong{font-size:18px}
+.fleet-mission p{font-size:13px;line-height:1.6;margin:8px 0}
+.fleet-mission small{font-size:11px;color:#526d66}
+.fleet-mission .fleet-flight-progress{margin-top:12px}
+.fleet-mission .flight-money{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--ui-space-3);margin:12px 0;padding:12px 0;border-block:1px solid var(--ui-line)}
+.fleet-mission .flight-money>span{min-width:0}
+.fleet-detail .fleet-employee-link{margin:0 0 var(--ui-space-3)}
+.fleet-maintenance-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--ui-space-3)}
+.fleet-workshop :is(.energy-service,.cabin-allocation){display:flex;flex-direction:column;align-items:stretch;min-width:0;margin:0;padding:var(--ui-space-4);border:1px solid var(--ui-line);border-radius:var(--ui-radius);background:var(--ui-paper)}
+.fleet-workshop :is(.energy-service h3,.cabin-allocation h4){margin:0;font-size:16px}
+.fleet-workshop :is(.energy-service,.cabin-allocation)>button{margin-top:auto}
+.fleet-workshop .energy-service>small{order:2}
+.fleet-workshop .allocation-controls{gap:var(--ui-space-2)}
+.fleet-upgrades{margin-top:var(--ui-space-4)}
+.fleet-upgrades>h3{font-size:16px;margin:0 0 var(--ui-space-2)}
+.fleet-upgrades .upgrade-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--ui-space-3);margin:0}
+.fleet-upgrades .upgrade-grid article{border-width:1px;padding:12px}
+.fleet-upgrades .upgrade-grid header{flex-wrap:wrap}
+.fleet-workshop .aircraft-services{grid-template-columns:1.3fr 1fr;gap:var(--ui-space-3);margin-top:var(--ui-space-4)}
+.fleet-workshop .aircraft-services section{min-width:0;padding:var(--ui-space-4);border-width:1px;border-radius:var(--ui-radius)}
+.fleet-workshop .crew-duty-controls{gap:var(--ui-space-2)}
+.fleet-workshop .workshop-note{margin-bottom:0}
+@media(max-width:1100px){
+ .fleet-workspace{grid-template-columns:minmax(280px,.7fr) minmax(0,1.3fr)}
+ .fleet-aircraft-hero{flex-wrap:wrap}.fleet-aircraft-art{width:140px;height:85px}.fleet-airport-action{flex:1}
+ .fleet-maintenance-grid,.fleet-workshop .aircraft-services{grid-template-columns:minmax(0,1fr)}
+ .fleet-upgrades .upgrade-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:800px){.fleet-workspace{grid-template-columns:minmax(0,1fr)}.fleet-detail{border-top:1px solid var(--ui-line);padding-top:var(--ui-space-4)}}

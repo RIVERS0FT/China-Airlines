@@ -17,6 +17,23 @@ export function currentFlight(game: GameState, plane: Plane) {
   };
 }
 
+/** Decorative attitude follows the locked leg clock, including after reload.
+ * These presentation phases never alter the actual flight or its settlement. */
+export function flightPose(game: GameState, plane: Plane) {
+  const flight = currentFlight(game, plane);
+  if (!flight) return null;
+  const smooth = (value: number) => value * value * (3 - 2 * value);
+  if (flight.progress < .12) {
+    const weight = 1 - smooth(flight.progress / .12);
+    return { phase: 'climb' as const, pitch: 2.4 * weight, lift: 6 * weight };
+  }
+  if (flight.progress > .88) {
+    const weight = smooth((flight.progress - .88) / .12);
+    return { phase: 'approach' as const, pitch: -2 * weight, lift: 6 * weight };
+  }
+  return { phase: 'cruise' as const, pitch: 0, lift: 0 };
+}
+
 /** One view projection for the airport header and the fleet list; no timers or commands. */
 export function flightStatus(game: GameState, plane: Plane) {
   const flight = currentFlight(game, plane);

@@ -11,7 +11,7 @@ export function StartScreen({ ready, recovery, error, onEnter, onSettings }: {
   useEffect(() => { if (ready && !recovery) enter.current?.focus({ preventScroll: true }); }, [ready, recovery]);
   return <main className="start-screen" data-testid="start-screen">
     <FlightSky className="start-flight-sky"/>
-    <div className="start-aircraft" aria-hidden="true"><img src={artAsset('aircraft-flight-v1.png')} alt="" draggable={false}/></div>
+    <div className="start-aircraft" aria-hidden="true"><img src={artAsset('aircraft-flight-v2.png')} alt="" draggable={false}/></div>
     <header className="start-utility"><LanguagePicker compact/><button type="button" onClick={onSettings}>{t('start.settings')}</button></header>
     <section className="start-panel" aria-labelledby="start-title">
       <span className="start-kicker">{t('start.kicker')}</span>

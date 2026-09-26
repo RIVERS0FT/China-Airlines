@@ -4,7 +4,7 @@ import { controller } from '../runtime.js';
 import { useI18n } from '../i18n/I18n.js';
 import { airportScene } from './airport-presentation.js';
 import { energyText } from './EnergyService.js';
-import { FlightMoney } from './FlightBoard.js';
+import { FlightMoney } from './FlightMoney.js';
 import { flightStatus } from './flight-status.js';
 import { AviationScene } from './AviationScene.js';
 import { AirportSceneTools } from './AirportSceneTools.js';
@@ -34,7 +34,7 @@ export function AirportWorkspace({ game, context, busy, aboard, orderViewKey, ca
       {plane?.autoRouteId && <button disabled={busy} onClick={() => act({ type:'stop', planeId:plane.id })}>{t('airport.stopAuto')}</button>}
     </div>
     <div className="scene-wrap">
-      {context.pinned && <button className="return-selected-plane" onClick={() => onSelectPlane(context.selected.id)}>{t('airport.backPlane', { id:context.selected.id })}</button>}
+      {context.pinned && context.selected && <button className="return-selected-plane" onClick={() => onSelectPlane(context.selected!.id)}>{t('airport.backPlane', { id:context.selected.id })}</button>}
       {plane && plane.itinerary.length > 0 && <div className="itinerary-banner" data-testid="active-plan">{t('airport.onward', { route:plane.itinerary.map(city).join(' → ') })}</div>}
       <AviationScene game={game} plane={plane} busy={busy} cabinFocusKey={aboard ? orderViewKey : 0} cabinVisible={cabinVisible} onToggleCabin={onToggleCabin} onCabin={onCabin}/><AirportSceneTools game={game} plane={plane} onTasks={onTasks}/>
       <button className="switch-plane previous" aria-label={t('airport.previousPlane')} disabled={context.choices.length < 2} onClick={() => onCycle(-1)}>◀</button><button className="switch-plane next" aria-label={t('airport.nextPlane')} disabled={context.choices.length < 2} onClick={() => onCycle(1)}>▶</button>

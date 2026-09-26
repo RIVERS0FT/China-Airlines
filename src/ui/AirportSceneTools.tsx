@@ -10,7 +10,7 @@ export function AirportSceneTools({ game, plane, onTasks }: {
 }) {
   const { count, task } = taskOverview(game);
   const { ui } = useI18n();
-  const next = task?.id === 'first-flight' && plane ? guideStep(game, plane, 'airport', '') : null;
+  const next = task?.id === 'first-flight' ? guideStep(game, plane, 'airport', '') : null;
   return <div className="airport-scene-tools">
     <button className={`airport-mission ${count ? 'has-rewards' : ''}`} aria-label={ui('任务中心')} aria-describedby="airport-task-summary" data-guide="tasks" onClick={onTasks}>
       <Icon name="task"/><span><strong>{ui('任务')} <span className="mission-status">{count ? `${ui('可领取')} ${count}` : task ? ui('进行中') : ui('已完成')}</span></strong>

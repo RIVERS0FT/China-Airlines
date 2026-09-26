@@ -1,0 +1,83 @@
+{
+  "tool": "built-in image_gen",
+  "generatedAt": "2026-09-26",
+  "sourceDirectory": "built-in image_gen session 01a0d45b-7b8e-7080-9b6c-c5d1cd1290ee",
+  "style": "Original polished hand-painted 2D airline game sprites; warm white upper fuselage, cobalt blue belly and tail, restrained gold ribbons, crisp dark blue contours, soft cel shading, true transparent alpha, complete closed exterior, no text, logos, registrations, people, cutaway or background. Left-facing side elevation except airborne three-quarter title illustration. Preserve real prototype wings, engine type/count, tail and landing gear. Wide 1536x590 runtime canvas.",
+  "images": [
+    {
+      "id": "diamond-da40",
+      "source": "exec-627e5959-b211-4f03-9b80-52684cb01006.png",
+      "prototype": "Diamond DA40 NG",
+      "details": "Single nose propeller, low wing, bubble canopy, T-tail, fixed tricycle gear."
+    },
+    {
+      "id": "swift-p",
+      "source": "exec-ded5d1cd-e76b-4861-96fd-7f207751f793.png",
+      "prototype": "Cessna 408 SkyCourier Passenger",
+      "details": "High wing, twin four-blade turboprops, T-tail, fixed gear, passenger windows, single white tail slash."
+    },
+    {
+      "id": "swift-m",
+      "source": "exec-e21560c2-6930-4251-9f0b-50b2562b815b.png",
+      "prototype": "Cessna 408 SkyCourier",
+      "details": "High wing, twin four-blade turboprops, T-tail, passenger windows and closed aft utility door, paired gold tail accents."
+    },
+    {
+      "id": "swift-f",
+      "source": "exec-156072c3-9101-42fa-8734-6600cb95881d.png",
+      "prototype": "Cessna 408 SkyCourier Freighter",
+      "details": "High wing, twin turboprops, T-tail, closed cargo door, mainly blank fuselage, gold arrow tail ribbon."
+    },
+    {
+      "id": "heron-p",
+      "source": "exec-0a385f66-d855-4d1e-ac68-18d65972cf19.png",
+      "prototype": "ATR 72-600",
+      "details": "Regional high wing, two six-blade turboprops, T-tail, passenger windows, extended gear, fine gold sweep."
+    },
+    {
+      "id": "heron-m",
+      "source": "exec-43b0cd68-e15c-4e39-8188-c1123206c6e2.png",
+      "prototype": "ATR 72-600 Combi",
+      "details": "Regional high wing, twin six-blade turboprops, T-tail, closed cargo door and shorter window row, white tail band."
+    },
+    {
+      "id": "heron-f",
+      "source": "exec-16ee6fab-2dab-47af-85e3-c37725c33f22.png",
+      "prototype": "ATR 72-600F",
+      "details": "Regional twin turboprop freighter, T-tail, closed forward cargo door, windowless main deck, gold stepped tail stripe."
+    },
+    {
+      "id": "albatross-p",
+      "source": "exec-bddac7e0-c9de-427f-87d7-9780862d55ee.png",
+      "prototype": "Airbus A321XLR",
+      "details": "Narrow-body twinjet, low swept wings, sharklets, two turbofans, conventional tail, passenger windows, long gold cheatline."
+    },
+    {
+      "id": "albatross-m",
+      "source": "exec-cc22f69b-7ccd-4536-8ba6-5e308f504a43.png",
+      "prototype": "Airbus A321XLR",
+      "details": "Narrow-body twinjet, low swept wings, sharklets, conventional tail, white-blue-gold original livery with paired gold tail arcs."
+    },
+    {
+      "id": "aurora-p",
+      "source": "exec-b948b5c8-b678-45e7-9be3-009b9aa28568.png",
+      "prototype": "Boeing 747-8 Intercontinental",
+      "details": "Four-engine jumbo, long upper-deck hump, two forward window rows, low swept wings and raked tips, multi-bogie gear, white rising tail arc."
+    },
+    {
+      "id": "aircraft-flight",
+      "source": "exec-d2dd34a5-90a4-4e45-b960-94ce4c589871.png",
+      "prototype": "Airbus A321XLR",
+      "details": "Title hero in dynamic left-facing airborne three-quarter view, both wings visible, two engines, retracted landing gear, no scenery."
+    }
+  ],
+  "portrait": {
+    "source": "exec-0763fb7e-0704-4ce0-b2dc-31880a019b99.png",
+    "prompt": "art/prompt-tutorial-guide.txt",
+    "sourceFile": "art/source/tutorial-guide-v1.png",
+    "runtimeFile": "public/art/tutorial-guide-v1.png",
+    "width": 640,
+    "height": 800
+  },
+  "processing": "Transparent RGBA assets normalized with premultiplied-alpha bilinear resampling; aircraft share a 1536x590 canvas with safe margins. Source and runtime exterior pixels are verified identical."
+}

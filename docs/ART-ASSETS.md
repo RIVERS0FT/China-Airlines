@@ -4,11 +4,16 @@
 
 ## 飞机与机舱
 
-当前 14 架飞机各有一张独立的完整外观图：`public/art/aircraft-{id}-exterior-v7.png`，尺寸为 1536×590 透明 RGBA。源文件与机型、原型、容量清单位于 `art/aircraft-exteriors-v7/`。运行目录通过 `src/ui/aircraft-cabin-layouts.json` 读取外观文件和程序化机舱布局。外观修订号仅用于资源缓存，不是存档版本。
+当前目录的 10 架飞机各有一张独立的完整外观图：`public/art/aircraft-{id}-exterior-v8.png`，尺寸为 1536×590 透明 RGBA。源文件与机型、原型、容量清单位于 `art/aircraft-exteriors-v8/`。运行目录通过 `src/ui/aircraft-cabin-layouts.json` 读取外观文件和程序化机舱布局。外观修订号仅用于资源缓存，不是存档版本。
 
 机舱壁、窗、地板、座椅和货盘由 UI 绘制，不使用剖面或家具底图。乘客和货物使用本地图集，按真实订单和容量锚点摆放。
 
+标题起飞图同步重绘为 `aircraft-flight-v2.png`；教程教练半身像为 `tutorial-guide-v1.png`（640×800）。均使用内置 image_gen 生成，透明边缘整理后进入离线缓存。提示词和逐机原型记录见 [aircraft-redraw-v8.json](../art/aircraft-redraw-v8.json) 与 [人物提示词](../art/prompt-tutorial-guide.txt)。旧版飞机外观、初航机与失效目录资源已清理。
+
 ## 其他资源
+
+- `flight-cloudscape-v1.png`：1536×1024 原创晴空云海背景，完整不透明画面；运行时将镜像对连续拼接，整片背景向右移动，避免静态云海掩盖飞行速度感。
+- `flight-cloud-bank-v1.png`：1536×1024 原创透明云团，保留柔和 alpha 边缘，用于远近两层连续移动。与背景一起由内置 image_gen 生成，直接保留生成 PNG，无后处理；提示词及来源见 [flight-backgrounds-v1.json](../art/flight-backgrounds-v1.json)。两张合计约3 MiB，进入既有 PWA 图片预缓存。
 
 - `passenger-standing-seated-v2.png`：6 位原创人物的站姿与坐姿。
 - `cargo-food-atlas-v1.png`、`cargo-everyday-atlas-v1.png`、`cargo-special-atlas-v1.png`：货物图集。

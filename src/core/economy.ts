@@ -1,62 +1,39 @@
-/**
- * Verified China Railway 2.0.9 transport-economy core, adapted to the
- * aviation globe scale. Keep these functions free of UI and persistence.
+/** Aviation balance values; the reference game informs distance and base fares only. */
+export const distanceUnits = (kilometres: number) => Math.floor(kilometres / 4);
+export const baseOrderReward = (kilometres: number, amount: number) =>
+  amount * (distanceUnits(kilometres) + 50);
+
+export const formationRevenueMultiplier = (level: number) => 1 + level * 0.2;
+export const evolutionMultiplier = (level: number) => 1 + level * 0.015;
+export const transportRevenue = (baseReward: number, groupLevel: number, evolutionLevel: number) =>
+  Math.floor(baseReward * (100 + groupLevel * 20) * (1000 + evolutionLevel * 15) / 100000);
+
+/** Rated airframe capacity carries costs even with an empty/unallocated cabin.
+ * Each takeoff adds a handling charge. Integer coefficients keep rounding exact.
  */
-export const railwayDistanceUnits = (kilometres: number) =>
-  Math.floor(kilometres / 4);
-
-export const railwayOrderReward = (kilometres: number, amount: number) =>
-  amount * (railwayDistanceUnits(kilometres) + 50);
-
-export const railwayEvolutionMultiplier = (level: number) =>
-  level < 1 ? 1 : 1 + Math.pow(1.02, level) / 100;
-
-export const railwayRevenue = (
-  baseReward: number,
-  groupLevel: number,
-  evolutionLevel: number,
-) =>
-  Math.floor(
-    baseReward *
-      2 ** groupLevel *
-      railwayEvolutionMultiplier(evolutionLevel),
-  );
-
-export const railwayRouteCost = (
-  distanceUnits: number,
-  weight: number,
-  speed: number,
-  groupLevel: number,
-  cabins: number,
-) =>
-  Math.floor(
-    (distanceUnits * weight * speed * 2 ** groupLevel * cabins) / 400000,
-  );
-
-/**
- * Allocates one route-level cost across its legs without changing the final
- * total. This preserves staged payments while rounding only the route total.
- */
-export function railwayLegCosts(
-  legDistanceUnits: readonly number[],
-  weight: number,
-  speed: number,
-  groupLevel: number,
-  cabins: number,
-  distanceBefore = 0,
+export function routeOperatingCost(
+  routeDistanceUnits: number, weight: number, speed: number,
+  groupLevel: number, capacity: number, legCount = 1,
 ) {
-  let cumulative = distanceBefore;
-  return legDistanceUnits.map((legDistance) => {
-    const before = railwayRouteCost(
-      cumulative,
-      weight,
-      speed,
-      groupLevel,
-      cabins,
-    );
-    cumulative += legDistance;
-    return (
-      railwayRouteCost(cumulative, weight, speed, groupLevel, cabins) - before
-    );
+  // (D * (capacity * 0.24 + weight * speed / 600000) + legs * capacity * 12)
+  // * (1 + groupLevel * 0.12)
+  return Math.floor(
+    (routeDistanceUnits * (capacity * 144000 + weight * speed) + legCount * capacity * 7200000)
+    * (100 + groupLevel * 12) / 60000000,
+  );
+}
+
+/** Round the plan once; cumulative differences preserve exact staged payments. */
+export function legOperatingCosts(
+  legDistances: readonly number[], weight: number, speed: number,
+  groupLevel: number, capacity: number,
+) {
+  let cumulativeDistance = 0, previousCost = 0;
+  return legDistances.map((legDistance, index) => {
+    cumulativeDistance += legDistance;
+    const cumulativeCost = routeOperatingCost(cumulativeDistance, weight, speed, groupLevel, capacity, index + 1);
+    const cost = cumulativeCost - previousCost;
+    previousCost = cumulativeCost;
+    return cost;
   });
 }

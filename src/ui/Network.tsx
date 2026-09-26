@@ -54,9 +54,9 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
   const timeText = active ? formatDuration(active.remaining) : summary ? formatDuration(summary.duration) : '—';
   return <section className={`network-view route-dispatch-view ${browsing ? 'world-map-view' : ''}`} aria-label={browsing ? t('map.a11yBrowse') : inFlight ? t('map.a11yFlight') : t('map.a11yPlan')}>
     {!browsing && <div className="dispatch-readout" data-testid="network-summary">
-      <button className="dispatch-stat dispatch-destination" aria-label={t('map.selectDestination')} aria-haspopup="dialog" onClick={() => { dismissTip(); setCitySearch(''); setContinent('all'); setCitiesOpen(true); }}>
-        <span>{t('map.destination')}</span><strong data-testid="network-destination">{destinationText}<i aria-hidden="true">▾</i></strong>
-      </button>
+      <div className="dispatch-stat dispatch-destination">
+        <span>{t('map.destination')}</span><strong data-testid="network-destination">{destinationText}</strong>
+      </div>
       <div className="dispatch-stat dispatch-time"><span>{active ? t('map.remaining') : t('map.estimated')}</span><strong data-testid="network-time">{timeText}</strong></div>
       <div className="dispatch-stat dispatch-profit"><span>{t('map.profit')}</span><strong data-testid="network-profit">{summary ? formatMoney(summary.profit) : stops.length ? '—' : formatMoney(0)}</strong></div>
       <div className="dispatch-stat dispatch-cost"><span>{t('map.cost')}</span><strong data-testid="network-cost">{summary ? formatMoney(summary.cost) : stops.length ? '—' : formatMoney(0)}</strong></div>
@@ -64,7 +64,7 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
     <div className="network-map">
       <MapView game={game} plane={plane} selected={destination} onSelect={chooseAirport} onOpenCities={openCities} preview={preview} planning={!browsing} showOthers={browsing || showOthers} onToggleOthers={() => { dismissTip(); setShowOthers(value => !value); }}/>
       {browsing && <p className="world-map-guide">{t('map.guide')}</p>}
-      {!browsing && tip && !active && <div className="dispatch-tip" role="status"><span>{t('map.routeTip')}</span><button aria-label={t('map.closeTip')} onClick={dismissTip}>×</button></div>}
+      {!browsing && tip && !active && game.tutorial !== 'active' && <div className="dispatch-tip" role="status"><span>{t('map.routeTip')}</span><button aria-label={t('map.closeTip')} onClick={dismissTip}>×</button></div>}
       {!browsing && <PlanControls game={game} plane={plane} stops={stops} setStops={value => { dismissTip(); setStops(value); if (value.length !== 1) setAuto(false); }} auto={auto} setAuto={setAuto} busy={busy} onDepart={onDepart} onCancel={onReturn} onDetails={dismissTip}/>}
     </div>
     {citiesOpen && <DispatchDialog title={t('map.selectCity')} onClose={() => setCitiesOpen(false)}>

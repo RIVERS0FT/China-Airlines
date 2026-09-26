@@ -4,6 +4,8 @@ import { artAsset } from './art-assets.js';
 import { FlightSky } from './FlightSky.js';
 import { useI18n } from '../i18n/I18n.js';
 import { AircraftCabin } from './AircraftCabin.js';
+import { flightPose } from './flight-status.js';
+import type { CSSProperties } from 'react';
 
 /** Painted scene and aircraft; capacity overlays remain read-only projections of real orders. */
 export function AviationScene({ game, plane, onCabin, onToggleCabin, cabinVisible, busy, cabinFocusKey }: {
@@ -11,12 +13,13 @@ export function AviationScene({ game, plane, onCabin, onToggleCabin, cabinVisibl
 }) {
   const { t, ui, modelName } = useI18n();
   const flying = Boolean(plane?.flight);
+  const pose = plane ? flightPose(game, plane) : null;
   const total = plane ? loadSummary(game, plane.id) : { passengers: 0, cargo: 0 };
   const m = plane ? aircraftSpecs(plane) : null;
   const seatSlots = m ? Math.min(14, m.seats) : 0;
   const occupied = m && m.seats > 0 ? Math.ceil(total.passengers / m.seats * seatSlots) : 0;
   const bellySlots = m ? Math.min(4, m.cargo) : 0;
-  return <div className={`aviation-stage ${flying ? 'is-flying' : ''}`} data-testid="airport-scene">
+  return <div className={`aviation-stage ${flying ? 'is-flying' : ''}`} data-testid="airport-scene" data-flight-phase={pose?.phase}>
     {flying ? <FlightSky className="airport-backdrop"/> : <svg className="airport-backdrop" viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <defs><linearGradient id="sky" x2="0" y2="1"><stop stopColor="#74c6ee"/><stop offset="1" stopColor="#e2f6fb"/></linearGradient><pattern id="terminal-windows" width="47" height="38" patternUnits="userSpaceOnUse"><rect width="43" height="33" rx="2" fill="#68abc7"/><path d="m2 2 34 29M23 2l18 16" stroke="#bcdeea" strokeWidth="3" opacity=".5"/></pattern></defs>
       <rect width="1440" height="520" fill="url(#sky)"/>
@@ -26,16 +29,18 @@ export function AviationScene({ game, plane, onCabin, onToggleCabin, cabinVisibl
     {plane && !flying && <AircraftCabin key={plane.id} game={game} plane={plane} busy={busy} focusKey={cabinFocusKey} visible={cabinVisible} onToggle={onToggleCabin}/>}
     {plane && flying && <button className="airplane-display" onClick={onCabin} aria-label={t('flight.view')} data-testid="plane-art">
       <svg viewBox="0 -24 1000 378" role="img" aria-label={t('flight.sceneLabel', { model: modelName(plane.modelId, m!.name) })}>
-        <image data-testid="aircraft-sprite" href={artAsset(m!.art)} x="95" y="0" width="810" height="310"/>
-        <g className="cabin-overlay" stroke="#466477" strokeWidth="1.5" strokeLinejoin="round">
-          <rect x="317" y="148" width="310" height="47" rx="7" fill="#f1fbfff2"/>
-          <text x="329" y="163" stroke="none" fill="#214f72" fontSize="12" fontWeight="800">{modelName(plane.modelId, m!.name)} · {plane.id}　{ui('旅客 {used}/{capacity}',{used:total.passengers,capacity:m!.seats})}</text>
-          {Array.from({ length: seatSlots }, (_, i) => <g key={i} transform={`translate(${330 + i * 20},170)`}><path d="M0 0h9v11h4v5H-2V5h2Z" fill={i < occupied ? '#32a98a' : '#aebdbb'}/></g>)}
-          {m!.seats === 0 && <text x="329" y="183" stroke="none" fill="#214f72" fontSize="12">{ui('货运机型 · 无旅客位')}</text>}
-          {m!.cargo > 0 && <g><rect x="317" y="201" width="150" height="27" rx="5" fill="#fff6dcf2"/>
-            <text x="324" y="219" stroke="none" fill="#725527" fontSize="12">{ui('货 {used}/{capacity}',{used:total.cargo,capacity:m!.cargo})}</text>
-            {Array.from({ length: bellySlots }, (_, i) => <rect key={i} x={388 + i * 17} y="207" width="12" height="14" rx="1" fill={i < Math.ceil(total.cargo / m!.cargo * bellySlots) ? '#d59d55' : '#d2d1bc'}/>)}
-          </g>}
+        <g className="flight-attitude" style={{ '--flight-pitch': `${pose!.pitch}deg`, '--flight-lift': `${pose!.lift}px` } as CSSProperties}>
+          <image data-testid="aircraft-sprite" href={artAsset(m!.art)} x="95" y="0" width="810" height="310"/>
+          <g className="cabin-overlay" stroke="#466477" strokeWidth="1.5" strokeLinejoin="round">
+            <rect x="317" y="148" width="310" height="47" rx="7" fill="#f1fbfff2"/>
+            <text x="329" y="163" stroke="none" fill="#214f72" fontSize="12" fontWeight="800">{modelName(plane.modelId, m!.name)} · {plane.id}　{ui('旅客 {used}/{capacity}',{used:total.passengers,capacity:m!.seats})}</text>
+            {Array.from({ length: seatSlots }, (_, i) => <g key={i} transform={`translate(${330 + i * 20},170)`}><path d="M0 0h9v11h4v5H-2V5h2Z" fill={i < occupied ? '#32a98a' : '#aebdbb'}/></g>)}
+            {m!.seats === 0 && <text x="329" y="183" stroke="none" fill="#214f72" fontSize="12">{ui('货运机型 · 无旅客位')}</text>}
+            {m!.cargo > 0 && <g><rect x="317" y="201" width="150" height="27" rx="5" fill="#fff6dcf2"/>
+              <text x="324" y="219" stroke="none" fill="#725527" fontSize="12">{ui('货 {used}/{capacity}',{used:total.cargo,capacity:m!.cargo})}</text>
+              {Array.from({ length: bellySlots }, (_, i) => <rect key={i} x={388 + i * 17} y="207" width="12" height="14" rx="1" fill={i < Math.ceil(total.cargo / m!.cargo * bellySlots) ? '#d59d55' : '#d2d1bc'}/>)}
+            </g>}
+          </g>
         </g>
       </svg>
     </button>}

@@ -5,6 +5,8 @@ import {
   MATERIALS,
   WORKSHOP_MATERIALS,
   RECIPES,
+  growthPrice,
+  assemblyPrice,
   type Material,
   type Building,
 } from "../core/career-catalog.js";
@@ -179,7 +181,7 @@ export function CareerHub({
               {(["group-plane", "evolve-plane", "power-upgrade"] as const).map(
                 (type, i) =>
                   action(
-                    `${["提升编队", "机体进化", "提升电力"][i]} · ${(p.tuning[(["group", "evolution", "power"] as const)[i]!] + 1) * 500}金币＋${(p.tuning[(["group", "evolution", "power"] as const)[i]!] + 1) * 2}券`,
+                    `${["提升编队", "机体进化", "提升电力"][i]} · ${growthPrice(p, (["group", "evolution", "power"] as const)[i]!).gold}金币＋${growthPrice(p, (["group", "evolution", "power"] as const)[i]!).tickets}券`,
                     { type, planeId: p.id },
                     locked,
                   ),
@@ -217,7 +219,7 @@ export function CareerHub({
                   ? "冷链"
                   : "工业"}
               。专业改装费用 1,800 金币、4 点券、3 合金、1
-              图纸。编队收益和成本均按 2 的等级次方增长；进化收益采用《中华铁路》2.0.9核验曲线。
+              图纸。编队每级增加基础收益20%、运行成本12%；进化每级增加收益1.5%。
             </p>
             <h3>零件组装</h3>
             <div className="career-form">
@@ -236,6 +238,7 @@ export function CareerHub({
                 </select>
               </label>
               {citySelect(local, setCity, "组装交付机场")}
+              <span>{money(assemblyPrice(assembly))} 金币</span>
               {action("组装飞机", {
                 type: "assemble-plane",
                 modelId: assembly,
@@ -243,7 +246,7 @@ export function CareerHub({
               })}
             </div>
             <p>
-              消耗机身、动力、机翼组件各“机场需求等级”件，图纸1张，另付机价30%及等级×2点券。
+              消耗机身、动力、机翼组件各“机场需求等级”件，图纸1张，另付机价60%及等级×2点券。
             </p>
             <h3>封存仓库 · {c.stored.length} 架</h3>
             {!c.stored.length && (

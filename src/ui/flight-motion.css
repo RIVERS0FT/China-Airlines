@@ -3,22 +3,26 @@
 .start-aircraft,
 .is-flying .airplane-display > svg {
   transform-origin:50% 50%;
-  animation:start-aircraft-cruise 6s ease-in-out infinite;
+  animation:start-aircraft-cruise 4.8s ease-in-out infinite;
 }
-.flight-sky { pointer-events:none; }
-.flight-clouds { transform-box:view-box; transform-origin:center; }
-.flight-clouds-far { animation:flight-cloud-drift 32s linear infinite; }
-.flight-clouds-near { animation:flight-cloud-drift 18s linear infinite; }
+.flight-sky { pointer-events:none; overflow:hidden; background:linear-gradient(#56b4df,#dff3fa); }
+.flight-panorama { position:absolute; top:0; left:-200%; width:400%; height:100%; display:flex; animation:flight-cloud-drift 64s linear infinite; }
+.flight-panorama>img { flex:0 0 25%; width:25%; height:100%; object-fit:cover; object-position:50% 65%; }
+.flight-panorama>img:nth-child(even) { transform:scaleX(-1); }
+.flight-clouds { position:absolute; left:-100%; width:200%; display:flex; pointer-events:none; }
+.flight-clouds>img { flex:0 0 50%; width:50%; height:100%; object-fit:contain; }
+.flight-clouds-far { top:4%; height:58%; opacity:.58; animation:flight-cloud-drift 24s linear infinite; }
+.flight-clouds-near { top:36%; height:80%; opacity:.88; animation:flight-cloud-drift 12s linear infinite; animation-delay:-6s; }
+.flight-attitude { transform-box:view-box; transform-origin:500px 155px; transform:translateY(var(--flight-lift,0px)) rotate(var(--flight-pitch,0deg)); transition:transform 1s linear; }
 @keyframes start-aircraft-cruise {
-  0%,100% { transform:translate3d(0,0,0) rotate(-.5deg); }
-  50% { transform:translate3d(-10px,-9px,0) rotate(.6deg); }
+  0%,100% { transform:translate3d(0,0,0) rotate(-.2deg); }
+  50% { transform:translate3d(0,-7px,0) rotate(.2deg); }
 }
 @keyframes flight-cloud-drift {
   from { transform:translate3d(0,0,0); }
-  to { transform:translate3d(-1440px,0,0); }
+  /* Aircraft art faces left. Move one cloud tile or a mirrored panorama pair
+     rightwards; the next repeat has identical content at every UI scale. */
+  to { transform:translate3d(50%,0,0); }
 }
-@media(prefers-reduced-motion:reduce) {
-  .start-aircraft,
-  .is-flying .airplane-display > svg,
-  .flight-clouds { animation:none; }
-}
+/* Flight motion is part of the scene and stays on by product choice, including
+   embedded previews that report reduced motion. Other UI keeps its own policy. */

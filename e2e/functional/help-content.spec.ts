@@ -1,0 +1,30 @@
+import { test, expect } from '../helpers/configured-airport.js';
+import { exportCompany } from '../helpers/new-company.js';
+
+for (const locale of ['zh-CN', 'en-US'] as const) test(`help starts a real tutorial; skipping persists without changing the company (${locale})`, async ({ page }) => {
+  const english = locale === 'en-US';
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.clock.setFixedTime(new Date('2026-09-25T00:00:00Z'));
+  await page.addInitScript(value => localStorage.setItem('china-airlines:locale:v1', value), locale);
+  await page.goto('./');
+  const before = await exportCompany(page);
+  await page.getByRole('button', { name: english ? 'Help' : '操作帮助', exact: true }).click();
+  const help = page.getByRole('dialog', { name: english ? 'Flight Guide' : '起航指南', exact: true });
+  await help.getByRole('button', { name: english ? 'Start Guided Tutorial' : '开始分步引导', exact: true }).click();
+  await expect(help).toHaveCount(0);
+  const tutorial = page.getByTestId('tutorial');
+  await expect(tutorial).toHaveAttribute('data-step', 'load');
+  const active = await exportCompany(page);
+  expect(active.tutorial).toBe('active');
+  expect(active.credits).toBe(before.credits);
+  expect(active.orders).toEqual(before.orders);
+  await tutorial.getByRole('button', { name: english ? 'Skip Tutorial' : '跳过引导', exact: true }).click();
+  await expect(tutorial).toHaveCount(0);
+  await page.reload();
+  const saved = await exportCompany(page);
+  expect(saved.tutorial).toBe('skipped');
+  expect(saved.credits).toBe(before.credits);
+  expect(saved.fleet).toEqual(before.fleet);
+  expect(saved.orders).toEqual(before.orders);
+  expect(saved.stats).toEqual(before.stats);
+});

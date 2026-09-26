@@ -54,7 +54,7 @@ export interface GameState {
 export type Command =
   | { type: 'unlock'; airportId: string }
   | { type: 'upgrade'; airportId: string }
-  | { type: 'buy'; modelId: string; airportId: string }
+  | { type: 'buy'; modelId: string; airportId: string; passengers: number; cargo: number }
   | { type: 'route'; from: string; to: string }
   | { type: 'dispatch'; planeId: string; to: string; auto: boolean }
   | { type: 'stop'; planeId: string }

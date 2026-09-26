@@ -19,7 +19,7 @@ export function validateInfrastructure(s: GameState): void {
     if (!AIRPORTS.some(def => def.id === a.id) || a.level < 1 || airports.has(a.id)) fail();
     airports.set(a.id, a.level);
   }
-  if (!airports.has('PEK') || !airports.has('PVG')) fail();
+  if (!airports.has('PEK')) fail();
   list(s.routes, AIRPORTS.length * (AIRPORTS.length - 1) / 2);
   const routes = new Set<string>();
   for (const r of s.routes) {
@@ -28,7 +28,7 @@ export function validateInfrastructure(s: GameState): void {
     routes.add(r.id);
   }
   list(s.fleet, MAX_FLEET);
-  if (!s.fleet.length) fail();
+  if (!s.fleet.length && (s.fleetPeak !== 0 || s.career.stored.length || s.stats.flights)) fail();
   const planes = new Set<string>();
   for (const p of [...s.fleet,...s.career.stored]) {
     if (!p || typeof p.id !== 'string' || !/^AC\d{4,9}$/.test(p.id) || Number(p.id.slice(2)) < 1 ||

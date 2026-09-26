@@ -2,6 +2,22 @@ import type { LocaleBundle } from '../types.js';
 import type { MessageKey } from './zh-CN.js';
 
 export const enUSMessages = {
+  'purchase.title': 'Configure aircraft purchase',
+  'purchase.help': 'Capacity: {capacity} slots. Choose passenger and cargo slots before confirming. Unused slots are allowed.',
+  'purchase.passengers': 'Passenger slots',
+  'purchase.cargo': 'Cargo slots',
+  'purchase.remaining': 'Unused slots: {count}',
+  'purchase.invalid': 'Allocate between 1 and {capacity} slots using whole numbers.',
+  'purchase.airframe': 'Aircraft price',
+  'purchase.configuration': 'Initial configuration',
+  'purchase.free': 'Free',
+  'purchase.total': 'Total',
+  'purchase.laterRefits': 'This configuration is free. Subsequent refits use hangar pricing.',
+  'purchase.cancel': 'Cancel purchase',
+  'purchase.confirm': 'Confirm configuration and buy',
+  'purchase.layout': 'Cabin layout',
+  'purchase.choose': 'Choose at purchase',
+  'purchase.shopHelp': 'Complete the free cabin configuration before purchase and delivery. Later refits are charged normally. Aircraft values are game settings.',
   'app.name': 'China Airlines',
   'app.subtitle': 'Route Operations',
   'app.tagline': 'Connect the world and build your airline network',
@@ -50,7 +66,7 @@ export const enUSMessages = {
   'map.locked': 'Locked',
   'map.inspect': 'View {city} Airport Details',
   'map.catalogNote': 'The first release includes 50 airports. Locked cities open details first. Long-range travel may require upgrades or intermediate stops. Closing this dialog preserves the globe camera.',
-  'map.routeTip': 'Drag to rotate the globe; select airports to build a route, or search from the destination control.',
+  'map.routeTip': 'Drag to rotate the globe; select airports in order to build a route.',
   'map.closeTip': 'Close route tip',
   'map.destination': 'Destination',
   'map.selectDestination': 'Choose destination city',
@@ -65,7 +81,7 @@ export const enUSMessages = {
   'map.routeMap': 'Route planning map',
   'map.map': 'Map',
   'map.fallbackBrowse': 'The map is unavailable. Continue browsing from the city list.',
-  'map.fallbackPlan': 'The map is unavailable. Choose a city using the destination control above.',
+  'map.fallbackPlan': 'The map is unavailable. Continue planning from the city list.',
   'map.passengerBadge': '{count} passengers',
   'map.showOthers': 'Show other aircraft',
   'map.hideOthers': 'Hide other aircraft',
@@ -152,7 +168,7 @@ export const enUSMessages = {
   'settings.offlineReady': 'Resources are cached and the game can be reopened offline.',
   'settings.offlineFirst': 'The first visit requires a connection. Offline launch is available after caching finishes.',
   'settings.saveCompatibility': 'Offline Progress & Save Format',
-  'settings.saveCompatibilityHelp': 'Offline progress is capped at 8 hours. Imports do not advance file time. Only current v11 saves are supported. Older saves do not migrate automatically. A mismatched version, unknown aircraft, or corrupt data rejects the import without overwriting current progress.',
+  'settings.saveCompatibilityHelp': 'Offline progress is capped at 8 hours. Imports do not advance file time. Only current v13 saves are supported. Older saves do not migrate automatically. A mismatched version, unknown aircraft, or corrupt data rejects the import without overwriting current progress.',
   'settings.persistence': 'Persistent Local Storage',
   'settings.persistenceHelp': 'This request does not replace exported backups.',
   'settings.persistenceApply': 'Request',
@@ -207,7 +223,6 @@ const airports = {
 } as const;
 
 const aircraft = {
-  'starter-swift':{name:'Swift First Flight',role:'Starter airframe'},
   'diamond-da40':{name:'Diamond DA40',role:'1-slot light airframe'},
   'swift-p':{name:'Swift I',role:'2-slot airframe'}, 'swift-m':{name:'Swift II',role:'3-slot airframe'}, 'swift-f':{name:'Swift III',role:'4-slot airframe'},
   'heron-p':{name:'Heron I',role:'5-slot airframe'}, 'heron-m':{name:'Heron II',role:'6-slot airframe'}, 'heron-f':{name:'Heron III',role:'7-slot airframe'},

@@ -42,10 +42,10 @@ export function airportDirectory(game: GameState, filter: AirportFilter, query: 
 /** Pinned inspection is UI-only: never move an aircraft to the airport being read.
  * Invalid pins/selection after import or resale fall back to a real surviving plane. */
 export function airportScene(game: GameState, selectedId: string, requestedAirport: string | null) {
-  const selected = game.fleet.find(p => p.id === selectedId) ?? game.fleet[0]!;
+  const selected = game.fleet.find(p => p.id === selectedId) ?? game.fleet[0];
   const pinned = game.airports.some(a => a.id === requestedAirport) ? requestedAirport : null;
-  const airportId = pinned ?? selected.airportId;
+  const airportId = pinned ?? selected?.airportId ?? 'PEK';
   const choices = pinned ? game.fleet.filter(p => !p.flight && p.airportId === pinned) : game.fleet;
-  const plane = pinned ? choices.find(p => p.id === selected.id) ?? choices[0] : selected;
+  const plane = pinned ? choices.find(p => p.id === selected?.id) ?? choices[0] : selected;
   return { selected, plane, airportId, pinned, choices };
 }

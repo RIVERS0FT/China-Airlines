@@ -1,7 +1,28 @@
-/* Keep the action/rejection label inside each card while the training bar is open. */
-@media(max-height:600px) and (orientation:landscape){
-  .aviation-game.training-active .job-card{grid-template-rows:18px minmax(0,1fr) minmax(0,1fr) 11px;row-gap:0!important}
-  .aviation-game.training-active .job-card .job-destination{font-size:11px;line-height:12px;padding:2px 7px}
-  .aviation-game.training-active .job-card .job-art{height:24px}
-  .aviation-game.training-active .job-card .job-state{line-height:10px}
+/* Physical top-layer coordinates; excluded from logical viewport conversion. */
+.tutorial-coach{position:fixed;inset:0;margin:0;padding:0;border:0;max-width:none;max-height:none;background:transparent;color:#233d52;overflow:hidden;pointer-events:none;font-family:system-ui,sans-serif}
+.tutorial-coach::backdrop{background:transparent;pointer-events:none}
+.tutorial-mask{position:absolute;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:#11243bb8!important;pointer-events:auto;cursor:pointer;box-shadow:none!important}
+.tutorial-spotlight{position:absolute;box-sizing:border-box;border:3px solid #f5cb73;border-radius:12px;box-shadow:0 0 0 3px #b2833055;pointer-events:none}
+.tutorial-spotlight.is-locating{border-color:#fff2b3;box-shadow:0 0 0 5px #f5cb7380,0 0 22px #f5cb73}
+.tutorial-mask:focus-visible{outline:3px solid #f5cb73!important;outline-offset:-4px}
+.tutorial-conversation{position:absolute;left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));bottom:16px;display:flex;justify-content:center;pointer-events:none}
+.tutorial-conversation.is-top{bottom:auto;top:96px}
+.tutorial-dialogue{position:relative;box-sizing:border-box;width:min(1040px,100%);min-height:156px;padding:16px 24px 16px 224px;border:2px solid #d4af60;border-radius:18px;background:#fff9e9;box-shadow:0 5px 22px #09182c66;pointer-events:auto;overflow:visible}
+.tutorial-portrait{position:absolute;bottom:0;left:12px;width:194px;height:242px;object-fit:contain;object-position:bottom;filter:drop-shadow(0 5px 6px #0004);pointer-events:none}
+.tutorial-speaker{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding-right:126px;font-size:12px;color:#6e592f;font-weight:700}
+.tutorial-dialogue h2{font-size:19px;line-height:1.3;margin:6px 0}
+.tutorial-dialogue p{font-size:14px;line-height:1.55;margin:0 0 10px}
+.tutorial-coach .guide-skip{position:absolute;right:14px;top:10px;min-height:44px;min-width:88px;padding:8px 12px;font-size:13px;border:1px solid #c3b18a;border-radius:8px;background:transparent;color:#344c60;cursor:pointer;touch-action:manipulation}
+.tutorial-coach .guide-skip:hover{background:#f3e7cb}.tutorial-coach .guide-skip:active{background:#e6d4ac}.tutorial-coach .guide-skip:disabled{opacity:.55;cursor:wait}
+.tutorial-coach .guide-skip:focus-visible{outline:3px solid #f1b62b;outline-offset:2px}
+.game-layout dialog.ui-dialog.guided-dialog{top:12px;left:50%;margin:0;transform:translateX(-50%) scale(var(--game-scale));transform-origin:top center;max-height:calc((100dvh - 260px)/var(--game-scale))}
+@media(max-height:600px){
+ .tutorial-conversation{bottom:8px;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right))}.tutorial-conversation.is-top{top:40px}
+ .tutorial-dialogue{min-height:126px;padding:8px 14px 8px 138px;border-radius:12px}
+ .tutorial-portrait{left:8px;width:118px;height:156px}
+ .tutorial-speaker{font-size:11px;padding-right:114px;gap:6px}.tutorial-dialogue h2{font-size:15px;margin:3px 0}.tutorial-dialogue p{font-size:12px;line-height:1.35;margin:0 0 5px}
+ .tutorial-coach .guide-skip{right:8px;top:6px;padding:4px 10px;font-size:12px}
+ .game-layout dialog.ui-dialog.guided-dialog{top:8px;max-height:calc((100dvh - 174px)/var(--game-scale))}
 }
+@media(prefers-reduced-motion:reduce){.tutorial-coach *{animation:none!important;transition:none!important}}
+@media(orientation:portrait){.tutorial-coach{display:none}}
