@@ -74,25 +74,19 @@ jobs:
         # One browser per runner avoids competing software WebGL renderers.
         # All four shards are required; no test filters or reduced assertions.
         run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
-      - name: Upload compact verification reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: china-airlines-reports-${{ matrix.name }}-${{ matrix.shard }}
-          path: |
-            artifacts/*.json
-            test-results/**/error-context.md
-            test-results/**/*.png
-          if-no-files-found: warn
-          retention-days: 3
-      - name: Upload browser evidence
+      - name: Record failed verification context
+        if: failure()
+        run: |
+          mkdir -p test-results
+          node -e "require('node:fs').writeFileSync('test-results/failure-context.json', JSON.stringify({runId:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,sha:process.env.GITHUB_SHA,job:process.env.GITHUB_JOB}))"
+      - name: Upload failed verification evidence
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: china-airlines-verification-${{ matrix.name }}-${{ matrix.shard }}
+          name: failure-evidence-${{ github.run_id }}-${{ github.run_attempt }}-ci-${{ matrix.name }}-${{ matrix.shard }}
           path: |
             artifacts/
             playwright-report/
             test-results/
-          if-no-files-found: warn
-          retention-days: 3
+          if-no-files-found: error
+          retention-days: 90

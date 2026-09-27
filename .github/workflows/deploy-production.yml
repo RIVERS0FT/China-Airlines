@@ -42,6 +42,22 @@ jobs:
           npx playwright install --with-deps chromium
           sudo apt-get install -y fonts-noto-cjk
           npm run test:e2e -- --shard=${{ matrix.shard }}/4
+      - name: Record failed verification context
+        if: failure()
+        run: |
+          mkdir -p test-results
+          node -e "require('node:fs').writeFileSync('test-results/failure-context.json', JSON.stringify({runId:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,sha:process.env.GITHUB_SHA,job:process.env.GITHUB_JOB}))"
+      - name: Upload failed verification evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-evidence-${{ github.run_id }}-${{ github.run_attempt }}-production-${{ matrix.shard }}
+          path: |
+            artifacts/
+            playwright-report/
+            test-results/
+          if-no-files-found: error
+          retention-days: 90
       - name: Check current main and package this revision
         if: matrix.shard == 1
         run: |
@@ -69,24 +85,6 @@ jobs:
           retention-days: 1
           # Rerunning only a different shard must still find this verified package.
           overwrite: true
-      - name: Upload browser result counts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: china-airlines-production-reports-${{ github.sha }}-${{ github.run_attempt }}-${{ matrix.shard }}
-          path: artifacts/browser-subpath.json
-          if-no-files-found: warn
-          retention-days: 3
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: china-airlines-production-failure-${{ github.sha }}-${{ github.run_attempt }}-${{ matrix.shard }}
-          path: |
-            artifacts/
-            playwright-report/
-            test-results/
-          if-no-files-found: ignore
-          retention-days: 3
 
   deploy:
     name: Deploy verified game

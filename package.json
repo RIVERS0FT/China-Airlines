@@ -10,7 +10,7 @@
     "predev": "node scripts/verify-aircraft-exteriors.mjs",
     "dev": "vite --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "pretest": "node scripts/verify-aircraft-exteriors.mjs",
+    "pretest": "node --test .github/scripts/artifact-retention.test.cjs && node scripts/verify-aircraft-exteriors.mjs",
     "test": "vitest run",
     "build": "node scripts/verify-aircraft-exteriors.mjs && node scripts/icons.mjs && tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
