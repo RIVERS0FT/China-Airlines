@@ -1,12 +1,13 @@
 import { service, MATERIALS } from '../core/career-catalog.js';
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { memo, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { airport } from '../core/catalog.js';
 import { waiting, type Order, type GameState, type Plane } from '../core/game.js';
 import { orderArtFile } from './cabin-layout.js';
 import { passengerFrame } from './passenger-art.js';
 import { cargoAppearance } from './cargo-art.js';
 import { controller } from '../runtime.js';
-import { loadingLock, orderBlockReason, orderPresentation } from './order-presentation.js';
+import { loadingContext, orderPresentation, presentOrder } from './order-presentation.js';
+import { groupWaitingOrders, sameOrderBoardData, type OrderBoardData } from './order-board-data.js';
 import { money, ignore } from './Panels.js';
 import { artAsset } from './art-assets.js';
 import { useI18n } from '../i18n/I18n.js';
@@ -47,18 +48,26 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
   game: GameState; plane?: Plane; airportId: string; aboard: boolean;
   busy: boolean; viewKey?: number;
 }) {
+  return <OrderBoardView orders={waiting(game, airportId)} loading={loadingContext(game, plane)} airportId={airportId} busy={busy} aboard={aboard} viewKey={viewKey}/>;
+}
+
+const OrderBoardView = memo(function OrderBoardView({ orders, loading, airportId, busy, aboard, viewKey }: OrderBoardData & { aboard: boolean; viewKey: number }) {
   const strip = useRef<HTMLDivElement>(null);
+  const previousView = useRef({ airportId, viewKey });
+  const anchor = useRef<{ id: string; left: number }[]>([]);
   const gesture = useRef<{ x: number; y: number; scale: number; scroll: number; moved: boolean; active: boolean } | null>(null);
   const [edges, setEdges] = useState({ start: true, end: true });
-  const { ui, airportName } = useI18n();
-  const shown = [...waiting(game, airportId)]
-    .sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id, undefined, { numeric: true }));
-  const groups = new Map<string, Order[]>();
-  for (const order of shown) {
-    const group = groups.get(order.to);
-    if (group) group.push(order); else groups.set(order.to, [order]);
+  const { ui, airportName, locale } = useI18n();
+  const groups = groupWaitingOrders(orders);
+  function rememberAnchor() {
+    const el = strip.current;
+    if (!el || el.scrollLeft <= 2) { anchor.current = []; return; }
+    const bounds = el.getBoundingClientRect(), scale = bounds.width / el.offsetWidth;
+    anchor.current = [...el.querySelectorAll<HTMLElement>('[data-order-id]')].flatMap(card => {
+      const box = card.getBoundingClientRect();
+      return box.right > bounds.left && box.left < bounds.right ? [{ id: card.dataset.orderId!, left: (box.left - bounds.left) / scale }] : [];
+    });
   }
-  const ids = shown.map(o => o.id).join(',');
   function measure() {
     const el = strip.current;
     if (el) {
@@ -68,16 +77,26 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
   }
   useEffect(() => {
     const el = strip.current!;
-    const observer = new ResizeObserver(measure);
+    const observer = new ResizeObserver(() => { measure(); rememberAnchor(); });
     observer.observe(el); measure();
     return () => observer.disconnect();
   }, []);
-  useEffect(() => {
-    const el = strip.current;
-    if (!aboard) el?.scrollTo({ left: 0, behavior: 'instant' });
+  useLayoutEffect(() => {
+    const el = strip.current!;
+    if (previousView.current.airportId !== airportId || (!aboard && previousView.current.viewKey !== viewKey)) {
+      el.scrollLeft = 0;
+    } else {
+      const survivor = anchor.current.find(item => el.querySelector(`[data-order-id="${item.id}"]`));
+      if (survivor) {
+        const bounds = el.getBoundingClientRect(), scale = bounds.width / el.offsetWidth;
+        const card = el.querySelector(`[data-order-id="${survivor.id}"]`)!;
+        el.scrollLeft += (card.getBoundingClientRect().left - bounds.left) / scale - survivor.left;
+      }
+    }
+    previousView.current = { airportId, viewKey };
     measure();
-  }, [plane?.id, airportId, aboard, viewKey]);
-  useEffect(measure, [ids]);
+    rememberAnchor();
+  }, [orders, airportId, aboard, viewKey, locale]);
   function scroll(direction: number) {
     const el = strip.current;
     if (el) el.scrollBy({ left: direction * Math.max(100, el.clientWidth - 140), behavior: 'instant' });
@@ -89,7 +108,7 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
     if (event.key === 'Home' || event.key === 'End') strip.current?.scrollTo({ left: event.key === 'Home' ? 0 : strip.current.scrollWidth, behavior: 'instant' });
     else scroll(event.key === 'ArrowLeft' ? -1 : 1);
   }
-  const lock = loadingLock(game, plane);
+  const { lock, planeId } = loading;
   return <section className="order-board apron-queue" aria-label={ui('客货装载区')} style={{ backgroundImage: `url("${artAsset('apron-platform-v1.jpg')}")` }}>
     <div className="order-window">
       <button className="queue-arrow" aria-label={ui('上一组客货')} disabled={edges.start} onClick={() => scroll(-1)}>‹</button>
@@ -97,6 +116,7 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
         const drag = gesture.current;
         if (drag?.active && Math.abs((strip.current?.scrollLeft ?? 0) - drag.scroll) > 6) drag.moved = true;
         measure();
+        rememberAnchor();
       }} onKeyDown={keys}
         onPointerDownCapture={event => {
           const el = event.currentTarget, bounds = el.getBoundingClientRect();
@@ -112,13 +132,17 @@ export function OrderBoard({ game, plane, airportId, aboard, busy, viewKey = 0 }
           // Keyboard clicks have detail=0 and must remain usable after a touch scroll.
           if (event.detail > 0 && gesture.current?.moved) { event.preventDefault(); event.stopPropagation(); }
         }}>
-        {[...groups].map(([to, orders]) => <div className="destination-group" role="group" aria-label={ui('前往{city}的客货',{city:airportName(to,airport(to).city)})} key={to}>
-          <button className="destination-station" aria-label={ui('同目的地装载：{city}',{city:airportName(to,airport(to).city)})} disabled={busy || Boolean(lock) || !orders.some(order => order.location !== plane?.id && !orderBlockReason(game, plane, order, false))} title={ui(lock || (orders.some(order => order.location !== plane?.id && !orderBlockReason(game, plane, order, false)) ? '装机此站牌下容量允许的待运客货' : '此目的地暂无可装载客货'))} onClick={() => plane && ignore(controller.command({ type: 'load-destination', planeId: plane.id, to }))}>{airportName(to,airport(to).city)}</button>
-          <div className="destination-orders">{orders.map(o => <OrderCard key={o.id} order={o} state={orderPresentation(game, plane, o, busy)} onClick={() => plane && ignore(controller.command({ type: o.location === plane.id ? 'unload' : 'load', planeId: plane.id, orderId: o.id }))}/>)}</div>
-        </div>)}
-        {!shown.length && <div className="empty-orders">{ui('暂无客货，等待下次客源补充。')}</div>}
+        {groups.map(([to, orders]) => {
+          const cards = orders.map(order => ({ order, state: presentOrder(loading, order, busy) }));
+          const canLoad = cards.some(({ state }) => !state.disabled);
+          return <div className="destination-group" role="group" aria-label={ui('前往{city}的客货',{city:airportName(to,airport(to).city)})} key={to}>
+            <button className="destination-station" aria-label={ui('同目的地装载：{city}',{city:airportName(to,airport(to).city)})} disabled={!canLoad} title={ui(lock || (canLoad ? '装机此站牌下容量允许的待运客货' : '此目的地暂无可装载客货'))} onClick={() => planeId && ignore(controller.command({ type: 'load-destination', planeId, to }))}>{airportName(to,airport(to).city)}</button>
+            <div className="destination-orders">{cards.map(({ order, state }) => <OrderCard key={order.id} order={order} state={state} onClick={() => planeId && ignore(controller.command({ type: 'load', planeId, orderId: order.id }))}/>)}</div>
+          </div>;
+        })}
+        {!orders.length && <div className="empty-orders">{ui('暂无客货，等待下次客源补充。')}</div>}
       </div>
       <button className="queue-arrow" aria-label={ui('下一组客货')} disabled={edges.end} onClick={() => scroll(1)}>›</button>
     </div>
   </section>;
-}
+}, (a, b) => a.aboard === b.aboard && a.viewKey === b.viewKey && sameOrderBoardData(a, b));

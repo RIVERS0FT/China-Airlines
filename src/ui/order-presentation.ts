@@ -12,20 +12,33 @@ export function loadingLock(game: GameState, plane?: Plane): string {
   if (plane.readyAt > game.simTime) return '地面周转中';
   return '';
 }
-export function orderBlockReason(game: GameState, plane: Plane | undefined, order: Order, aboard: boolean): string {
-  const locked = loadingLock(game, plane);
-  if (locked || !plane) return locked;
-  if (order.location !== (aboard ? plane.id : plane.airportId)) return aboard ? '订单不在这架飞机上' : '订单不在当前机场';
-  if (aboard) return waiting(game, plane.airportId).length >= MAX_WAITING ? '机场候运区已满' : '';
-  const specs = aircraftSpecs(plane), total = loadSummary(game, plane.id);
+/** Compute shared capacity and permission inputs once for a whole order list. */
+export function loadingContext(game: GameState, plane?: Plane) {
+  const specs = plane ? aircraftSpecs(plane) : null;
+  const total = plane ? loadSummary(game, plane.id) : { passengers: 0, cargo: 0 };
+  return {
+    lock: loadingLock(game, plane), planeId: plane?.id ?? null, airportId: plane?.airportId ?? null,
+    seats: specs?.seats ?? 0, cargo: specs?.cargo ?? 0,
+    passengers: total.passengers, freight: total.cargo, special: plane?.tuning.special ?? 'none',
+    waitingFull: Boolean(plane && waiting(game, plane.airportId).length >= MAX_WAITING),
+  };
+}
+export type LoadingContext = ReturnType<typeof loadingContext>;
+export function orderBlockReasonInContext(context: LoadingContext, order: Order, aboard: boolean): string {
+  if (context.lock || !context.planeId) return context.lock;
+  if (order.location !== (aboard ? context.planeId : context.airportId)) return aboard ? '订单不在这架飞机上' : '订单不在当前机场';
+  if (aboard) return context.waitingFull ? '机场候运区已满' : '';
   if (order.kind === 'passengers') {
-    if (!specs.seats) return '请先分配客位';
-    return total.passengers + order.amount > specs.seats ? '剩余客舱不足' : '';
+    if (!context.seats) return '请先分配客位';
+    return context.passengers + order.amount > context.seats ? '剩余客舱不足' : '';
   }
   const special = service(order.service)?.special;
-  if(special && special !== 'none' && plane.tuning.special !== special)return special==='cold'?'需要冷链货舱':'需要工业货舱';
-  if (!specs.cargo) return '请先分配货位';
-  return total.cargo + order.amount > specs.cargo ? '剩余货舱不足' : '';
+  if(special && special !== 'none' && context.special !== special)return special==='cold'?'需要冷链货舱':'需要工业货舱';
+  if (!context.cargo) return '请先分配货位';
+  return context.freight + order.amount > context.cargo ? '剩余货舱不足' : '';
+}
+export function orderBlockReason(game: GameState, plane: Plane | undefined, order: Order, aboard: boolean): string {
+  return orderBlockReasonInContext(loadingContext(game, plane), order, aboard);
 }
 
 export type OrderState = 'loaded' | 'waiting' | 'blocked';
@@ -40,8 +53,11 @@ const shortLoadingReason: Record<string, string> = {
 };
 /** Loaded state is independent of permission to unload (flight, service, full apron). */
 export function orderPresentation(game: GameState, plane: Plane | undefined, order: Order, busy = false) {
-  const aboard = Boolean(plane && order.location === plane.id);
-  const reason = orderBlockReason(game, plane, order, aboard);
+  return presentOrder(loadingContext(game, plane), order, busy);
+}
+export function presentOrder(context: LoadingContext, order: Order, busy = false) {
+  const aboard = order.location === context.planeId;
+  const reason = orderBlockReasonInContext(context, order, aboard);
   const state: OrderState = aboard ? 'loaded' : reason ? 'blocked' : 'waiting';
   const action = busy ? '保存中…' : reason || (aboard ? '卸载' : '装机');
   return { state, aboard, reason, disabled: busy || Boolean(reason),

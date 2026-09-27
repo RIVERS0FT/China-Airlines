@@ -147,9 +147,14 @@ test.describe('tutorial touch hit targets', () => {
       await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
       await unlock.tap();
       await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step', 'buy');
-      // A real directory purchase leaves the detail open; the mask must navigate out.
-      await clickGuideMask(page, true);
-      await page.getByRole('button', { name: '购买钻石 DA40', exact: true }).tap();
+      // Every successful tutorial unlock must reveal the next real control.
+      // The directory route used to leave this dialog open under a solid mask.
+      await expect(airport).toHaveCount(0);
+      await expect(page.getByTestId('page-shop')).toBeVisible();
+      await expect(page.getByTestId('credits')).toHaveText('¥ 14,000');
+      await expect(page.getByTestId('fleet-count')).toHaveText('0 架');
+      await page.screenshot({ path: `artifacts/tutorial-unlock-to-shop-${viewport.width}.png` });
+      await tapHighlightedControl('[data-guide="buy-first-plane"]');
       const purchase = page.getByRole('dialog', { name: '购机选配', exact: true });
       await clickGuideMask(page, true);
       await expect(purchase.getByRole('spinbutton', { name: '客位', exact: true })).toBeFocused();

@@ -72,9 +72,10 @@ function issue(s: GameState, from: string, to: string, kind: Order['kind'], amou
     expiresAt: location === from ? s.simTime + ORDER_LIFETIME : null });
 }
 /** Time-driven, deterministic, bounded supply. No jobs are invented by a flight. */
-function replenish(s: GameState) {
+function replenish(s: GameState, airportId?: string) {
   s.orders = s.orders.filter(o => o.expiresAt === null || o.expiresAt > s.simTime);
   for (const a of s.airports) {
+    if (airportId !== undefined && a.id !== airportId) continue;
     if (s.career.demandOff.includes(a.id)) continue;
     const destinations = s.airports.filter(b => b.id !== a.id && !s.career.demandOff.includes(b.id));
     let count = waiting(s, a.id).length;
@@ -329,7 +330,7 @@ export class GameCore {
         check(owned(s,command.airportId),'机场尚未开放');check(!s.career.demandOff.includes(command.airportId),'请先开放客流');
         const key=`refresh-${command.airportId}`,used=s.career.dailyBought[key]??0;check(used<30,'今日刷新次数已用完');
         bill(s,0,used<10?0:1);s.career.dailyBought[key]=used+1;
-        s.orders=s.orders.filter(o=>o.location!==command.airportId||o.expiresAt===null);replenish(s);
+        s.orders=s.orders.filter(o=>o.location!==command.airportId||o.expiresAt===null);replenish(s,command.airportId);
         note(s,'客货已刷新，已装机和中转订单保留');break;
       }
       case 'open-plan-routes': {

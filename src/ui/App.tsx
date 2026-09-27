@@ -89,6 +89,9 @@ export function App() {
   function resumeRouteUnlock() {
     const resume = routeUnlockResume.current; routeUnlockResume.current = null;
     if (resume) { setModal(null); resume(); }
+    // A direct directory purchase has no route callback. Continue the tutorial
+    // after the unlock commits so its shop target is not trapped behind details.
+    else if (game?.tutorial === 'active' && !game.fleet.length) openPage('shop');
   }
   function visitAirport(id: string) {
     if (!game?.airports.some(item => item.id === id)) return;

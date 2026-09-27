@@ -32,19 +32,28 @@ export function Settings({onClose}:{onClose:()=>void}) {
     try{await controller.import(await file.text());}catch{/* Invalid files leave the game untouched. */}
   }
   return <GameDialog title={t('settings.title')} closeLabel={t('settings.close')} className="settings-modal" onClose={onClose}>
-    <section className="setting-row language-setting"><div><strong>{t('settings.language')}</strong><p>{t('settings.languageHelp')}</p></div><LanguagePicker/></section>
-    <DisplaySettings/>
-    <div className="save-summary"><Icon name="save"/><div><strong>{view.savedAt?t('settings.saveConfirmed'):t('settings.saveMissing')}</strong><p>{view.savedAt?t('settings.lastSaved',{time:new Date(view.savedAt).toLocaleTimeString(locale)}):t('settings.saveSafe')}</p></div></div>
-    <p className="muted-text">{t('settings.saveHelp')}</p>
-    <div className="settings-actions"><button className="primary" disabled={view.busy||!view.game} onClick={()=>ignore(controller.save())}>{t('settings.saveNow')}</button><button disabled={view.busy||!view.game} onClick={()=>ignore(exportSave())}>{t('settings.export')}</button><button disabled={view.busy} onClick={()=>input.current?.click()}>{t('settings.import')}</button><button disabled={view.busy} onClick={()=>{if(window.confirm(t('settings.restoreConfirm')))ignore(controller.restoreBackup());}}>{t('settings.restore')}</button></div>
+    <div className="settings-grid">
+      <section className="settings-section" aria-labelledby="settings-interface-title">
+        <h3 id="settings-interface-title">{t('settings.interface')}</h3>
+        <div className="settings-language"><span>{t('settings.language')}</span><LanguagePicker/></div>
+        <DisplaySettings/>
+      </section>
+      <section className="settings-section" aria-labelledby="settings-save-title">
+        <h3 id="settings-save-title">{t('settings.saves')}</h3>
+        <div className="save-summary"><Icon name="save"/><div><strong>{view.savedAt?t('settings.saveConfirmed'):t('settings.saveMissing')}</strong>{view.savedAt!==null&&<p>{t('settings.lastSaved',{time:new Date(view.savedAt).toLocaleTimeString(locale)})}</p>}</div></div>
+        <div className="settings-actions"><button className="primary" disabled={view.busy||!view.game} onClick={()=>ignore(controller.save())}>{t('settings.saveNow')}</button><button disabled={view.busy||!view.game} onClick={()=>ignore(exportSave())}>{t('settings.export')}</button><button disabled={view.busy} onClick={()=>input.current?.click()}>{t('settings.import')}</button><button disabled={view.busy} onClick={()=>{if(window.confirm(t('settings.restoreConfirm')))ignore(controller.restoreBackup());}}>{t('settings.restore')}</button></div>
+        <p className="settings-note">{t('settings.saveCompatibilityHelp')}</p>
+      </section>
+    </div>
     <input ref={input} type="file" accept=".json,application/json" aria-label={t('settings.chooseFile')} className="file-input" onChange={e=>{ignore(readFile(e.target.files?.[0]));e.target.value='';}}/>
-    <section className="setting-row"><div><strong>{t('settings.offline')}</strong><p>{view.offlineReady?t('settings.offlineReady'):t('settings.offlineFirst')}</p></div></section>
-    <section className="setting-row"><div><strong>{t('settings.saveCompatibility')}</strong><p>{t('settings.saveCompatibilityHelp')}</p></div></section>
-    <section className="setting-row"><div><strong>{t('settings.persistence')}</strong><p>{storageMessage||t('settings.persistenceHelp')}</p></div><button onClick={()=>{if(!navigator.storage?.persist){setStorageMessage(t('settings.persistenceUnsupported'));return;}void navigator.storage.persist().then(ok=>setStorageMessage(ok?t('settings.persistenceGranted'):t('settings.persistenceDenied'))).catch(()=>setStorageMessage(t('settings.persistenceFailed')));}}>{t('settings.persistenceApply')}</button></section>
+    <div className="settings-system">
+      <section className="settings-status-row"><div><strong>{t('settings.offline')}</strong><p className="settings-note">{t('settings.offlineLimit')}</p></div><span className={`settings-cache-status${view.offlineReady?' is-ready':''}`} role="status">{view.offlineReady?t('settings.offlineReady'):t('settings.offlineFirst')}</span></section>
+      <section className="settings-status-row"><div><strong>{t('settings.persistence')}</strong>{storageMessage&&<p className="settings-note" role="status">{storageMessage}</p>}</div><button onClick={()=>{if(!navigator.storage?.persist){setStorageMessage(t('settings.persistenceUnsupported'));return;}void navigator.storage.persist().then(ok=>setStorageMessage(ok?t('settings.persistenceGranted'):t('settings.persistenceDenied'))).catch(()=>setStorageMessage(t('settings.persistenceFailed')));}}>{t('settings.persistenceApply')}</button></section>
+    </div>
     {view.updateAvailable&&<button className="primary full" disabled={view.busy||!view.game} onClick={()=>ignore(installUpdate())}>{t('settings.update')}</button>}
     {view.error&&<p role="alert" className="inline-error">{text(view.error)}</p>}
     {!view.error&&view.notice&&<p role="status" className="workshop-feedback">{text(view.notice)}</p>}
-    <div className="danger-zone"><p>{t('settings.privacy')}</p><button className="danger" disabled={view.busy} onClick={()=>{if(window.confirm(t('settings.restartConfirm')))ignore(controller.restart());}}>{t('settings.restart')}</button></div>
+    <div className="settings-footer"><p className="settings-note">{t('settings.saveHelp')}</p><button className="danger" disabled={view.busy} onClick={()=>{if(window.confirm(t('settings.restartConfirm')))ignore(controller.restart());}}>{t('settings.restart')}</button></div>
   </GameDialog>;
 }
 export function Shop({game,busy,selected}:{game:GameState;busy:boolean;selected:string}) {

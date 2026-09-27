@@ -47,18 +47,25 @@ async function motionSample(target: Locator) {
   });
 }
 async function expectCloudPlayback(target: Locator) {
-  const from = await target.evaluate(async element => {
+  const sample = () => target.evaluate(async element => {
     const animation = element.getAnimations()[0];
     if (!animation) throw new Error('The cloud animation is not attached');
     await animation.ready;
     if (animation.playState !== 'running') throw new Error('The cloud animation is not running');
-    return new DOMMatrixReadOnly(getComputedStyle(element).transform).m41;
+    return {
+      x: new DOMMatrixReadOnly(getComputedStyle(element).transform).m41,
+      iteration: animation.effect!.getComputedTiming().currentIteration,
+    };
   });
+  let from = await sample();
   // Observe rendered progress, not a fixed wall-clock sleep: CI's compositor
-  // can start late after seeking. Stationary or left-moving clouds still fail.
-  await expect.poll(() => target.evaluate(element =>
-    new DOMMatrixReadOnly(getComputedStyle(element).transform).m41,
-  ), { timeout: 5_000, intervals: [50, 100, 250] }).toBeGreaterThan(from + 5);
+  // can start late after seeking. A loop resets x, so compare within one cycle;
+  // neither a wrap nor stationary/left-moving clouds count as rightward travel.
+  await expect.poll(async () => {
+    const next = await sample();
+    if (next.iteration !== from.iteration || next.x < from.x) from = next;
+    return next.x - from.x;
+  }, { timeout: 5_000, intervals: [50, 100, 250] }).toBeGreaterThan(5);
 }
 
 for (const config of [

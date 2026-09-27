@@ -20,3 +20,4 @@ import '../flight-motion.css';
 import './tokens.css';
 import './navigation.css';
 import './layout.css';
+import './settings.css';

@@ -34,12 +34,20 @@ jobs:
         run: sudo apt-get install -y fonts-noto-cjk
       - name: Check common containers and browser interaction
         run: npx playwright test e2e/flows e2e/presentation/flight-animation.spec.ts e2e/presentation/start-map-i18n.spec.ts e2e/presentation/ui-workspace.spec.ts e2e/presentation/navigation-stability.spec.ts e2e/functional/browse-ux.spec.ts e2e/functional/energy.spec.ts e2e/functional/flight-board.spec.ts e2e/functional/fleet-entry.spec.ts e2e/functional/game.spec.ts e2e/functional/organization.spec.ts
-      - uses: actions/upload-artifact@v4
+      - name: Upload compact browser report
         if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-contract-reports
+          path: artifacts/browser-subpath.json
+          if-no-files-found: warn
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        if: failure()
         with:
           name: ui-contract-evidence
           path: |
             artifacts/
             test-results/
             playwright-report/
-          retention-days: 7
+          retention-days: 3

@@ -84,9 +84,9 @@ jobs:
             test-results/**/error-context.md
             test-results/**/*.png
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 3
       - name: Upload browser evidence
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: china-airlines-verification-${{ matrix.name }}-${{ matrix.shard }}
@@ -95,4 +95,4 @@ jobs:
             playwright-report/
             test-results/
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 3
