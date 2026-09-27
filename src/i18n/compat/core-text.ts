@@ -24,6 +24,15 @@ const EN_DIRECT: Readonly<Record<string, string>> = {
   '机库机位不足，请先扩建机库':'No hangar slots available; expand the hangar first',
   '任务尚未完成':'Task not complete',
   '奖励已经领取':'Reward already claimed',
+  '总经理直接向玩家汇报':'The general manager reports directly to you.',
+  '总经理不支持内部转任':'Internal reassignment is unavailable for the general manager.',
+  '部门经理只能向总经理或玩家汇报':'Department managers may report only to the general manager or you.',
+  '任命为总经理直属部门经理':'Appointed to report directly to the general manager.',
+  '总经理岗位已满':'The general manager position is filled.',
+  '以总经理身份入职，包含7天合同':'Joined as general manager with a seven-day contract.',
+  '总经理已入职，已含7天工资':'General manager hired, including seven days of pay.',
+  '没有可分配的空闲飞机':'No idle aircraft available for assignment',
+  '没有空缺地勤岗位的机场':'No airport with an open ground position',
 };
 
 function replaceAirportNames(value: string, locale: Locale) {

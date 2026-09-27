@@ -1,43 +1,29 @@
 import { clientToLogical } from './viewport.js';
 import { canPlaceMapLabel, clientBoxToMap, type MapBox } from './map-label-layout.js';
+import { retargetMapLabel, sampleMapLabel, type MapLabelMotion } from './map-label-motion.js';
 import { useEffect, useRef, useState } from 'react';
-import { Application, Assets, Container, Graphics, Sprite, Text, Texture, Ticker } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Matrix, Sprite, Text, Texture, Ticker } from 'pixi.js';
 import { AIRPORTS, aircraftSpecs, airport } from '../core/catalog.js';
 import type { GameState, Plane } from '../core/game.js';
-import { arcPoints, fromVector, frontPolygon, frontSegment, globeCamera, greatCircle, projectGeo, rangePoints, screenPoint, toVector, viewVector, wrapLongitude, type GlobeCamera, type Vec3 } from './globe-geometry.js';
+import { arcPoints, fromVector, frontPolygon, frontSegment, globeCamera, projectGeo, rangePoints, screenPoint, toVector, viewVector, wrapLongitude, type GlobeCamera, type Vec3 } from './globe-geometry.js';
 import { LAND_VERTICES, LAND_FACES } from './world-land.js';
-import { aircraftPose, boundaryEdges, oceanTone, parabolicLift, parabolicRoute, terrainTone } from './globe-art.js';
+import { boundaryEdges, oceanTone, terrainTone } from './globe-art.js';
 import { drawGlobeAtmosphere } from './globe-atmosphere.js';
 import { previewDescription, type RoutePreview } from './route-preview.js';
 import './globe.css';
 import { passengerDestinationCounts, passengerDestinationKey } from './passenger-destinations.js';
 import { useI18n } from '../i18n/I18n.js';
 import { artAsset } from './art-assets.js';
-import type { MapAircraftLayer } from './MapAircraftLayer.js';
+import { MAP_AIRCRAFT_ART, aircraftSurfacePoint, mapAircraftSize, projectMapAircraft, shouldShowMapAircraft } from './map-aircraft.js';
 interface Props { planning: boolean; game: GameState; plane?: Plane; selected: string; onSelect: (id: string) => void; onOpenCities: () => void; preview?: RoutePreview | null; showOthers: boolean; onToggleOthers: () => void }
-const geography = new Map(AIRPORTS.map(a => [a.id, toVector(a)]));
 const land = LAND_VERTICES.map(([lon, lat]) => toVector({ lon, lat }));
 const landCoastEdges = boundaryEdges(LAND_FACES);
 const arcCache = new Map<string, Vec3[]>();
 function routeArc(from: string, to: string) {
   const key = `${from}-${to}`;
   let points = arcCache.get(key);
-  if (!points) { points = parabolicRoute(arcPoints(airport(from), airport(to)), .1); arcCache.set(key, points); }
+  if (!points) { points = arcPoints(airport(from), airport(to)); arcCache.set(key, points); }
   return points;
-}
-function aircraftSurfacePoint(p: Plane, time: number): Vec3 {
-  const f = p.flight;
-  return f ? greatCircle(geography.get(f.from)!, geography.get(f.to)!, (time - f.departAt) / (f.arriveAt - f.departAt)) : geography.get(p.airportId)!;
-}
-function aircraftPoint(p: Plane, time: number): Vec3 {
-  const f = p.flight;
-  if (!f) return geography.get(p.airportId)!;
-  const progress = Math.max(0, Math.min(1, (time - f.departAt) / (f.arriveAt - f.departAt)));
-  return parabolicLift(greatCircle(geography.get(f.from)!, geography.get(f.to)!, progress), progress, .1);
-}
-function planeSize(file: string) {
-  const width = file.includes('aurora') || file.includes('albatross') ? 56 : file.includes('heron') ? 50 : 44;
-  return { width, height: width * 590 / 1536 };
 }
 function path(graphics: Graphics, points: Vec3[], camera: GlobeCamera, color: number, width: number, alpha = 1, dashed = false) {
   for (let i = 1; i < points.length; i++) {
@@ -58,8 +44,6 @@ export function MapView(props: Props) {
   latestI18n.current = i18n;
   useEffect(() => {
     const element = host.current!, app = new Application();
-    const modelAbort = new AbortController();
-    let aircraftLayer: MapAircraftLayer | undefined;
     let cancelled = false, initialized = false, dispose = () => {};
     void (async () => {
       try {
@@ -73,31 +57,32 @@ export function MapView(props: Props) {
         app.stage.addChild(ocean, terrain, coastShadow, coast, grid, atmosphere, lines, range, draft, nodes, aircraft);
         app.stage.eventMode = 'none';
         const marks = new Map(AIRPORTS.map(a => {
-          const group = new Container(), ring = new Graphics();
+          const group = new Container(), labelGroup = new Container(), ring = new Graphics();
           const label = new Text({ text: latestI18n.current.airportName(a.id, a.city), style: { fontFamily: 'system-ui, sans-serif', fontSize: 15, fontWeight: '700', fill: 0xfff9de, stroke: { color: 0x133b4b, width: 3 } } });
           const detail = new Text({ text: '', style: { fontFamily: 'system-ui, sans-serif', fontSize: 11, fill: 0xd0e6df, stroke: { color: 0x133b4b, width: 2 } } });
           const passengerBadge = new Graphics(), passengerText = new Text({ text: '', style: { fontFamily: 'system-ui, sans-serif', fontSize: 11, fontWeight: '800', fill: 0x3f3300 } });
           passengerBadge.visible = passengerText.visible = false;
-          group.addChild(ring, label, detail, passengerBadge, passengerText); nodes.addChild(group);
-          return [a.id, { group, ring, label, detail, passengerBadge, passengerText }] as const;
+          labelGroup.addChild(label, detail, passengerBadge, passengerText); group.addChild(ring, labelGroup); nodes.addChild(group);
+          return [a.id, { group, labelGroup, ring, label, detail, passengerBadge, passengerText }] as const;
         }));
-        const planes = new Map<string, Sprite>(), planeTextures = new Map<string, Texture>(), pendingPlaneTextures = new Set<string>();
-        await Promise.all([...new Set(latest.current.game.fleet.map(p => aircraftSpecs(p).art))].map(async file => {
-          planeTextures.set(file, await Assets.load<Texture>(artAsset(file)));
-        }));
+        const labelMotions = new Map<string, MapLabelMotion>();
+        let labelsAnimating = false;
+        const planes = new Map<string, Sprite>();
+        let planeTexture: Texture | undefined;
+        try {
+          // The large source is displayed as a small, rotated icon: filter across mip levels, not just adjacent texels.
+          planeTexture = await Assets.load<Texture>({
+            src: artAsset(MAP_AIRCRAFT_ART), data: { autoGenerateMipmaps: true, scaleMode: 'linear' },
+          });
+        }
+        catch { /* Aircraft artwork failure must leave the globe and route controls usable. */ }
+        const planeMatrix = new Matrix();
+        const planeScale = planeTexture ? mapAircraftSize(planeTexture.width, planeTexture.height).height / planeTexture.height : 1;
         if (cancelled) { app.destroy(true, { children: true }); return; }
         const initial = latest.current.plane;
         const firstRoute = latest.current.planning && latest.current.game.tutorial === 'active' && latest.current.game.stats.flights === 0 && !initial?.flight;
         let camera = globeCamera(element.clientWidth, element.clientHeight, firstRoute ? airport('PVG') : initial ? fromVector(aircraftSurfacePoint(initial, latest.current.game.simTime)) : airport(latest.current.selected), firstRoute ? 3 : 1);
-        let dirty = true, lastGame: GameState | null = null, focused = latest.current.selected, lastPreview = '', lastOthers = true, snapshotAt = performance.now();
-        const ensurePlaneTexture = (file: string) => {
-          if (planeTextures.has(file) || pendingPlaneTextures.has(file)) return;
-          pendingPlaneTextures.add(file);
-          void Assets.load<Texture>(artAsset(file)).then(texture => {
-            if (cancelled) return;
-            planeTextures.set(file, texture); dirty = true;
-          }).catch(() => undefined).finally(() => pendingPlaneTextures.delete(file));
-        };
+        let dirty = true, lastGame: GameState | null = null, focused = latest.current.selected, lastPreview = '', lastOthers = true, lastPlaneId = latest.current.plane?.id, snapshotAt = performance.now();
         const publishCamera = () => { element.dataset.camera = JSON.stringify(camera); dirty = true; };
         const locateGuideAirport = () => {
           if (!latest.current.planning || latest.current.game.tutorial !== 'active') return;
@@ -105,10 +90,6 @@ export function MapView(props: Props) {
           camera.lat = city.lat; camera.lon = city.lon; camera.scale = Math.max(3, camera.scale); publishCamera();
         };
         element.addEventListener('guide-locate-airport', locateGuideAirport);
-        const fallBackAircraft = () => {
-          aircraftLayer?.dispose(); aircraftLayer = undefined;
-          element.dataset.aircraftStatus = 'fallback'; element.dataset.aircraftVisual = 'model'; dirty = true;
-        };
         const zoom = (factor: number) => { camera.scale = Math.max(1, Math.min(6, camera.scale * factor)); publishCamera(); };
         const focusCurrent = () => {
           const p = latest.current.plane;
@@ -118,7 +99,7 @@ export function MapView(props: Props) {
         };
         // Only painted overlays exclude labels. Empty dock space is still map.
         const overlayElements = latest.current.planning ? [] : [...(element.closest('.aviation-game')?.querySelectorAll<HTMLElement>(
-          '.game-dock > button, .world-map-guide'
+          '.game-dock > button'
         ) ?? [])];
         let labelExclusions: MapBox[] = [];
         const resize = () => {
@@ -130,7 +111,6 @@ export function MapView(props: Props) {
           const screenScale = bounds.width / w;
           const resolution = Math.max(.5, Math.min((window.devicePixelRatio || 1) * screenScale, 3));
           app.renderer.resize(w, h, resolution); camera = globeCamera(w, h, camera, camera.scale); publishCamera();
-          aircraftLayer?.resize(w, h, resolution, camera);
         };
         const observer = new ResizeObserver(resize);
         window.addEventListener('gameviewportchange', resize);
@@ -232,7 +212,8 @@ export function MapView(props: Props) {
           drawGlobeAtmosphere(atmosphere.context, cx, cy, r);
           element.dataset.coastlineSegments = String(visibleCoastEdges);
         }
-        function drawNetwork() {
+        const labelHeight = () => latest.current.planning ? app.screen.height - (app.screen.height < 600 ? 78 : 110) : app.screen.height;
+        function drawNetwork(nowMs: number) {
           const { game, selected, preview, plane, planning } = latest.current;
           const owned = new Map(game.airports.map(a => [a.id, a.level]));
           lines.clear(); for (const route of game.routes) path(lines, routeArc(route.from, route.to), camera, 0xc2e2dd, 1.5, .28);
@@ -256,12 +237,11 @@ export function MapView(props: Props) {
           const occupied: MapBox[] = [];
           const labels: (MapBox & { id: string })[] = [];
           // Dispatch retains space for its route console; browsing has no bottom strip.
-          const labelHeight = planning ? app.screen.height - (app.screen.height < 600 ? 78 : 110) : app.screen.height;
           const visible: string[] = [];
           for (const a of [...AIRPORTS].sort((a, b) => priority(a.id) - priority(b.id))) {
             const m = marks.get(a.id)!, p = projectGeo(a, camera), open = owned.has(a.id), active = selected === a.id;
             m.group.visible = p.visible && p.x > -12 && p.x < app.screen.width + 12 && p.y > -12 && p.y < app.screen.height + 12;
-            if (!m.group.visible) continue;
+            if (!m.group.visible) { m.labelGroup.visible = false; labelMotions.delete(a.id); continue; }
             visible.push(a.id); m.group.position.set(p.x, p.y);
             m.ring.clear();
             if (active) m.ring.circle(0, 0, 12).stroke({ color: 0xffdf64, width: 2 });
@@ -275,22 +255,47 @@ export function MapView(props: Props) {
             let placed = false;
             for (const [dx, dy] of [[12, -20], [-w - 10, -20], [-w / 2, -h - 9], [-w / 2, 12]]) {
               const box = { x: p.x + dx!, y: p.y + dy!, w, h };
-              if (!canPlaceMapLabel(box, app.screen.width, labelHeight, labelExclusions, occupied)) continue;
-              m.label.position.set(dx!, dy!); m.detail.position.set(dx!, dy! + 20);
+              if (!canPlaceMapLabel(box, app.screen.width, labelHeight(), labelExclusions, occupied)) continue;
+              // Follow the airport immediately; only a change of label placement needs easing.
+              const offset = { x: dx!, y: dy!, w, h };
+              labelMotions.set(a.id, retargetMapLabel(labelMotions.get(a.id), offset, nowMs, reducedMotion.matches));
+              m.label.position.set(0, 0); m.detail.position.set(0, 20);
               if (passengerCount) {
-                m.passengerBadge.roundRect(dx!, dy! + 36, m.passengerText.width + 10, 18, 4).fill(0xffe565).stroke({ color: 0x765618, width: 1 });
-                m.passengerText.position.set(dx! + 5, dy! + 37);
+                m.passengerBadge.roundRect(0, 36, m.passengerText.width + 10, 18, 4).fill(0xffe565).stroke({ color: 0x765618, width: 1 });
+                m.passengerText.position.set(5, 37);
               }
               occupied.push(box); labels.push({ id: a.id, ...box }); placed = true; break;
             }
-            m.label.visible = m.detail.visible = placed;
+            m.labelGroup.visible = placed;
+            if (!placed) labelMotions.delete(a.id);
             m.passengerBadge.visible = m.passengerText.visible = placed && passengerCount > 0;
           }
           element.dataset.visibleAirports = visible.join(',');
-          element.dataset.labelBoxes = JSON.stringify(labels);
+          element.dataset.labelTargets = JSON.stringify(labels);
           element.dataset.labelExclusions = JSON.stringify(labelExclusions);
           element.dataset.previewPath = (preview?.legs ?? []).map(l => l.to).join(',');
           canvas.setAttribute('aria-label', latestI18n.current.t('map.globeA11y', { city:latestI18n.current.airportName(selected, airport(selected).city) }));
+        }
+        function paintLabels(nowMs: number): boolean {
+          const painted: (MapBox & { id: string })[] = [];
+          let moving = false;
+          for (const [id, motion] of labelMotions) {
+            const mark = marks.get(id)!;
+            let sample = sampleMapLabel(motion, nowMs, reducedMotion.matches);
+            let box = { ...sample.box, x: mark.group.x + sample.box.x, y: mark.group.y + sample.box.y };
+            // Never sweep a moving label over navigation or outside the viewport.
+            if (!canPlaceMapLabel(box, app.screen.width, labelHeight(), labelExclusions, [])) {
+              const safe = retargetMapLabel(undefined, motion.target, nowMs);
+              labelMotions.set(id, safe); sample = sampleMapLabel(safe, nowMs);
+              box = { ...sample.box, x: mark.group.x + sample.box.x, y: mark.group.y + sample.box.y };
+            }
+            mark.labelGroup.position.set(sample.box.x, sample.box.y);
+            painted.push({ id, ...box }); moving ||= sample.active;
+          }
+          element.dataset.labelBoxes = JSON.stringify(painted);
+          element.dataset.labelsAnimating = String(moving);
+          element.dataset.labelTime = String(nowMs);
+          return moving;
         }
         // The application renderer is demand-driven. A quiet airport must not
         // repaint a full sphere 30 times a second while the user reads a dialog.
@@ -302,55 +307,51 @@ export function MapView(props: Props) {
         let networkKey = '', lastLocale = latestI18n.current.locale, frames = 0, lastVisualTime = -1;
         renderLoop.maxFPS = 30;
         renderLoop.add(() => {
+          const nowMs = performance.now();
           const { game, selected, preview, showOthers } = latest.current;
           const previewKey = JSON.stringify(preview ?? null), gameChanged = lastGame !== game;
           if (focused !== selected) { focused = selected; const a = airport(selected); camera.lat = a.lat; camera.lon = a.lon; publishCamera(); }
           const nextNetworkKey = gameChanged ? JSON.stringify([game.airports, game.routes, game.fleet,
             passengerDestinationKey(passengerDestinationCounts(game, latest.current.plane?.id))]) : networkKey;
           const localeChanged = lastLocale !== latestI18n.current.locale;
-          const repaint = dirty || localeChanged || nextNetworkKey !== networkKey || previewKey !== lastPreview || lastOthers !== showOthers;
+          const repaint = dirty || localeChanged || nextNetworkKey !== networkKey || previewKey !== lastPreview || lastOthers !== showOthers || lastPlaneId !== latest.current.plane?.id;
           if (gameChanged) { lastGame = game; snapshotAt = performance.now(); }
           if (dirty) drawGlobe();
-          if (repaint) drawNetwork();
-          dirty = false; lastPreview = previewKey; lastOthers = showOthers; lastLocale = latestI18n.current.locale; networkKey = nextNetworkKey;
-          const animating = !reducedMotion.matches && game.fleet.some(p => p.flight && (showOthers || p.id === latest.current.plane?.id)
-            && screenPoint(viewVector(aircraftPoint(p, game.simTime), camera), camera).visible);
+          if (repaint) drawNetwork(nowMs);
+          const labelFrame = repaint || labelsAnimating;
+          if (labelFrame) labelsAnimating = paintLabels(nowMs);
+          dirty = false; lastPreview = previewKey; lastOthers = showOthers; lastPlaneId = latest.current.plane?.id; lastLocale = latestI18n.current.locale; networkKey = nextNetworkKey;
+          const animating = !reducedMotion.matches && game.fleet.some(p => shouldShowMapAircraft(p, latest.current.plane?.id, showOthers)
+            && screenPoint(viewVector(aircraftSurfacePoint(p, game.simTime), camera), camera).visible);
           const snapshotStep = reducedMotion.matches && game.simTime !== lastVisualTime
-            && game.fleet.some(p => p.flight && (showOthers || p.id === latest.current.plane?.id));
-          if (!repaint && !animating && !snapshotStep) return;
+            && game.fleet.some(p => shouldShowMapAircraft(p, latest.current.plane?.id, showOthers));
+          if (!repaint && !animating && !snapshotStep && !labelFrame) return;
           const visualTime = game.simTime + (reducedMotion.matches ? 0 : Math.min(1, Math.max(0, (performance.now() - snapshotAt) / 1000)));
           lastVisualTime = game.simTime;
           for (const p of game.fleet) {
-            const file = aircraftSpecs(p).art, texture = planeTextures.get(file);
             let g = planes.get(p.id);
-            if (g && g.label !== file) { g.destroy(); planes.delete(p.id); g = undefined; }
-            if (!g && texture) {
-              const size = planeSize(file);
-              g = new Sprite({ texture, anchor: .5, label: file }); g.width = size.width; g.height = size.height;
+            if (!g && planeTexture) {
+              g = new Sprite({ texture: planeTexture, anchor: .5, label: MAP_AIRCRAFT_ART });
               aircraft.addChild(g); planes.set(p.id, g);
             }
-            if (!g) { ensurePlaneTexture(file); continue; }
-            const v = screenPoint(viewVector(aircraftPoint(p, visualTime), camera), camera);
-            g.visible = v.visible && (p.id === latest.current.plane?.id || (showOthers && Boolean(p.flight)));
-            g.position.set(v.x, v.y - (p.flight ? 0 : 20));
-            if (p.flight) {
-              const before = screenPoint(viewVector(aircraftPoint(p, visualTime - .5), camera), camera);
-              const after = screenPoint(viewVector(aircraftPoint(p, visualTime + .5), camera), camera);
-              const pose = aircraftPose(after.x - before.x, after.y - before.y);
-              g.scale.x = Math.abs(g.scale.x) * (pose.flipX ? -1 : 1); g.rotation = pose.rotation;
-            } else { g.scale.x = Math.abs(g.scale.x); g.rotation = 0; }
+            if (!g) continue;
+            const projected = projectMapAircraft(p, visualTime, camera);
+            g.visible = projected.visible && shouldShowMapAircraft(p, latest.current.plane?.id, showOthers);
+            const { a, b, c, d } = projected.transform;
+            g.setFromMatrix(planeMatrix.set(a * planeScale, b * planeScale, c * planeScale, d * planeScale, projected.x, projected.y));
+            g.updateLocalTransform();
+            g.tint = p.id === latest.current.plane?.id ? 0xfff2d5 : 0xffffff;
           }
           for (const [id, g] of planes) if (!game.fleet.some(p => p.id === id)) { g.destroy(); planes.delete(id); }
           element.dataset.visiblePlanes = [...planes].filter(([, g]) => g.visible).map(([id]) => id).join(',');
           element.dataset.visiblePlaneModels = [...planes].filter(([, g]) => g.visible).map(([id, g]) => `${id}:${g.label}`).join(',');
-          if (aircraftLayer) {
-            try {
-              const markers = aircraftLayer.render(game, visualTime, camera, latest.current.plane?.id, showOthers);
-              element.dataset.visiblePlanes = markers.filter(p => p.visible).map(p => p.id).join(',');
-              element.dataset.visiblePlaneModels = markers.filter(p => p.visible).map(p => `${p.id}:low-poly-airliner.glb`).join(',');
-              for (const g of planes.values()) g.visible = false;
-            } catch { fallBackAircraft(); }
-          }
+          element.dataset.planeMarkers = JSON.stringify([...planes].filter(([, g]) => g.visible).map(([id, g]) => {
+            const m = g.localTransform;
+            const transform = { a: m.a / planeScale, b: m.b / planeScale, c: m.c / planeScale, d: m.d / planeScale };
+            return { id, x: g.x, y: g.y, transform,
+              rotation: Math.hypot(transform.c, transform.d) < 1e-8 ? 0 : Math.atan2(-transform.c, transform.d),
+              flipX: false, width: g.width, height: g.height };
+          }));
           app.render();
           element.dataset.renderCount = String(++frames);
           element.dataset.aircraftTime = String(visualTime);
@@ -358,31 +359,20 @@ export function MapView(props: Props) {
         renderLoop.start();
         publishCamera();
         dispose = () => {
-          modelAbort.abort(); aircraftLayer?.dispose(); reducedMotion.removeEventListener('change', motionChanged);
+          reducedMotion.removeEventListener('change', motionChanged);
           window.removeEventListener('gameviewportchange', resize); window.removeEventListener('resize', resize);
           element.removeEventListener('guide-locate-airport', locateGuideAirport);
           renderLoop.destroy(); observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move);
           canvas.removeEventListener('pointerup', up); canvas.removeEventListener('pointercancel', up); canvas.removeEventListener('touchstart', suppressTouchMouse); canvas.removeEventListener('wheel', wheel); canvas.removeEventListener('keydown', keydown);
         };
         setStatus('ready');
-        element.dataset.aircraftStatus = 'loading';
-        void import('./MapAircraftLayer.js').then(async ({ MapAircraftLayer, AIRLINER_A }) => {
-          if (cancelled) return;
-          const layer = await MapAircraftLayer.load({ ...AIRLINER_A, url: `${import.meta.env.BASE_URL}models/${AIRLINER_A.file}` }, modelAbort.signal);
-          if (cancelled) { layer.dispose(); return; }
-          aircraftLayer = layer;
-          layer.canvas.addEventListener('webglcontextlost', () => { if (!cancelled && aircraftLayer === layer) fallBackAircraft(); }, { once: true });
-          element.after(layer.canvas); resize();
-          element.dataset.aircraftStatus = 'ready'; element.dataset.aircraftVisual = '3d';
-        }).catch(() => {
-          if (!cancelled) fallBackAircraft();
-        });
+        element.dataset.aircraftStatus = planeTexture ? 'ready' : 'partial';
       } catch { if (!cancelled) setStatus('fallback'); }
     })();
-    return () => { cancelled = true; modelAbort.abort(); dispose(); if (initialized && !app.stage.destroyed) app.destroy(true, { children: true }); };
+    return () => { cancelled = true; dispose(); if (initialized && !app.stage.destroyed) app.destroy(true, { children: true }); };
   }, []);
   return <section className="map-area globe-area" aria-label={props.planning ? i18n.t('map.routeMap') : i18n.t('map.map')} aria-describedby={props.planning ? "route-preview-description" : undefined}>
-    <div className="map-canvas" ref={host} data-testid="map-canvas" data-projection="orthographic" data-art-version="2" data-route-visual="parabolic" data-aircraft-visual="model" data-renderer={status}/>
+    <div className="map-canvas" ref={host} data-testid="map-canvas" data-projection="orthographic" data-art-version="2" data-route-visual="great-circle" data-aircraft-visual="sprite" data-renderer={status}/>
     {props.planning && <p id="route-preview-description" className="sr-only" data-testid="route-preview" data-legs={props.preview?.legs.length ?? 0}>{previewDescription(props.preview)}</p>}
     {status === 'fallback' && <div className="map-fallback" role="status"><p>{i18n.t(props.planning ? 'map.fallbackPlan' : 'map.fallbackBrowse')}</p><button type="button" aria-haspopup="dialog" onClick={props.onOpenCities}>{i18n.t('map.selectCity')}</button></div>}
     {props.planning && <button className="map-plane-toggle" aria-label={props.showOthers ? i18n.t('map.hideOthers') : i18n.t('map.showOthers')} aria-pressed={!props.showOthers} onClick={props.onToggleOthers}><span>{props.showOthers ? i18n.t('map.hide') : i18n.t('map.show')}</span><strong>{i18n.t('map.otherAircraft')}</strong></button>}

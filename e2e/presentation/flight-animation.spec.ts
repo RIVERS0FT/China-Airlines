@@ -67,6 +67,66 @@ async function expectCloudPlayback(target: Locator) {
     return next.x - from.x;
   }, { timeout: 5_000, intervals: [50, 100, 250] }).toBeGreaterThan(5);
 }
+async function expectPanoramaLoop(target: Locator) {
+  const background = await target.evaluate(async element => {
+    const animation = element.getAnimations()[0]!;
+    await animation.ready;
+    const images = [...element.querySelectorAll('img')];
+    await Promise.all(images.map(image => image.decode()));
+    const duration = Number(animation.effect!.getTiming().duration);
+    const scene = element.parentElement!.getBoundingClientRect();
+    animation.pause();
+    // Just before the wrap still renders the final frame of the first cycle.
+    const frames = [0, .5, 1 - 1e-7, 1].map(fraction => {
+      animation.currentTime = duration * fraction;
+      return images.map(image => {
+        const bounds = image.getBoundingClientRect();
+        return {
+          left: (bounds.left - scene.left) / scene.width,
+          right: (bounds.right - scene.left) / scene.width,
+          top: (bounds.top - scene.top) / scene.height,
+          bottom: (bounds.bottom - scene.top) / scene.height,
+        };
+      });
+    });
+    const tiles = images.map(image => ({
+      source: image.currentSrc,
+      direction: new DOMMatrixReadOnly(getComputedStyle(image).transform).a,
+      mask: getComputedStyle(image).maskImage,
+    }));
+    animation.play();
+    return { duration, frames, tiles };
+  });
+  expect(background.duration).toBe(32_000);
+  expect(background.tiles).toHaveLength(3);
+  for (const tile of background.tiles) {
+    expect(tile).toEqual(background.tiles[0]);
+    expect(tile.direction).toBe(1);
+    expect(tile.mask).toContain('linear-gradient');
+  }
+  for (const frame of background.frames) {
+    expect(frame[0]!.left).toBeLessThanOrEqual(0);
+    expect(frame.at(-1)!.right).toBeGreaterThanOrEqual(1);
+    for (const [index, tile] of frame.entries()) {
+      expect(tile.right - tile.left).toBeCloseTo(1.25, 3);
+      expect(tile.top).toBeCloseTo(0, 3);
+      expect(tile.bottom).toBeCloseTo(1, 3);
+      if (index > 0) expect(frame[index - 1]!.right - tile.left).toBeCloseTo(.25, 3);
+    }
+  }
+  const [start, middle, end, wrapped] = background.frames;
+  expect(middle![0]!.left - start![0]!.left).toBeCloseTo(.5, 3);
+  expect(end![0]!.left - start![0]!.left).toBeCloseTo(1, 3);
+  // The same, unmirrored artwork occupies the same visible rectangles on
+  // either side of the wrap; the remaining copies are outside the scene.
+  expect(start![0]!.right).toBeCloseTo(0, 3);
+  expect(end![2]!.left).toBeGreaterThanOrEqual(1);
+  for (const index of [0, 1]) {
+    expect(end![index]!.left).toBeCloseTo(start![index + 1]!.left, 3);
+    expect(end![index]!.right).toBeCloseTo(start![index + 1]!.right, 3);
+  }
+  expect(wrapped).toEqual(start);
+}
 
 for (const config of [
   { width: 1280, height: 720, zoom: 100, model: 'heron-p' },
@@ -92,6 +152,7 @@ for (const config of [
   await expect(page.locator('.start-flight-sky .flight-panorama')).toHaveCSS('animation-name', 'flight-cloud-drift');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(page.locator('.start-aircraft')).toHaveCSS('animation-name', 'start-aircraft-cruise');
+  await expectPanoramaLoop(page.locator('.start-flight-sky .flight-panorama'));
 
   const core = new GameCore(NOW);
   if (config.model === 'diamond-da40') core.execute({ type: 'buy', modelId: config.model, airportId: 'PEK', passengers: 1, cargo: 0 }, NOW);
@@ -150,21 +211,7 @@ for (const config of [
     expect(clouds.samples[2]).toBeCloseTo(clouds.tile * .999, 0);
   }
   const panorama = page.locator('.is-flying .flight-panorama');
-  const background = await panorama.evaluate(element => {
-    const animation = element.getAnimations()[0]!;
-    animation.pause();
-    const duration = Number(animation.effect!.getTiming().duration);
-    const samples = [0, .5, 1].map(fraction => {
-      animation.currentTime = duration * fraction;
-      return new DOMMatrixReadOnly(getComputedStyle(element).transform).m41;
-    });
-    const images = [...element.querySelectorAll('img')];
-    animation.play();
-    return { samples, width: images[0]!.clientWidth, mirrored: images.map(image => new DOMMatrixReadOnly(getComputedStyle(image).transform).a) };
-  });
-  expect(background.samples[1]).toBeCloseTo(background.width, 0);
-  expect(background.samples[2]).toBeCloseTo(background.samples[0]!, 0);
-  expect(background.mirrored).toEqual([1, -1, 1, -1]);
+  await expectPanoramaLoop(panorama);
   // Observe normal playback too: a seekable animation alone did not establish
   // that the dominant painted cloud bank actually moves during live play.
   await expectCloudPlayback(panorama);
@@ -237,7 +284,7 @@ test('real departure, offline reload and arrival do not depend on animation call
     const image = element as HTMLImageElement; await image.decode();
     return { width: image.naturalWidth, height: image.naturalHeight };
   })));
-  expect(images).toHaveLength(8);
+  expect(images).toHaveLength(7);
   expect(images.every(image => image.width >= 1024 && image.height >= 512)).toBe(true);
   await expect(page.getByTestId('credits')).toHaveText(money(state.credits - flight.cost));
   await page.clock.fastForward(Math.ceil(flight.duration * .5) * 1000);

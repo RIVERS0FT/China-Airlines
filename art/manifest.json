@@ -554,5 +554,41 @@
     "height": 1024,
     "bytes": 1299716,
     "mode": "RGBA"
+  },
+  {
+    "file": "icon-route-plan-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1418607,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 719823
+  },
+  {
+    "file": "icon-checkin-departure-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1364920,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 754413
+  },
+  {
+    "file": "map-aircraft-topdown-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 658293,
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "transparentPixels": 1207313
   }
 ]

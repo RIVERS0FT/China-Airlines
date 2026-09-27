@@ -1,5 +1,7 @@
 .game-layout dialog.ui-dialog.aircraft-purchase{width:min(560px,calc(var(--game-width) - 24px))}
 .purchase-model{font-size:18px}
+.purchase-delivery{display:grid;gap:6px;font-weight:700;margin:12px 0}
+.purchase-delivery select{width:100%;min-height:44px;padding:6px 10px}
 .purchase-controls{display:flex;gap:16px;flex-wrap:wrap}
 .purchase-controls label{display:grid;gap:6px;font-weight:700}
 .purchase-controls input{width:100px;min-height:44px;padding:6px 10px}

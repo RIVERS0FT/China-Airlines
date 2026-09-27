@@ -1,8 +1,8 @@
 import type { GameState } from './game.js';
-import { bill, guard, parked } from './career.js';
+import { bill, guard, isParked, parked } from './career.js';
 import { ENERGY_SERVICE_SECONDS } from './energy.js';
 
-export type Department = 'flight' | 'ground';
+export type Department = 'flight' | 'ground' | 'company';
 export type EmployeeRole = 'specialist' | 'manager';
 export type Training = 'skill' | 'management';
 export type HistoryKind = 'joined' | 'assigned' | 'reporting' | 'promoted' | 'demoted' | 'trained' | 'renewed' | 'flight';
@@ -19,18 +19,47 @@ export type OrganizationCommand =
   | { type: 'employee-role'; employeeId: number; role: EmployeeRole }
   | { type: 'train-employee'; employeeId: number; training: Training }
   | { type: 'renew-employee'; employeeId: number };
-export const DEPARTMENTS: Record<Department, string> = { flight: '飞行部', ground: '地勤部' };
+export const DEPARTMENTS: Record<Department, string> = { flight: '飞行部', ground: '地勤部', company: '公司' };
+export const EMPLOYEE_POSITIONS = [
+  { department: 'flight', role: 'specialist' }, { department: 'ground', role: 'specialist' },
+  { department: 'flight', role: 'manager' }, { department: 'ground', role: 'manager' },
+  { department: 'company', role: 'manager' },
+] as const satisfies readonly Pick<Employee, 'department' | 'role'>[];
+export const isEmployeePosition = (department: unknown, role: unknown) =>
+  EMPLOYEE_POSITIONS.some(position => position.department === department && position.role === role);
 export const CONTRACT_SECONDS = 7 * 86400;
-export const MAX_EMPLOYEES = 14;
+export const MAX_EMPLOYEES = 15;
 export const HISTORY_LIMIT = 20;
 export const roleName = (e: Pick<Employee, 'department' | 'role'>) =>
-  e.role === 'manager' ? `${DEPARTMENTS[e.department]}经理` : e.department === 'flight' ? '飞行员' : '地勤专员';
+  e.department === 'company' ? '总经理' : e.role === 'manager' ? `${DEPARTMENTS[e.department]}经理` : e.department === 'flight' ? '飞行员' : '地勤专员';
 export const staffIn = (s: GameState, department: Department, role: EmployeeRole = 'specialist') =>
   s.career.employees.filter(e => e.department === department && e.role === role);
-export const staffLimit = (department: Department, role: EmployeeRole) => role === 'manager' ? 1 : department === 'flight' ? 8 : 4;
+export const staffLimit = (department: Department, role: EmployeeRole) =>
+  !isEmployeePosition(department, role) ? 0 : role === 'manager' ? 1 : department === 'flight' ? 8 : 4;
+/** A read-only preview shared by recruitment commands and candidate cards. */
+export function recruitmentAssignment(s: GameState, position: Pick<Employee, 'department' | 'role'>, targetPlaneId?: string) {
+  const assignment: { planeId: string | null; airportId: string | null; reason: string } = { planeId: null, airportId: null, reason: '' };
+  if (staffIn(s, position.department, position.role).length >= staffLimit(position.department, position.role)) {
+    assignment.reason = `${roleName(position)}岗位已满`;
+  } else if (position.role === 'specialist' && position.department === 'flight') {
+    assignment.planeId = s.fleet.find(p => (targetPlaneId === undefined || p.id === targetPlaneId) && isParked(s, p) &&
+      !p.dispatcher && !s.career.employees.some(e => e.planeId === p.id))?.id ?? null;
+    if (!assignment.planeId) assignment.reason = '没有可分配的空闲飞机';
+  } else if (position.role === 'specialist' && position.department === 'ground') {
+    assignment.airportId = s.airports.find(a => !s.career.employees.some(e => e.airportId === a.id))?.id ?? null;
+    if (!assignment.airportId) assignment.reason = '没有空缺地勤岗位的机场';
+  }
+  return assignment;
+}
+export const generalManager = (s: GameState) => staffIn(s, 'company', 'manager')[0];
+/** Only department managers report across departments, and only to the general manager. */
+export const canReportTo = (employee: Pick<Employee, 'id' | 'department' | 'role'>, manager: Pick<Employee, 'id' | 'department' | 'role'>) =>
+  employee.id !== manager.id && employee.department !== 'company' && manager.role === 'manager' &&
+  (employee.role === 'manager' ? manager.department === 'company' : manager.department === employee.department);
 export const managerCapacity = (e: Employee) => 2 + Math.floor(e.management / 2) + (e.trait === 'efficient' ? 1 : 0);
 export const directReports = (s: GameState, id: number) => s.career.employees.filter(e => e.managerId === id).sort((a, b) => a.id - b.id);
 export function effectiveManager(s: GameState, e: Employee) {
+  if (e.role !== 'specialist') return undefined;
   const manager = s.career.employees.find(m => m.id === e.managerId);
   return manager && manager.role === 'manager' && manager.department === e.department && manager.paidUntil > s.simTime &&
     directReports(s, manager.id).slice(0, managerCapacity(manager)).some(member => member.id === e.id) ? manager : undefined;
@@ -61,7 +90,13 @@ const employeeById = (s: GameState, id: number) => {
   const e = s.career.employees.find(e => e.id === id); guard(e, '未找到员工'); return e;
 };
 function room(s: GameState, department: Department, role: EmployeeRole) {
-  guard(staffIn(s, department, role).length < staffLimit(department, role), `${DEPARTMENTS[department]}${role === 'manager' ? '经理' : '人员'}岗位已满`);
+  guard(staffIn(s, department, role).length < staffLimit(department, role), `${roleName({ department, role })}岗位已满`);
+}
+function appointToGeneralManager(s: GameState, employee: Employee) {
+  const manager = generalManager(s);
+  if (!manager || employee.department === 'company' || employee.role !== 'manager' || employee.managerId === manager.id) return;
+  employee.managerId = manager.id;
+  employeeHistory(s, employee, 'reporting', '任命为总经理直属部门经理');
 }
 export function assignPilot(s: GameState, id: number, planeId: string | null) {
   const e = employeeById(s, id);
@@ -76,16 +111,18 @@ export function assignPilot(s: GameState, id: number, planeId: string | null) {
   employeeHistory(s, e, 'assigned', planeId ? `分配飞机 ${planeId}` : '解除飞机分配，转为待分配');
   return planeId ? '飞行员已上岗' : '飞行员已下岗';
 }
-export function organizationExecute(s: GameState, command: OrganizationCommand): string {
+export function organizationExecute(s: GameState, command: OrganizationCommand, targetPlaneId?: string): string {
   switch (command.type) {
     case 'recruit-employee': {
-      guard(['flight', 'ground'].includes(command.department) && ['specialist', 'manager'].includes(command.role), '未知员工岗位');
-      room(s, command.department, command.role);
+      guard(isEmployeePosition(command.department, command.role), '未知员工岗位');
+      const assignment = recruitmentAssignment(s, command, targetPlaneId);
+      guard(!assignment.reason, assignment.reason);
       guard(s.career.nextId < 1e12 && s.simTime + CONTRACT_SECONDS <= 1e12, '人员编号或合同期限超过存档范围');
       const cost = employmentPrice(command, true); bill(s, cost.gold, cost.tickets);
       const id = s.career.nextId++;
       s.career.seed = (Math.imul(s.career.seed, 1664525) + 1013904223) >>> 0;
-      const names = command.department === 'flight' ? ['林航', '苏晴', '陈翼', '许岚', '周远', '陆星', '唐云', '沈宁'] : ['顾川', '叶宁', '孟青', '乔安'];
+      const names = command.department === 'company' ? ['沈远', '程宁', '顾承']
+        : command.department === 'flight' ? ['林航', '苏晴', '陈翼', '许岚', '周远', '陆星', '唐云', '沈宁'] : ['顾川', '叶宁', '孟青', '乔安'];
       const used = s.career.employees.filter(e => e.department === command.department).length;
       const baseName = names[used % names.length]!;
       const name = s.career.employees.some(e => e.name === baseName) ? `${baseName}${id.toString(36)}` : baseName;
@@ -96,6 +133,15 @@ export function organizationExecute(s: GameState, command: OrganizationCommand):
         trait: (s.career.seed >>> 8) % 2 ? 'mentor' : 'efficient', joinedAt: s.simTime, flights: 0, deliveries: 0, history: [] };
       employeeHistory(s, e, 'joined', `以${roleName(e)}身份入职，包含7天合同`);
       s.career.employees.push(e);
+      if (assignment.planeId) assignPilot(s, e.id, assignment.planeId);
+      if (assignment.airportId) organizationExecute(s, { type: 'assign-ground', employeeId: e.id, airportId: assignment.airportId });
+      if (e.role === 'specialist') {
+        const manager = staffIn(s, e.department, 'manager')[0];
+        if (manager) organizationExecute(s, { type: 'report-to', employeeId: e.id, managerId: manager.id });
+      }
+      if (e.department === 'company') {
+        for (const member of s.career.employees) appointToGeneralManager(s, member);
+      } else appointToGeneralManager(s, e);
       return `${roleName(e)}已入职，已含7天工资`;
     }
     case 'assign-ground': {
@@ -110,10 +156,10 @@ export function organizationExecute(s: GameState, command: OrganizationCommand):
     }
     case 'report-to': {
       const e = employeeById(s, command.employeeId);
-      guard(e.role === 'specialist', '经理直接向玩家汇报');
+      guard(e.department !== 'company', '总经理直接向玩家汇报');
       if (command.managerId !== null) {
         const manager = employeeById(s, command.managerId);
-        guard(manager.id !== e.id && manager.role === 'manager' && manager.department === e.department, '请选择本部门经理，不能循环汇报');
+        guard(canReportTo(e, manager), e.role === 'manager' ? '部门经理只能向总经理或玩家汇报' : '请选择本部门经理，不能循环汇报');
       }
       if (e.managerId === command.managerId) return '汇报关系未改变';
       e.managerId = command.managerId;
@@ -122,19 +168,22 @@ export function organizationExecute(s: GameState, command: OrganizationCommand):
     }
     case 'employee-role': {
       const e = employeeById(s, command.employeeId);
-      guard(['specialist', 'manager'].includes(command.role), '未知员工岗位');
+      guard(e.department !== 'company', '总经理不支持内部转任');
+      guard(isEmployeePosition(e.department, command.role), '未知员工岗位');
       guard(command.role !== e.role, '员工已在此岗位'); room(s, e.department, command.role);
       if (command.role === 'manager') {
         guard(e.skill >= 2 && e.management >= 1, '晋升需要专业2级、管理1级');
         if (e.planeId) assignPilot(s, e.id, null);
         e.airportId = null; e.managerId = null;
       } else {
+        e.managerId = null;
         for (const member of directReports(s, e.id)) {
           member.managerId = null; employeeHistory(s, member, 'reporting', '原经理转任，改为向玩家汇报');
         }
       }
       e.role = command.role;
       employeeHistory(s, e, command.role === 'manager' ? 'promoted' : 'demoted', `转任${roleName(e)}，原合同期限保留`);
+      if (e.role === 'manager') appointToGeneralManager(s, e);
       return '员工岗位已调整，现有合同不补扣费用';
     }
     case 'train-employee': {

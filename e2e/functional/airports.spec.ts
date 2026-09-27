@@ -82,8 +82,9 @@ test('purchase into an empty inspected airport enables only local aircraft loadi
   await ready(page); await detail(page, '上海');
   await page.getByRole('button', { name: '进入候机大厅', exact: true }).click();
   await openGlobal(page, '飞机商店');
-  await expect(page.getByLabel('交付机场', { exact: true })).toHaveValue('PVG');
-  await page.getByRole('button', { name: '购买雨燕 II', exact: true }).click();await confirmPurchase(page);
+  await expect(page.getByLabel('交付机场', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: '支付 ¥ 8,500 购买', exact: true }).click();
+  await expect(page.getByLabel('交付机场', { exact: true })).toHaveValue('PVG');await confirmPurchase(page);
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   await page.getByRole('button', { name: '机场装载' }).click();
   await allocateCabin(page, 'AC0002', 2, 1);

@@ -8,9 +8,3 @@
 .game-modal .airport-world-filter{display:flex;align-items:center;gap:10px;font-size:13px;margin:8px 0}
 .game-modal .airport-world-filter select{min-width:145px}
 @media(max-height:600px){.dispatch-world-search{margin:8px 0;gap:8px}}
-
-/* Browse guidance is decorative and never intercepts map gestures. */
-.world-map-guide{position:absolute;right:26px;bottom:20px;margin:0;padding:8px 12px;border-radius:6px;background:#183d51dc;color:#e7f2ed;font-size:13px;pointer-events:none}
-@media (max-width:720px) and (orientation:landscape){
-  .world-map-guide{right:8px;bottom:8px;font-size:9px;padding:5px 7px}
-}

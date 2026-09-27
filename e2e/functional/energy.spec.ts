@@ -79,18 +79,14 @@ test('multi-leg energy shortage stops at the hub without erasing transfer cargo'
   await launchRoute(page);await expect(page.getByTestId('plane-energy')).toHaveText('能量 0.00 点');
   await page.clock.fastForward((q.legs[0]!.duration+9)*1000);
   await expect(page.locator('.gate-sign')).toContainText('武汉航空港');await expect(page.getByTestId('flights-count')).toHaveText('1 班');
-  // Inspect every cabin page and compare original identities, not just visible cards.
+  // The capacity-sized decks show every order; compare the original identities.
   const aboard: string[] = [];
   const resume = page.getByRole('button', { name: '继续经营', exact: true });
   if (await resume.isVisible()) await resume.click();
   await expect(page.getByRole('button', { name: '隐藏机舱', exact: true })).toBeVisible();
-  for (const [kind, label] of [['passengers', '客舱'], ['cargo', '货舱']]) {
-    const deck = page.getByTestId(`cabin-${kind}`), next = deck.getByRole('button', { name: `下一页${label}` });
-    do {
-      aboard.push(...await deck.getByTestId('loaded-order').evaluateAll(elements => elements.map(el => el.getAttribute('data-order-id')!)));
-      if (await next.isDisabled()) break;
-      await next.click();
-    } while (true);
+  for (const kind of ['passengers', 'cargo']) {
+    const deck = page.getByTestId(`cabin-${kind}`);
+    aboard.push(...await deck.getByTestId('loaded-order').evaluateAll(elements => elements.map(el => el.getAttribute('data-order-id')!)));
   }
   expect(aboard.sort()).toEqual(s.orders.filter(order => order.location === ID).map(order => order.id).sort());
   expect(aboard).toHaveLength(5);

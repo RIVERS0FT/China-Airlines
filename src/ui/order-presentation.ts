@@ -1,6 +1,8 @@
 import { service } from '../core/career-catalog.js';
-import { aircraftSpecs } from '../core/catalog.js';
+import { AIRPORTS, aircraftSpecs } from '../core/catalog.js';
 import { loadSummary, MAX_WAITING, waiting, type GameState, type Plane, type Order } from '../core/game.js';
+
+const airportIds = new Set(AIRPORTS.map(airport => airport.id));
 
 /** Read-only explanations. The core revalidates every actual load/unload command. */
 export function loadingLock(game: GameState, plane?: Plane): string {
@@ -64,6 +66,7 @@ export function presentOrder(context: LoadingContext, order: Order, busy = false
     label: aboard ? '已装机' : reason ? '不可装' : '待装机',
     action,
     caption: `${aboard ? '已装机 · ' : ''}${!busy && reason ? shortLoadingReason[reason] ?? reason : action}`,
-    transfer: !aboard && order.expiresAt === null,
+    // Non-expiring means accepted, including loads returned to their origin.
+    transfer: !aboard && order.expiresAt === null && airportIds.has(order.location) && order.location !== order.from,
   };
 }

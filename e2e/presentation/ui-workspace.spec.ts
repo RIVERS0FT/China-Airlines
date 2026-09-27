@@ -35,27 +35,21 @@ for (const config of cases) test(`shared workspaces stay usable ${config.width}/
     expect(body.y + body.height).toBeLessThanOrEqual(dock.y + 1);
     expect(body.height).toBeGreaterThan(100);
     expect(await frame.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
-    if (name === 'organization') {
-      const gap = await frame.evaluate(el => el.querySelector('.org-page-heading')!.getBoundingClientRect().top - el.getBoundingClientRect().top);
-      expect(gap).toBeLessThanOrEqual(1);
-    }
+    await expect(frame.locator('.ui-page-header,.org-page-heading')).toHaveCount(0);
+    await expect(frame).toBeFocused();
     if (name !== 'organization') {
-      const header = frame.locator('.ui-page-header');
-      await expect(header).toBeInViewport();
       const gap = await frame.evaluate(el => {
-        const header = el.querySelector('.ui-page-header')!.getBoundingClientRect();
         const content = el.querySelector('.ui-scroll-region')!.firstElementChild!.getBoundingClientRect();
-        return content.top - header.bottom;
+        return content.top - el.getBoundingClientRect().top;
       });
       expect(gap).toBeLessThanOrEqual(1);
-      const before = (await header.boundingBox())!;
+      const before = (await frame.boundingBox())!;
       const scroll = frame.locator('.ui-scroll-region');
       await expect(scroll).toHaveCount(1);
       expect(await scroll.evaluate(el => el.clientHeight)).toBeGreaterThan(50);
       await scroll.evaluate(el => { el.scrollTop = el.scrollHeight; });
-      const after = (await header.boundingBox())!;
+      const after = (await frame.boundingBox())!;
       expect(after.y).toBeCloseTo(before.y,1);
-      await expect(header.locator('button')).toHaveCount(0);
       await scroll.evaluate(el => { el.scrollTop = 0; });
     }
     await page.screenshot({path:`artifacts/workspace-${name}-${config.width}-${config.zoom}-${config.locale}.png`});

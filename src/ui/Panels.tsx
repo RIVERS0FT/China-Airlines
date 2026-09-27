@@ -2,7 +2,7 @@ import { DisplaySettings } from './DisplaySettings.js';
 import { AircraftPurchase } from './AircraftPurchase.js';
 import { careerLevel } from '../core/career.js';
 import { useRef, useState } from 'react';
-import { airport, MODELS } from '../core/catalog.js';
+import { MODELS } from '../core/catalog.js';
 import { type GameState } from '../core/game.js';
 import { controller, useGame } from '../runtime.js';
 import { installUpdate } from '../pwa.js';
@@ -58,12 +58,25 @@ export function Settings({onClose}:{onClose:()=>void}) {
 }
 export function Shop({game,busy,selected}:{game:GameState;busy:boolean;selected:string}) {
   const [delivery,setDelivery]=usePageState('shop.delivery',selected);
-  const [purchase,setPurchase]=useState<{ modelId: string; airportId: string } | null>(null);
-  const to=game.airports.some(a=>a.id===delivery)?delivery:'PEK', view=useGame();
-  const {ui,t,text,airportName,modelName}=useI18n();
-  return <section className="content-page fleet-shop"><PageToolbar className="shop-toolbar"><strong>1–10 格容量机型</strong><label className="field-label delivery">{ui('交付机场')}<select aria-label={ui('交付机场')} value={to} onChange={e=>setDelivery(e.target.value)}>{game.airports.map(a=><option key={a.id} value={a.id}>{airportName(a.id,airport(a.id).city)} · {a.level} {ui('级')}</option>)}</select></label><span>{ui('机位 {used} / {capacity}',{used:game.fleet.length,capacity:game.hangarSlots})}</span></PageToolbar>
-    <div className="shop-grid">{MODELS.map(m=>{const level=game.airports.find(a=>a.id===to)!.level,enough=game.credits>=m.price,full=game.fleet.length>=game.hangarSlots,name=modelName(m.id,m.name);return <article className="aircraft-card shop-card" key={m.id} data-testid="shop-aircraft"><div className="card-top"><span className="eyebrow">{m.family.toUpperCase()}</span><span className="type-ribbon">总容量 {m.capacity} 格</span></div><img className="painted-aircraft" src={artAsset(m.art)} alt={name}/><h3>{name}</h3><div className="aircraft-reference"><span>{ui('现实参考')} · {m.reference.prototype}</span><small>{ui('现实容量')}：{ui(m.reference.capacity)}；游戏格数为经营配置</small></div><dl className="spec-grid"><div><dt>{t('purchase.configuration')}</dt><dd>{t('purchase.free')}</dd></div><div><dt>{t('purchase.layout')}</dt><dd>{t('purchase.choose')}</dd></div><div><dt>{ui('航程')}</dt><dd>{m.range}<small>km</small></dd></div><div><dt>{ui('机场等级')}</dt><dd>{m.level}<small>{ui('级')}</small></dd></div></dl><div className="price">{money(m.price)}</div><button data-guide={m.id === 'diamond-da40' ? 'buy-first-plane' : undefined} className="primary full" disabled={busy||!enough||level<m.level||full||careerLevel(game)<m.rank} onClick={()=>setPurchase({modelId:m.id,airportId:to})}>{careerLevel(game)<m.rank?ui('公司需达到 Lv.{level}',{level:m.rank}):level<m.level?ui('交付机场需升至 {level} 级',{level:m.level}):full?ui('请先扩建机库'):!enough?ui('运营资金不足'):ui('购买{model}',{model:name})}</button></article>;})}</div>
+  const [purchase,setPurchase]=useState<string|null>(null);
+  const to=game.airports.some(a=>a.id===delivery)?delivery:game.airports[0]!.id, view=useGame();
+  const {ui,t,text,modelName}=useI18n();
+  return <section className="content-page fleet-shop"><PageToolbar className="shop-toolbar"><span>{ui('机位 {used} / {capacity}',{used:game.fleet.length,capacity:game.hangarSlots})}</span></PageToolbar>
+    <div className="shop-grid">{MODELS.map(m=>{
+      const name=modelName(m.id,m.name);
+      const unavailable=careerLevel(game)<m.rank?ui('公司需达到 Lv.{level}',{level:m.rank})
+        :!game.airports.some(a=>a.level>=m.level)?ui('交付机场需升至 {level} 级',{level:m.level})
+        :game.fleet.length>=game.hangarSlots?ui('请先扩建机库'):game.credits<m.price?ui('运营资金不足'):'';
+      return <article className="aircraft-card shop-card" key={m.id} data-testid="shop-aircraft" aria-labelledby={`shop-model-${m.id}`}>
+        <div className="card-top"><h3 id={`shop-model-${m.id}`}>{name}</h3><span className="type-ribbon">{t('purchase.capacity',{count:m.capacity})}</span></div>
+        <img className="painted-aircraft" src={artAsset(m.art)} alt={name}/>
+        <div className="aircraft-reference"><span>{ui('现实参考')} · {m.reference.prototype}</span><small>{ui('现实容量')}：{ui(m.reference.capacity)}；游戏格数为经营配置</small></div>
+        <dl className="spec-grid"><div><dt>{ui('航程')}</dt><dd>{m.range}<small>km</small></dd></div><div><dt>{ui('机场等级')}</dt><dd>{m.level}<small>{ui('级')}</small></dd></div></dl>
+        <button data-guide={m.id==='diamond-da40'?'buy-first-plane':undefined} className="primary full" aria-describedby={unavailable?`shop-unavailable-${m.id}`:undefined} disabled={busy||Boolean(unavailable)} onClick={()=>setPurchase(m.id)}>{t('purchase.confirm',{amount:money(m.price)})}</button>
+        {unavailable&&<p className="shop-unavailable" id={`shop-unavailable-${m.id}`}>{unavailable}</p>}
+      </article>;
+    })}</div>
     {view.error && <p role="alert" className="workshop-feedback">{text(view.error)}</p>}{view.notice && <p role="status" className="workshop-feedback">{text(view.notice)}</p>}
     <p className="muted-text">{t('purchase.shopHelp')}</p>
-    {purchase && <AircraftPurchase key={`${purchase.modelId}:${purchase.airportId}`} {...purchase} game={game} busy={busy} onClose={()=>setPurchase(null)}/>}</section>;
+    {purchase && <AircraftPurchase key={purchase} modelId={purchase} airportId={to} onDeliveryChange={setDelivery} game={game} busy={busy} onClose={()=>setPurchase(null)}/>}</section>;
 }

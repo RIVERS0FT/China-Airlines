@@ -16,6 +16,6 @@ export function MainNavigation({ page, onNavigate, departure }: {
   if (page === 'dispatch') return null;
   return <nav className="game-dock" aria-label={t('nav.main')}>
     {items.map(([target, icon, label]) => <button type="button" key={target} data-guide={target} className={page === target ? 'active' : ''} aria-current={page === target ? 'page' : undefined} onClick={() => onNavigate(target)}><Icon name={icon}/><span>{t(label)}</span></button>)}
-    {page === 'airport' && !departure.hidden && <button type="button" className="gold-button depart-button" aria-label={t('nav.dispatch')} aria-describedby="airport-departure-reason" title={departure.reason || t('airport.routeHint')} disabled={departure.disabled} onClick={departure.onClick}><Icon name="plane"/><span>{t('nav.dispatch')}</span><small id="airport-departure-reason" className="airport-departure-reason">{departure.reason}</small></button>}
+    {page === 'airport' && !departure.hidden && <button type="button" className="gold-button depart-button" aria-label={t('nav.dispatch')} aria-describedby="airport-departure-reason" title={departure.reason || t('airport.routeHint')} disabled={departure.disabled} onClick={departure.onClick}><Icon name="route-plan"/><span>{t('nav.dispatch')}</span><small id="airport-departure-reason" className="airport-departure-reason">{departure.reason}</small></button>}
   </nav>;
 }

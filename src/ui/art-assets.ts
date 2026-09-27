@@ -6,4 +6,5 @@ export const BUTTON_ART: Readonly<Record<string, string>> = {
   fleet: 'icon-plane-v1.png', plane: 'icon-plane-v1.png', shop: 'icon-shop-v1.png', task: 'icon-task-v1.png',
   coin: 'icon-coin-v1.png', ticket: 'icon-ticket-v2.png', trophy: 'icon-trophy-v1.png', save: 'icon-save-v1.png', help: 'icon-help-v1.png',
   maintenance: 'icon-maintenance-v1.png', energy: 'icon-energy-v1.png', pilot: 'pilot-avatar-v1.png',
+  'route-plan': 'icon-route-plan-v1.png', 'checkin-departure': 'icon-checkin-departure-v1.png',
 };

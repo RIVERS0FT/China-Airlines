@@ -12,7 +12,6 @@ export function HelpContent({ busy, onStart }: { busy: boolean; onStart: () => v
       <section className="help-card help-resources"><header><Icon name="ticket"/><h3>Resources & Settlement</h3></header><dl><div><dt>Operating funds</dt><dd>Earned from delivered orders and operations; spent on flights, aircraft, airports, and services.</dd></div><div><dt>Tickets</dt><dd>A scarce resource earned from paid flights, goals, daily progress, and museum donations; used by staffing and advanced operations.</dd></div><div><dt>Time</dt><dd>Arrivals settle as time events, never from animation callbacks. Offline progress is capped at 8 hours.</dd></div></dl></section>
     </div>
     <aside className="help-rule-strip"><strong>Remember:</strong><span>Route previews are read-only. Every order pays once at its final destination. Aircraft and economic values are game configurations; the globe is not navigation or administrative-boundary data.</span></aside>
-    <p className="muted-text">Map aircraft: <a href="https://sketchfab.com/3d-models/low-poly-airliner-f06d488f08764e3ca26f2917d4053c69" target="_blank" rel="noreferrer">Low Poly Airliner by Mauro3D</a> · <a href={`${import.meta.env.BASE_URL}models/ATTRIBUTION.txt`} target="_blank" rel="noreferrer">CC BY 4.0 — credits and modifications</a></p>
   </div>;
   return <div className="help-content">
     <section className="help-hero" aria-labelledby="help-intro-zh"><div><h3 id="help-intro-zh">首次起航</h3><p>从北京基地和空机队开始：购买上海机场（4,000），购买1格DA40（2,300）并免费选配容量，装载订单，完成第一条航线。</p></div><button className="start-guide-help" disabled={busy} onClick={onStart}>开始分步引导</button></section>
@@ -23,6 +22,5 @@ export function HelpContent({ busy, onStart }: { busy: boolean; onStart: () => v
       <section className="help-card help-resources"><header><Icon name="ticket"/><h3>资源与结算</h3></header><dl><div><dt>运营资金</dt><dd>由订单交付和经营活动获得，用于航班、飞机、机场与服务。</dd></div><div><dt>点券</dt><dd>由有偿运输、目标、每日进度和博物馆捐赠等获得，用于人员与进阶经营。</dd></div><div><dt>时间</dt><dd>抵达按时间事件结算，不依赖动画回调；离线最多补算 8 小时。</dd></div></dl></section>
     </div>
     <aside className="help-rule-strip"><strong>请记住</strong><span>路线预览只读；每份订单只在最终目的地结算一次。机型和经营参数均为游戏化配置；球面地图不是导航或行政边界资料。</span></aside>
-    <p className="muted-text">地图飞机：<a href="https://sketchfab.com/3d-models/low-poly-airliner-f06d488f08764e3ca26f2917d4053c69" target="_blank" rel="noreferrer">Low Poly Airliner · Mauro3D</a> · <a href={`${import.meta.env.BASE_URL}models/ATTRIBUTION.txt`} target="_blank" rel="noreferrer">CC BY 4.0 许可与修改说明</a></p>
   </div>;
 }

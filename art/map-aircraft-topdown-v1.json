@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "created": "2026-09-27",
+  "generator": "Built-in image_gen",
+  "processing": "Original generated PNG copied without image post-processing; alpha preserved.",
+  "assets": [
+    {
+      "file": "map-aircraft-topdown-v1.png",
+      "purpose": "所有机型共用的地图俯视飞机，机头朝上"
+    }
+  ]
+}

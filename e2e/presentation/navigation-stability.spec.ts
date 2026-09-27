@@ -11,6 +11,42 @@ async function boxes(page: Page): Promise<Box[]> {
     return { x, y, width, height };
   }));
 }
+async function expectEqualButtonFaces(page: Page) {
+  await expect.poll(async () => {
+    const faces = await page.locator('.game-dock > button').evaluateAll(elements => elements.map(element => {
+      const shadows = getComputedStyle(element).boxShadow;
+      const outer = { left:0, right:0, top:0, bottom:0 };
+      let bottomInset = 0;
+      // Split only between shadow layers, retaining commas inside computed color functions.
+      for (const layer of shadows.split(/,(?![^()]*\))/)) {
+        // Length tokens exclude colors entirely, including rgb/rgba channel values.
+        const lengths = [...layer.matchAll(/(-?(?:\d*\.)?\d+)px\b/g)].map(match => Number(match[1]));
+        if (lengths.length < 2) continue;
+        const [x = 0, y = 0, blur = 0, spread = 0] = lengths, reach = blur + spread;
+        if (/\binset\b/.test(layer)) {
+          // Only negative-y inset layers form the bottom side; a blurred top inset is the pressed feedback.
+          if (y < 0) bottomInset = Math.max(bottomInset, reach - y);
+        }
+        else {
+          outer.left = Math.max(outer.left, reach - x); outer.right = Math.max(outer.right, reach + x);
+          outer.top = Math.max(outer.top, reach - y); outer.bottom = Math.max(outer.bottom, reach + y);
+        }
+      }
+      return { selected:element.getAttribute('aria-current') === 'page', pressed:element.matches(':active:enabled'),
+        height:element.getBoundingClientRect().height,
+        bottomInset, outer };
+    }));
+    const selected = faces.find(face => face.selected);
+    const raised = selected && !selected.pressed ? selected : faces.find(face => !face.pressed);
+    if (faces.length < 7 || !selected || !raised) return Infinity;
+    // Pressing removes the side and outer shadow without moving the hit box. Other buttons retain their raised face.
+    return Math.max(Math.abs(raised.bottomInset - 3) / .01, Math.abs(raised.outer.bottom - 2) / .01,
+      ...faces.flatMap(face => [Math.abs(face.height - raised.height) / .5,
+        Math.abs(face.bottomInset - (face.pressed ? 0 : raised.bottomInset)) / .01,
+        ...(['left','right','top','bottom'] as const).map(side =>
+          Math.abs(face.outer[side] - (face.pressed ? 0 : raised.outer[side])) / .01)]));
+  }, { message:'Navigation hit boxes stay equal; raised faces share their side and shadow, while pressed faces lose both' }).toBeLessThanOrEqual(1);
+}
 async function expectStable(page: Page, reference: Box[]) {
   await expect(ordinary(page)).toHaveCount(7);
   await expect.poll(async () => {
@@ -22,6 +58,7 @@ async function expectStable(page: Page, reference: Box[]) {
         Math.abs(box.width - before.width), Math.abs(box.height - before.height)];
     }));
   }).toBeLessThan(.5);
+  await expectEqualButtonFaces(page);
 }
 
 const cases = [
@@ -52,6 +89,7 @@ for (const config of cases) {
     await expect(dock).toHaveCSS('justify-content', 'flex-start');
     const baseline = await boxes(page);
     expect(baseline).toHaveLength(7);
+    await expectEqualButtonFaces(page);
     const scale = await displayScale(page);
     const navBox = (await dock.boundingBox())!;
     expect(baseline[0]!.x - navBox.x).toBeGreaterThanOrEqual(0);
@@ -73,13 +111,21 @@ for (const config of cases) {
     expect(Math.abs(navBox.x + navBox.width - routeBox.x - routeBox.width - rightInset * scale)).toBeLessThan(.5);
     await expect(route).toBeInViewport();
     await ordinary(page).nth(1).hover();
+    await expectStable(page, baseline);
     await page.mouse.down();
     await expectStable(page, baseline);
     await page.mouse.up();
+    await expectStable(page, baseline);
 
     // Work pages share the shell instead of occupying the native modal top layer.
     for (const index of [2, 3, 4, 6]) {
-      await ordinary(page).nth(index).click();
+      if (index === 2) {
+        await ordinary(page).nth(index).hover();
+        await expectStable(page, baseline);
+        await page.mouse.down();
+        await expectStable(page, baseline);
+        await page.mouse.up();
+      } else await ordinary(page).nth(index).click();
       await expect(page.locator('.ui-page')).toHaveCount(1);
       await expect(page.locator('dialog[open]')).toHaveCount(0);
       await expect(ordinary(page).nth(index)).toHaveAttribute('aria-current', 'page');

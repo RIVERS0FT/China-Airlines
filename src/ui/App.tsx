@@ -40,7 +40,7 @@ export function App() {
   const [planeId, setPlaneId] = useState('AC0001');
   const [destination, setDestination] = useState('PEK'), [aboard, setAboard] = useState(false);
   const [orderViewKey, setOrderViewKey] = useState(0);
-  const [organizationTarget, setOrganizationTarget] = useState<{ id: number | null; training: boolean }>({ id: null, training: false });
+  const [organizationTarget, setOrganizationTarget] = useState<number | null>(null);
   const [modal, setModal] = useState<ModalName | null>(null);
   const [cabinVisible, setCabinVisible] = useState(true);
   const [browsedAirport, setBrowsedAirport] = useState<string | null>(null);
@@ -71,7 +71,7 @@ export function App() {
   function openPage(page: WorkPage) {
     navigate({ type: 'open', page }); setModal(null);
   }
-  function openOrganization(id: number | null = null, training = false) { setOrganizationTarget({ id, training }); openPage('organization'); }
+  function openOrganization(id: number | null = null) { setOrganizationTarget(id); openPage('organization'); }
   function openFleet() { openPage('fleet'); }
   function selectPlane(id: string) { setPlaneId(id); setBrowsedAirport(null); navigate({ type: 'open', page: 'airport' }); setAboard(false); setModal(null); }
   function showOrders(onboard: boolean) { setAboard(onboard); setOrderViewKey(key => key + 1); }
@@ -181,17 +181,17 @@ export function App() {
           : workPage === 'airports' ? <AirportDirectory game={game} onInspect={id => inspectAirport(id, undefined, 'directory')}/>
           : workPage === 'shop' ? <Shop game={game} busy={view.busy} selected={current}/>
           : workPage === 'fleet' ? <FleetManagement onEmployee={id => openOrganization(id)} game={game} busy={view.busy} selectedPlaneId={plane?.id ?? context?.selected?.id} onSelect={selectPlane}/>
-          : <CompanyOrganization game={game} busy={view.busy} initialEmployeeId={organizationTarget.id} initialTraining={organizationTarget.training} onPlane={selectPlane} onAirport={visitAirport}/>}
+          : <CompanyOrganization game={game} busy={view.busy} initialEmployeeId={organizationTarget} onPlane={selectPlane} onAirport={visitAirport}/>}
       </PageFrame>}
     </GameShell>
     <OverlayHost>
       {modal === 'settings' && <Settings onClose={() => setModal(null)}/>}
       {game && modal && modal !== 'settings' && <GameDialog key={modal} title={modalTitles[modal]} className={`game-modal ${modal === 'help' ? 'help-modal' : ''}`} onClose={closeModal}>
         {modal === 'airport-detail' ? <AirportDetails game={game} id={detailAirport} busy={view.busy} backLabel={detailBackLabel} onBack={closeModal} onUnlocked={resumeRouteUnlock} onVisit={visitAirport} onPlane={selectPlane} onRoute={id => showMap(id)}/>
-          : modal === 'tasks' ? <TaskCenter onEmployee={(id, training) => openOrganization(id, training)} game={game} plane={plane ?? context?.selected} busy={view.busy} onNext={nextTask}/>
+          : modal === 'tasks' ? <TaskCenter game={game} plane={plane ?? context?.selected} busy={view.busy} onNext={nextTask}/>
           : <HelpContent busy={view.busy} onStart={startTutorial}/>}
       </GameDialog>}
-      {view.notice && !modal && !isDispatch && !workPage && <div className="toast" role="status"><Icon name="check"/><span>{text(view.notice)}</span><button aria-label={t('common.closeNotice')} onClick={() => useGame.setState({ notice:null })}>×</button></div>}
+      {view.notice && !modal && !isDispatch && !workPage && <div className="toast" role="status"><Icon name="check"/><span>{text(view.notice)}</span><button type="button" className="toast-close" aria-label={t('common.closeNotice')} onClick={() => useGame.setState({ notice:null })}>×</button></div>}
       {view.error && game && !modal && !view.blocked && !workPage && <div className="error-toast" role="alert"><span>{text(view.error)}</span>{isDispatch && <button onClick={() => setModal('settings')}>{t('map.settings')}</button>}<button onClick={() => useGame.setState({ error:null })}>{t('common.close')}</button></div>}
       {view.report && !modal && !isDispatch && !workPage && <div className="return-report" role="status"><h3>{view.report.clockBack ? t('status.clockBack') : t('status.offlineReport')}</h3><p>{t('status.offlineSummary', { elapsed:duration(view.report.elapsed), flights:view.report.flights, profit:money(view.report.profit) })}</p>{view.report.capped && <p>{t('status.offlineCap')}</p>}<button className="primary" onClick={() => useGame.setState({ report:null })}>{t('status.continue')}</button></div>}
       {view.updateAvailable && !modal && !isDispatch && <button className="update-notice" onClick={() => setModal('settings')}>{t('status.update')}</button>}

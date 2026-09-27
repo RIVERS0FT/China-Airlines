@@ -10,6 +10,7 @@ export interface CabinAnchor { id: string; kind: Order['kind']; x: number; floor
 export interface PaintedDeck { x: number; y: number; width: number; height: number; floorY: number; count: number }
 export interface CabinArtLayout {
   modelId: string; family: CabinFamily; direction: 'left'; exterior: string;
+  capacity: number;
   canvas: { width: number; height: number };
   interior: { x: number; y: number; width: number; height: number };
   decks: Partial<Record<Order['kind'], PaintedDeck>>;
@@ -37,15 +38,19 @@ export function cabinArtLayout(plane: Pick<Plane, 'modelId'> & Partial<Pick<Plan
   const interior = registered.interior;
   const active = (['passengers', 'cargo'] as const).filter(kind => allocation[kind] > 0);
   const decks: CabinArtLayout['decks'] = {};
-  active.forEach((kind, index) => {
-    const half = active.length === 2;
-    const x = interior.x + (half ? index * interior.width / 2 : 0);
-    const width = half ? interior.width / 2 : interior.width;
+  const slotWidth = interior.width / aircraft.capacity;
+  let preceding = 0;
+  active.forEach(kind => {
+    const count = allocation[kind];
+    const x = interior.x + preceding * slotWidth;
+    const width = count * slotWidth;
     decks[kind] = { x, y: interior.y, width, height: interior.height,
       floorY: interior.y + interior.height * .88,
-      count: Math.min(allocation[kind], half ? 5 : 8) };
+      count };
+    preceding += count;
   });
   return { modelId: aircraft.id, family, direction: 'left',
+    capacity: aircraft.capacity,
     exterior: `aircraft-${aircraft.id}-exterior-${revision}.png`,
     canvas: format.canvas, interior, decks };
 }

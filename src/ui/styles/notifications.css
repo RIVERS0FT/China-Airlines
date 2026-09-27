@@ -1,0 +1,63 @@
+/* Notices live beside the game scene, so they need their own scene palette. */
+.ui-overlay-host > .toast {
+  bottom:106px;
+  gap:12px;
+  max-width:min(650px, calc(100% - 32px));
+  padding:8px 10px 8px 12px;
+  border:2px solid #2b668f;
+  border-radius:12px;
+  background:linear-gradient(#f7fdff, #d9f2fc);
+  color:#173d69;
+  box-shadow:inset 0 0 0 2px #ffffffb3, 0 3px 0 #1b597c, 0 6px 14px #173d6933;
+  font-size:15px;
+  font-weight:700;
+  line-height:1.5;
+}
+.ui-overlay-host > .toast > .icon {
+  flex:0 0 auto;
+  width:36px;
+  height:36px;
+  padding:7px;
+  border:2px solid #bd8a38;
+  border-radius:50%;
+  background:linear-gradient(#fff8dc, #ffc84b);
+  color:#785214;
+  box-shadow:inset 0 0 0 1px #fff8dc;
+}
+.ui-overlay-host > .toast > span {
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.ui-overlay-host > .toast > .toast-close {
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  width:44px;
+  min-height:44px;
+  padding:0;
+  border:2px solid #3987ae;
+  border-radius:9px;
+  background:linear-gradient(#e1faff, #8dd6ed);
+  color:#173d69;
+  box-shadow:inset 0 1px 0 #fff, 0 2px 0 #2b668f;
+  font-size:24px;
+  line-height:1;
+  text-shadow:none;
+}
+.ui-overlay-host > .toast > .toast-close:hover {
+  background:linear-gradient(#f3fcff, #ade8f7);
+  border-color:#245b83;
+  color:#173d69;
+}
+.ui-overlay-host > .toast > .toast-close:active {
+  background:#8dd6ed;
+  box-shadow:inset 0 2px 3px #2b668f33;
+}
+.ui-overlay-host > .toast > .toast-close:focus-visible {
+  outline:3px solid #bd8a38;
+  outline-offset:2px;
+}
+@media(max-height:600px) and (orientation:landscape) {
+  .ui-overlay-host > .toast { bottom:72px; gap:8px; padding:6px 8px; font-size:13px; }
+  .ui-overlay-host > .toast > .icon { width:32px; height:32px; padding:5px; }
+}

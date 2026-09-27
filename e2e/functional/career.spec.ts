@@ -44,9 +44,8 @@ for (const [width, height] of [[1440, 900],[844, 390],[667, 375]])
     await page.getByRole("button", { name: "关闭任务中心" }).click();
     await openGlobal(page, "公司组织");
     await expect(page.locator('.organization-workspace')).toBeVisible();
-    await page.getByRole("button", { name: "招募", exact:true }).click();
-    await page.getByRole("button", { name: "招募飞行员" }).click();
-    await page.getByLabel("林航岗位").selectOption("AC0001");
+    await page.getByRole("button", { name: "人才市场", exact:true }).click();
+    await page.locator('[data-talent-position="flight-specialist"] [data-candidate-id]').filter({has:page.getByRole('heading',{name:'林航',exact:true})}).getByRole('button',{name:'招募林航 · 飞行员',exact:true}).click();
     await expect(page.getByLabel("林航岗位")).toHaveValue("AC0001");
     await page.getByRole('navigation',{name:'主导航'}).getByRole('button',{name:'机场装载',exact:true}).click();
     await openGlobal(page, "经营中心");
@@ -64,8 +63,9 @@ for (const [width, height] of [[1440, 900],[844, 390],[667, 375]])
     expect(decoded).toBe(true);
     await page.screenshot({ path: `artifacts/career-logistics-${width}.png` });
     const saved = await exportState(page);
-    expect(saved.version).toBe(13);
+    expect(saved.version).toBe(14);
     expect(saved.career.employees[0]?.planeId).toBe("AC0001");
+    expect(saved.fleet[0]?.dispatcher).toBe(true);
     expect(saved.career.claimed).toContain("checkin-0");
     expect(Object.keys(saved.career)).not.toContain("gems");
     await page.reload();
@@ -104,7 +104,7 @@ test("workshop quotes match growth and assembly charges and persist after refres
 test("factory goods load onto a cargo plane, arrive in another city and fulfil one trade", async ({page}) => {
   await setup(page, funded());
   await openGlobal(page, "飞机商店");
-  await page.getByRole("button", { name: "购买雨燕 III", exact: true }).click();await confirmPurchase(page, 0, 4);
+  await page.getByRole("button", { name: "支付 ¥ 12,500 购买", exact: true }).click();await confirmPurchase(page, 0, 4);
   await page.getByRole("button", { name: "机场装载" }).click();
   await openGlobal(page, "经营中心");
   await page.getByRole("tab", { name: "物流园" }).click();

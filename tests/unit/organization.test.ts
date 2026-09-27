@@ -3,7 +3,12 @@ import { GameCore, validateSave, energyCapacity, type Command, type GameState } 
 import { directReports, effectiveManager, employmentPrice, groundServiceQuote, managerCapacity, trainingQuote, type Department, type EmployeeRole } from '../../src/core/organization.js';
 import { organizationLayout, ORG_NODE_HEIGHT, ORG_NODE_WIDTH } from '../../src/ui/organization-layout.js';
 const NOW = Date.parse('2026-09-14T02:00:00Z');
-function rich() { const s = new GameCore(NOW).snapshot(); s.credits = 1000000; s.career.tickets = 10000; return new GameCore(NOW, s); }
+function rich(planes = 1, airports = 2) {
+  const s = new GameCore(NOW).snapshot(); s.credits = 1000000; s.career.tickets = 10000; const c = new GameCore(NOW, s);
+  while(c.snapshot().fleet.length<planes){if(c.snapshot().fleet.length>=c.snapshot().hangarSlots)cmd(c,{type:'expand-hangar'});cmd(c,{type:'buy',modelId:'diamond-da40',airportId:'PEK',passengers:1,cargo:0});}
+  for(const airportId of ['CAN','WUH'].slice(0,airports-2))cmd(c,{type:'unlock',airportId});
+  return c;
+}
 function cmd(c: GameCore, command: Command) { c.execute(command, c.snapshot().lastWallTime); expect(validateSave(c.snapshot())).toEqual(c.snapshot()); }
 function recruit(c: GameCore, department: Department = 'flight', role: EmployeeRole = 'specialist') { cmd(c, { type: 'recruit-employee', department, role }); return c.snapshot().career.employees.at(-1)!; }
 function rejects(c: GameCore, command: Command, message?: RegExp) { const before = c.snapshot(); expect(() => c.execute(command, before.lastWallTime)).toThrow(message); expect(c.snapshot()).toEqual(before); }
@@ -14,18 +19,18 @@ function servicing() {
 }
 describe('unified employee identity', () => {
   it('uses bounded, seeded profiles without rerolling on refresh', () => {
-    const c = rich(), e = recruit(c); expect(e.potential).toBeGreaterThanOrEqual(6); expect(e.potential).toBeLessThanOrEqual(10);
+    const c = rich(2), e = recruit(c); expect(e.potential).toBeGreaterThanOrEqual(6); expect(e.potential).toBeLessThanOrEqual(10);
     expect(recruit(new GameCore(NOW, c.snapshot()))).toEqual(recruit(c));
   });
   it('keeps eight flight, four ground and one manager per department as separate limits', () => {
-    const c = rich(); for (let i = 0; i < 8; i++) recruit(c); for (let i = 0; i < 4; i++) recruit(c, 'ground');
+    const c = rich(8,4); for (let i = 0; i < 8; i++) recruit(c); for (let i = 0; i < 4; i++) recruit(c, 'ground');
     recruit(c, 'flight', 'manager'); recruit(c, 'ground', 'manager'); expect(c.snapshot().career.employees).toHaveLength(14);
     for (const department of ['flight', 'ground'] as const) for (const role of ['specialist', 'manager'] as const) rejects(c, { type: 'recruit-employee', department, role }, /岗位已满/);
   });
 });
 describe('assignments, careers and reporting', () => {
   it('moves a pilot between planes atomically and never duplicates staffing', () => {
-    const c = rich(), a = recruit(c), b = recruit(c); cmd(c, { type: 'buy', modelId: 'swift-p', airportId: 'PEK', passengers: 1, cargo: 0 });
+    const c = rich(2), a = recruit(c), b = recruit(c);
     const second = c.snapshot().fleet[1]!.id; cmd(c, { type: 'assign-pilot', pilotId: a.id, planeId: 'AC0001' }); cmd(c, { type: 'assign-pilot', pilotId: b.id, planeId: second });
     rejects(c, { type: 'assign-pilot', pilotId: a.id, planeId: second }, /已有飞行员/);
     cmd(c, { type: 'assign-pilot', pilotId: b.id, planeId: null }); cmd(c, { type: 'assign-pilot', pilotId: a.id, planeId: second });
@@ -59,7 +64,7 @@ describe('assignments, careers and reporting', () => {
     expect(c.snapshot().career.employees[0]!.paidUntil).toBe(m.paidUntil);
   });
   it('does not permit demotion into a full specialist department', () => {
-    const c = rich(), m = recruit(c, 'flight', 'manager'); for (let i=0;i<8;i++) recruit(c);
+    const c = rich(8), m = recruit(c, 'flight', 'manager'); for (let i=0;i<8;i++) recruit(c);
     rejects(c, { type: 'employee-role', employeeId: m.id, role: 'specialist' }, /岗位已满/);
   });
   it('records paid deliveries once, but empty flights do not farm employee achievements', () => {
@@ -73,7 +78,7 @@ describe('assignments, careers and reporting', () => {
 });
 describe('bounded management and contracts', () => {
   it('covers reports by stable id, does not stack layers, and falls back when expired', () => {
-    const c = rich(), m = recruit(c, 'flight', 'manager'); const people = Array.from({length:5}, () => recruit(c));
+    const c = rich(5), m = recruit(c, 'flight', 'manager'); const people = Array.from({length:5}, () => recruit(c));
     for (const p of people) cmd(c, { type: 'report-to', employeeId: p.id, managerId: m.id });
     const s = c.snapshot(), capacity = managerCapacity(m), first = s.career.employees[1]!, last = s.career.employees.at(-1)!;
     expect(directReports(s, m.id)).toHaveLength(5); expect(effectiveManager(s, first)?.id).toBe(m.id); expect(effectiveManager(s, last)).toBeUndefined();
@@ -144,13 +149,15 @@ describe('strict organization saves and read-only tree layout', () => {
   it.each(mutations)('rejects %s without altering the input',(_name,mutate)=>{
     const c=rich();recruit(c);recruit(c,'ground');const s=c.snapshot();mutate(s);const before=structuredClone(s);expect(()=>validateSave(s)).toThrow();expect(s).toEqual(before);
   });
-  it('separates pending people from real reporting links and keeps all layout computation read-only',()=>{
-    const c=rich(),pending=recruit(c),assigned=recruit(c),m=recruit(c,'flight','manager');
+  it('includes unassigned people in their real department and keeps all layout computation read-only',()=>{
+    const c=rich(),pending=recruit(c);cmd(c,{type:'assign-pilot',pilotId:pending.id,planeId:null});
+    const assigned=recruit(c),m=recruit(c,'flight','manager');
     cmd(c,{type:'assign-pilot',pilotId:assigned.id,planeId:'AC0001'});cmd(c,{type:'report-to',employeeId:assigned.id,managerId:m.id});
-    const s=c.snapshot(),before=structuredClone(s),layout=organizationLayout(s,{flight:false,ground:false});
-    expect(layout.pending.map(e=>e.id)).toEqual([pending.id]);expect(layout.nodes.map(n=>n.employee.id).sort()).toEqual([assigned.id,m.id].sort());
+    const s=c.snapshot(),before=structuredClone(s),layout=organizationLayout(s);
+    expect(layout.nodes.map(n=>n.employee.id).sort()).toEqual([pending.id,assigned.id,m.id].sort());
+    expect(layout.edges.filter(edge=>edge.direct)).toHaveLength(1);
     for(const n of layout.nodes){expect(n.x).toBeGreaterThanOrEqual(0);expect(n.x+ORG_NODE_WIDTH).toBeLessThanOrEqual(layout.width);expect(n.y+ORG_NODE_HEIGHT).toBeLessThanOrEqual(layout.height);}
     for(let i=0;i<layout.nodes.length;i++)for(let j=i+1;j<layout.nodes.length;j++){const a=layout.nodes[i]!,b=layout.nodes[j]!;expect(Math.abs(a.x-b.x)>=ORG_NODE_WIDTH||Math.abs(a.y-b.y)>=ORG_NODE_HEIGHT).toBe(true);}
-    expect(organizationLayout(s,{flight:true,ground:false}).nodes.map(n=>n.employee.id)).not.toContain(assigned.id); expect(s).toEqual(before);
+    expect(layout.nodes.map(n=>n.employee.id)).toContain(assigned.id); expect(s).toEqual(before);
   });
 });

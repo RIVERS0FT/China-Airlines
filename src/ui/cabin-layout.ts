@@ -17,7 +17,7 @@ export function cabinLayout(game: GameState, plane: Plane): CabinDeckData[] {
   }).filter(deck => deck.capacity > 0);
 }
 
-/** Page slots without allocating every empty seat on a large upgraded aircraft. */
+/** Preserve one item per order group and count only genuinely unoccupied slots as empty. */
 export function cabinPage(deck: CabinDeckData, requested: number, size: number) {
   const pageSize = Math.max(1, Math.floor(size));
   const free = Math.max(0, deck.capacity - deck.used), slots = deck.orders.length + free;

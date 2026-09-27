@@ -199,17 +199,12 @@ export function putStock(
   guard(warehouseUsed(s, id) + count <= warehouseCapacity(s), "仓库容量不足");
   stock(s, id)[material] += count;
 }
+export const isParked = (s: Pick<GameState, 'simTime'>, p: Plane) =>
+  !p.flight && !p.autoRouteId && !p.itinerary.length && p.energy.serviceUntil === null && p.readyAt <= s.simTime;
 export function parked(s: GameState, id: string) {
   const p = s.fleet.find((p) => p.id === id);
   guard(p, "未找到飞机");
-  guard(
-    !p.flight &&
-      !p.autoRouteId &&
-      !p.itinerary.length &&
-      p.energy.serviceUntil === null &&
-      p.readyAt <= s.simTime,
-    "请先停止运营并等待地面周转",
-  );
+  guard(isParked(s, p), "请先停止运营并等待地面周转");
   return p;
 }
 export function emptyPlane(s: GameState, id: string) {

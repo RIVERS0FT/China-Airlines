@@ -63,7 +63,6 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
     </div>}
     <div className="network-map">
       <MapView game={game} plane={plane} selected={destination} onSelect={chooseAirport} onOpenCities={openCities} preview={preview} planning={!browsing} showOthers={browsing || showOthers} onToggleOthers={() => { dismissTip(); setShowOthers(value => !value); }}/>
-      {browsing && <p className="world-map-guide">{t('map.guide')}</p>}
       {!browsing && tip && !active && game.tutorial !== 'active' && <div className="dispatch-tip" role="status"><span>{t('map.routeTip')}</span><button aria-label={t('map.closeTip')} onClick={dismissTip}>×</button></div>}
       {!browsing && <PlanControls game={game} plane={plane} stops={stops} setStops={value => { dismissTip(); setStops(value); if (value.length !== 1) setAuto(false); }} auto={auto} setAuto={setAuto} busy={busy} onDepart={onDepart} onCancel={onReturn} onDetails={dismissTip}/>}
     </div>

@@ -27,7 +27,7 @@ test('desktop loading, first flight, reward, and reload',async({page})=>{
 });
 test('purchase, export, invalid import, and valid restore',async({page})=>{
   await ready(page);page.on('dialog',dialog=>void dialog.accept());
-  await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 II',exact:true}).click();await confirmPurchase(page);
+  await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'支付 ¥ 8,500 购买',exact:true}).click();await confirmPurchase(page);
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await settings(page);
   const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'导出存档',exact:true}).click();const download=await downloadPromise;
   const raw=await readFile((await download.path())!,'utf8');expect(JSON.parse(raw).fleet).toHaveLength(2);
@@ -46,7 +46,7 @@ test('cached airport and PixiJS map start offline without external requests',asy
   await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller));await context.setOffline(true);await page.reload();
   await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('airport-scene')).toBeVisible();
   await page.getByRole('button',{name:'地图',exact:true}).click();await expect(page.getByTestId('map-canvas')).toHaveAttribute('data-renderer','ready');
-  await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 II',exact:true}).click();await confirmPurchase(page);
+  await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'支付 ¥ 8,500 购买',exact:true}).click();await confirmPurchase(page);
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   expect(requests.filter(url=>/^https?:/.test(url)&&new URL(url).origin!==origin)).toEqual([]);
 });

@@ -1,5 +1,5 @@
 import type { GameState } from './game.js';
-import { HISTORY_LIMIT, MAX_EMPLOYEES, staffLimit, type Department, type EmployeeRole } from './organization.js';
+import { EMPLOYEE_POSITIONS, HISTORY_LIMIT, MAX_EMPLOYEES, canReportTo, isEmployeePosition, staffLimit } from './organization.js';
 /** Validate the complete identity graph, not only the currently visible tree. */
 export function validateEmployees(s: GameState): void {
   const fail = (): never => { throw new Error('存档公司组织数据无效，原进度未被覆盖'); };
@@ -18,11 +18,12 @@ export function validateEmployees(s: GameState): void {
     num(e.flights, s.stats.flights); num(e.deliveries, s.stats.passengers + s.stats.cargo);
     // Names are stored as entered; display fallbacks must never rewrite saved identities.
     if (e.id < 1 || e.id >= s.career.nextId || ids.has(e.id) || typeof e.name !== 'string' || e.name.length < 1 || e.name.length > 12 ||
-      e.potential < 6 || !['flight','ground'].includes(e.department) || !['specialist','manager'].includes(e.role) || !['mentor','efficient'].includes(e.trait)) fail();
+      e.potential < 6 || !isEmployeePosition(e.department, e.role) || !['mentor','efficient'].includes(e.trait)) fail();
     ids.add(e.id);
     if (e.joinedAt !== null) num(e.joinedAt, s.simTime, false);
     if (e.managerId !== null) { num(e.managerId); if (e.managerId < 1 || e.managerId === e.id) fail(); }
-    if (e.role === 'manager' && (e.managerId !== null || e.planeId !== null || e.airportId !== null || e.skill < 2 || e.management < 1)) fail();
+    if (e.role === 'manager' && (e.planeId !== null || e.airportId !== null || e.skill < 2 || e.management < 1)) fail();
+    if (e.department === 'company' && (e.managerId !== null || e.flights !== 0 || e.deliveries !== 0)) fail();
     if (e.planeId !== null) {
       if (typeof e.planeId !== 'string' || e.department !== 'flight' || e.role !== 'specialist' || planes.has(e.planeId) ||
         !s.fleet.some(p => p.id === e.planeId && p.dispatcher)) fail();
@@ -41,8 +42,8 @@ export function validateEmployees(s: GameState): void {
         (e.joinedAt !== null && event.at < e.joinedAt) || (i > 0 && event.at > e.history[i - 1]!.at)) fail();
     }
   }
-  for (const e of people) if (e.managerId !== null && !people.some(m => m.id === e.managerId && m.role === 'manager' && m.department === e.department)) fail();
-  for (const department of ['flight','ground'] as Department[]) for (const role of ['specialist','manager'] as EmployeeRole[]) {
+  for (const e of people) if (e.managerId !== null && !people.some(m => m.id === e.managerId && canReportTo(e, m))) fail();
+  for (const { department, role } of EMPLOYEE_POSITIONS) {
     if (people.filter(e => e.department === department && e.role === role).length > staffLimit(department, role)) fail();
   }
 }

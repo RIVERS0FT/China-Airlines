@@ -1,60 +1,46 @@
 .organization-workspace { flex:1; min-width:0; min-height:0; display:flex; overflow:hidden; }
 .company-organization { --org-ink:#243d50; --org-blue:#376987; --org-teal:#4f7c71; --org-gold:#d5ad59; min-width:0; min-height:0; flex:1; display:flex; flex-direction:column; gap:10px; padding:12px 18px; color:var(--org-ink); background:#eef3f3; overflow:hidden; }
-.aviation-game .company-organization button,.company-affairs button { cursor:pointer; font:inherit; font-size:12px; min-height:44px; padding:6px 11px; border:1px solid #c2d0d3; border-radius:7px; color:#294655; background:#fafcfb; }
-.aviation-game .company-organization button:hover:not(:disabled),.company-affairs button:hover:not(:disabled) { border-color:#8cabb8; background:#e8f1f3; }
-.aviation-game .company-organization button:disabled,.company-affairs button:disabled { cursor:not-allowed; opacity:.5; }
+.aviation-game .company-organization button { cursor:pointer; font:inherit; font-size:12px; min-height:44px; padding:6px 11px; border:1px solid #c2d0d3; border-radius:7px; color:#294655; background:#fafcfb; }
+.aviation-game .company-organization button:hover:not(:disabled) { border-color:#8cabb8; background:#e8f1f3; }
+.aviation-game .company-organization button:disabled { cursor:not-allowed; opacity:.5; }
 .aviation-game .company-organization button:focus-visible,.company-organization summary:focus-visible { outline:3px solid #b48631; outline-offset:3px; }
 .aviation-game .company-organization button.org-primary { background:#315e77; color:#fff; border-color:#315e77; }
 .aviation-game .company-organization button.org-primary:hover:not(:disabled) { background:#254c63; }
 .aviation-game .company-organization select { width:100%; min-height:38px; border:1px solid #b7cbd3; border-radius:6px; padding:5px 8px; background:#fffdf8; color:#294655; font:inherit; }
 .company-organization label { display:flex; flex-direction:column; gap:6px; font-size:12px; font-weight:700; }
 .company-organization h2,.company-organization h3,.company-organization h4,.company-organization p { margin:0; }
-.org-page-heading { display:flex; gap:12px; align-items:center; min-height:42px; flex-shrink:0; flex-wrap:wrap; }
-.org-page-heading h2 { font-size:21px; font-weight:800; letter-spacing:.04em; }
+.org-toolbar { display:flex; gap:12px; align-items:center; min-height:44px; flex-shrink:0; flex-wrap:wrap; }
 .org-inline-summary { font-size:11px; color:#6d8088; font-variant-numeric:tabular-nums; }
 .org-inline-summary b { color:#365665; }
 .org-heading-actions { display:flex; margin-left:auto; gap:6px; align-items:center; }
-.org-heading-actions b { border-radius:50%; padding:1px 5px; background:#dfbb6c; color:#493d21; margin-left:4px; }
 .org-workspace { flex:1; min-height:0; min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:14px; }
 .org-workspace.has-detail { grid-template-columns:minmax(0,1fr) minmax(240px,30%); }
 .org-tree-area { display:flex; flex-direction:column; min-height:0; min-width:0; }
-.org-tree-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 0 8px; flex-shrink:0; }
-.org-view-menu { position:relative; z-index:5; }
-.org-view-menu summary,.org-pending summary { cursor:pointer; font-size:12px; padding:8px; min-height:44px; box-sizing:border-box; }
-.org-view-tools { position:absolute; top:46px; right:0; min-width:220px; display:grid; gap:6px; border:1px solid #b8cdd2; padding:10px; border-radius:8px; background:#fffefa; box-shadow:0 8px 22px #203b4a24; }
-.org-zoom { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.org-zoom output { font-size:12px; font-variant-numeric:tabular-nums; }
-.org-scroll { position:relative; flex:1; min-height:100px; min-width:0; overflow:auto; border:1px solid #c9d9dc; border-radius:12px; background:radial-gradient(#c4d3d766 .9px,transparent 1px) 0 0/22px 22px,#f8faf7; touch-action:none; overscroll-behavior:contain; cursor:grab; scrollbar-gutter:stable; }
-.org-scroll:active { cursor:grabbing; }
-.org-scroll:focus-visible { outline:3px solid #b48631; outline-offset:2px; }
-.org-scaled-extent { position:relative; min-width:100%; }
+.org-tree-viewport { position:relative; flex:1; min-height:100px; min-width:0; overflow:clip; border:1px solid #c9d9dc; border-radius:12px; background:radial-gradient(#c4d3d766 .9px,transparent 1px) 0 0/22px 22px,#f8faf7; touch-action:none; overscroll-behavior:contain; cursor:grab; }
+.org-tree-viewport:active { cursor:grabbing; }
+.org-tree-viewport:focus-visible { outline:3px solid #b48631; outline-offset:2px; }
 .org-canvas { position:absolute; top:0; left:0; transform-origin:top left; user-select:none; }
+.org-camera-controls { position:absolute; left:12px; bottom:10px; display:flex; align-items:center; gap:4px; padding:3px; border:1px solid #bfd2dc; border-radius:9px; background:#eff8fbed; box-shadow:0 2px 6px #274e6220; cursor:default; }
+.aviation-game .company-organization .org-camera-controls button { min-width:44px; padding:4px 10px; }
+.org-camera-controls output { min-width:46px; text-align:center; color:#486a7c; font-size:12px; font-variant-numeric:tabular-nums; }
 .org-connections { position:absolute; top:0; left:0; overflow:visible; pointer-events:none; }
 .org-connections path { fill:none; stroke:#98aeb7; stroke-width:1.5; }
 .org-connections .org-direct-link { stroke-dasharray:5 4; stroke:#9daeb0; }
 .org-connections text { font-size:10px; fill:#617b84; paint-order:stroke; stroke:#f8faf7; stroke-width:5px; stroke-linejoin:round; }
-.org-node-position,.org-founder { position:absolute; }
+.org-node-position { position:absolute; }
 .aviation-game .company-organization button.org-person { width:122px; height:124px; min-height:124px; display:flex; flex-direction:column; gap:2px; align-items:center; padding:2px 3px; background:transparent; border:0; border-radius:0; box-shadow:none; color:#2c4656; }
 .org-portrait-ring { position:relative; display:block; width:58px; height:58px; flex:0 0 58px; border:2px solid #8baabf; border-radius:50%; padding:3px; background:#f9fcfa; box-sizing:content-box; }
 .employee-portrait { display:block; width:100%; height:100%; border-radius:50%; background:transparent; }
 .org-person[data-department=ground] .org-portrait-ring { border-color:#87a69b; }
+.org-person[data-department=company] .org-portrait-ring { border-color:#c19b4c; }
 .org-person[aria-pressed=true] .org-portrait-ring { border-color:#bc8b30; box-shadow:0 0 0 3px #ead6a4; }
 .org-person[data-state=expired] .org-portrait-ring { border-color:#b36850; }
 .org-person strong { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; line-height:17px; }
 .org-person small { max-width:100%; font-size:10px; line-height:13px; color:#627d87; white-space:nowrap; }
 .org-person em { max-width:100%; font-size:9px; line-height:13px; font-style:normal; color:#557767; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .org-person[data-state=expired] em { color:#a65d42; }.org-person[data-state=waiting] em { color:#90732d; }
-.org-affair-dot { position:absolute; right:-3px; top:0; width:17px; height:17px; line-height:17px; border-radius:50%; background:#d9b669; color:#4b3d22; border:2px solid #f9fcfa; font-size:11px; }
-.org-founder { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; width:122px; height:124px; text-align:center; }
-.org-founder-seal { display:grid; place-items:center; width:58px; height:58px; border-radius:50%; background:#315e77; border:4px solid #ead9b3; color:#fff9df; font-size:22px; }
-.org-founder strong { font-size:12px; }.org-founder small { color:#849093; font-size:9px; }
 .aviation-game .company-organization button.org-vacancy { position:absolute; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border:1px dashed #c3ccbd; border-radius:24px; background:#f5f6eeaa; color:#819282; }
 .org-vacancy strong { font-size:24px; font-weight:400; }.org-vacancy span { font-size:12px; }.org-vacancy small { font-size:9px; }
-.org-legend { font-size:10px; line-height:1.5; padding:6px 2px 2px; color:#7a8e94; flex-shrink:0; }
-.org-pending { border-top:1px solid #d3dede; flex-shrink:0; max-height:176px; overflow:auto; }
-.org-pending>div { display:flex; gap:8px; padding:3px 2px; overflow:auto; align-items:center; }
-.org-pending .org-person { flex-shrink:0; }
-.org-empty-note { padding:5px 3px; color:#687f87; font-size:11px; }
 .org-detail { display:flex; flex-direction:column; min-width:0; min-height:0; background:#fffefa; border:1px solid #d6ded8; border-radius:12px; overflow:hidden; }
 .org-detail-title { display:flex; align-items:center; justify-content:space-between; padding:8px 12px 0; gap:8px; font-size:12px; color:#6d807f; }
 .org-detail-title button { border:0; background:transparent; padding:2px; min-width:34px; }
@@ -75,24 +61,32 @@
 .org-trait { border-top:1px solid #e7e9df; padding-top:8px; }
 .org-history,.org-mentoring { padding:0 0 0 17px; margin:0; font-size:11px; }.org-history li,.org-mentoring li { margin:0 0 9px; }.org-history small { display:block; }
 .org-warning { flex-shrink:0; padding:6px 10px; background:#fff0e1; color:#955d37; font-size:12px; border-radius:6px; }
-.org-panel { flex:1; min-height:0; overflow:auto; background:#f8faf7; border:1px solid #cbdadc; border-radius:12px; padding:18px 22px; }
+.org-panel { position:relative; flex:1; min-height:0; overflow:auto; background:#f8faf7; border:1px solid #cbdadc; border-radius:12px; padding:18px 22px; }
 .org-panel>header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px; }.org-panel>header h3 { font-size:18px; }
-.org-recruit { max-width:900px; margin:auto; display:flex; flex-direction:column; gap:14px; }.org-recruit>label { max-width:320px; }.org-recruit>p { color:#789095; font-size:12px; line-height:1.6; }
+.org-recruit { max-width:900px; margin:auto; display:flex; flex-direction:column; gap:14px; }.org-recruit>p { color:#789095; font-size:12px; line-height:1.6; }
+.talent-market-refresh { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; padding:10px 14px; border:1px solid #bad5df; border-radius:8px; background:#e9f5f8; color:#315e77; font-size:12px; }
+.talent-market-refresh strong { font-size:18px; font-variant-numeric:tabular-nums; }
+.talent-market-refresh small { margin-left:auto; font-size:11px; color:#55727e; }
+.talent-position { min-width:0; padding-top:6px; }
+.talent-position>header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.talent-position>header h4 { font-size:16px; }
+.talent-position>header>span { font-size:11px; color:#627d87; }
+.talent-position:focus-visible { outline:2px solid #b48631; outline-offset:4px; border-radius:8px; }
 .org-candidates { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
-.aviation-game .company-organization button.org-candidate { display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding:22px 18px; gap:10px; background:#fffefa; border:1px solid #cedbd6; border-radius:10px; }
+.org-candidate { display:flex; flex-direction:column; min-width:0; padding:16px; gap:8px; background:linear-gradient(#fffefa,#edf7fc); border:1px solid #b7cbd3; border-radius:10px; box-shadow:0 1px 0 #bdd4df; }
 .org-candidate-heading { display:flex; align-items:center; gap:10px; min-width:0; width:100%; }
 .org-candidate-heading .employee-portrait { width:46px; height:46px; flex:0 0 46px; border:2px solid #d3e0db; border-radius:50%; }
-.org-candidate-heading strong { font-size:22px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+.org-candidate-heading .org-candidate-name { font-size:20px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
 .org-candidate small { font-size:11px; color:#7c8d88; }.org-candidate span { font-size:12px; }.org-candidate b { font-size:16px; }
-.aviation-game .company-organization button.org-candidate[aria-pressed=true] { border:2px solid #b89a52; padding:21px 17px; background:#fff8e7; box-shadow:0 4px 14px #7e682519; }
-.org-recruit-footer { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:15px 0; border-top:1px solid #d6e0d9; }.org-recruit-footer strong { font-size:14px; }.org-recruit-footer span { font-size:11px; color:#7c908b; }.org-recruit-footer button { margin-left:auto; }
-.company-affairs,.company-chronicle { display:flex; flex-direction:column; gap:12px; font-size:12px; line-height:1.65; }
-.company-affair { display:flex; gap:8px; align-items:center; padding:14px 0; border-bottom:1px solid #dce5df; }
-.company-affair>div { flex:1; min-width:0; }.company-affair strong,.company-affair small { display:block; }.company-affair small { color:#7a908b; margin-top:3px; }.company-affair button { white-space:nowrap; }
-.company-chronicle ol { margin:8px 0; padding-left:22px; }.company-chronicle li { padding:0 0 24px 7px; }.company-chronicle li small,.company-chronicle li strong { display:block; }.company-chronicle small { color:#8a9b92; }
-.task-company-affairs { margin:10px 0; border-top:1px solid #cbd8d2; padding:10px; }.task-company-affairs>summary { cursor:pointer; font-weight:700; }.task-company-affairs .company-affairs { padding-top:12px; }
-@container game-viewport (max-width:900px) { .company-organization { padding:8px 10px;gap:6px; }.org-page-heading { gap:7px; }.org-page-heading h2 { font-size:18px; }.org-inline-summary { font-size:10px; }.org-heading-actions { gap:3px; }.org-workspace { gap:8px; }.org-workspace.has-detail { grid-template-columns:minmax(0,1fr) 250px; }.org-panel { padding:12px; }.org-candidates { gap:8px; }.aviation-game .company-organization button.org-candidate { padding:14px 10px; }.aviation-game .company-organization button.org-candidate[aria-pressed=true] { padding:13px 9px; }.org-detail-heading { padding:4px 10px 8px; }.org-detail-heading>.employee-portrait { width:42px;height:42px; }.org-detail-heading h3 { font-size:16px; }.org-attributes { padding:5px 0; }.org-attributes dd { font-size:16px; } }
-@container game-viewport (max-height:520px) { .company-organization { padding-block:8px; }.org-tree-toolbar { padding-bottom:4px; }.org-legend { padding-top:2px; }.org-page-heading { min-height:34px; }.org-page-heading h2 { font-size:17px; }.org-detail-heading>.employee-portrait { width:38px;height:38px; }.org-attributes { padding:4px 0;margin-bottom:4px; }.org-attributes dd { font-size:16px; }.org-pending { max-height:92px; }.org-detail-title { padding-top:2px; }.org-detail-title button { min-height:28px; }.org-empty-note,.org-legend { font-size:9px; } }
+.org-candidate-terms { display:flex; flex-direction:column; gap:8px; margin-top:auto; padding-top:12px; border-top:1px solid #d4e1e3; }
+.org-candidate-price { display:flex; flex-direction:column; gap:7px; margin:0; }
+.org-candidate-price>div { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:3px 8px; }
+.org-candidate-price dt { font-size:11px; color:#627d87; }
+.org-candidate-price dd { margin:0; font-size:12px; font-weight:700; color:#315e77; font-variant-numeric:tabular-nums; }
+.org-candidate-terms>button { width:100%; }
+.org-candidate-terms .org-candidate-unavailable { color:#95663b; }
+@container game-viewport (max-width:900px) { .company-organization { padding:8px 10px;gap:6px; }.org-toolbar { gap:7px; }.org-inline-summary { font-size:10px; }.org-heading-actions { gap:3px; }.org-workspace { gap:8px; }.org-workspace.has-detail { grid-template-columns:minmax(0,1fr) 250px; }.org-panel { padding:12px; }.org-candidates { gap:8px; }.org-candidate { padding:12px 10px; }.org-detail-heading { padding:4px 10px 8px; }.org-detail-heading>.employee-portrait { width:42px;height:42px; }.org-detail-heading h3 { font-size:16px; }.org-attributes { padding:5px 0; }.org-attributes dd { font-size:16px; } }
+@container game-viewport (max-height:520px) { .company-organization { padding-block:8px; }.org-detail-heading>.employee-portrait { width:38px;height:38px; }.org-attributes { padding:4px 0;margin-bottom:4px; }.org-attributes dd { font-size:16px; }.org-detail-title { padding-top:2px; }.org-detail-title button { min-height:28px; }}
 .fleet-employee-link { display:flex; align-items:center; gap:8px; margin:6px 12px; font-size:12px; }
 .fleet-employee-link>.employee-portrait { width:28px;height:28px; }
 /* The existing workspace remains mounted but is hidden while the organization page is active. */

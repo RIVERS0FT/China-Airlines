@@ -22,7 +22,7 @@ test('specialist purchase, real cargo loading, workshop retrofit and hangar expa
   await ready(page);await openGlobal(page, '飞机商店');
   await expect(page.getByTestId('shop-aircraft')).toHaveCount(10);
   await page.screenshot({path:'artifacts/desktop-specialist-shop.png'});
-  await page.getByRole('button',{name:'购买雨燕 III',exact:true}).click();await confirmPurchase(page, 0, 4);await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
+  await page.getByRole('button',{name:'支付 ¥ 12,500 购买',exact:true}).click();await confirmPurchase(page, 0, 4);await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   await page.getByRole('button',{name:'机场装载'}).click();await page.getByRole('button',{name:'下一架飞机'}).click();
   await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 0 人');
   await page.getByRole('button', { name: /^同目的地装载：/ }).first().click();await expect(page.getByTestId('loaded-order')).toHaveCount(2);

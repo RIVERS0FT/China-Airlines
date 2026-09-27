@@ -44,7 +44,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     await buyAirport.focus();
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('credits')).toHaveText('¥ 14,000');
-    await page.getByRole('button', { name: '购买钻石 DA40', exact: true }).click();
+    await page.getByRole('button', { name: '支付 ¥ 2,300 购买', exact: true }).click();
     await expect(guide).toHaveAttribute('data-step', 'configure');
     const purchase = page.getByRole('dialog', { name: '购机选配', exact: true });
     await purchase.getByRole('spinbutton', { name: '客位', exact: true }).fill('1');

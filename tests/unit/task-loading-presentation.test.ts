@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GameCore, manifest, waiting, MAX_WAITING } from '../helpers/configured-game.js';
+import { GameCore, manifest, waiting, MAX_WAITING, TURNAROUND, ORDER_LIFETIME, validateSave } from '../helpers/configured-game.js';
 import { aircraftSpecs } from '../../src/core/catalog.js';
 import { careerExecute } from '../../src/core/career.js';
 import { taskItems, taskOverview } from '../../src/ui/task-presentation.js';
@@ -78,7 +78,7 @@ describe('order state separates physical load from action permission', () => {
     const next = core.snapshot();
     expect(orderPresentation(next, next.fleet[0], remaining)).toMatchObject({ state: 'waiting', disabled: false });
     const unloaded = next.orders.find(o => o.id === person.id)!;
-    expect(orderPresentation(next, next.fleet[0], unloaded)).toMatchObject({ state: 'waiting', transfer: true, label: '待装机', caption: '装机' });
+    expect(orderPresentation(next, next.fleet[0], unloaded)).toMatchObject({ state: 'waiting', transfer: false, label: '待装机', caption: '装机' });
     expect(orderPresentation(next, next.fleet[0], manifest(next, ID).find(o => o.kind === 'cargo')!)).toMatchObject({ state: 'loaded' });
   });
   it('retains loaded state during service, flight and a full waiting room', () => {
@@ -95,6 +95,46 @@ describe('order state separates physical load from action permission', () => {
     const game = new GameCore(NOW).snapshot(), plane = game.fleet[0]!, order = waiting(game, 'PEK')[0]!;
     expect(orderPresentation(game, plane, order, true)).toMatchObject({ state: 'waiting', disabled: true, action: '保存中…', caption: '保存中…' });
     expect(orderPresentation(game, undefined, order)).toMatchObject({ state: 'blocked', reason: '请先选择飞机' });
-    expect(orderPresentation(game, plane, { ...order, location: 'AC0002', expiresAt: null })).toMatchObject({ state: 'blocked', aboard: false, reason: '订单不在当前机场' });
+    expect(orderPresentation(game, plane, { ...order, location: 'AC0002', expiresAt: null })).toMatchObject({ state: 'blocked', aboard: false, transfer: false, reason: '订单不在当前机场' });
+  });
+  it.each(['passengers', 'cargo'] as const)('keeps accepted %s unloaded at origin without a transfer label after refresh and restore', kind => {
+    const core = new GameCore(NOW), order = waiting(core.snapshot(), 'PEK').find(item => item.kind === kind)!;
+    const before = core.snapshot();
+    core.execute({ type: 'load', planeId: ID, orderId: order.id }, NOW);
+    core.execute({ type: 'unload', planeId: ID, orderId: order.id }, NOW);
+    expect(core.snapshot().log[0]?.text).toContain('等待装载');
+    const later = NOW + (ORDER_LIFETIME + 1) * 1000;
+    core.tick(later);
+    core.execute({ type: 'refresh-demand', airportId: 'PEK' }, later);
+    const saved = core.snapshot();
+    expect(validateSave(saved)).toEqual(saved);
+    const restored = new GameCore(later, JSON.parse(JSON.stringify(saved))).snapshot();
+    const unloaded = restored.orders.find(item => item.id === order.id)!;
+    expect(unloaded).toEqual({ ...order, expiresAt: null });
+    expect(restored.credits).toBe(before.credits);
+    expect(restored.stats).toEqual(before.stats);
+    expect(orderPresentation(restored, restored.fleet[0], unloaded)).toMatchObject({ state: 'waiting', transfer: false });
+  });
+  it.each(['passengers', 'cargo'] as const)('labels %s only after reaching and unloading at an intermediate airport', kind => {
+    const core = new GameCore(NOW), order = waiting(core.snapshot(), 'PEK').find(item => item.kind === kind)!;
+    core.execute({ type: 'unlock', airportId: 'WUH' }, NOW);
+    core.execute({ type: 'load', planeId: ID, orderId: order.id }, NOW);
+    core.execute({ type: 'dispatch', planeId: ID, to: 'WUH', auto: false }, NOW);
+    const flight = core.snapshot().fleet[0]!.flight!, revenue = core.snapshot().stats.revenue;
+    const arrivedAt = NOW + (flight.arriveAt + TURNAROUND) * 1000;
+    core.tick(arrivedAt);
+    core.execute({ type: 'unload', planeId: ID, orderId: order.id }, arrivedAt);
+    const game = core.snapshot(), unloaded = game.orders.find(item => item.id === order.id)!;
+    expect(unloaded).toEqual({ ...order, location: 'WUH', expiresAt: null });
+    expect(game.stats.revenue).toBe(revenue);
+    expect(game.log[0]?.text).toContain('等待转运');
+    expect(orderPresentation(game, game.fleet[0], unloaded)).toMatchObject({ state: 'waiting', transfer: true });
+    // Transfer identity does not depend on having a loadable aircraft selected.
+    expect(orderPresentation(game, undefined, unloaded)).toMatchObject({ disabled: true, transfer: true });
+    expect(orderPresentation(game, { ...game.fleet[0]!, airportId: 'PEK' }, unloaded)).toMatchObject({ disabled: true, transfer: true });
+    expect(orderPresentation(game, game.fleet[0], unloaded, true)).toMatchObject({ disabled: true, transfer: true });
+    core.execute({ type: 'load', planeId: ID, orderId: order.id }, arrivedAt);
+    const reloaded = core.snapshot();
+    expect(orderPresentation(reloaded, reloaded.fleet[0], reloaded.orders.find(item => item.id === order.id)!)).toMatchObject({ state: 'loaded', transfer: false });
   });
 });

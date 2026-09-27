@@ -45,9 +45,19 @@ test('one task entrance claims the initial gift exactly once and retains the air
   await expect(page.getByRole('tab', { name: /^已领取/ })).toHaveAttribute('aria-selected', 'true');
   await expect(gift.getByRole('button', { name: '已领取', exact: true })).toBeDisabled();
   const selectedTab = page.getByRole('tab', { name: /^已领取/ });
+  await page.mouse.move(0, 0);
+  const selectedBackground = await selectedTab.evaluate(async element => {
+    // Settle the selection transition before comparing the hover state.
+    getComputedStyle(element).backgroundColor;
+    await Promise.all(element.getAnimations().map(animation => animation.finished.catch(() => undefined)));
+    const style = getComputedStyle(element);
+    return { image: style.backgroundImage, color: style.backgroundColor };
+  });
   await selectedTab.hover();
-  // Check the final color, not an intermediate frame of the existing CSS transition.
-  await expect(selectedTab).toHaveCSS('background-color', 'rgb(34, 107, 145)');
+  await expect(selectedTab).toHaveAttribute('aria-selected', 'true');
+  // Hover highlights the selected tab without reverting it to the ordinary surface.
+  await expect(selectedTab).toHaveCSS('background-image', selectedBackground.image);
+  await expect(selectedTab).toHaveCSS('background-color', selectedBackground.color);
   await page.getByRole('button', { name: '关闭任务中心', exact: true }).click();
   await expect(page.locator('.plane-status')).toHaveText(selected!);
   await expect(page.getByTestId('credits')).toHaveText(credits!);
@@ -135,7 +145,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) test(`three
   const same = page.locator(`[data-order-id="${id}"]`);
   await expect(same).toHaveAttribute('data-load-state', 'waiting');
   expect(await page.locator('.toast').allTextContents()).toEqual([]);
-  await expect(same.locator('.job-transfer-tag')).toHaveText('中转');
+  await expect(same.locator('.job-transfer-tag')).toHaveCount(0);
   await expect(board.locator(`[data-order-id="${id}"]`)).toHaveCount(1);
   await expect(page.getByTestId('aircraft-cabin').locator(`[data-order-id="${id}"]`)).toHaveCount(0);
   await expect(page.locator(`[data-order-id="${blockedId}"]`)).toHaveAttribute('data-load-state', 'waiting');

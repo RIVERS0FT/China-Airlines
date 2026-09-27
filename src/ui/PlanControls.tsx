@@ -46,7 +46,7 @@ export function PlanControls({ game, plane, stops, setStops, auto, setAuto, busy
     {!active && <div className="dispatch-launch-area">
       {auto && <span className="dispatch-auto-badge" data-testid="auto-route-badge">{ui('自动往返')}</span>}
       <span id="dispatch-reason" className={alert ? 'dispatch-warning' : 'sr-only'} role="status">{text(alert || (!view.canLaunch ? reason : ''))}</span>
-      <button className="route-dispatch-button" data-testid="dispatch" aria-label={ui('检票起飞')} aria-describedby="dispatch-reason" disabled={!view.canLaunch} onClick={() => ignore(launch())}><Icon name="plane"/><strong>{ui('检票起飞')}</strong></button>
+      <button className="route-dispatch-button" data-testid="dispatch" aria-label={ui('检票起飞')} aria-describedby="dispatch-reason" disabled={!view.canLaunch} onClick={() => ignore(launch())}><Icon name="checkin-departure"/><strong>{ui('检票起飞')}</strong></button>
     </div>}
     {detailsOpen && <DispatchDialog title={ui('路线详情')} onClose={() => setDetailsOpen(false)}>
       <h3 className="dispatch-route-title">{routeTitle}</h3>

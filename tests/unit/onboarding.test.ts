@@ -12,7 +12,7 @@ const restore = (core: GameCore) => new GameCore(core.snapshot().lastWallTime, p
 describe('new-company guide follows committed gameplay', () => {
   it('saves an empty new fleet and refuses removed aircraft or an erased established fleet', () => {
     const core = new GameCore(NOW), initial = core.snapshot();
-    expect(initial).toMatchObject({ version: 13, credits: 18000, fleet: [], fleetPeak: 0, airports: [{ id: 'PEK', level: 1 }], tutorial: 'active' });
+    expect(initial).toMatchObject({ version: 14, credits: 18000, fleet: [], fleetPeak: 0, airports: [{ id: 'PEK', level: 1 }], tutorial: 'active' });
     expect(restore(core).snapshot()).toEqual(initial);
     core.execute({ type: 'buy', modelId: 'diamond-da40', airportId: 'PEK', passengers: 1, cargo: 0 }, NOW);
     const bought = core.snapshot(), erased = structuredClone(bought);
@@ -20,7 +20,7 @@ describe('new-company guide follows committed gameplay', () => {
     expect(() => validateSave(erased)).toThrow();
     bought.fleet[0]!.modelId = 'starter-swift';
     expect(() => validateSave(bought)).toThrow();
-    expect(() => validateSave({ ...initial, version: 12 })).toThrow(/版本/);
+    expect(() => validateSave({ ...initial, version: 13 })).toThrow(/版本/);
   });
 
   it.each([{ passengers: 1, cargo: 0 }, { passengers: 0, cargo: 1 }])('buys and configures one slot atomically, restores every step, and completes a real flight (%j)', allocation => {

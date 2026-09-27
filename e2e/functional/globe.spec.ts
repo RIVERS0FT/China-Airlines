@@ -22,7 +22,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     await page.getByRole('button', { name: '制定航线', exact: true }).click();
     const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-renderer', 'ready');
     await expect(host).toHaveAttribute('data-projection', 'orthographic'); await expect(host).toHaveAttribute('data-art-version', '2'); await expect(host).toHaveAttribute('data-camera', /radius/);
-    await expect(host).toHaveAttribute('data-route-visual', 'parabolic'); await expect(host).toHaveAttribute('data-aircraft-visual', '3d');
+    await expect(host).toHaveAttribute('data-route-visual', 'great-circle'); await expect(host).toHaveAttribute('data-aircraft-visual', 'sprite');
     await expect(host).toHaveAttribute('data-coastline-segments', /^[1-9]\d*$/);
     await expect(host).toHaveAttribute('data-visible-plane-models', '');
     const background = await host.evaluate(node => getComputedStyle(node.parentElement!).backgroundImage);
@@ -130,9 +130,8 @@ test('an idle globe does not redraw for clock-only updates, but camera input pai
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   await page.getByRole('button', { name: '制定航线', exact: true }).click();
   const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-renderer', 'ready');
-  // The 3D aircraft layer loads separately and legitimately invalidates one frame.
-  // Measure idle paints only after that startup transition has completed.
-  await expect(host).toHaveAttribute('data-aircraft-status', /^(ready|fallback)$/);
+  // Measure idle paints only after the local sprite texture has finished loading.
+  await expect(host).toHaveAttribute('data-aircraft-status', 'ready');
   await page.clock.runFor(100);
   const frames = Number(await host.getAttribute('data-render-count')); expect(frames).toBeGreaterThan(0);
   await page.clock.runFor(500);

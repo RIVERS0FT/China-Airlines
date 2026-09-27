@@ -11,7 +11,7 @@ concurrency:
 jobs:
   verify:
     name: verify (${{ matrix.name }}, shard ${{ matrix.shard }}/4)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 40
     strategy:
       fail-fast: false

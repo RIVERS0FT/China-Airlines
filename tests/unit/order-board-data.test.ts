@@ -40,7 +40,7 @@ describe('order board update inputs', () => {
     const data = board(new GameCore(NOW).snapshot());
     const changed = { ...data, orders: data.orders.map((order, index) => index ? order : { ...order, expiresAt: null }) };
     expect(sameOrderBoardData(data, changed)).toBe(false);
-    expect(presentOrder(changed.loading, changed.orders[0]!).transfer).toBe(true);
+    expect(presentOrder(changed.loading, changed.orders[0]!).transfer).toBe(false);
   });
 
   it('keeps destination order after removing the oldest member and does not mutate input', () => {

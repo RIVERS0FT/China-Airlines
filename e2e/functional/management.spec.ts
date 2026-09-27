@@ -6,7 +6,7 @@ let errors:string[];
 test.beforeEach(async({page})=>{errors=[];page.on('pageerror',e=>errors.push(e.message));});
 test.afterEach(()=>expect(errors).toEqual([]));
 async function ready(page:Page, pause = false){await page.clock.install({time:new Date('2026-09-11T00:00:00Z')});if(pause)await page.clock.pauseAt(new Date('2026-09-11T00:00:01Z'));await page.goto('./');await expect(page.getByTestId('fleet-count')).toHaveText('1 架');}
-async function secondPlane(page:Page){await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'购买雨燕 III',exact:true}).click();await confirmPurchase(page);await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await page.getByRole('button',{name:'机场装载'}).click();await openGlobal(page, '机队管理');await page.getByRole('button',{name:'查看AC0002飞机',exact:true}).click();}
+async function secondPlane(page:Page){await openGlobal(page, '飞机商店');await page.getByRole('button',{name:'支付 ¥ 12,500 购买',exact:true}).click();await confirmPurchase(page);await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await page.getByRole('button',{name:'机场装载'}).click();await openGlobal(page, '机队管理');await page.getByRole('button',{name:'查看AC0002飞机',exact:true}).click();}
 
 /** Observe only the committed main slot; never change storage to make a test pass.
  * Tutorial commands intentionally suppress toasts, so a toast is not a save ack. */

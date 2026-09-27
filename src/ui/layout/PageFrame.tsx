@@ -2,9 +2,6 @@ import { useLayoutEffect, useRef, type HTMLAttributes, type ReactNode } from 're
 import { usePageMemory } from '../shell/PageState.js';
 import type { WorkPage } from '../shell/navigation.js';
 
-export function PageHeader({ title, actions, children }: { title: string; actions?: ReactNode; children?: ReactNode }) {
-  return <header className="ui-page-header"><h2 data-page-heading tabIndex={-1}>{title}</h2>{children}{actions && <div className="ui-page-actions">{actions}</div>}</header>;
-}
 export function PageToolbar({ children, className = '', ...props }: HTMLAttributes<HTMLDivElement>) {
   return <div {...props} className={`ui-page-toolbar ${className}`.trim()}>{children}</div>;
 }
@@ -29,10 +26,9 @@ export function PageFrame({ page, title, children, layout = 'workspace', toolbar
 }) {
   const ref = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
-    if (!document.querySelector('dialog[open]')) (ref.current?.querySelector<HTMLElement>('[data-page-heading]') ?? ref.current)?.focus({ preventScroll: true });
+    if (!document.querySelector('dialog[open]')) ref.current?.focus({ preventScroll: true });
   }, [page]);
   return <main ref={ref} className={`ui-page ui-page--${layout} ${layout === 'tree' ? 'organization-workspace' : ''}`.trim()} tabIndex={-1} data-page={page} data-testid={`page-${page}`} aria-label={title}>
-    {layout !== 'tree' && <PageHeader title={title}/>}
     {toolbar && <PageToolbar>{toolbar}</PageToolbar>}
     <PageBody>{layout === 'tree' ? children : <ScrollRegion memoryKey={page}>{children}</ScrollRegion>}</PageBody>
   </main>;

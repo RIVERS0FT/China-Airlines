@@ -1,6 +1,6 @@
 import { aircraftSpecs, emptyUpgrades, retrofitPrice, cabinAllocationPrice, hangarPrice, UPGRADE_LABEL, type Upgrades, type UpgradeKey, airport, model, routeId, TASKS, upgradePrice, distance } from './catalog.js';
-import { createTalent, recordTalentArrival, recordTalentCommand, talentExecute, validateTalent, type TalentState, type TalentCommand } from './talent.js';
-import { groundServiceQuote } from './organization.js';
+import { advanceTalent, createTalent, recordTalentArrival, recordTalentCommand, talentExecute, validateTalent, type TalentState, type TalentCommand } from './talent.js';
+import { groundServiceQuote, organizationExecute } from './organization.js';
 export { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND } from './simulation.js';
 export type { AdvanceReport } from './simulation.js';
 import { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND, type Flight as SimulationFlight, type Plane as SimulationPlane, type Command as SimulationCommand, type GameState as SimulationState, type AdvanceReport } from './simulation.js';
@@ -11,7 +11,7 @@ import { emptyTuning, upgradeLimit, upgradeTickets, service, MATERIALS, type Tun
 import { newCareer, careerExecute, careerLevel, bill, consume, stock, warehouseUsed, warehouseCapacity, autoAllowed, onArrival, nextCareerEvent, advanceCareer, type Career, type CareerCommand } from './career.js';
 import { validateCareer, validateTuning } from './save-career.js';
 import { distanceUnits, legOperatingCosts, baseOrderReward, transportRevenue, routeOperatingCost } from './economy.js';
-export const SAVE_VERSION = 13;
+export const SAVE_VERSION = 14;
 export type TutorialState = 'available' | 'active' | 'completed' | 'skipped';
 export const MAX_PLAN_LEGS = 12;
 export interface Flight extends SimulationFlight {}
@@ -25,7 +25,7 @@ export interface Order {
   reward: number; location: string; createdAt: number; expiresAt: number | null; service: string; product: Material | null;
 }
 export interface GameState extends Omit<SimulationState, 'version' | 'fleet'> {
-  version: 13; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
+  version: 14; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
 }
 export type Command = SimulationCommand | CareerCommand | TalentCommand
   | { type: 'load' | 'unload'; planeId: string; orderId: string }
@@ -194,7 +194,7 @@ function advance(s: GameState, now: number): AdvanceReport {
   clock(now);
   const gap = (now - s.lastWallTime) / 1000, elapsed = Math.min(OFFLINE_LIMIT, Math.max(0, gap));
   s.lastWallTime = now;
-  const end = s.simTime + elapsed, before = { ...s.stats };
+  const start = s.simTime, end = start + elapsed, before = { ...s.stats };
   for (;;) {
     let next: Plane | undefined, at = Math.min(nextCareerEvent(s), s.nextDemandAt, ...s.orders.filter(o => o.expiresAt !== null).map(o => o.expiresAt!));
     for (const p of s.fleet) {
@@ -238,6 +238,7 @@ function advance(s: GameState, now: number): AdvanceReport {
     }
   }
   s.simTime = end;
+  advanceTalent(s, start, end);
   return { elapsed, flights: s.stats.flights - before.flights, revenue: s.stats.revenue - before.revenue,
     profit: s.stats.revenue - before.revenue - (s.stats.costs - before.costs), capped: gap > OFFLINE_LIMIT, clockBack: gap < 0 };
 }
@@ -271,7 +272,7 @@ export class GameCore {
       }
       case 'hire-dispatcher': {
         const p=planeAtGate(s,command.planeId); check(!p.dispatcher,'飞机已有飞行员');
-        careerExecute(s,{type:'recruit-pilot'}); careerExecute(s,{type:'assign-pilot',pilotId:s.career.employees.at(-1)!.id,planeId:p.id});
+        organizationExecute(s,{type:'recruit-employee',department:'flight',role:'specialist'},p.id);
         note(s,'飞行员已招募并上岗，包含7天工资');break;
       }
       case 'dismiss-dispatcher': {
@@ -357,7 +358,8 @@ export class GameCore {
       case 'unload': {
         const p = planeAtGate(s, command.planeId), o = s.orders.find(o => o.id === command.orderId);
         check(o && o.location === p.id, '订单不在这架飞机上'); check(waiting(s, p.airportId).length < MAX_WAITING, '机场候运区已满');
-        o!.location = p.airportId; o!.expiresAt = null; note(s, `${o!.id} 已卸至${airport(p.airportId).city}，等待转运`); break;
+        o!.location = p.airportId; o!.expiresAt = null;
+        note(s, `${o!.id} 已卸至${airport(p.airportId).city}，${p.airportId === o!.from ? '等待装载' : '等待转运'}`); break;
       }
       case 'load-destination': {
         const p = planeAtGate(s, command.planeId), count = loadForDestination(s, p, command.to);

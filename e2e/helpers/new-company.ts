@@ -61,12 +61,12 @@ export async function buyFirstAircraft(page: Page) {
   await page.getByRole('button',{name:'解锁机场 ¥ 4,000',exact:true}).click();
   await expect(page.getByTestId('credits')).toHaveText('¥ 14,000');
   await expect(guide).toHaveAttribute('data-step','buy');
-  await page.getByRole('button',{name:'购买钻石 DA40',exact:true}).click();
+  await page.getByRole('button',{name:'支付 ¥ 2,300 购买',exact:true}).click();
   await expect(guide).toHaveAttribute('data-step','configure');
   const purchase=page.getByRole('dialog',{name:'购机选配',exact:true});
-  await expect(purchase.getByRole('button',{name:'确认选配并购买',exact:true})).toBeDisabled();
+  await expect(purchase.getByRole('button',{name:/^支付 .+ 购买$/,exact:true})).toBeDisabled();
   await purchase.getByRole('spinbutton',{name:'客位',exact:true}).fill('1');
-  await purchase.getByRole('button',{name:'确认选配并购买',exact:true}).click();
+  await purchase.getByRole('button',{name:/^支付 .+ 购买$/,exact:true}).click();
   await expect(page.getByTestId('credits')).toHaveText('¥ 11,700');
   await clickGuideMask(page);
   await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 1 人');

@@ -97,9 +97,9 @@ test('new company: cancel purchase, buy with free configuration, refit, unlock, 
   await page.getByRole('button', { name: '跳过引导', exact: true }).click();
   const initial = await exportCompany(page);
   await page.getByRole('button', { name: '飞机商店', exact: true }).click();
-  await page.getByRole('button', { name: '购买雨燕 I', exact: true }).click();
+  await page.getByRole('button', { name: '支付 ¥ 5,500 购买', exact: true }).click();
   const purchase = page.getByRole('dialog', { name: '购机选配', exact: true });
-  const confirm = purchase.getByRole('button', { name: '确认选配并购买', exact: true });
+  const confirm = purchase.getByRole('button', { name: /^支付 .+ 购买$/, exact: true });
   await expect(confirm).toBeDisabled();
   await purchase.getByRole('spinbutton', { name: '客位', exact: true }).fill('2');
   await purchase.getByRole('spinbutton', { name: '货位', exact: true }).fill('1');
@@ -109,7 +109,7 @@ test('new company: cancel purchase, buy with free configuration, refit, unlock, 
   expect(cancelled.fleet).toEqual(initial.fleet);
   expect(cancelled.credits).toBe(initial.credits);
 
-  await page.getByRole('button', { name: '购买雨燕 I', exact: true }).click();
+  await page.getByRole('button', { name: '支付 ¥ 5,500 购买', exact: true }).click();
   await purchase.getByRole('spinbutton', { name: '客位', exact: true }).fill('1');
   await purchase.getByRole('spinbutton', { name: '货位', exact: true }).fill('1');
   await confirm.click();

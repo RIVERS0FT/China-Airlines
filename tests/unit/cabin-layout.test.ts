@@ -84,7 +84,62 @@ describe('real orders inside the aircraft', () => {
     }
   });
 
-  it('uses fixed painted slots at every display scale without losing or duplicating real orders', () => {
+  it('projects every valid allocation into equal capacity units on one floor', () => {
+    for (const aircraft of ALL_MODELS) for (let passengers = 0; passengers <= aircraft.capacity; passengers++) {
+      for (let cargo = 0; cargo <= aircraft.capacity - passengers; cargo++) {
+        const plane = { modelId: aircraft.id, allocation: { passengers, cargo } }, before = structuredClone(plane);
+        const art = cabinArtLayout(plane), slotWidth = art.interior.width / aircraft.capacity;
+        expect(art.capacity).toBe(aircraft.capacity);
+        const passengerDeck = art.decks.passengers, cargoDeck = art.decks.cargo;
+        expect(Boolean(passengerDeck)).toBe(passengers > 0);
+        expect(Boolean(cargoDeck)).toBe(cargo > 0);
+        if (passengerDeck) {
+          expect(passengerDeck.x).toBe(art.interior.x);
+          expect(passengerDeck.width).toBeCloseTo(passengers * slotWidth);
+        }
+        if (cargoDeck) {
+          expect(cargoDeck.x).toBeCloseTo(art.interior.x + passengers * slotWidth);
+          expect(cargoDeck.width).toBeCloseTo(cargo * slotWidth);
+        }
+        if (passengerDeck && cargoDeck) {
+          expect(passengerDeck.y).toBe(cargoDeck.y);
+          expect(passengerDeck.floorY).toBe(cargoDeck.floorY);
+          expect(passengerDeck.x + passengerDeck.width).toBeCloseTo(cargoDeck.x);
+        }
+        for (const kind of ['passengers', 'cargo'] as const) if (art.decks[kind]) {
+          const deck = paintedDeck(art, kind), anchors = paintedAnchors(art, kind);
+          expect(anchors).toHaveLength(plane.allocation[kind]);
+          const empty = cabinPage({ kind, capacity: plane.allocation[kind], used: 0, orders: [] }, 0, anchors.length);
+          expect(empty.pages).toBe(1);
+          expect(empty.items).toHaveLength(plane.allocation[kind]);
+          for (const anchor of anchors) {
+            expect(anchor.width * deck.width).toBeCloseTo(slotWidth);
+            const center = deck.x + anchor.x * deck.width;
+            expect(center - slotWidth / 2).toBeGreaterThanOrEqual(art.interior.x - 1e-10);
+            expect(center + slotWidth / 2).toBeLessThanOrEqual(art.interior.x + art.interior.width + 1e-10);
+          }
+        }
+        const allocatedWidth = Object.values(art.decks).reduce((sum, deck) => sum + deck.width, 0);
+        expect(allocatedWidth).toBeCloseTo(slotWidth * (passengers + cargo));
+        expect(plane).toEqual(before);
+      }
+    }
+  });
+
+  it('displays all ten units without capping a full or unevenly mixed cabin', () => {
+    const aircraft = ALL_MODELS.find(item => item.capacity === 10)!;
+    for (const allocation of [{ passengers: 10, cargo: 0 }, { passengers: 0, cargo: 10 }, { passengers: 9, cargo: 1 }, { passengers: 1, cargo: 9 }]) {
+      const art = cabinArtLayout({ modelId: aircraft.id, allocation });
+      const count = Object.values(art.decks).reduce((sum, deck) => sum + deck.count, 0);
+      expect(count).toBe(10);
+      for (const kind of ['passengers', 'cargo'] as const) if (allocation[kind]) {
+        expect(paintedAnchors(art, kind)).toHaveLength(allocation[kind]);
+        expect(paintedDeck(art, kind).width / art.interior.width).toBeCloseTo(allocation[kind] / 10);
+      }
+    }
+  });
+
+  it('uses all configured slots at every display scale without losing or duplicating real orders', () => {
     const core = new GameCore(NOW);
     core.execute({ type: 'load-destination', planeId: ID, to: 'PVG' }, NOW);
     const state = core.snapshot(), before = structuredClone(state), art = cabinArtLayout(state.fleet[0]!);
@@ -92,6 +147,7 @@ describe('real orders inside the aircraft', () => {
       expect(fitAircraft(width, 500).scale).toBeGreaterThan(0);
       const size = paintedAnchors(art, deck.kind).length;
       const pages = cabinPage(deck, 0, size).pages;
+      expect(pages).toBe(1);
       const ids = Array.from({ length: pages }, (_, i) => cabinPage(deck, i, size).items).flat().flatMap(item => item.order ? [item.order.id] : []);
       expect(ids).toEqual(deck.orders.map(order => order.id));
     }
@@ -156,6 +212,10 @@ describe('real orders inside the aircraft', () => {
     for (const deck of cabinLayout(state, plane)) {
       expect(deck.used).toBe(manifest(state, plane.id).filter(order => order.kind === deck.kind).reduce((sum, order) => sum + order.amount, 0));
       expect(cabinPage(deck, 0, 12).free).toBe((deck.kind === 'passengers' ? aircraftSpecs(plane).seats : aircraftSpecs(plane).cargo) - deck.used);
+      const art = cabinArtLayout(plane), anchors = paintedAnchors(art, deck.kind), visible = cabinPage(deck, 0, anchors.length);
+      expect(visible.pages).toBe(1);
+      expect(visible.items.filter(item => item.order).map(item => item.order!.id)).toEqual(deck.orders.map(order => order.id));
+      expect(visible.items.filter(item => !item.order)).toHaveLength(visible.free);
     }
     expect(cabinLayout(state, plane)[0]!.orders[0]!.amount).toBe(3);
     expect(state).toEqual(before);

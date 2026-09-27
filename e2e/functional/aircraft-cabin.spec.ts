@@ -12,6 +12,9 @@ async function start(page: Page, state?: GameState) {
   await page.goto('./');
   await expect(page.getByTestId('aircraft-cabin')).toBeVisible();
   if (!state) return;
+  await importCabin(page, state);
+}
+async function importCabin(page: Page, state: GameState) {
   validateSave(state);
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
   page.once('dialog', dialog => void dialog.accept());
@@ -143,34 +146,89 @@ for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 75], [844, 390
   });
 }
 
-test('new loads reveal their cabin page; paging is read-only and saves restore real identities', async ({ page }) => {
-  const core = new GameCore(NOW), state = core.snapshot(); state.fleet[0]!.modelId = 'aurora-p'; state.fleet[0]!.allocation = { passengers: 10, cargo: 0 }; state.airports[0]!.level = 3;
-  await start(page, state);
-  const first = page.getByTestId('waiting-order').first(), firstId = await first.getAttribute('data-order-id');
-  await first.click();
+test('all ten allocated seats stay visible and loading preserves real identities across reload', async ({ page }) => {
+  const state = new GameCore(NOW).snapshot(); state.fleet[0]!.modelId = 'aurora-p'; state.fleet[0]!.allocation = { passengers: 10, cargo: 0 }; state.airports[0]!.level = 3;
+  state.fleet[0]!.energy.availableSeconds = model('aurora-p').energy * 60;
+  const core = new GameCore(NOW, validateSave(state));
+  core.execute({ type: 'load-destination', planeId: 'AC0001', to: 'PVG' }, NOW);
+  core.execute({ type: 'refresh-demand', airportId: 'PEK' }, NOW);
+  core.execute({ type: 'load-destination', planeId: 'AC0001', to: 'PVG' }, NOW);
+  const loaded = core.snapshot(), ids = manifest(loaded, 'AC0001').map(order => order.id);
+  expect(ids).toHaveLength(10);
+  await start(page, loaded);
   const deck = page.getByTestId('cabin-passengers');
-  await deck.getByRole('button', { name: '下一页客舱' }).click();
-  await expect(deck.getByTestId('loaded-order')).toHaveCount(0);
-  const next = page.getByTestId('waiting-order').filter({ has: page.locator('.job-art[data-passenger-variant]') }).first();
-  const nextId = await next.getAttribute('data-order-id'); await next.click();
-  await expect(deck.locator(`[data-order-id="${nextId}"]`)).toBeVisible();
-  await expect(deck.getByRole('button', { name: '上一页客舱' })).toBeDisabled();
+  await expect(deck.locator('.cabin-anchor')).toHaveCount(10);
+  await expect(deck.getByTestId('loaded-order')).toHaveCount(10);
+  await expect(deck.locator('nav')).toHaveCount(0);
+  for (const id of ids) {
+    const card = deck.locator(`[data-order-id="${id}"]`);
+    await expect(card).toBeInViewport({ ratio: 1 - 1e-6 });
+    await card.click({ trial: true });
+  }
+  const firstId = ids[0]!;
+  await deck.locator(`[data-order-id="${firstId}"]`).click();
+  await expect(deck.getByTestId('loaded-order')).toHaveCount(9);
+  await expect(deck.getByTestId('cabin-empty-place')).toHaveCount(1);
+  const returned = page.locator(`.apron-queue [data-order-id="${firstId}"]`);
+  await expect(returned.locator('.job-transfer-tag')).toHaveCount(0);
+  await returned.click();
+  await expect(deck.getByTestId('loaded-order')).toHaveCount(10);
+  expect(manifest(await exported(page), 'AC0001')).toEqual(manifest(loaded, 'AC0001'));
   const before = await exported(page);
-  await page.getByRole('group', { name: '机内乘客', exact: true }).focus(); await page.keyboard.press('End');
-  await expect(deck.getByRole('button', { name: '下一页客舱' })).toBeDisabled();
-  const lastPage = await deck.locator('nav span').textContent();
   await deck.locator('.cabin-place-art').first().evaluate(node => node.setAttribute('data-same-seat', 'true'));
   await page.getByRole('button', { name: '隐藏机舱', exact: true }).click();
   await page.setViewportSize({ width: 844, height: 390 });
   await page.getByRole('button', { name: '显示机舱', exact: true }).click();
-  await expect(deck.locator('nav span')).toHaveText(lastPage!);
+  await expect(deck.getByTestId('loaded-order')).toHaveCount(10);
   await expect(deck.locator('.cabin-place-art').first()).toHaveAttribute('data-same-seat', 'true');
   await page.getByRole('group', { name: '机内乘客', exact: true }).focus();
   await expect(page.getByRole('group', { name: '机内乘客', exact: true })).toBeFocused();
   expect(await exported(page)).toEqual(before);
   await page.reload();
-  for (const id of [firstId, nextId]) await expect(deck.locator(`[data-order-id="${id}"]`)).toHaveCount(1);
+  for (const id of ids) await expect(deck.locator(`[data-order-id="${id}"]`)).toHaveCount(1);
+  expect(manifest(await exported(page), 'AC0001')).toEqual(manifest(before, 'AC0001'));
 });
+
+for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
+  test(`cabin allocation uses proportional slots and leaves unused capacity blank at ${width}`, async ({ page }) => {
+    await page.setViewportSize({ width, height }); await start(page);
+    for (const allocation of [{ passengers: 9, cargo: 1 }, { passengers: 1, cargo: 9 }, { passengers: 2, cargo: 1 }]) {
+      const state = new GameCore(NOW).snapshot(), plane = state.fleet[0]!;
+      plane.modelId = 'aurora-p'; plane.allocation = allocation; plane.energy.availableSeconds = model('aurora-p').energy * 60;
+      state.airports[0]!.level = 3;
+      await importCabin(page, state);
+      const cabin = page.getByTestId('aircraft-cabin'), bounds = (await cabin.boundingBox())!;
+      const unit = bounds.width / 10;
+      await expect(cabin).toHaveAttribute('data-capacity', '10');
+      await expect(cabin).toHaveAttribute('data-allocated', String(allocation.passengers + allocation.cargo));
+      await expect(cabin.locator('.cabin-shell-windows > span')).toHaveCount(10);
+      await expect(cabin.locator('.cabin-partition')).toHaveCount(1);
+      await expect(cabin.locator('.cabin-anchor')).toHaveCount(allocation.passengers + allocation.cargo);
+      await expect(cabin.getByTestId('cabin-empty-place')).toHaveCount(allocation.passengers + allocation.cargo);
+      await expect(cabin.getByTestId('loaded-order')).toHaveCount(0);
+      await expect(cabin.locator('nav')).toHaveCount(0);
+      let offset = 0;
+      for (const kind of ['passengers', 'cargo'] as const) {
+        const deck = page.getByTestId(`cabin-${kind}`), box = (await deck.boundingBox())!;
+        await expect(deck.locator('.cabin-anchor')).toHaveCount(allocation[kind]);
+        expect(Math.abs(box.x - (bounds.x + offset * unit))).toBeLessThan(1);
+        expect(Math.abs(box.width - allocation[kind] * unit)).toBeLessThan(1);
+        for (const anchor of await deck.locator('.cabin-anchor').all()) {
+          await expect(anchor).toBeInViewport({ ratio: 1 - 1e-6 });
+          expect(Math.abs((await anchor.boundingBox())!.width - unit)).toBeLessThan(1);
+        }
+        offset += allocation[kind];
+      }
+      const last = (await page.getByTestId('cabin-cargo').boundingBox())!;
+      expect(Math.abs(bounds.x + bounds.width - last.x - last.width - (10 - offset) * unit)).toBeLessThan(1);
+      const unused = cabin.locator('.cabin-unallocated-space');
+      await expect(unused).toHaveCount(offset < 10 ? 1 : 0);
+      if (offset < 10) expect(Math.abs((await unused.boundingBox())!.width - (10 - offset) * unit)).toBeLessThan(1);
+      expect((await exported(page)).fleet[0]!.allocation).toEqual(allocation);
+      await page.screenshot({ path: `artifacts/cabin-proportions-${width}-${allocation.passengers}-${allocation.cargo}.png` });
+    }
+  });
+}
 
 for (const modelId of ['swift-p', 'swift-f']) test(`single compartment for ${modelId}`, async ({ page }) => {
   const state = new GameCore(NOW).snapshot(); state.fleet[0]!.modelId = modelId; state.fleet[0]!.allocation = modelId === 'swift-p' ? { passengers: 2, cargo: 0 } : { passengers: 0, cargo: 4 };

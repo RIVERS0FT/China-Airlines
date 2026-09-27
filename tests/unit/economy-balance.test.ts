@@ -142,6 +142,6 @@ describe('moderate aviation economy', () => {
     expect(() => validateSave(tampered)).toThrow();
     const previous = structuredClone(s) as Omit<GameState, 'version'> & { version: number }; previous.version = 11;
     expect(() => validateSave(previous)).toThrow(/版本/);
-    expect(c.snapshot().version).toBe(13);
+    expect(c.snapshot().version).toBe(14);
   });
 });

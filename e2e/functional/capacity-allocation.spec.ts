@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { prepareAirportSession } from '../helpers/configured-airport.js';
+import { GameCore } from '../helpers/configured-game.js';
+import { exportCompany } from '../helpers/new-company.js';
 
 for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
   test(`purchase requires free configuration and later refits charge normally at ${width}`, async ({ page }) => {
@@ -8,10 +10,16 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     await page.goto('./');
   await page.getByRole('button', {name: /^(跳过引导|Skip Tutorial)$/}).click();
     await page.getByRole('button', { name: '飞机商店', exact: true }).click();
-    const buy = page.getByRole('button', { name: '购买雨燕 I', exact: true });
+    const shop=page.getByTestId('page-shop');
+    await expect(shop.getByLabel('交付机场',{exact:true})).toHaveCount(0);
+    const card=shop.getByRole('article',{name:'雨燕 I',exact:true});
+    await expect(card.locator('.card-top').getByRole('heading',{name:'雨燕 I',exact:true})).toBeVisible();
+    await expect(card).not.toContainText(/购机选配|客货布局|免费/);
+    const buy = page.getByRole('button', { name: '支付 ¥ 5,500 购买', exact: true });
     await buy.click();
     const dialog = page.getByRole('dialog', { name: '购机选配', exact: true });
-    const confirm = dialog.getByRole('button', { name: '确认选配并购买', exact: true });
+    await expect(dialog.getByLabel('交付机场',{exact:true})).toHaveValue('PEK');
+    const confirm = dialog.getByRole('button', { name: /^支付 .+ 购买$/, exact: true });
     await expect(confirm).toBeDisabled();
     await expect(page.getByTestId('fleet-count')).toHaveText('0 架');
     await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
@@ -32,6 +40,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
     await dialog.getByRole('spinbutton', { name: '货位', exact: true }).fill('1');
     await expect(dialog).toContainText('免费');
     await expect(confirm).toBeInViewport();
+    await page.screenshot({path:`artifacts/purchase-options-${width}.png`});
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await confirm.click();
     await expect(dialog).toHaveCount(0);
@@ -60,16 +69,38 @@ test('purchase selection is translated and Escape cancels without buying', async
   await page.goto('./');
   await page.getByRole('button', {name: /^(跳过引导|Skip Tutorial)$/}).click();
   await page.getByRole('button', { name: 'Aircraft Shop', exact: true }).click();
-  await page.getByRole('button', { name: 'Buy Swift I', exact: true }).click();
+  await page.getByRole('button', { name: 'Buy for ¥ 5,500', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Configure aircraft purchase', exact: true });
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText('Free');
-  await expect(dialog.getByRole('button', { name: 'Confirm configuration and buy', exact: true })).toBeDisabled();
+  await expect(dialog.getByRole('button', { name: 'Buy for ¥ 5,500', exact: true })).toBeDisabled();
+  await expect(dialog.getByLabel('Delivery Airport',{exact:true})).toHaveValue('PEK');
   await dialog.getByRole('spinbutton', { name: 'Passenger slots', exact: true }).fill('2');
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await expect(page.getByTestId('fleet-count')).toContainText('0');
   await expect(page.getByTestId('credits')).toContainText('18,000');
+});
+
+for(const width of [1440,667])test(`purchase chooses an eligible delivery airport without resetting cabin selection at ${width}`,async({page})=>{
+  await page.setViewportSize({width,height:width===1440?900:375});
+  const now=Date.parse('2026-09-27T02:00:00Z');await page.clock.install({time:new Date(now)});
+  await prepareAirportSession(page);await page.goto('./');await page.getByRole('button',{name:'跳过引导',exact:true}).click();
+  const state=new GameCore(now).snapshot();state.credits=100000;state.career.xp=10000;state.airports.find(a=>a.id==='PVG')!.level=2;
+  await page.getByRole('button',{name:'存档设置',exact:true}).click();page.once('dialog',d=>void d.accept());
+  await page.getByLabel('选择存档文件').setInputFiles({name:'delivery-airport.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(state))});
+  await expect(page.locator('.settings-modal')).toContainText('存档导入成功');await page.getByRole('button',{name:'关闭存档设置',exact:true}).click();
+  await page.getByRole('button',{name:'飞机商店',exact:true}).click();
+  const shop=page.getByTestId('page-shop'),buy=shop.getByRole('article',{name:'信天翁 I',exact:true}).getByRole('button',{name:'支付 ¥ 80,000 购买',exact:true});
+  await expect(shop.getByLabel('交付机场',{exact:true})).toHaveCount(0);await expect(buy).toBeEnabled();await buy.click();
+  const dialog=page.getByRole('dialog',{name:'购机选配',exact:true}),delivery=dialog.getByLabel('交付机场',{exact:true}),confirm=dialog.getByRole('button',{name:'支付 ¥ 80,000 购买',exact:true});
+  await expect(delivery).toHaveValue('PEK');await expect(dialog).toContainText('交付机场需升至 2 级');
+  await dialog.getByRole('spinbutton',{name:'客位',exact:true}).fill('5');await dialog.getByRole('spinbutton',{name:'货位',exact:true}).fill('3');await expect(confirm).toBeDisabled();
+  await delivery.selectOption('PVG');await expect(dialog.getByRole('spinbutton',{name:'客位',exact:true})).toHaveValue('5');await expect(dialog.getByRole('spinbutton',{name:'货位',exact:true})).toHaveValue('3');await expect(confirm).toBeEnabled();
+  await delivery.selectOption('PEK');await expect(confirm).toBeDisabled();await delivery.selectOption('PVG');
+  await confirm.click();await expect(dialog).toHaveCount(0);await expect(page.getByTestId('credits')).toHaveText('¥ 20,000');await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
+  const saved=await exportCompany(page);expect(saved.fleet[1]).toMatchObject({modelId:'albatross-p',airportId:'PVG',allocation:{passengers:5,cargo:3}});expect(saved.credits).toBe(state.credits-80000);
+  await page.reload();await expect(page.getByTestId('credits')).toHaveText('¥ 20,000');expect((await exportCompany(page)).fleet).toEqual(saved.fleet);
 });
 
 test('an older save remains intact and opens a version-specific recovery warning', async ({ page }) => {
@@ -89,7 +120,7 @@ test('an older save remains intact and opens a version-specific recovery warning
       const request = transaction.objectStore('saves').getAll();
       let records: unknown[] = [];
       request.onsuccess = () => {
-        records = request.result.map(record => ({ ...record, state: { ...record.state, version: 12 } }));
+        records = request.result.map(record => ({ ...record, state: { ...record.state, version: 13 } }));
         records.forEach(record => transaction.objectStore('saves').put(record));
       };
       transaction.oncomplete = () => resolve(records);

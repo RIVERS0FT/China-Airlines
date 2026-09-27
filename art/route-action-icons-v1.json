@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "created": "2026-09-27",
+  "generator": "Built-in image_gen",
+  "processing": "Original generated PNG copied without image post-processing; alpha preserved.",
+  "assets": [
+    {
+      "file": "icon-route-plan-v1.png",
+      "purpose": "制定航线",
+      "prompt": "Use case: stylized-concept. Create one original finished production raster game UI icon for ROUTE PLANNING in an airline management game. True transparent alpha background, isolated object, square canvas, no text, no letters, no numbers, no watermark, no logos, no rounded-square tile or button frame, no landscape backdrop. A compact folded ivory-and-bright-blue aviation chart in three-quarter view, two chunky golden-orange destination pins connected by one bold curving golden dotted flight route, with a small white passenger plane with royal blue belly and subtle golden stripe banked over the route at the top right. The map is an abstract minimal chart with no recognizable country borders. Strong clean silhouette and large simple readable forms, 85 percent canvas occupancy with comfortable clear transparent margin, all details readable at 60 pixels. Polished colorful 2D hand-painted casual transport tycoon game icon, softly volumetric and glossy with navy outlines and crisp white highlight edges, saturated cyan blue, royal blue, white and warm gold palette. Lighting from upper left. Match a cohesive family of illustrated airport, plane, map and golden ticket icons. No photorealism, no flat monochrome vector appearance. Final image intended as a transparent PNG UI asset."
+    },
+    {
+      "file": "icon-checkin-departure-v1.png",
+      "purpose": "检票起飞",
+      "prompt": "Use case: stylized-concept. Create one original finished production raster game UI icon for CHECK IN AND TAKE OFF in an airline management game. True transparent alpha background, isolated object, square canvas, no text, no letters, no numbers, no watermark, no logos, no rounded-square tile or button frame, no landscape backdrop. The unmistakable main object is a chunky ivory boarding pass with deep royal blue edging, a golden top strip and perforated detachable stub, tilted slightly counterclockwise. A very large thick golden checkmark centered on the boarding pass signifies checked-in approval. A small white passenger plane with royal blue belly and a fine gold stripe flies diagonally upward to the upper right from behind the ticket, showing departure. Use ticket plus check as dominant silhouette; keep the plane secondary so this is visually distinct from a route map icon. There are no map, no map pins, no globe. Bold simple clean forms, crisp contrast, 85 percent canvas occupancy with comfortable clear transparent margin, all readable at 60 pixels. Polished colorful 2D hand-painted casual transport tycoon game icon, softly volumetric and glossy with navy outlines and crisp white highlight edges, saturated cyan blue, royal blue, ivory white and warm gold palette. Lighting from upper left. Match a cohesive family of illustrated airport, blue folding map, passenger plane and golden ticket icons. No photorealism, no flat monochrome vector appearance. Final image intended as a transparent PNG UI asset."
+    }
+  ]
+}

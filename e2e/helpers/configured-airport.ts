@@ -14,7 +14,7 @@ export async function confirmPurchase(page: Page, passengers = 1, cargo = 0) {
   await expect(dialog).toBeVisible();
   await dialog.getByRole('spinbutton', { name: '客位', exact: true }).fill(String(passengers));
   await dialog.getByRole('spinbutton', { name: '货位', exact: true }).fill(String(cargo));
-  await dialog.getByRole('button', { name: '确认选配并购买', exact: true }).click();
+  await dialog.getByRole('button', { name: /^支付 .+ 购买$/, exact: true }).click();
   await expect(dialog).toHaveCount(0);
 }
 
