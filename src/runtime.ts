@@ -18,6 +18,7 @@ class Controller {
   private tail: Promise<unknown> = Promise.resolve();
   private started = false;
   private lastAutosave = Date.now();
+  private businessActive = !document.hidden;
   private publish() { useGame.setState({ game: this.core?.snapshot() ?? null }); }
   private run<T>(fn: () => T | Promise<T>): Promise<T> {
     const next = this.tail.then(async () => {
@@ -35,9 +36,9 @@ class Controller {
     this.revision = await this.db.save(this.core.snapshot(), this.revision);
     this.lastAutosave = Date.now(); useGame.setState({ savedAt: this.lastAutosave });
   }
-  private advance() {
+  private advance(businessIncome = this.businessActive, now = Date.now()) {
     if (!this.core) return;
-    const report = this.core.tick(Date.now());
+    const report = this.core.tick(now, { businessIncome });
     if (report.elapsed >= 30 || report.clockBack) useGame.setState({ report });
     this.publish();
   }
@@ -49,11 +50,11 @@ class Controller {
         const loaded = await this.db.load(); this.revision = loaded.revision;
         if (!loaded.state && loaded.hasData) {
           useGame.setState({ recovery: true, error: loaded.incompatibleVersion
-            ? '检测到版本不兼容的存档。当前仅接受 v14；原数据未被覆盖。请先保留浏览器数据，确认版本后再决定是否重新开始。'
+            ? '检测到版本不兼容的存档。当前仅接受 v15；原数据未被覆盖。请先保留浏览器数据，确认版本后再决定是否重新开始。'
             : '主存档与备份均无法读取。请导入有效存档，或确认重新开始。' }); return;
         }
         this.core = new GameCore(Date.now(), loaded.state ?? undefined);
-        this.advance(); await this.persist();
+        this.advance(false); await this.persist();
         if (loaded.recovered) useGame.setState({ notice: '主存档损坏，已从上一份有效备份恢复。' });
       });
     } catch { /* The recovery screen exposes retry/import without discarding data. */ }
@@ -64,16 +65,23 @@ class Controller {
       this.advance();
       if (Date.now() - this.lastAutosave >= 10000) void this.save().catch(() => { this.lastAutosave = Date.now(); });
     }, 250);
-    const checkpoint = () => { if (this.core && !useGame.getState().blocked) void this.save().catch(() => undefined); };
-    document.addEventListener('visibilitychange', checkpoint);
-    window.addEventListener('pagehide', checkpoint);
+    this.businessActive = !document.hidden;
+    const checkpoint = (hidden: boolean) => {
+      const now = Date.now(), income = this.businessActive;
+      this.businessActive = !hidden;
+      if (this.core && !useGame.getState().blocked) void this.run(async () => { this.advance(income, now); await this.persist(); }).catch(() => undefined);
+    };
+    document.addEventListener('visibilitychange', () => checkpoint(document.hidden));
+    window.addEventListener('pagehide', () => checkpoint(true));
+    window.addEventListener('pageshow', () => checkpoint(document.hidden));
     window.addEventListener('online', () => useGame.setState({ online: true }));
     window.addEventListener('offline', () => useGame.setState({ online: false }));
   }
   command(command: Command) {
+    const now = Date.now(), businessIncome = this.businessActive;
     return this.run(async () => {
       if (!this.core) throw new Error('尚未载入游戏');
-      this.core.execute(command, Date.now());
+      this.core.execute(command, now, { businessIncome });
       // Publish success only after the IndexedDB transaction commits. Otherwise an
       // immediate reload after a visible purchase can lose that purchase.
       await this.persist();
@@ -86,26 +94,29 @@ class Controller {
       useGame.setState({ notice: quiet ? null : this.core.snapshot().log[0]?.text ?? '操作完成' });
     });
   }
-  save() { return this.run(async () => { this.advance(); await this.persist(); }); }
-  export() { return this.run(() => { this.advance(); if (!this.core) throw new Error('没有可导出的进度'); return JSON.stringify(this.core.snapshot(), null, 2); }); }
+  save() { const now = Date.now(), income = this.businessActive; return this.run(async () => { this.advance(income, now); await this.persist(); }); }
+  export() { const now = Date.now(), income = this.businessActive; return this.run(() => { this.advance(income, now); if (!this.core) throw new Error('没有可导出的进度'); return JSON.stringify(this.core.snapshot(), null, 2); }); }
   import(raw: string) {
+    const now = Date.now();
     return this.run(async () => {
-      const candidate = GameCore.imported(parseSave(raw), Date.now());
+      const candidate = GameCore.imported(parseSave(raw), now);
       // Persist first. A rejected import cannot touch the in-memory or on-disk game.
       this.revision = await this.db.save(candidate.snapshot(), this.revision); this.core = candidate;
       useGame.setState({ savedAt: Date.now(), recovery: false, notice: '存档导入成功，旧进度已保留为备份。', report: null });
     });
   }
   restoreBackup() {
+    const now = Date.now();
     return this.run(async () => {
-      const candidate = GameCore.imported(await this.db.backup(), Date.now());
+      const candidate = GameCore.imported(await this.db.backup(), now);
       this.revision = await this.db.save(candidate.snapshot(), this.revision); this.core = candidate;
       useGame.setState({ savedAt: Date.now(), recovery: false, notice: '已恢复上一份有效备份。', report: null });
     });
   }
   restart() {
+    const now = Date.now();
     return this.run(async () => {
-      const candidate = new GameCore(Date.now());
+      const candidate = new GameCore(now);
       this.revision = await this.db.save(candidate.snapshot(), this.revision); this.core = candidate;
       useGame.setState({ savedAt: Date.now(), recovery: false, notice: '已重新开始。', report: null });
     });

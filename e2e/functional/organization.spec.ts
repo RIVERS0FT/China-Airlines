@@ -85,7 +85,7 @@ for (const [width,height] of [[1440,900],[844,390],[667,375]] as const) test(`co
   }));
   expect(portraits).toHaveLength(4);expect(portraits.every(Boolean)).toBe(true);
   await page.screenshot({path:`artifacts/company-organization-${width}.png`});
-  const state=await exportState(page); expect(state.version).toBe(14); expect(state.career.employees).toHaveLength(4); expect(Object.keys(state.career)).not.toContain('pilots');
+  const state=await exportState(page); expect(state.version).toBe(15); expect(state.career.employees).toHaveLength(4); expect(Object.keys(state.career)).not.toContain('pilots');
   expect(state.career.employees[0]).toMatchObject({name:'林航',planeId:'AC0001',managerId:3,skill:1}); expect(state.career.employees[1]!.airportId).toBe('PEK');
   expect(state.fleet[0]!.dispatcher).toBe(true);
   expect(state.career.employees[2]!.managerId).toBe(4);expect(state.career.employees[3]).toMatchObject({name:generalName,department:'company',role:'manager',managerId:null,planeId:null,airportId:null,skill:2,management:1});

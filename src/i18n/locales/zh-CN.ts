@@ -166,7 +166,7 @@ export const zhCNMessages = {
   'settings.offlineReady': '已就绪',
   'settings.offlineFirst': '缓存未就绪',
   'settings.offlineLimit': '离线收益最多补算 8 小时',
-  'settings.saveCompatibilityHelp': '仅支持 v14 存档；导入不补算离线时间。',
+  'settings.saveCompatibilityHelp': '仅支持 v15 存档；导入不补算离线时间。',
   'settings.persistence': '保留本地存储',
   'settings.persistenceApply': '申请保留',
   'settings.persistenceUnsupported': '此浏览器不支持持久存储申请。',

@@ -2,7 +2,7 @@ import type { GameState } from './game.js';
 import { bill, guard, isParked, parked } from './career.js';
 import { ENERGY_SERVICE_SECONDS } from './energy.js';
 
-export type Department = 'flight' | 'ground' | 'company';
+export type Department = 'flight' | 'ground' | 'company' | 'business';
 export type EmployeeRole = 'specialist' | 'manager';
 export type Training = 'skill' | 'management';
 export type HistoryKind = 'joined' | 'assigned' | 'reporting' | 'promoted' | 'demoted' | 'trained' | 'renewed' | 'flight';
@@ -19,19 +19,20 @@ export type OrganizationCommand =
   | { type: 'employee-role'; employeeId: number; role: EmployeeRole }
   | { type: 'train-employee'; employeeId: number; training: Training }
   | { type: 'renew-employee'; employeeId: number };
-export const DEPARTMENTS: Record<Department, string> = { flight: '飞行部', ground: '地勤部', company: '公司' };
+export const DEPARTMENTS: Record<Department, string> = { flight: '飞行部', ground: '地勤部', company: '公司', business: '公司业务' };
 export const EMPLOYEE_POSITIONS = [
   { department: 'flight', role: 'specialist' }, { department: 'ground', role: 'specialist' },
   { department: 'flight', role: 'manager' }, { department: 'ground', role: 'manager' },
   { department: 'company', role: 'manager' },
 ] as const satisfies readonly Pick<Employee, 'department' | 'role'>[];
 export const isEmployeePosition = (department: unknown, role: unknown) =>
+  (department === 'business' && (role === 'manager' || role === 'specialist')) ||
   EMPLOYEE_POSITIONS.some(position => position.department === department && position.role === role);
 export const CONTRACT_SECONDS = 7 * 86400;
 export const MAX_EMPLOYEES = 15;
 export const HISTORY_LIMIT = 20;
 export const roleName = (e: Pick<Employee, 'department' | 'role'>) =>
-  e.department === 'company' ? '总经理' : e.role === 'manager' ? `${DEPARTMENTS[e.department]}经理` : e.department === 'flight' ? '飞行员' : '地勤专员';
+  e.department === 'business' ? (e.role === 'manager' ? '业务主管' : '业务专员') : e.department === 'company' ? '总经理' : e.role === 'manager' ? `${DEPARTMENTS[e.department]}经理` : e.department === 'flight' ? '飞行员' : '地勤专员';
 export const staffIn = (s: GameState, department: Department, role: EmployeeRole = 'specialist') =>
   s.career.employees.filter(e => e.department === department && e.role === role);
 export const staffLimit = (department: Department, role: EmployeeRole) =>
@@ -112,6 +113,8 @@ export function assignPilot(s: GameState, id: number, planeId: string | null) {
   return planeId ? '飞行员已上岗' : '飞行员已下岗';
 }
 export function organizationExecute(s: GameState, command: OrganizationCommand, targetPlaneId?: string): string {
+  if (command.type === 'recruit-employee') guard(command.department !== 'business', '请从业务团队招募员工');
+  else guard(s.career.employees.find(e => e.id === command.employeeId)?.department !== 'business', '请使用业务团队的培养与管理操作');
   switch (command.type) {
     case 'recruit-employee': {
       guard(isEmployeePosition(command.department, command.role), '未知员工岗位');

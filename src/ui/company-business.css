@@ -1,0 +1,17 @@
+.business-opening label { display:flex; gap:12px; align-items:center; margin:12px 0; }
+.business-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.business-options article { display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid var(--line,#a8c3d4); border-radius:12px; }
+.business-options h4,.business-options p { margin:0; }
+.business-options button { margin-top:auto; }
+.business-options small,.business-detail small { display:block; line-height:1.4; }
+.business-detail { display:grid; gap:12px; padding:12px; }
+.business-metrics { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0; }
+.business-metrics div { min-width:0; }
+.business-metrics dt { font-size:12px; }
+.business-metrics dd { margin:2px 0 0; font-weight:bold; }
+.business-detail section { display:grid; gap:8px; }
+.business-detail section h4 { margin:0; }
+.business-detail button { white-space:normal; }
+.org-income { font-weight:700; white-space:nowrap; }
+.org-business-collapse { position:absolute; min-height:28px; height:28px; font-size:11px; padding:2px 8px; }
+@container (max-width:700px) { .business-options { grid-template-columns:1fr; } .business-metrics { grid-template-columns:1fr; } }

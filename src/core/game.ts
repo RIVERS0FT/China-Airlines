@@ -1,5 +1,7 @@
 import { aircraftSpecs, emptyUpgrades, retrofitPrice, cabinAllocationPrice, hangarPrice, UPGRADE_LABEL, type Upgrades, type UpgradeKey, airport, model, routeId, TASKS, upgradePrice, distance } from './catalog.js';
 import { advanceTalent, createTalent, recordTalentArrival, recordTalentCommand, talentExecute, validateTalent, type TalentState, type TalentCommand } from './talent.js';
+import { accrueBusiness, businessExecute, newBusiness, type BusinessState, type BusinessCommand } from './company-business.js';
+import { validateBusiness } from './save-business.js';
 import { groundServiceQuote, organizationExecute } from './organization.js';
 export { MAX_FLEET, OFFLINE_LIMIT, TURNAROUND } from './simulation.js';
 export type { AdvanceReport } from './simulation.js';
@@ -11,7 +13,8 @@ import { emptyTuning, upgradeLimit, upgradeTickets, service, MATERIALS, type Tun
 import { newCareer, careerExecute, careerLevel, bill, consume, stock, warehouseUsed, warehouseCapacity, autoAllowed, onArrival, nextCareerEvent, advanceCareer, type Career, type CareerCommand } from './career.js';
 import { validateCareer, validateTuning } from './save-career.js';
 import { distanceUnits, legOperatingCosts, baseOrderReward, transportRevenue, routeOperatingCost } from './economy.js';
-export const SAVE_VERSION = 14;
+export const SAVE_VERSION = 15;
+export interface AdvanceOptions { businessIncome?: boolean }
 export type TutorialState = 'available' | 'active' | 'completed' | 'skipped';
 export const MAX_PLAN_LEGS = 12;
 export interface Flight extends SimulationFlight {}
@@ -25,9 +28,9 @@ export interface Order {
   reward: number; location: string; createdAt: number; expiresAt: number | null; service: string; product: Material | null;
 }
 export interface GameState extends Omit<SimulationState, 'version' | 'fleet'> {
-  version: 14; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
+  version: 15; business: BusinessState; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
 }
-export type Command = SimulationCommand | CareerCommand | TalentCommand
+export type Command = SimulationCommand | CareerCommand | TalentCommand | BusinessCommand
   | { type: 'load' | 'unload'; planeId: string; orderId: string }
   | { type: 'load-destination'; planeId: string; to: string }
   | { type: 'retrofit'; planeId: string; upgrade: UpgradeKey }
@@ -190,11 +193,14 @@ function arrive(s: GameState, p: Plane) {
   recordTalentArrival(s, p.id, delivered.some(o => o.reward > 0 && o.product === null));
   note(s, `${p.id} 抵达${airport(f.to).city} · 交付 ${delivered.length} 单`, f.revenue);
 }
-function advance(s: GameState, now: number): AdvanceReport {
+function advance(s: GameState, now: number, options: AdvanceOptions = {}): AdvanceReport {
   clock(now);
   const gap = (now - s.lastWallTime) / 1000, elapsed = Math.min(OFFLINE_LIMIT, Math.max(0, gap));
+  const businessElapsed = Math.min(elapsed, Math.max(0, (now - s.business.wallPeak) / 1000));
+  s.business.wallPeak = Math.max(s.business.wallPeak, now);
   s.lastWallTime = now;
   const start = s.simTime, end = start + elapsed, before = { ...s.stats };
+  const incomeStart = end - businessElapsed;
   for (;;) {
     let next: Plane | undefined, at = Math.min(nextCareerEvent(s), s.nextDemandAt, ...s.orders.filter(o => o.expiresAt !== null).map(o => o.expiresAt!));
     for (const p of s.fleet) {
@@ -202,6 +208,7 @@ function advance(s: GameState, now: number): AdvanceReport {
       if (time < at) { next = p; at = time; }
     }
     if (at > end) break;
+    if (options.businessIncome !== false) accrueBusiness(s, Math.max(s.simTime, incomeStart), at);
     s.simTime = at;
     // Supply refresh has priority at equal timestamps, then fleet array order.
     if (!next) {
@@ -237,6 +244,7 @@ function advance(s: GameState, now: number): AdvanceReport {
       note(s, `${next.id} 自动往返已停止：${error instanceof Error ? error.message : '无法起飞'}`);
     }
   }
+  if (options.businessIncome !== false) accrueBusiness(s, Math.max(s.simTime, incomeStart), end);
   s.simTime = end;
   advanceTalent(s, start, end);
   return { elapsed, flights: s.stats.flights - before.flights, revenue: s.stats.revenue - before.revenue,
@@ -248,13 +256,17 @@ export class GameCore {
     clock(now); this.state = saved === undefined ? newGame(now) : validateSave(saved);
   }
   snapshot(): GameState { return structuredClone(this.state); }
-  tick(now: number): AdvanceReport { return advance(this.state, now); }
+  tick(now: number, options: AdvanceOptions = {}): AdvanceReport { return advance(this.state, now, options); }
   static imported(value: unknown, now: number) {
-    clock(now); const s = validateSave(value); s.lastWallTime = now; return new GameCore(now, s);
+    clock(now); const s = validateSave(value); s.lastWallTime = now; s.business.wallPeak = now; return new GameCore(now, s);
   }
-  execute(command: Command, now: number) {
-    this.tick(now); const s = this.snapshot();
+  execute(command: Command, now: number, options: AdvanceOptions = {}) {
+    this.tick(now, options); const s = this.snapshot();
     switch (command.type) {
+      case 'open-business-team':
+      case 'hire-business-worker':
+      case 'expand-business-team':
+      case 'train-business-employee': { note(s, businessExecute(s, command)); break; }
       case 'hire-candidate':
       case 'defer-company-affair': { note(s, talentExecute(s, command)); break; }
       case 'service-energy': {
@@ -429,7 +441,7 @@ function newGame(now: number): GameState {
     stats: { flights: 0, passengers: 0, cargo: 0, revenue: 0, costs: 0 }, claimedTasks: [],
     log: [{ at: 0, text: '公司成立 · 从北京开始经营', amount: 18000 }],
     orders: [], nextOrderId: 1, nextDemandAt: DEMAND_INTERVAL, hangarSlots: 4, fleetPeak: 0,
-    tutorial: 'active', career, talent: createTalent(career.seed, 0) };
+    tutorial: 'active', career, business: newBusiness(now), talent: createTalent(career.seed, 0) };
   replenish(s);
   return s;
 }
@@ -449,7 +461,7 @@ export function validateSave(value: unknown): GameState {
   const version = (value as { version?: unknown }).version;
   if (version !== SAVE_VERSION) throw new Error('不支持此存档版本；请使用对应版本的游戏');
   const s = structuredClone(value) as GameState;
-  record(s, ['version','credits','simTime','lastWallTime','nextId','airports','fleet','routes','stats','claimedTasks','log','orders','nextOrderId','nextDemandAt','hangarSlots','fleetPeak','tutorial','career','talent']);
+  record(s, ['version','credits','simTime','lastWallTime','nextId','airports','fleet','routes','stats','claimedTasks','log','orders','nextOrderId','nextDemandAt','hangarSlots','fleetPeak','tutorial','career','talent','business']);
   number(s.simTime, 1e12, false); number(s.nextDemandAt, 1e12, false); number(s.nextOrderId);
   if (s.nextOrderId < 1 || s.nextDemandAt <= s.simTime || s.nextDemandAt > s.simTime + DEMAND_INTERVAL) fail();
   number(s.hangarSlots, MAX_FLEET);
@@ -465,6 +477,7 @@ export function validateSave(value: unknown): GameState {
     if (task.metric === 'fleet' && s.fleetPeak < task.target) fail();
   }
   validateCareer(s);
+  validateBusiness(s);
   validateTalent(s);
   validateInfrastructure(s);
   for (const p of [...s.fleet,...s.career.stored]) {

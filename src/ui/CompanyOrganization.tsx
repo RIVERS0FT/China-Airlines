@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { businessIncomeQuote, businessTeamQuote, BUSINESS_CATALOG, employeeCapacity, employeeTeam } from '../core/company-business.js';
+import { BusinessOpening, BusinessEmployeeDetail, businessRate } from './BusinessControls.js';
 import type { Command, GameState } from '../core/game.js';
 import { aircraftSpecs, airport } from '../core/catalog.js';
 import { nextTalentRefreshAt } from '../core/talent.js';
 import {
-  directReports, effectiveManager, employmentPrice, groundServiceQuote, managerCapacity, EMPLOYEE_POSITIONS, MAX_EMPLOYEES,
+  directReports, effectiveManager, employmentPrice, groundServiceQuote, managerCapacity, EMPLOYEE_POSITIONS,
   recruitmentAssignment, staffIn, staffLimit, trainingQuote, type Employee,
 } from '../core/organization.js';
 import { controller, useGame } from '../runtime.js';
@@ -17,6 +19,7 @@ import './organization.css';
 
 type DetailTab = 'assignment' | 'training' | 'history';
 function roleLabel(e: Pick<Employee,'department'|'role'>, en: boolean) {
+  if(e.department==='business')return e.role==='manager'?(en?'Business Leader':'业务主管'):(en?'Business Worker':'业务专员');
   if(e.department==='company')return en?'General Manager':'总经理';
   return e.role === 'manager' ? (e.department==='flight'?(en?'Flight Manager':'飞行部经理'):(en?'Ground Manager':'地勤部经理'))
     : e.department==='flight'?(en?'Pilot':'飞行员'):(en?'Ground Specialist':'地勤专员');
@@ -35,16 +38,18 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport, initialEmp
   const [selectedId,setSelectedId]=useState<number|null>(initialEmployeeId??null);
   const [tab,setTab]=useState<DetailTab>('assignment');
   const [recruiting,setRecruiting]=useState(false);
+  const [opening,setOpening]=useState(false);
+  const [collapsed,setCollapsed]=useState<Set<number>>(()=>new Set());
   const [marketPosition,setMarketPosition]=useState<string|null>(null);
   const market=useRef<HTMLDivElement>(null), previousCount=useRef(people.length);
   const selected=people.find(e=>e.id===selectedId);
-  const layout=organizationLayout(game);
+  const layout=organizationLayout(game,collapsed), income=businessIncomeQuote(game);
   const refreshAt=nextTalentRefreshAt(game), refreshSeconds=Math.max(0,Math.ceil(refreshAt-game.simTime));
   const refreshCountdown=`${Math.floor(refreshSeconds/60).toString().padStart(2,'0')}:${(refreshSeconds%60).toString().padStart(2,'0')}`;
   const send=(command:Command)=>ignore(controller.command(command));
   const afford=(cost:{gold:number;tickets:number})=>game.credits>=cost.gold&&game.career.tickets>=cost.tickets;
   const name=(e:Employee)=>e.name.trim()?e.name:(en?`Employee #${e.id}`:employeeDisplayName(e));
-  function select(id:number) { setSelectedId(id);setTab('assignment');setRecruiting(false); }
+  function select(id:number) { setSelectedId(id);setTab('assignment');setRecruiting(false);setOpening(false); }
   useEffect(()=>{
     const panel=market.current;
     if(!recruiting||!marketPosition||!panel)return;
@@ -53,31 +58,34 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport, initialEmp
   },[recruiting,marketPosition]);
   useEffect(()=>{ if(initialEmployeeId!=null) {setSelectedId(initialEmployeeId);setTab('assignment');setRecruiting(false);} },[initialEmployeeId]);
   useEffect(()=>{
-    if(people.length>previousCount.current) {setSelectedId(people.at(-1)!.id);setTab('assignment');setRecruiting(false);}
+    if(people.length>previousCount.current) {setSelectedId(people.at(-1)!.id);setTab('assignment');setRecruiting(false);setOpening(false);}
     previousCount.current=people.length;
   },[people]);
   function status(e:Employee) {
+    if(e.department==='business'){const team=employeeTeam(game,e)!;const q=businessTeamQuote(game,team),spec=BUSINESS_CATALOG[team.kind];const net=e.role==='manager'?q.net:Math.floor(spec.gross*(100+10*(e.skill-1)+q.bonus)/100)-spec.wage;return `+${businessRate(net)} ${say('金币/秒','coins/s')}`;}
     if(e.paidUntil<=game.simTime)return say('待续约','Renewal due');
-    if(e.role==='manager')return say(`管理 ${directReports(game,e.id).length}/${e.department==='company'?2:managerCapacity(e)}`,`Team ${directReports(game,e.id).length}/${e.department==='company'?2:managerCapacity(e)}`);
+    if(e.role==='manager')return say(`管理 ${directReports(game,e.id).length}/${e.department==='company'?2+game.business.teams.length:managerCapacity(e)}`,`Team ${directReports(game,e.id).length}/${e.department==='company'?2+game.business.teams.length:managerCapacity(e)}`);
     if(e.planeId)return game.fleet.find(p=>p.id===e.planeId)?.flight?say('执勤中','On duty'):say('已上岗','Assigned');
     if(e.airportId)return `${airportName(e.airportId,airport(e.airportId).city)} · ${say('已上岗','Assigned')}`;
     return say('待分配','Unassigned');
   }
   const node=(e:Employee)=><button type="button" key={e.id} className="org-person" data-employee-id={e.id} data-department={e.department}
-    data-state={e.paidUntil<=game.simTime?'expired':e.role==='specialist'&&!e.planeId&&!e.airportId?'waiting':'active'}
+    data-state={e.department==='business'?'active':e.paidUntil<=game.simTime?'expired':e.role==='specialist'&&!e.planeId&&!e.airportId?'waiting':'active'}
     aria-label={say(`查看${name(e)} · ${roleLabel(e,false)}`,`View ${name(e)} · ${roleLabel(e,true)}`)} aria-pressed={selectedId===e.id} onClick={()=>select(e.id)}>
     <span className="org-portrait-ring"><EmployeePortrait id={e.id} department={e.department}/></span>
     <strong>{name(e)}</strong><small>{roleLabel(e,en)}</small><em>{status(e)}</em>
   </button>;
   return <section className="company-organization" aria-label={say('公司组织管理','Company Organization Management')}>
     <div className="org-toolbar">
-      <span className="org-inline-summary">{say('员工','Staff')} <b>{people.length}/{MAX_EMPLOYEES}</b> · {say('待续约','Renewals')} <b>{people.filter(e=>e.paidUntil<=game.simTime).length}</b></span>
+      <span className="org-inline-summary">{say('员工','Staff')} <b>{people.length}/{employeeCapacity(game)}</b> · {say('待续约','Renewals')} <b>{people.filter(e=>e.department!=='business'&&e.paidUntil<=game.simTime).length}</b></span>
+      <span className="org-income" data-testid="business-net-income" title={say(`累计业务净收入 ${game.business.earned}金币`,`Business net earned: ${game.business.earned} coins`)}>+{businessRate(income.net)} {say("金币/秒","coins/s")}</span>
       <div className="org-heading-actions">
-        <button className="org-primary" aria-expanded={recruiting} onClick={()=>{setMarketPosition(null);setRecruiting(!recruiting);}}>{say('人才市场','Talent Market')}</button>
+        <button type="button" aria-expanded={opening} onClick={()=>{setOpening(!opening);setRecruiting(false);}}>{say("扩张业务","Expand Business")}</button>
+        <button className="org-primary" aria-expanded={recruiting} onClick={()=>{setOpening(false);setMarketPosition(null);setRecruiting(!recruiting);}}>{say('人才市场','Talent Market')}</button>
       </div>
     </div>
     {view.error&&<p className="org-warning" role="alert">{text(view.error)}</p>}
-    {recruiting?<div ref={market} className="org-panel"><header><h3>{say('人才市场','Talent Market')}</h3><button onClick={()=>setRecruiting(false)}>{say('返回组织树','Back to organization')}</button></header>
+    {opening?<BusinessOpening game={game} busy={busy} send={send} close={()=>setOpening(false)}/>:recruiting?<div ref={market} className="org-panel"><header><h3>{say('人才市场','Talent Market')}</h3><button onClick={()=>setRecruiting(false)}>{say('返回组织树','Back to organization')}</button></header>
       <section className="org-recruit" aria-label={say('人才市场','Talent Market')}>
         <div className="talent-market-refresh"><span>{say('下次更新','Next refresh')}</span><strong data-testid="talent-refresh-countdown" data-next-refresh-at={refreshAt}>{refreshCountdown}</strong><small>{say('每30分钟更新一批候选人','New candidates every 30 minutes')}</small></div>
         <p>{say('招募后自动上岗；没有可用岗位时无法招募。','New hires are assigned automatically. An available position is required.')}</p>
@@ -93,7 +101,7 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport, initialEmp
             <div className="org-candidates">{game.talent.candidates.filter(c=>c.department===department&&c.role===role).map(c=><article className="org-candidate" key={c.id} data-candidate-id={c.id} aria-labelledby={`candidate-name-${c.id}`}>
               <div className="org-candidate-heading"><EmployeePortrait id={c.id} department={c.department}/><h4 className="org-candidate-name" id={`candidate-name-${c.id}`}>{c.name}</h4></div>
               <small>{roleLabel(c,en)}</small><span>{say('潜力','Potential')} <b>{c.potential}/10</b></span><span>{c.trait==='mentor'?say('善于带教','Mentor'):say('高效执行','Efficient')}</span>
-              <small>{c.department==='company'?say('统筹部门经理；本期无额外经营加成','Coordinates department managers; no extra operating bonuses yet'):c.trait==='mentor'?say('适合未来带领和培养团队','Suited to developing a future team'):say('适合执行岗位与团队覆盖','Suited to execution and team coverage')}</small>
+              <small>{c.department==='company'?say('直属业务团队获得管理加成，不重复计算运输收益','Adds a management bonus to reporting business teams, without duplicating transport income'):c.trait==='mentor'?say('适合未来带领和培养团队','Suited to developing a future team'):say('适合执行岗位与团队覆盖','Suited to execution and team coverage')}</small>
               <div className="org-candidate-terms">
                 {!assignment.reason&&<small className="org-candidate-assignment">{say(`自动分配：${assignmentTarget}`,`Auto-assign: ${assignmentTarget}`)}</small>}
                 <dl className="org-candidate-price"><div><dt>{say('招募费用','Hiring cost')}</dt><dd>{price.gold} {say('金币','coins')} + {price.tickets} {say('券','tickets')}</dd></div><div><dt>{say('续约薪资 / 7天','Pay / 7 days')}</dt><dd>{salary.gold} {say('金币','coins')} + {salary.tickets} {say('券','tickets')}</dd></div></dl>
@@ -108,14 +116,15 @@ export function CompanyOrganization({ game, busy, onPlane, onAirport, initialEmp
     </div>:<div className={`org-workspace${selected?' has-detail':''}`}>
       <div className="org-tree-area">
         <OrganizationTree width={layout.width} height={layout.height} layoutKey={layout.nodes.map(n=>`${n.employee.id}:${n.x}:${n.y}`).join('|')}>
-            <svg className="org-connections" width={layout.width} height={layout.height} aria-hidden="true">{layout.edges.map((edge,i)=><path key={i} d={edge.path} className={edge.direct?'org-direct-link':''}/>)}{layout.labels.map((label,i)=><text key={i} x={label.x} y={label.y} textAnchor="middle">{!en?label.text:label.text==='飞行部'?'Flight':label.text==='地勤部'?'Ground':'Player managed · manager optional'}</text>)}</svg>
+            <svg className="org-connections" width={layout.width} height={layout.height} aria-hidden="true">{layout.edges.map((edge,i)=><path key={i} d={edge.path} className={edge.direct?'org-direct-link':''}/>)}{layout.labels.map((label,i)=><text key={i} x={label.x} y={label.y} textAnchor="middle">{label.airportId?`${airportName(label.airportId,airport(label.airportId).city)} · ${en?label.businessName:label.text.split(' · ')[1]}`:!en?label.text:label.text==='飞行部'?'Flight':label.text==='地勤部'?'Ground':'Player managed · manager optional'}</text>)}</svg>
+            {layout.businessGroups.map(group=><button type="button" key={`collapse-${group.teamId}`} className="org-business-collapse" style={{left:group.x,top:group.y,width:172}} aria-expanded={!group.collapsed} aria-label={say(`切换业务团队${group.teamId}展开`,`Toggle business team ${group.teamId}`)} onClick={()=>setCollapsed(old=>{const next=new Set(old);if(next.has(group.teamId))next.delete(group.teamId);else next.add(group.teamId);return next;})}>{group.collapsed?say("展开团队","Expand team"):say("折叠团队","Collapse team")}</button>)}
             {layout.nodes.map(n=><div key={n.employee.id} className="org-node-position" style={{left:n.x,top:n.y,width:ORG_NODE_WIDTH,height:ORG_NODE_HEIGHT}}>{node(n.employee)}</div>)}
             {layout.vacant.map(v=><button className="org-vacancy" key={v.department} data-testid={v.department==='company'?'general-manager-slot':undefined} aria-label={say(`招募${roleLabel({department:v.department,role:'manager'},false)}`,`Recruit ${roleLabel({department:v.department,role:'manager'},true)}`)} style={{left:v.x,top:v.y,width:ORG_NODE_WIDTH,height:ORG_NODE_HEIGHT}} onClick={()=>{setMarketPosition(`${v.department}-manager`);setRecruiting(true);}}><strong>＋</strong><span>{say('待任命','Vacant')}</span><small>{roleLabel({department:v.department,role:'manager'},en)}</small><small>{say('非必需岗位','Optional role')}</small></button>)}
         </OrganizationTree>
       </div>
       {selected&&<aside className="org-detail" aria-label={say('员工详情','Employee Details')}>
         <header className="org-detail-title"><strong>{say('人员档案','Employee Profile')}</strong><button aria-label={say('收起人员档案','Collapse employee profile')} onClick={()=>setSelectedId(null)}>×</button></header>
-        <EmployeeDetail game={game} employee={selected} busy={busy} send={send} afford={afford} onPlane={onPlane} onAirport={onAirport} tab={tab} setTab={setTab}/>
+        {selected.department==="business"?<BusinessEmployeeDetail game={game} employee={selected} busy={busy} send={send}/>:<EmployeeDetail game={game} employee={selected} busy={busy} send={send} afford={afford} onPlane={onPlane} onAirport={onAirport} tab={tab} setTab={setTab}/>}
       </aside>}
     </div>}
   </section>;
@@ -143,7 +152,7 @@ function EmployeeDetail({game,employee:e,busy,send,afford,onPlane,onAirport,tab,
     <div className="org-detail-content" id="employee-panel" role="tabpanel" aria-labelledby={`employee-tab-${tab}`}>
       {tab==='assignment'?<>
         {e.role==='manager'?<>
-          <p>{e.department==='company'?say(`直属 ${directReports(game,e.id).length} 名部门经理。本期只负责组织汇报，不提供额外收益、培训折扣或补能加成。`,`${directReports(game,e.id).length} department managers report here. This role adds no revenue, training discount or service bonuses yet.`):say(`直属 ${directReports(game,e.id).length} 人，有效管理容量 ${managerCapacity(e)} 人。按员工编号覆盖前 ${managerCapacity(e)} 人；超编不影响基础运营。`,`${directReports(game,e.id).length} reports; capacity ${managerCapacity(e)}. Coverage uses employee ID order. Other staff retain basic operations.`)}</p>
+          <p>{e.department==='company'?say(`直属 ${directReports(game,e.id).length} 名经理。有效合同时，每级管理为直属业务团队增加1个百分点效率；不叠加航班收益、培训折扣或补能效果。`,`${directReports(game,e.id).length} managers report here. An active contract adds one percentage point of efficiency per management level to reporting business teams, not flight revenue, training discounts or service speed.`):say(`直属 ${directReports(game,e.id).length} 人，有效管理容量 ${managerCapacity(e)} 人。按员工编号覆盖前 ${managerCapacity(e)} 人；超编不影响基础运营。`,`${directReports(game,e.id).length} reports; capacity ${managerCapacity(e)}. Coverage uses employee ID order. Other staff retain basic operations.`)}</p>
           {e.department!=='company'&&<label>{say('直属上级','Reports to')}<select aria-label={say(`${name(e)}直属上级`,`${name(e)} manager`)} value={e.managerId??''} disabled={busy} onChange={event=>send({type:'report-to',employeeId:e.id,managerId:event.target.value?Number(event.target.value):null})}>
             <option value="">{say('玩家直管','Player managed')}</option>{staffIn(game,'company','manager').map(m=><option key={m.id} value={m.id}>{name(m)} · {roleLabel(m,en)}</option>)}
           </select></label>}
@@ -164,7 +173,7 @@ function EmployeeDetail({game,employee:e,busy,send,afford,onPlane,onAirport,tab,
           <button disabled={busy||!afford(contract)} onClick={()=>send({type:'renew-employee',employeeId:e.id})}>{say(`续付7天 · ${contract.gold}金币＋${contract.tickets}券`,`Renew 7 days · ${contract.gold} coins + ${contract.tickets} tickets`)}</button>
         </div>
       </>:tab==='training'?<>
-        {e.department==='company'?<p>{say('总经理可培养专业与管理能力至潜力上限；本期能力和特长不提供额外经营加成，也不支持内部转任。','The general manager can train professional and management skills up to their potential. Skills and traits add no operating bonuses yet; internal reassignment is unavailable.')}</p>:<>
+        {e.department==='company'?<p>{say('有效总经理每级管理为直属业务团队增加1个百分点经营效率；专业和特长不叠加业务收入，不支持内部转任。','An active general manager adds one percentage point of efficiency per management level to reporting business teams. Professional skills and traits add no business multiplier; internal reassignment remains unavailable.')}</p>:<>
         <div className="org-growth-path"><strong>{say('专业路线','Specialist path')}</strong><span>{say('入职 → 专业培养 → 业务骨干','Join → Professional training → Specialist')}</span><small>{e.department==='flight'?say('每级专业能力增加3%运输公司经验，不直接增加航班收入或速度。','Each professional level adds 3% transport company XP, not flight revenue or speed.'):say('每级专业能力提升2%补能效率，仅作用于负责机场的后续服务。','Each professional level improves future service efficiency at the assigned airport by 2%.')}</small></div>
         <div className="org-growth-path"><strong>{say('管理路线','Management path')}</strong><span>{say('专业基础 → 管理培养 → 晋升 → 带教','Professional basics → Management → Promotion → Mentoring')}</span><small>{say('经理提供有容量限制的培训支持；培养后代骨干，不设置退休或强制接班。','Managers support training within capacity limits. Develop successors without forced retirement.')}</small></div>
         </>}

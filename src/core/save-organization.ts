@@ -10,7 +10,7 @@ export function validateEmployees(s: GameState): void {
     if (!v || typeof v !== 'object' || Array.isArray(v) || Object.keys(v).sort().join('|') !== [...keys].sort().join('|')) fail();
   };
   const people = s.career.employees;
-  if (!Array.isArray(people) || people.length > MAX_EMPLOYEES) fail();
+  if (!Array.isArray(people) || people.length > MAX_EMPLOYEES + 3300 || people.filter(e => e && e.department !== 'business').length > MAX_EMPLOYEES) fail();
   const ids = new Set<number>(), planes = new Set<string>(), airports = new Set<string>();
   for (const e of people) {
     record(e, ['id','name','planeId','paidUntil','skill','department','role','managerId','airportId','management','potential','trait','joinedAt','flights','deliveries','history']);

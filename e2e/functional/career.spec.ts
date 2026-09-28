@@ -63,7 +63,7 @@ for (const [width, height] of [[1440, 900],[844, 390],[667, 375]])
     expect(decoded).toBe(true);
     await page.screenshot({ path: `artifacts/career-logistics-${width}.png` });
     const saved = await exportState(page);
-    expect(saved.version).toBe(14);
+    expect(saved.version).toBe(15);
     expect(saved.career.employees[0]?.planeId).toBe("AC0001");
     expect(saved.fleet[0]?.dispatcher).toBe(true);
     expect(saved.career.claimed).toContain("checkin-0");

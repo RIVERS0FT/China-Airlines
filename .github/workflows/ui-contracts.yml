@@ -6,6 +6,8 @@ on:
       - src/ui/**
       - src/main.tsx
       - e2e/**
+      - playwright.config.ts
+      - scripts/prepare-browser.mjs
       - .github/workflows/ui-contracts.yml
       - .github/workflows/ci.yml
 permissions:
@@ -29,9 +31,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - name: Install CJK fonts
-        run: sudo apt-get install -y fonts-noto-cjk
+      - name: Verify locked Chromium and provisioned system dependencies
+        run: node scripts/prepare-browser.mjs
       - name: Check common containers and browser interaction
         run: npx playwright test e2e/flows e2e/presentation/flight-animation.spec.ts e2e/presentation/start-map-i18n.spec.ts e2e/presentation/ui-workspace.spec.ts e2e/presentation/navigation-stability.spec.ts e2e/functional/browse-ux.spec.ts e2e/functional/energy.spec.ts e2e/functional/flight-board.spec.ts e2e/functional/fleet-entry.spec.ts e2e/functional/game.spec.ts e2e/functional/organization.spec.ts
       - name: Record failed verification context

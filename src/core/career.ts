@@ -647,6 +647,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       return "机场宣传已启动，持续1小时";
     }
     case "close-airport": {
+      guard(!s.business.teams.some(t => t.airportId === command.airportId), "该机场有业务团队，不能关闭");
       const id = command.airportId;
       guard(!c.employees.some(e => e.airportId === id), '请先调离当地地勤人员');
       guard(id !== "PEK", "初始枢纽不能关闭");

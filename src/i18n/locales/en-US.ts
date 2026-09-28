@@ -167,7 +167,7 @@ export const enUSMessages = {
   'settings.offlineReady': 'Ready',
   'settings.offlineFirst': 'Cache not ready',
   'settings.offlineLimit': 'Offline progress: up to 8 hours',
-  'settings.saveCompatibilityHelp': 'v14 saves only. Imports do not add offline progress.',
+  'settings.saveCompatibilityHelp': 'v15 saves only. Imports do not add offline progress.',
   'settings.persistence': 'Persistent Local Storage',
   'settings.persistenceApply': 'Request',
   'settings.persistenceUnsupported': 'This browser does not support persistent-storage requests.',
