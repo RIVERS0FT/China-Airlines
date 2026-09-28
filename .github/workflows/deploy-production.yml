@@ -4,9 +4,20 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Exact merged main revision requested by the delivery controller
+        required: false
+        type: string
+      delivery_pr:
+        description: Delivery PR number
+        required: false
+        type: string
 
 permissions:
   contents: read
+  actions: read
+  pull-requests: read
 
 concurrency:
   group: china-airlines-production
@@ -14,14 +25,12 @@ concurrency:
 
 jobs:
   verify:
-    name: Verify game (shard ${{ matrix.shard }}/4)
+    name: Prepare verified game
     if: github.repository == 'meviu523/China-Airlines' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 50
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
+    runs-on: [self-hosted, Linux, X64, china-airlines-center]
+    timeout-minutes: 90
+    outputs:
+      public_url: ${{ steps.target.outputs.public_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,36 +38,44 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-      - name: Install and verify
+      - name: Check center artifact storage
+        run: node .github/scripts/center-artifacts.cjs check
+      - name: Load deployment configuration
+        id: target
+        run: node scripts/deployment-config.mjs
+      - name: Reject superseded or mismatched delivery
         env:
-          BASE_PATH: /china-airlines/
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          test -z "$EXPECTED_SHA" || test "$EXPECTED_SHA" = "$GITHUB_SHA"
+          test "$(git ls-remote --exit-code origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
+      - name: Install exact locked dependencies
+        run: npm ci --prefer-offline --no-audit
+      - name: Verify locked Chromium and provisioned system dependencies
+        run: node scripts/prepare-browser.mjs
+      - name: Reuse only identical fully verified PR content
+        id: verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/verification-receipt.cjs reuse
+      - name: Full verification when no matching receipt exists
+        if: steps.verification.outputs.reused != 'true'
         run: |
           set -euo pipefail
-          npm ci
+          mkdir -p artifacts
+          npm audit --audit-level=moderate
           npm run typecheck
           npm test
-          npm run build
-          node scripts/prepare-browser.mjs
-          npm run test:e2e -- --shard=${{ matrix.shard }}/4
-      - name: Record failed verification context
-        if: failure()
-        run: |
-          mkdir -p test-results
-          node -e "require('node:fs').writeFileSync('test-results/failure-context.json', JSON.stringify({runId:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,sha:process.env.GITHUB_SHA,job:process.env.GITHUB_JOB}))"
-      - name: Upload failed verification evidence
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: failure-evidence-${{ github.run_id }}-${{ github.run_attempt }}-production-${{ matrix.shard }}
-          path: |
-            artifacts/
-            playwright-report/
-            test-results/
-          if-no-files-found: error
-          retention-days: 90
+          BASE_PATH='' npm run build
+          BASE_PATH='' npm run test:e2e
+          BASE_PATH=/china-airlines/ npm run build
+          BASE_PATH=/china-airlines/ npm run test:e2e
+      - name: Build the exact main revision for production
+        if: steps.verification.outputs.reused == 'true'
+        env:
+          BASE_PATH: /china-airlines/
+        run: npm run build
       - name: Check current main and package this revision
-        if: matrix.shard == 1
         run: |
           set -euo pipefail
           main_sha="$(git ls-remote --exit-code origin refs/heads/main | cut -f1)"
@@ -73,35 +90,36 @@ jobs:
           printf '%s\n' "$GITHUB_SHA" > dist/release.txt
           tar -C dist -czf "$RUNNER_TEMP/china-airlines.tgz" .
           (cd "$RUNNER_TEMP" && sha256sum china-airlines.tgz > china-airlines.tgz.sha256)
-      - uses: actions/upload-artifact@v4
-        if: matrix.shard == 1
-        with:
-          name: china-airlines-production-${{ github.sha }}-${{ github.run_id }}
-          path: |
-            ${{ runner.temp }}/china-airlines.tgz
-            ${{ runner.temp }}/china-airlines.tgz.sha256
-          if-no-files-found: error
-          retention-days: 1
-          # Rerunning only a different shard must still find this verified package.
-          overwrite: true
+      - name: Save verified release on center
+        run: node .github/scripts/center-artifacts.cjs save-release
+      - name: Save failed verification evidence on center
+        if: failure()
+        run: node .github/scripts/center-artifacts.cjs save-failure production
 
   deploy:
     name: Deploy verified game
     needs: verify
     if: needs.verify.result == 'success'
-    runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 15
+    runs-on: [self-hosted, Linux, X64, china-airlines-center]
+    timeout-minutes: 25
     environment:
       name: production
-      url: https://riversoft.top/china-airlines/
+      url: ${{ needs.verify.outputs.public_url }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
-      - uses: actions/download-artifact@v4
+      - uses: actions/setup-node@v4
         with:
-          name: china-airlines-production-${{ github.sha }}-${{ github.run_id }}
-          path: ${{ runner.temp }}/china-airlines-artifact
+          node-version: '22'
+      - name: Restore and verify release from center
+        run: node .github/scripts/center-artifacts.cjs restore-release
+      - name: Load deployment configuration
+        run: node scripts/deployment-config.mjs
+      - name: Prepare public browser acceptance
+        run: |
+          npm ci --prefer-offline --no-audit
+          node scripts/prepare-browser.mjs
       - name: Check current main and publish verified package
         env:
           DEPLOY_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -110,9 +128,10 @@ jobs:
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = 'meviu523/China-Airlines'
           test "$GITHUB_REF" = 'refs/heads/main'
-          test "$RUNNER_NAME" = 'VM-0-10-debian'
+          test "$RUNNER_NAME" = "$CENTER_RUNNER"
           main_sha="$(git ls-remote --exit-code origin refs/heads/main | cut -f1)"
           test "$main_sha" = "$GITHUB_SHA"
+          known_hosts="$GITHUB_WORKSPACE/deploy/known_hosts"
           cd "$RUNNER_TEMP/china-airlines-artifact"
           sha256sum --check --strict china-airlines.tgz.sha256
           archive_sha="$(sha256sum china-airlines.tgz | cut -d' ' -f1)"
@@ -120,20 +139,28 @@ jobs:
           trap 'rm -f "$key_file"' EXIT
           chmod 600 "$key_file"
           printf '%s\n' "$CHINA_AIRLINES_DEPLOY_KEY" > "$key_file"
-          ssh -i "$key_file" -p 2222 -o IdentitiesOnly=yes \
+          ssh -i "$key_file" -p "$DEPLOY_PORT" -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=yes \
-            -o UserKnownHostsFile="$GITHUB_WORKSPACE/deploy/known_hosts" \
-            deploy@116.204.134.56 \
+            -o UserKnownHostsFile="$known_hosts" \
+            "$DEPLOY_TARGET" \
             "publish $DEPLOY_ID $GITHUB_SHA $archive_sha" < china-airlines.tgz
           test "$(curl --fail --silent --show-error --header 'Cache-Control: no-cache' \
-            "https://riversoft.top/china-airlines/release.txt?release=$GITHUB_SHA")" = "$GITHUB_SHA"
+            "${PUBLIC_URL}release.txt?release=$GITHUB_SHA")" = "$GITHUB_SHA"
+      - name: Verify public assets match the published package
+        run: node scripts/verify-production.mjs
+      - name: Public browser acceptance including offline and save restore
+        run: npx playwright test --config playwright.production.config.ts
+      - name: Save failed deployment evidence on center
+        if: failure()
+        run: node .github/scripts/center-artifacts.cjs save-failure deploy
       - name: Record public acceptance
         run: |
           {
             echo '### China Airlines production'
             echo
             echo "- Game revision: \`$GITHUB_SHA\`"
-            echo '- URL: https://riversoft.top/china-airlines/'
+            echo "- URL: $PUBLIC_URL"
             echo '- Release: checksum-verified, previous immutable revision kept for rollback'
             echo '- Public checks: index, service worker, manifest and release identity match the package'
+            echo '- Public browser acceptance: new company, save restore, offline start and responsive layouts passed'
           } >> "$GITHUB_STEP_SUMMARY"

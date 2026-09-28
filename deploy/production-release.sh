@@ -2,6 +2,9 @@
 set -Eeuo pipefail
 umask 022
 
+readonly script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$script_dir/china-airlines-server.conf"
+
 artifact_dir="${1:-}"
 deploy_id="${2:-}"
 expected_sha="${3:-}"
@@ -11,8 +14,8 @@ expected_sha="${3:-}"
 }
 [[ "$(id -un)" == deploy ]] || { echo 'Deployment must run as deploy' >&2; exit 1; }
 
-readonly web_root=/var/www/riversoft
-readonly releases_root=/var/www/riversoft-games/releases
+readonly web_root="$GAME_WEB_ROOT"
+readonly releases_root="$GAME_DATA_ROOT/releases"
 readonly release_dir="$releases_root/$deploy_id"
 readonly live_link="$web_root/china-airlines"
 readonly candidate_link="$web_root/.china-airlines-$deploy_id"
@@ -20,7 +23,7 @@ readonly candidate_link="$web_root/.china-airlines-$deploy_id"
 [[ -d "$releases_root" && ! -L "$releases_root" && "$(readlink -f "$releases_root")" == "$releases_root" ]] || exit 1
 [[ ! -e "$release_dir" && ! -e "$candidate_link" && ! -L "$candidate_link" ]] || exit 1
 [[ ! -e "$live_link" || -L "$live_link" ]] || { echo 'Existing game path is not a release link' >&2; exit 1; }
-exec 9>/var/www/riversoft-games/deploy.lock
+exec 9>"$GAME_DATA_ROOT/deploy.lock"
 flock -x 9
 
 previous_release=''
@@ -75,10 +78,10 @@ for game_file in index.html sw.js manifest.webmanifest release.txt; do
   expected_hash="$(sha256sum "$release_dir/$game_file" | cut -d' ' -f1)"
   live_hash="$(curl --fail --silent --show-error --retry 6 --retry-delay 2 \
     --header 'Cache-Control: no-cache' \
-    "https://riversoft.top/china-airlines/$game_file?release=$expected_sha" | sha256sum | cut -d' ' -f1)"
+    "$GAME_PUBLIC_URL$game_file?release=$expected_sha" | sha256sum | cut -d' ' -f1)"
   [[ "$live_hash" == "$expected_hash" ]] || {
     echo "Public game file differs: $game_file" >&2; exit 1;
   }
 done
 trap - EXIT
-printf 'Published China Airlines %s at https://riversoft.top/china-airlines/\n' "$expected_sha"
+printf 'Published China Airlines %s at %s\n' "$expected_sha" "$GAME_PUBLIC_URL"

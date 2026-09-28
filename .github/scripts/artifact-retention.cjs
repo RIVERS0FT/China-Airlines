@@ -1,75 +1,59 @@
 'use strict';
 
-const workflows = new Set(['.github/workflows/ci.yml', '.github/workflows/deploy-production.yml', '.github/workflows/ui-contracts.yml']);
+const store = require('./center-artifacts.cjs');
 const failed = new Set(['failure', 'timed_out']);
+const workflows = {
+  '.github/workflows/ci.yml': /^(ci-(root|subpath)-[1-4]|ci-full)$/,
+  '.github/workflows/ui-contracts.yml': /^ui-contracts$/,
+  '.github/workflows/deploy-production.yml': /^(production-[1-4]|production|deploy)$/,
+};
 
-function classify(repository, artifact) {
-  const current = /^failure-evidence-(\d+)-(\d+)-[a-z0-9-]+$/.exec(artifact.name);
-  if (current) return Number(current[1]) === artifact.workflow_run?.id && Number(current[2]) > 0
-    ? { type: 'report', attempt: Number(current[2]) } : null;
-  if (repository === 'riversoft.top') {
-    if (artifact.name === 'browser-previews' || /^production-browser-previews-[a-f0-9]{40}-\d+$/.test(artifact.name)) return { type: 'report' };
-    if (/^production-release-[a-f0-9]{40}-\d+$/.test(artifact.name)) return { type: 'release' };
-  }
-  if (repository === 'China-Airlines') {
-    if (['ui-contract-reports', 'ui-contract-evidence'].includes(artifact.name)) return { type: 'report' };
-    if (/^china-airlines-(?:reports|verification)-(?:root|subpath)-[1-4]$/.test(artifact.name)
-      || /^china-airlines-production-(?:reports|failure)-[a-f0-9]{40}-\d+-[1-4]$/.test(artifact.name)) return { type: 'report' };
-    if (/^china-airlines-production-[a-f0-9]{40}-\d+$/.test(artifact.name)) return { type: 'release' };
-  }
-  return null;
-}
-
-function retentionPlan(entries) {
-  const completed = entries.filter(entry => entry.run.status === 'completed');
-  // One failed attempt includes all its matrix shards. Only replace evidence once
-  // a newer failed attempt has actually uploaded artifacts; successful runs add none.
-  const failures = completed.filter(entry => entry.type === 'report' && failed.has(entry.run.conclusion));
-  const key = entry => `${entry.run.id}:${entry.run.run_attempt}`;
-  const time = entry => Date.parse(entry.run.updated_at);
-  failures.sort((a, b) => time(b) - time(a) || b.run.id - a.run.id || b.run.run_attempt - a.run.run_attempt);
+function retentionPlan(entries, now = Date.now()) {
+  const completed = entries.filter(entry => entry.run.status === 'completed' && entry.latest.status === 'completed');
+  const failures = completed.filter(entry => entry.meta.kind === 'report' && failed.has(entry.run.conclusion));
+  const key = entry => `${entry.meta.runId}:${entry.meta.attempt}`;
+  failures.sort((a, b) => Date.parse(b.run.updated_at) - Date.parse(a.run.updated_at)
+    || Number(b.meta.runId) - Number(a.meta.runId) || b.meta.attempt - a.meta.attempt);
   const keep = failures.length ? key(failures[0]) : null;
-  return completed.filter(entry => entry.type === 'release'
-    ? entry.run.conclusion === 'success'
-    : !failed.has(entry.run.conclusion) || key(entry) !== keep).map(entry => entry.artifact.id);
+  return completed.filter(entry => entry.meta.kind === 'release'
+    ? entry.latest.conclusion === 'success' || now - Date.parse(entry.meta.createdAt) >= store.DAY
+    : !failed.has(entry.run.conclusion) || key(entry) !== keep || now - Date.parse(entry.meta.createdAt) >= 90 * store.DAY);
 }
 
-async function prune({ github, context, core, dryRun = false }) {
+async function prune({ github, context, core, root = store.ROOT, dryRun = false, now = Date.now() }) {
   const { owner, repo } = context.repo;
-  if (owner !== 'meviu523' || !['riversoft.top', 'China-Airlines'].includes(repo)) throw new Error('Unexpected artifact retention repository.');
-  const artifacts = await github.paginate(github.rest.actions.listArtifactsForRepo, { owner, repo, per_page: 100 });
-  const entries = [], runs = new Map();
-  for (const artifact of artifacts) {
-    const classification = classify(repo, artifact);
-    if (!classification || !Number.isSafeInteger(artifact.workflow_run?.id)) continue;
-    const run_id = artifact.workflow_run.id;
-    const cacheKey = `${run_id}:${classification.attempt || 'latest'}`;
-    if (!runs.has(cacheKey)) {
-      const result = classification.attempt
-        ? await github.rest.actions.getWorkflowRunAttempt({ owner, repo, run_id, attempt_number: classification.attempt })
-        : await github.rest.actions.getWorkflowRun({ owner, repo, run_id });
-      runs.set(cacheKey, result.data);
+  if (`${owner}/${repo}` !== store.REPOSITORY) throw new Error('Unexpected artifact retention repository.');
+  const entries = [], runs = new Map(), attempts = new Map();
+  for (const entry of store.listEntries(root, message => core.warning(message))) {
+    const run_id = Number(entry.meta.runId), attempt_number = entry.meta.attempt;
+    const key = `${run_id}:${attempt_number}`;
+    try {
+      if (!runs.has(run_id)) runs.set(run_id, (await github.rest.actions.getWorkflowRun({ owner, repo, run_id })).data);
+      if (!attempts.has(key)) attempts.set(key, (await github.rest.actions.getWorkflowRunAttempt({ owner, repo, run_id, attempt_number })).data);
+    } catch (error) {
+      if (error.status !== 404) throw error;
+      core.warning(`Preserving ${entry.name}: workflow run no longer available.`);
+      continue;
     }
-    const run = runs.get(cacheKey);
-    // Never trust artifact names alone or execute/download artifact contents.
-    if (run.id !== run_id || !workflows.has(run.path) || !Number.isSafeInteger(run.run_attempt)
-      || !Number.isFinite(Date.parse(run.updated_at))) continue;
-    entries.push({ artifact, run, ...classification });
+    const run = attempts.get(key), latest = runs.get(run_id);
+    if (run.id !== run_id || run.run_attempt !== attempt_number || latest.id !== run_id
+      || !workflows[run.path] || !Number.isFinite(Date.parse(run.updated_at))) continue;
+    if (entry.meta.kind === 'report' && !workflows[run.path].test(entry.meta.group)) continue;
+    if (entry.meta.kind === 'release' && (run.path !== '.github/workflows/deploy-production.yml'
+      || run.head_sha !== entry.meta.sha || run.head_branch !== 'main')) continue;
+    entries.push({ ...entry, run, latest });
   }
-  const selected = new Set(retentionPlan(entries));
   const deleted = [];
-  for (const entry of entries) {
-    if (!selected.has(entry.artifact.id)) continue;
-    // A rerun may have started since the inventory. Its artifacts remain protected.
-    const latest = (await github.rest.actions.getWorkflowRun({ owner, repo, run_id: entry.run.id })).data;
-    if (latest.status !== 'completed') continue;
-    if (entry.type === 'release' && latest.conclusion !== 'success') continue;
-    if (!dryRun) await github.rest.actions.deleteArtifact({ owner, repo, artifact_id: entry.artifact.id });
-    deleted.push(entry.artifact.id);
-    core.info(`${dryRun ? 'Would remove' : 'Removed'} ${entry.artifact.id}: ${entry.artifact.name}`);
+  for (const entry of retentionPlan(entries, now)) {
+    const latest = (await github.rest.actions.getWorkflowRun({ owner, repo, run_id: Number(entry.meta.runId) })).data;
+    // Recheck right before deletion, including attempts started after inventory.
+    if (latest.status !== 'completed' || latest.run_attempt !== entry.latest.run_attempt) continue;
+    if (!dryRun) store.removeEntry(root, entry);
+    deleted.push(entry.name);
+    core.info(`${dryRun ? 'Would remove' : 'Removed'} center artifact: ${entry.name}`);
   }
-  core.info(`${dryRun ? 'Selected' : 'Removed'} ${deleted.length} artifacts; latest failure, active runs, logs and unknown artifacts preserved.`);
+  core.info(`${dryRun ? 'Selected' : 'Removed'} ${deleted.length} center artifacts; active runs and unknown files preserved.`);
   return deleted;
 }
 
-module.exports = { classify, retentionPlan, prune };
+module.exports = { retentionPlan, prune };

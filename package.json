@@ -7,10 +7,11 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "deliver": "node scripts/deliver.mjs",
     "predev": "node scripts/verify-aircraft-exteriors.mjs",
     "dev": "vite --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "pretest": "node --test .github/scripts/artifact-retention.test.cjs && node scripts/verify-aircraft-exteriors.mjs",
+    "pretest": "node --test .github/scripts/artifact-retention.test.cjs .github/scripts/center-artifacts.test.cjs .github/scripts/delivery.test.cjs && node scripts/verify-aircraft-exteriors.mjs",
     "test": "vitest run",
     "build": "node scripts/verify-aircraft-exteriors.mjs && node scripts/icons.mjs && tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",

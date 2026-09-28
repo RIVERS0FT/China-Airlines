@@ -4,18 +4,20 @@ on:
     workflows: [Verify, Deploy China Airlines production, UI contracts]
     types: [completed]
   workflow_dispatch:
+  schedule:
+    - cron: '23 3 * * *'
 permissions:
   contents: read
-  actions: write
+  actions: read
 concurrency:
   group: artifact-retention
   cancel-in-progress: false
 jobs:
   prune:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: [self-hosted, Linux, X64, china-airlines-center]
     timeout-minutes: 10
     steps:
-      # Privileged cleanup only executes default-branch code, never PR artifacts.
+      # Cleanup only executes default-branch code, never stored PR artifacts.
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
@@ -25,3 +27,5 @@ jobs:
           script: |
             const { prune } = require('./.github/scripts/artifact-retention.cjs');
             await prune({ github, context, core });
+            const state = require('./.github/scripts/delivery-state.cjs');
+            await state.prune({ request: async (method, route) => (await github.request(`${method} ${route}`)).data });

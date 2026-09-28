@@ -3,6 +3,7 @@ import { test, expect, type Page } from '../helpers/configured-airport.js';
 import { AIRPORTS, airport } from '../../src/core/catalog.js';
 import { GameCore } from '../helpers/configured-game.js';
 import { projectGeo, type GlobeCamera } from '../../src/ui/globe-geometry.js';
+import { MAP_LABEL_MOTION_MS } from '../../src/ui/map-label-motion.js';
 import { openCities, selectCity, launchRoute, routeDetails } from '../helpers/dispatch-helpers.js';
 const NOW = Date.parse('2026-09-12T00:00:00Z');
 async function ready(page: Page, fixedBusinessTime = false) {
@@ -130,9 +131,13 @@ test('an idle globe does not redraw for clock-only updates, but camera input pai
   await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
   await page.getByRole('button', { name: '制定航线', exact: true }).click();
   const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-renderer', 'ready');
-  // Measure idle paints only after the local sprite texture has finished loading.
+  // Texture readiness precedes the first layout/ResizeObserver frame. Let that
+  // frame and its finite label transition finish before measuring idle paints.
   await expect(host).toHaveAttribute('data-aircraft-status', 'ready');
-  await page.clock.runFor(100);
+  await page.clock.runFor(50);
+  await expect(host).toHaveAttribute('data-label-targets', /"id"/);
+  await page.clock.runFor(MAP_LABEL_MOTION_MS + 50);
+  await expect(host).toHaveAttribute('data-labels-animating', 'false');
   const frames = Number(await host.getAttribute('data-render-count')); expect(frames).toBeGreaterThan(0);
   await page.clock.runFor(500);
   await expect(host).toHaveAttribute('data-render-count', String(frames));

@@ -1,0 +1,40 @@
+name: Automatic delivery
+on:
+  workflow_run:
+    workflows: [Verify, Deploy China Airlines production]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: PR number to resume (requires a matching delivery request)
+        required: true
+        type: string
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: write
+  checks: read
+  statuses: read
+concurrency:
+  group: china-airlines-delivery-${{ github.event.workflow_run.id || inputs.pr }}
+  cancel-in-progress: false
+jobs:
+  delivery:
+    if: github.repository == 'meviu523/China-Airlines'
+    runs-on: [self-hosted, Linux, X64, china-airlines-center]
+    timeout-minutes: 10
+    steps:
+      # Privileged code always comes from main. Never execute PR code or stored
+      # artifacts here. This job does not install dependencies or build the game.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Advance delivery and report its result
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/delivery-controller.cjs

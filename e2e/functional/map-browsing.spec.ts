@@ -6,7 +6,9 @@ import { selectCity } from '../helpers/dispatch-helpers.js';
 
 async function ready(page: Page) {
   await prepareAirportSession(page);
-  await page.clock.install({ time: new Date('2026-09-13T02:00:00Z') });
+  // Browsing/input checks must not race the 10s autosave disabling a button.
+  // Keep real rendering/timers and command persistence, with fixed business time.
+  await page.clock.setFixedTime(new Date('2026-09-13T02:00:00Z'));
   await page.goto('./');
   await ensureConfiguredAirport(page);
   await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
@@ -48,7 +50,8 @@ for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 150], [667, 37
       await page.touchscreen.tap(box.x + city.x * scale, box.y + city.y * scale);
       const detail = page.getByRole('dialog', { name: '机场详情', exact: true });
       await expect(detail).toContainText('上海航空港');
-      await page.clock.runFor(50);
+      await expect.poll(async () => JSON.parse((await map.getAttribute('data-camera'))!) as GlobeCamera)
+        .toMatchObject({ lat: airport('PVG').lat, lon: airport('PVG').lon });
       const selectedCamera = await map.getAttribute('data-camera');
       await detail.getByRole('button', { name: '返回地图', exact: true }).click();
       await expect(map).toHaveAttribute('data-camera', selectedCamera!);
