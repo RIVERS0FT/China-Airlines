@@ -66,14 +66,10 @@ jobs:
           npm audit --audit-level=moderate
           npm run typecheck
           npm test
-          BASE_PATH='' npm run build
-          BASE_PATH='' npm run test:e2e
-          BASE_PATH=/china-airlines/ npm run build
-          BASE_PATH=/china-airlines/ npm run test:e2e
+          npm run build
+          npm run test:e2e
       - name: Build the exact main revision for production
         if: steps.verification.outputs.reused == 'true'
-        env:
-          BASE_PATH: /china-airlines/
         run: npm run build
       - name: Check current main and package this revision
         run: |

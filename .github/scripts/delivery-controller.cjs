@@ -4,8 +4,8 @@ const path = require('node:path');
 const { api, pages, redact, REPOSITORY, PREFIX } = require('./github-api.cjs');
 const store = require('./center-artifacts.cjs');
 const state = require('./delivery-state.cjs');
-const { proof } = require('./verification-receipt.cjs');
-const REQUEST = /^<!-- china-airlines-delivery-request:([a-f0-9]{40}) -->$/m;
+const { CONTRACT, proof } = require('./verification-receipt.cjs');
+const REQUEST = new RegExp(`^<!-- china-airlines-delivery-request(?:-v${CONTRACT})?:([a-f0-9]{40}) -->$`, 'm');
 const STATUS = '<!-- china-airlines-delivery-status -->';
 
 async function requestFor(request, pr) {

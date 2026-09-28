@@ -7,7 +7,7 @@ const path = require('node:path');
 const store = require('./center-artifacts.cjs');
 const state = require('./delivery-state.cjs');
 const { PREFIX, REPOSITORY, redact } = require('./github-api.cjs');
-const { validate, proof, reusable } = require('./verification-receipt.cjs');
+const { CONTRACT, validate, browserCount, proof, reusable } = require('./verification-receipt.cjs');
 const { deliver, dispatch, complete, requestFor, failureDetails } = require('./delivery-controller.cjs');
 const HEAD = 'a'.repeat(40), BASE = 'b'.repeat(40), MERGE = 'c'.repeat(40), TREE = 'd'.repeat(40), MAIN = 'e'.repeat(40);
 
@@ -18,9 +18,9 @@ function fixture(t) {
     assert.ok(path.basename(root).startsWith('china-airlines-delivery-test-'));
     fs.rmSync(root, { recursive: true });
   });
-  const environment = { contract: 1, node: 'v22.23.3', npm: '10', platform: 'linux', lock: 'locked' };
-  const receipt = { version: 1, repository: REPOSITORY, runId: '10', attempt: 1, pr: 14, head: HEAD,
-    base: BASE, commit: MERGE, tree: TREE, environment, tests: { root: 255, subpath: 255 }, createdAt: new Date().toISOString() };
+  const environment = { contract: CONTRACT, node: 'v22.23.3', npm: '10', platform: 'linux', lock: 'locked' };
+  const receipt = { version: CONTRACT, repository: REPOSITORY, runId: '10', attempt: 1, pr: 14, head: HEAD,
+    base: BASE, commit: MERGE, tree: TREE, environment, tests: { browser: 255 }, createdAt: new Date().toISOString() };
   state.write(root, 'verification-10-1.json', receipt);
   const repo = { full_name: REPOSITORY };
   const pr = { number: 14, state: 'open', draft: false, merged: false, head: { sha: HEAD, repo }, base: { sha: BASE, ref: 'main', repo } };
@@ -77,6 +77,14 @@ test('permission, explicit current-head intent, drafts and foreign repositories 
   await assert.rejects(deliver({ ...f, prNumber: 14, env: {} }), /same-repository/);
 });
 
+test('current contract delivery requests are accepted but other versions cannot authorize a merge', async t => {
+  const f = fixture(t);
+  f.comments[0].body = `<!-- china-airlines-delivery-request-v${CONTRACT}:${HEAD} -->`;
+  assert.equal((await requestFor(f.request, f.pr)).id, 1);
+  f.comments[0].body = `<!-- china-airlines-delivery-request-v99:${HEAD} -->`;
+  assert.equal(await requestFor(f.request, f.pr), null);
+});
+
 test('failed, cancelled, skipped or missing required checks never merge', async t => {
   for (const conclusion of ['failure', 'cancelled', 'skipped', 'timed_out', null]) {
     const f = fixture(t); f.jobs[0].conclusion = conclusion;
@@ -101,10 +109,10 @@ test('other pending checks, newer attempts, stale main and changed head cannot u
 
 test('failure notifications preserve useful errors and never start deployment', async t => {
   const f = fixture(t); f.run.conclusion = 'failure'; f.jobs[0].conclusion = 'failure';
-  f.jobs[0].steps = [{ name: 'Full root browser verification', conclusion: 'failure' }];
+  f.jobs[0].steps = [{ name: 'Full browser verification', conclusion: 'failure' }];
   const result = await deliver({ ...f, prNumber: 14, env: {} });
   assert.match(result.failures[0].log, /expected 2, received 7/);
-  assert.deepEqual(result.failures[0].steps, ['Full root browser verification']);
+  assert.deepEqual(result.failures[0].steps, ['Full browser verification']);
   assert.ok(!f.calls.some(c => c.method === 'PUT' || c.route.endsWith('/dispatches')));
 });
 
@@ -119,9 +127,19 @@ test('production reuses only identical tree, runtime, merged identity and succes
 
 test('expired, incomplete and altered receipt identities are refused', async t => {
   const f = fixture(t);
-  for (const value of [{ ...f.receipt, createdAt: '2020-01-01' }, { ...f.receipt, tests: { root: 255, subpath: 0 } },
+  for (const value of [{ ...f.receipt, createdAt: '2020-01-01' }, { ...f.receipt, tests: { browser: 0 } },
+    { ...f.receipt, version: 1, environment: { ...f.environment, contract: 1 }, tests: { root: 255, subpath: 255 } },
     { ...f.receipt, tree: '../outside' }, { ...f.receipt, repository: 'someone/else' }]) assert.throws(() => validate(value), /Invalid/);
   await assert.rejects(proof(f.request, { ...f.receipt, tree: HEAD }), /content or parents/);
+});
+
+test('one complete relative-path browser report is sufficient; incomplete results never qualify', () => {
+  const report = { stats: { expected: 255, unexpected: 0, flaky: 0, skipped: 0 }, errors: [] };
+  assert.equal(browserCount(report), 255);
+  for (const stats of [{ expected: 0 }, { unexpected: 1 }, { flaky: 1 }, { skipped: 1 }]) {
+    assert.throws(() => browserCount({ ...report, stats: { ...report.stats, ...stats } }), /Incomplete/);
+  }
+  assert.throws(() => browserCount({ ...report, errors: [{ message: 'Global teardown failed' }] }), /Incomplete/);
 });
 
 test('delivery state writes are atomic, immutable and reject path traversal and symlinks', t => {

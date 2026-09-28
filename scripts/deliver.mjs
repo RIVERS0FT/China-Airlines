@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import deployment from '../deploy/targets.json' with { type: 'json' };
+import { CONTRACT } from '../.github/scripts/verification-receipt.cjs';
 
 // Explicit paths only: never stage an unrelated dirty file or commit secrets.
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -51,20 +52,32 @@ if (!pr) {
   if (!message) throw new Error('--message is required when creating a PR.');
   const bodyFile = path.join('artifacts', 'delivery-pr-body.md');
   fs.mkdirSync('artifacts', { recursive: true });
-  fs.writeFileSync(bodyFile, `${message}\n\n完整类型、单元、资源、双路径构建及浏览器验收由 Verify 执行。未完成的检查不计为通过。\n`);
+  fs.writeFileSync(bodyFile, `${message}\n\n完整类型、单元、资源、相对路径构建及一次全量浏览器验收由 Verify 执行。未完成的检查不计为通过。\n`);
   gh('pr', 'create', '--base', 'main', '--head', branch, '--title', message, '--body-file', bodyFile);
   pr = JSON.parse(gh('pr', 'view', branch, '--json', 'number,url'));
 }
 if (release) {
   const requestFile = path.join('artifacts', 'delivery-request.md');
   fs.mkdirSync('artifacts', { recursive: true });
-  fs.writeFileSync(requestFile, `<!-- china-airlines-delivery-request:${sha} -->\n请求对此提交完成验证、squash 合并及生产部署；失败时停止并回报日志。\n`);
+  fs.writeFileSync(requestFile, `<!-- china-airlines-delivery-request-v${CONTRACT}:${sha} -->\n请求对此提交完成验证、squash 合并及生产部署；失败时停止并回报日志。\n`);
   gh('pr', 'comment', String(pr.number), '--body-file', requestFile);
-  // Handles an already-completed CI run without waiting for another event.
-  // First installation is bootstrapped separately because the workflow must
-  // exist on main before GitHub can receive workflow_run events.
+  // A receipt contract upgrade cannot be consumed by the old main controller.
+  // Its versioned request is ignored there; the fixed-head local bridge uses
+  // the new validator and the same checks until main has the new contract.
   const mainWorkflow = git('ls-tree', 'origin/main', '--', '.github/workflows/delivery.yml');
-  if (mainWorkflow) gh('workflow', 'run', 'delivery.yml', '--ref', 'main', '-f', `pr=${pr.number}`);
-  else console.error('Automatic delivery workflow is not available on main yet; initial bootstrap is required.');
+  const mainReceipt = git('ls-tree', 'origin/main', '--', '.github/scripts/verification-receipt.cjs');
+  const mainContract = mainReceipt ? Number(/const CONTRACT = (\d+);/.exec(git('show', 'origin/main:.github/scripts/verification-receipt.cjs'))?.[1]) : 0;
+  if (mainWorkflow && mainContract === CONTRACT) gh('workflow', 'run', 'delivery.yml', '--ref', 'main', '-f', `pr=${pr.number}`);
+  else {
+    const log = fs.openSync(`artifacts/delivery-${pr.number}-bootstrap.log`, 'a');
+    const error = fs.openSync(`artifacts/delivery-${pr.number}-bootstrap-error.log`, 'a');
+    const watcher = spawn(process.execPath, ['scripts/watch-delivery.mjs', String(pr.number), sha], {
+      cwd: root, detached: true, windowsHide: true, stdio: ['ignore', log, error],
+    });
+    fs.closeSync(log); fs.closeSync(error);
+    watcher.on('error', failure => { console.error(`Delivery bridge failed: ${failure.message}`); process.exitCode = 1; });
+    watcher.unref();
+    console.log(`Receipt contract ${mainContract} -> ${CONTRACT}: background delivery bridge PID ${watcher.pid}.`);
+  }
 }
 console.log(JSON.stringify({ pr: pr.number, url: pr.url, sha, automaticDelivery: release, status: 'submitted' }, null, 2));

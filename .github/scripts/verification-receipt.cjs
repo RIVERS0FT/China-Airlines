@@ -6,7 +6,7 @@ const store = require('./center-artifacts.cjs');
 const state = require('./delivery-state.cjs');
 const { api, pages, PREFIX, REPOSITORY } = require('./github-api.cjs');
 const SHA = /^[a-f0-9]{40}$/;
-const CONTRACT = 1;
+const CONTRACT = 2;
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
 
 function environment(workspace = process.cwd()) {
@@ -29,10 +29,19 @@ function validate(receipt, now = Date.now()) {
     || ![receipt.head, receipt.base, receipt.commit, receipt.tree].every(s => SHA.test(s || ''))
     || !Number.isFinite(Date.parse(receipt.createdAt)) || now - Date.parse(receipt.createdAt) > store.DAY
     || Date.parse(receipt.createdAt) > now + 300_000 || receipt.environment?.contract !== CONTRACT
-    || !['root', 'subpath'].every(name => Number.isSafeInteger(receipt.tests?.[name]) && receipt.tests[name] > 0)) {
+    || !Number.isSafeInteger(receipt.tests?.browser) || receipt.tests.browser < 1) {
     throw new Error('Invalid or expired full-verification receipt.');
   }
   return receipt;
+}
+
+function browserCount(report) {
+  const stats = report.stats;
+  if (!stats || !Number.isSafeInteger(stats.expected) || stats.expected < 1 || stats.unexpected !== 0
+    || stats.flaky !== 0 || stats.skipped !== 0 || !Array.isArray(report.errors) || report.errors.length > 0) {
+    throw new Error('Incomplete browser verification.');
+  }
+  return stats.expected;
 }
 
 function save(env = process.env, root = store.ROOT) {
@@ -43,14 +52,7 @@ function save(env = process.env, root = store.ROOT) {
   const identity = store.identity(env), event = JSON.parse(fs.readFileSync(env.GITHUB_EVENT_PATH, 'utf8'));
   const pr = event.pull_request;
   if (pr.head.repo.full_name !== REPOSITORY || pr.base.repo.full_name !== REPOSITORY || pr.base.ref !== 'main') throw new Error('Untrusted PR.');
-  const tests = {};
-  for (const name of ['root', 'subpath']) {
-    const stats = JSON.parse(fs.readFileSync(`artifacts/browser-${name}.json`, 'utf8')).stats;
-    if (!stats || stats.expected < 1 || stats.unexpected !== 0 || stats.flaky !== 0 || stats.skipped !== 0) {
-      throw new Error(`Incomplete browser verification: ${name}`);
-    }
-    tests[name] = stats.expected;
-  }
+  const tests = { browser: browserCount(JSON.parse(fs.readFileSync('artifacts/browser.json', 'utf8'))) };
   if (git('rev-parse', 'HEAD') !== env.GITHUB_SHA) throw new Error('Checkout does not match the tested revision.');
   const receipt = validate({ version: CONTRACT, ...identity, createdAt: new Date().toISOString(), pr: pr.number,
     head: pr.head.sha, base: pr.base.sha, commit: env.GITHUB_SHA, tree: git('rev-parse', 'HEAD^{tree}'),
@@ -109,5 +111,5 @@ async function main() {
   fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\nFull verification reused: ${result.reused}. ${result.reason}\n`);
 }
 
-module.exports = { CONTRACT, environment, validate, proof, reusable, save };
+module.exports = { CONTRACT, environment, validate, browserCount, proof, reusable, save };
 if (require.main === module) main().catch(error => { console.error(error.message); process.exitCode = 1; });

@@ -37,21 +37,9 @@ jobs:
         run: npm test -- --reporter=default --reporter=json --outputFile=artifacts/unit-tests.json
       - name: Verify locked Chromium and provisioned system dependencies
         run: node scripts/prepare-browser.mjs
-      - name: Root production build
-        env:
-          BASE_PATH: ''
+      - name: Relative-path production build
         run: npm run build
-      - name: Full root browser verification
-        env:
-          BASE_PATH: ''
-        run: npm run test:e2e
-      - name: Subpath production build
-        env:
-          BASE_PATH: /china-airlines/
-        run: npm run build
-      - name: Full subpath browser verification including UI contracts
-        env:
-          BASE_PATH: /china-airlines/
+      - name: Full browser verification including UI contracts
         run: npm run test:e2e
       - name: Record complete verification identity
         if: github.event_name == 'pull_request'

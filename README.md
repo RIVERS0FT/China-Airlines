@@ -34,9 +34,9 @@ node scripts/prepare-browser.mjs
 npm run test:e2e
 ```
 
-`npm test` 与 `npm run test:e2e` 执行完整集合，推送时必须分别完成根路径与 `/china-airlines/` 子路径构建和完整浏览器验收。锁定 Chromium、系统依赖和中文字体检查见 [浏览器 Runner](docs/BROWSER-RUNNER.md)。
+`npm test` 与 `npm run test:e2e` 执行完整集合，推送后由CI执行一次相对路径构建和一次完整浏览器验收，不再重复运行根路径测试。锁定 Chromium、系统依赖和中文字体检查见 [浏览器 Runner](docs/BROWSER-RUNNER.md)。
 
-生产子路径构建使用 `BASE_PATH=/china-airlines/`，正式入口为 `https://riversoft.top/china-airlines/`。本仓库的生产工作流从 `main` 验证，并由已有自建 Runner 通过受限 SSH 发布游戏；RIVERSOFT 工作流保留主站路由与游戏文件，不再打包游戏。游戏仓库不再自动发布 GitHub Pages。生产产物必须通过 HTTP/HTTPS 托管，不能直接双击 HTML。推送时的完整验收覆盖桌面和手机横屏、竖屏提示、刷新恢复、导入导出与离线启动。
+项目始终使用 `base: ./` 构建，部署位置由riversoft.top决定；当前正式入口为 `https://riversoft.top/china-airlines/`。本仓库的生产工作流从 `main` 验证，并由已有自建 Runner 通过受限 SSH 发布游戏；RIVERSOFT 工作流保留主站路由与游戏文件，不再打包游戏。游戏仓库不再自动发布 GitHub Pages。生产产物必须通过 HTTP/HTTPS 托管，不能直接双击 HTML。推送时的完整验收覆盖桌面和手机横屏、竖屏提示、刷新恢复、导入导出与离线启动。
 
 开发约定见 [AGENTS.md](AGENTS.md)，部署及交付边界见 [DELIVERY.md](docs/DELIVERY.md)。源码完成、构建成功与站点部署是三个独立结果；没有部署回执时不得宣称已上线。
 

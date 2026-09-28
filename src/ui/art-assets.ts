@@ -1,4 +1,4 @@
-/** Versioned local assets; BASE_URL supports both root and Pages subpath builds. */
+/** Versioned relative assets; the host chooses the game's mount point. */
 export const artAsset = (file: string) => `${import.meta.env.BASE_URL}art/${file}`;
 
 export const BUTTON_ART: Readonly<Record<string, string>> = {
