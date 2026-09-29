@@ -35,7 +35,7 @@ test('purchase, export, invalid import, and valid restore',async({page})=>{
   await page.getByLabel('选择存档文件').setInputFiles({name:'broken.json',mimeType:'application/json',buffer:Buffer.from('{broken')});
   await expect(page.getByRole('alert')).toContainText('无法解析');await expect(page.getByTestId('credits')).toHaveText(credits!);
   await page.getByRole('button',{name:'关闭存档设置'}).click();await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
-  await settings(page);await page.getByRole('button',{name:'重新开始',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('0 架');
+  await settings(page);await page.getByRole('button',{name:'重新开始',exact:true}).click();await page.getByRole('button',{name:'创建公司并启航',exact:true}).click();await page.getByRole('button',{name:'存档设置',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('0 架');
   await page.getByLabel('选择存档文件').setInputFiles({name:'valid.json',mimeType:'application/json',buffer:Buffer.from(raw)});
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架');await expect(page.getByTestId('credits')).toHaveText(credits!);
 });

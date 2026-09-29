@@ -11,6 +11,7 @@ import { formatDuration, formatMoney, LanguagePicker, useI18n } from '../i18n/I1
 import { GameDialog } from './components/GameDialog.js';
 import { PageToolbar } from './layout/PageFrame.js';
 import { usePageState } from './shell/PageState.js';
+import { CompanySetup } from './CompanySetup.js';
 export const money = formatMoney;
 export const duration = formatDuration;
 export const ignore = (promise: Promise<unknown>) => { void promise.catch(()=>undefined); };
@@ -20,10 +21,11 @@ export function Icon({name}:{name:string}) {
   const paths:Record<string,string>={plane:'m21 3-5 12-6 1-4 5-2-2 3-5-5-3 1-2 7 1 8-7Z',map:'m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Zm6-3v15m6-12v15',fleet:'M4 18h16M7 14h10M12 3v10m-7-4 7-3 7 3m-11 5 4-2 4 2',shop:'M3 9h18l-2-6H5ZM5 9v12h14V9M9 21v-7h6v7',task:'M8 4H5v17h14V4h-3M8 2h8v5H8Zm0 11 2 2 5-5m-7 8h7',save:'M4 3h13l4 4v14H3V3Zm3 0v6h10V3M7 21v-8h10v8',check:'m4 12 5 5L20 6',rotate:'M7 3h10v18H7ZM3 5 1 8l2 3M21 19l2-3-2-3'};
   return <svg className="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]||paths.plane}/></svg>;
 }
-export function Settings({onClose}:{onClose:()=>void}) {
+export function Settings({onClose,onRestart}:{onClose:()=>void;onRestart?:()=>void}) {
   const view=useGame(), input=useRef<HTMLInputElement>(null);
   const {locale,t,text}=useI18n();
   const [storageMessage,setStorageMessage]=useState('');
+  const [restarting,setRestarting]=useState(false);
   async function exportSave(){try{const raw=await controller.export();const url=URL.createObjectURL(new Blob([raw],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`china-airlines-${new Date().toISOString().slice(0,10)}.json`;a.click();window.setTimeout(()=>URL.revokeObjectURL(url),1000);}catch{/* Controller displays the error. */}}
   async function readFile(file:File|undefined){
     if(!file)return;
@@ -31,7 +33,7 @@ export function Settings({onClose}:{onClose:()=>void}) {
     if(!window.confirm(t('settings.importConfirm')))return;
     try{await controller.import(await file.text());}catch{/* Invalid files leave the game untouched. */}
   }
-  return <GameDialog title={t('settings.title')} closeLabel={t('settings.close')} className="settings-modal" onClose={onClose}>
+  return <><GameDialog title={t('settings.title')} closeLabel={t('settings.close')} className="settings-modal" onClose={onClose}>
     <div className="settings-grid">
       <section className="settings-section" aria-labelledby="settings-interface-title">
         <h3 id="settings-interface-title">{t('settings.interface')}</h3>
@@ -53,8 +55,8 @@ export function Settings({onClose}:{onClose:()=>void}) {
     {view.updateAvailable&&<button className="primary full" disabled={view.busy||!view.game} onClick={()=>ignore(installUpdate())}>{t('settings.update')}</button>}
     {view.error&&<p role="alert" className="inline-error">{text(view.error)}</p>}
     {!view.error&&view.notice&&<p role="status" className="workshop-feedback">{text(view.notice)}</p>}
-    <div className="settings-footer"><p className="settings-note">{t('settings.saveHelp')}</p><button className="danger" disabled={view.busy} onClick={()=>{if(window.confirm(t('settings.restartConfirm')))ignore(controller.restart());}}>{t('settings.restart')}</button></div>
-  </GameDialog>;
+    <div className="settings-footer"><p className="settings-note">{t('settings.saveHelp')}</p><button className="danger" disabled={view.busy} onClick={()=>{if(window.confirm(t('settings.restartConfirm')))setRestarting(true);}}>{t('settings.restart')}</button></div>
+  </GameDialog>{restarting && <CompanySetup onClose={()=>setRestarting(false)} onCreate={async company=>{await controller.restart(company);setRestarting(false);(onRestart ?? onClose)();}}/>}</>;
 }
 export function Shop({game,busy,selected}:{game:GameState;busy:boolean;selected:string}) {
   const [delivery,setDelivery]=usePageState('shop.delivery',selected);

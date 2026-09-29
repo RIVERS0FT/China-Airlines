@@ -7,6 +7,7 @@ const NOW = Date.parse('2026-09-28T00:00:00Z');
 function paidFlightState() {
   const core = new GameCore(NOW);
   const send = (c: Parameters<GameCore['execute']>[0]) => core.execute(c, core.snapshot().lastWallTime);
+  send({ type:'found-company', company:{ name:'中华航空', logo:{ kind:'preset', id:'wing' } } });
   send({ type:'tutorial', action:'skip' });
   send({ type:'unlock', airportId:'PVG' });
   send({ type:'buy', modelId:'diamond-da40', airportId:'PEK', passengers:1, cargo:0 });
@@ -32,6 +33,8 @@ for (const [width,height] of [[1440,900],[844,390]]) test(`city business growth 
   await page.clock.install({time:new Date(NOW)});
   await page.clock.pauseAt(new Date(NOW+1000));
   await page.goto('./');
+  await page.getByRole('button', {name:'进入游戏', exact:true}).click();
+  await page.getByRole('button', {name:'创建公司并启航', exact:true}).click();
   await expect(page.getByTestId('fleet-count')).toBeVisible();
   const skip=page.getByRole('button',{name:'跳过引导',exact:true});
   if(await skip.isVisible())await skip.click();

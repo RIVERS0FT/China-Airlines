@@ -15,6 +15,7 @@ async function importState(page: Page, state: GameState) {
   });
   await expect(page.locator('.settings-modal')).toContainText('存档导入成功');
   await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
+  await page.getByRole('button', { name: '机场装载', exact: true }).click();
 }
 async function exportState(page: Page): Promise<GameState> {
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
@@ -159,6 +160,7 @@ for (const config of [
   const id = config.model === 'diamond-da40' ? 'AC0002' : 'AC0001';
   core.execute({ type: 'dispatch', planeId: id, to: 'PVG', auto: false }, NOW);
   await page.getByRole('button', { name: '进入游戏', exact: true }).click();
+  await page.getByRole('button', { name: '创建公司并启航', exact: true }).click();
   await importState(page, core.snapshot());
   await page.getByRole('button', { name: '机场装载', exact: true }).click();
   if (id === 'AC0002') await page.getByRole('button', { name: '下一架飞机', exact: true }).click();
@@ -236,7 +238,7 @@ test('flight motion stays on in reduced-motion previews after refresh without ch
   await page.emulateMedia({ reducedMotion: 'reduce' });
   // A value left by the briefly available preference must have no effect.
   await page.addInitScript(() => localStorage.setItem('china-airlines:flight-motion:v1', 'off'));
-  await page.goto('./');
+  await page.goto('./');await page.getByRole('button',{name:'进入游戏',exact:true}).click();await page.getByRole('button',{name:'创建公司并启航',exact:true}).click();
   const core = new GameCore(NOW);
   core.execute({ type: 'dispatch', planeId: 'AC0001', to: 'PVG', auto: false }, NOW);
   await importState(page, core.snapshot());
@@ -265,7 +267,7 @@ test('real departure, offline reload and arrival do not depend on animation call
   const core = new GameCore(NOW);
   core.execute({ type: 'load-destination', planeId: 'AC0001', to: 'PVG' }, NOW);
   const state = core.snapshot(), flight = quote(state, state.fleet[0]!, 'PVG');
-  await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('0 架');
+  await page.goto('./');await page.getByRole('button',{name:'进入游戏',exact:true}).click();await page.getByRole('button',{name:'创建公司并启航',exact:true}).click(); await expect(page.getByTestId('fleet-count')).toHaveText('0 架');
   await importState(page, state);
   await expect(cruise(page)).toHaveCount(0);
   await page.getByRole('button', { name: '制定航线', exact: true }).click();

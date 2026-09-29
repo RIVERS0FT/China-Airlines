@@ -7,7 +7,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
   test(`purchase requires free configuration and later refits charge normally at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width: width!, height: height! });
     await prepareAirportSession(page);
-    await page.goto('./');
+    await page.goto('./');await page.getByRole('button',{name:/^(进入游戏|Enter Game)$/}).click();await page.getByRole('button',{name:/^(创建公司并启航|Create Airline & Play)$/}).click();
   await page.getByRole('button', {name: /^(跳过引导|Skip Tutorial)$/}).click();
     await page.getByRole('button', { name: '飞机商店', exact: true }).click();
     const shop=page.getByTestId('page-shop');
@@ -66,7 +66,7 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {
 test('purchase selection is translated and Escape cancels without buying', async ({ page }) => {
   await prepareAirportSession(page);
   await page.addInitScript(() => localStorage.setItem('china-airlines:locale:v1', 'en-US'));
-  await page.goto('./');
+  await page.goto('./');await page.getByRole('button',{name:/^(进入游戏|Enter Game)$/}).click();await page.getByRole('button',{name:/^(创建公司并启航|Create Airline & Play)$/}).click();
   await page.getByRole('button', {name: /^(跳过引导|Skip Tutorial)$/}).click();
   await page.getByRole('button', { name: 'Aircraft Shop', exact: true }).click();
   await page.getByRole('button', { name: 'Buy for ¥ 5,500', exact: true }).click();
@@ -85,7 +85,7 @@ test('purchase selection is translated and Escape cancels without buying', async
 for(const width of [1440,667])test(`purchase chooses an eligible delivery airport without resetting cabin selection at ${width}`,async({page})=>{
   await page.setViewportSize({width,height:width===1440?900:375});
   const now=Date.parse('2026-09-27T02:00:00Z');await page.clock.install({time:new Date(now)});
-  await prepareAirportSession(page);await page.goto('./');await page.getByRole('button',{name:'跳过引导',exact:true}).click();
+  await prepareAirportSession(page);await page.goto('./');await page.getByRole('button',{name:/^(进入游戏|Enter Game)$/}).click();await page.getByRole('button',{name:/^(创建公司并启航|Create Airline & Play)$/}).click();await page.getByRole('button',{name:'跳过引导',exact:true}).click();
   const state=new GameCore(now).snapshot();state.credits=100000;state.career.xp=10000;state.airports.find(a=>a.id==='PVG')!.level=2;
   await page.getByRole('button',{name:'存档设置',exact:true}).click();page.once('dialog',d=>void d.accept());
   await page.getByLabel('选择存档文件').setInputFiles({name:'delivery-airport.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(state))});
@@ -105,7 +105,7 @@ for(const width of [1440,667])test(`purchase chooses an eligible delivery airpor
 
 test('an older save remains intact and opens a version-specific recovery warning', async ({ page }) => {
   await prepareAirportSession(page);
-  await page.goto('./');
+  await page.goto('./');await page.getByRole('button',{name:/^(进入游戏|Enter Game)$/}).click();await page.getByRole('button',{name:/^(创建公司并启航|Create Airline & Play)$/}).click();
   await page.getByRole('button', {name: /^(跳过引导|Skip Tutorial)$/}).click();
   await expect(page.getByTestId('fleet-count')).toHaveText('0 架');
   await page.goto('./icon.svg');

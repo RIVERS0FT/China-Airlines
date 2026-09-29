@@ -1,0 +1,7 @@
+.company-logo{display:block;width:100%;height:100%;object-fit:contain;flex-shrink:0}
+.aviation-game:not(.dispatch-focused) .game-brand.company-brand{min-width:0;flex:1 1 200px;max-width:360px}
+.company-brand>div{min-width:0}
+.aviation-game:not(.dispatch-focused) .company-brand h1{overflow:hidden;text-overflow:ellipsis;letter-spacing:0;max-width:100%}
+.aviation-game:not(.dispatch-focused) .company-brand .pilot-badge{background:#fffaf0;flex-shrink:0}
+.aviation-game:not(.dispatch-focused) .company-brand .pilot-badge .company-logo{width:100%;height:100%}
+@container game-viewport (max-width:740px){.aviation-game:not(.dispatch-focused) .game-brand.company-brand{flex-basis:125px;max-width:180px}}

@@ -29,8 +29,6 @@ jobs:
     if: github.repository == 'meviu523/China-Airlines' && github.ref == 'refs/heads/main'
     runs-on: [self-hosted, Linux, X64, china-airlines-center]
     timeout-minutes: 90
-    outputs:
-      public_url: ${{ steps.target.outputs.public_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -100,7 +98,7 @@ jobs:
     timeout-minutes: 25
     environment:
       name: production
-      url: ${{ needs.verify.outputs.public_url }}
+      url: ${{ steps.publish.outputs.public_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -116,33 +114,26 @@ jobs:
         run: |
           npm ci --prefer-offline --no-audit
           node scripts/prepare-browser.mjs
-      - name: Check current main and publish verified package
-        env:
-          DEPLOY_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          CHINA_AIRLINES_DEPLOY_KEY: ${{ secrets.CHINA_AIRLINES_DEPLOY_KEY }}
+      - name: Check current main and extract the verified build
         run: |
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = 'meviu523/China-Airlines'
           test "$GITHUB_REF" = 'refs/heads/main'
           test "$RUNNER_NAME" = "$CENTER_RUNNER"
-          main_sha="$(git ls-remote --exit-code origin refs/heads/main | cut -f1)"
-          test "$main_sha" = "$GITHUB_SHA"
-          known_hosts="$GITHUB_WORKSPACE/deploy/known_hosts"
+          test "$(git ls-remote --exit-code origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
           cd "$RUNNER_TEMP/china-airlines-artifact"
           sha256sum --check --strict china-airlines.tgz.sha256
-          archive_sha="$(sha256sum china-airlines.tgz | cut -d' ' -f1)"
-          key_file="$(mktemp)"
-          trap 'rm -f "$key_file"' EXIT
-          chmod 600 "$key_file"
-          printf '%s\n' "$CHINA_AIRLINES_DEPLOY_KEY" > "$key_file"
-          ssh -i "$key_file" -p "$DEPLOY_PORT" -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=yes \
-            -o UserKnownHostsFile="$known_hosts" \
-            "$DEPLOY_TARGET" \
-            "publish $DEPLOY_ID $GITHUB_SHA $archive_sha" < china-airlines.tgz
-          test "$(curl --fail --silent --show-error --header 'Cache-Control: no-cache' \
-            "${PUBLIC_URL}release.txt?release=$GITHUB_SHA")" = "$GITHUB_SHA"
-      - name: Verify public assets match the published package
+          release_directory="$(mktemp -d "$RUNNER_TEMP/china-airlines-platform-XXXXXXXX")"
+          tar -xzf china-airlines.tgz -C "$release_directory" --no-same-owner --no-same-permissions
+          printf 'RELEASE_DIRECTORY=%s\n' "$release_directory" >> "$GITHUB_ENV"
+      - name: Publish through riversoft.top and verify homepage catalog
+        id: publish
+        env:
+          RIVERSOFT_TOKEN: ${{ secrets.RIVERSOFT_TOKEN }}
+        run: node scripts/publish-riversoft.mjs
+      - name: Verify public assets and platform deployment identity
+        env:
+          RIVERSOFT_TOKEN: ${{ secrets.RIVERSOFT_TOKEN }}
         run: node scripts/verify-production.mjs
       - name: Public browser acceptance including offline and save restore
         run: npx playwright test --config playwright.production.config.ts
@@ -156,7 +147,7 @@ jobs:
             echo
             echo "- Game revision: \`$GITHUB_SHA\`"
             echo "- URL: $PUBLIC_URL"
-            echo '- Release: checksum-verified, previous immutable revision kept for rollback'
-            echo '- Public checks: index, service worker, manifest and release identity match the package'
+            echo '- Release: uploaded and committed through riversoft.top HTTPS hosting API'
+            echo '- Public checks: homepage catalog and every published file match this deployment'
             echo '- Public browser acceptance: new company, save restore, offline start and responsive layouts passed'
           } >> "$GITHUB_STEP_SUMMARY"

@@ -55,6 +55,13 @@ export async function ensureConfiguredAirport(page: Page) {
   // Existing browser journeys start with an already purchased and configured
   // aircraft. Import that explicit fixture through the public UI; the
   // production new-company path remains empty.
+  await page.locator('[data-testid="fleet-count"], .start-enter:enabled').first().waitFor({ state: 'visible' });
+  const enter = page.locator('.start-enter');
+  if (await enter.isVisible()) {
+    await enter.click();
+    const create = page.getByRole('button', { name: /^(创建公司并启航|Create Airline & Play)$/ });
+    await create.click();
+  }
   await page.getByTestId('fleet-count').waitFor({ state: 'visible' });
   const skip = page.getByRole('button', { name: /^(跳过引导|Skip Tutorial)$/ });
   if (await skip.isVisible()) await skip.click();
@@ -69,5 +76,6 @@ export async function ensureConfiguredAirport(page: Page) {
     });
     await expect(page.getByTestId('passenger-capacity')).toContainText(english ? '3' : '0 / 3');
     await page.getByRole('button', { name: english ? 'Close save settings' : '关闭存档设置', exact: true }).click();
+    await page.getByRole('button', { name: english ? 'Airport' : '机场装载', exact: true }).click();
   }
 }

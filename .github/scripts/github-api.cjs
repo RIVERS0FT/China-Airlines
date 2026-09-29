@@ -5,11 +5,12 @@ const PREFIX = `/repos/${REPOSITORY}`;
 
 function redact(value) {
   let text = String(value);
-  for (const name of ['GH_TOKEN', 'GITHUB_TOKEN', 'CHINA_AIRLINES_DEPLOY_KEY']) {
+  for (const name of ['GH_TOKEN', 'GITHUB_TOKEN', 'RIVERSOFT_TOKEN']) {
     if (process.env[name]) text = text.split(process.env[name]).join('[REDACTED]');
   }
   return text.replace(/-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----/g, '[REDACTED KEY]')
     .replace(/\b(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)\b/g, '[REDACTED TOKEN]')
+    .replace(/\brsd_[a-f0-9]{64}\b/gi, '[REDACTED TOKEN]')
     .replace(/(authorization\s*[:=]\s*)(?:bearer|token|basic)\s+\S+/gi, '$1[REDACTED]')
     .replace(/((?:password|secret|access_token|refresh_token)\s*[=:]\s*)[^\s,;]+/gi, '$1[REDACTED]');
 }

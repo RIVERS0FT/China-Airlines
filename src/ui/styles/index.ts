@@ -23,3 +23,5 @@ import './layout.css';
 import './settings.css';
 import './notifications.css';
 import './buttons.css';
+import '../company-identity.css';
+import '../company-setup-layout.css';

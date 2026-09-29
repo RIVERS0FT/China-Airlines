@@ -1,0 +1,41 @@
+/* Keep creation fields and touch targets at physical size, outside game scaling. */
+.game-layout dialog.company-setup{transform:translate(-50%,-50%);width:min(920px,96vw);max-width:calc(100vw - 24px);max-height:calc(100dvh - 16px);--ui-header-height:52px;--ui-heading-size:20px;--ui-page-padding:20px;font-size:16px}
+.company-setup .ui-dialog-header{min-height:52px}.company-setup .ui-close-button{min-width:44px;min-height:44px}
+.company-setup-rotate{display:none}
+.company-setup{width:min(920px,94vw);max-height:94dvh;--company-accent:#176275;--company-paper:#fffaf0;--company-ink:#254c60;--company-muted:#57717a;--company-line:#c3d2d0;--company-error:#a03627}
+.company-setup .ui-dialog-body{padding:0;background:var(--company-paper)}
+.company-setup>.ui-dialog-footer{padding:0;flex:0 0 auto}
+.company-setup form{display:flex;flex-direction:column}
+.company-setup-content{display:grid;grid-template-columns:minmax(180px,.75fr) minmax(0,1.5fr);gap:28px;padding:24px}
+.company-preview{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;min-width:0;padding:24px 16px;border:1px solid var(--company-line);border-radius:12px;background:linear-gradient(150deg,#eaf3ef,#fff7df);text-align:center;color:var(--company-ink)}
+.company-preview-kicker{font-size:11px;letter-spacing:2px;color:var(--company-muted)}
+.company-preview>.company-logo{width:112px;height:112px}
+.company-preview strong{font-size:22px;line-height:1.4;overflow-wrap:anywhere;max-width:100%}
+.company-preview-rule{width:32px;height:2px;background:#bd984c}
+.company-preview small{font-size:12px;line-height:1.6;color:var(--company-muted)}
+.company-fields{display:flex;flex-direction:column;gap:18px;min-width:0;color:var(--company-ink)}
+.company-name-field>label,.company-logo-options legend{display:block;font-weight:750;font-size:14px;margin-bottom:8px}
+.company-name-field input{box-sizing:border-box;min-width:0;width:100%;min-height:44px;padding:10px 12px;border:1px solid #92adae;border-radius:7px;background:#fff;color:var(--company-ink);font:inherit;font-size:16px}
+.company-name-field input:focus-visible{outline:3px solid #dcad51;outline-offset:2px}
+.company-name-field input[aria-invalid=true]{border-color:var(--company-error)}
+.company-hint,.company-name-field .company-field-error{display:flex;justify-content:space-between;gap:12px;margin-top:6px;font-size:12px}
+.company-hint{color:var(--company-muted)}
+.company-logo-options{min-width:0;margin:0;padding:0;border:0}
+.company-presets{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.company-presets button{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;min-height:76px;padding:7px 3px;border:2px solid transparent;border-radius:8px;background:#edf1eb;color:var(--company-ink);box-shadow:none;font:inherit;font-size:11px;cursor:pointer}
+.company-presets .company-logo{width:40px;height:40px}
+.company-presets button[aria-pressed=true]{border-color:var(--company-accent);background:#dbece7;box-shadow:0 0 0 1px var(--company-accent)}
+.company-presets button[aria-pressed=true]>span{font-weight:850;text-decoration:underline;text-underline-offset:3px}
+.company-upload{display:flex;align-items:center;gap:12px}
+.company-upload button{flex-shrink:0;min-height:44px;padding:8px 12px;border:1px solid var(--company-accent);border-radius:7px;background:#fff;color:var(--company-accent);font:inherit;font-size:13px}
+.company-upload>span{font-size:12px;line-height:1.5;color:var(--company-muted)}
+.company-field-error{margin:0;font-size:13px;color:var(--company-error);line-height:1.5}
+.company-setup-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-top:1px solid var(--company-line);background:#edf2e9}
+.company-setup-actions p{margin:0;color:var(--company-muted);font-size:12px;line-height:1.5}
+.company-setup-actions button{flex-shrink:0;min-height:46px;padding:10px 24px;font:inherit;font-weight:800}
+@media(max-height:520px){.company-setup{width:min(920px,96vw);max-height:96dvh}.company-setup-content{gap:18px;padding:12px 18px;grid-template-columns:160px minmax(0,1fr)}.company-preview{gap:9px;padding:12px}.company-preview>.company-logo{width:78px;height:78px}.company-preview strong{font-size:18px}.company-preview-rule,.company-preview-kicker{display:none}.company-fields{gap:10px}.company-name-field>label,.company-logo-options legend{margin-bottom:4px;font-size:12px}.company-name-field input{padding-block:7px}.company-presets button{min-height:64px;gap:3px;padding:4px 2px}.company-presets .company-logo{width:33px;height:33px}.company-setup-actions{padding:8px 18px}.company-setup-actions button{padding:8px 16px}}
+@media(max-width:740px){.company-setup-content{grid-template-columns:130px minmax(0,1fr);gap:12px;padding:12px}.company-presets{gap:8px}.company-presets button{font-size:10px}.company-preview{padding:10px}.company-preview strong{font-size:16px}.company-upload{gap:8px}.company-upload>span{font-size:11px}.company-setup-actions{padding-inline:12px}}
+@media(max-width:480px) and (orientation:portrait){.company-setup-content{grid-template-columns:1fr}.company-preview{display:none}.company-setup-actions{flex-wrap:wrap}}
+@media(max-height:520px){.company-setup-content{padding-block:6px}.company-fields{gap:8px}.company-name-field .company-hint,.company-name-field .company-field-error{margin-top:4px}}
+
+@media(orientation:portrait){.company-setup form,.company-setup>.ui-dialog-footer{display:none}.company-setup-rotate{display:block;padding:32px 20px;text-align:center;line-height:1.6}.company-setup-rotate h3{font-size:20px;margin:0 0 8px}}

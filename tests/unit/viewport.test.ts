@@ -38,5 +38,6 @@ describe('resolution-independent UI', () => {
     expect(result.css).toContain('@media(prefers-reduced-motion:reduce)');
     expect((await postcss([viewportCss()]).process(css, { from:'/src/ui/viewport.css' })).css).toBe(css);
     expect((await postcss([viewportCss()]).process(css, { from:'/src/ui/tutorial-layout.css' })).css).toBe(css);
+    expect((await postcss([viewportCss()]).process(css, { from:'/src/ui/company-setup-layout.css' })).css).toBe(css);
   });
 });

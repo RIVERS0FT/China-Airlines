@@ -13,7 +13,8 @@ import { emptyTuning, upgradeLimit, upgradeTickets, service, MATERIALS, type Tun
 import { newCareer, careerExecute, careerLevel, bill, consume, stock, warehouseUsed, warehouseCapacity, autoAllowed, onArrival, nextCareerEvent, advanceCareer, type Career, type CareerCommand } from './career.js';
 import { validateCareer, validateTuning } from './save-career.js';
 import { distanceUnits, legOperatingCosts, baseOrderReward, transportRevenue, routeOperatingCost } from './economy.js';
-export const SAVE_VERSION = 15;
+import { validateCompanyIdentity, type CompanyIdentity } from './company-identity.js';
+export const SAVE_VERSION = 16;
 export interface AdvanceOptions { businessIncome?: boolean }
 export type TutorialState = 'available' | 'active' | 'completed' | 'skipped';
 export const MAX_PLAN_LEGS = 12;
@@ -28,9 +29,10 @@ export interface Order {
   reward: number; location: string; createdAt: number; expiresAt: number | null; service: string; product: Material | null;
 }
 export interface GameState extends Omit<SimulationState, 'version' | 'fleet'> {
-  version: 15; business: BusinessState; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
+  version: 16; company: CompanyIdentity | null; business: BusinessState; talent: TalentState; career: Career; fleet: Plane[]; hangarSlots: number; orders: Order[]; nextOrderId: number; nextDemandAt: number; fleetPeak: number; tutorial: TutorialState;
 }
 export type Command = SimulationCommand | CareerCommand | TalentCommand | BusinessCommand
+  | { type: 'found-company'; company: CompanyIdentity }
   | { type: 'load' | 'unload'; planeId: string; orderId: string }
   | { type: 'load-destination'; planeId: string; to: string }
   | { type: 'retrofit'; planeId: string; upgrade: UpgradeKey }
@@ -263,6 +265,11 @@ export class GameCore {
   execute(command: Command, now: number, options: AdvanceOptions = {}) {
     this.tick(now, options); const s = this.snapshot();
     switch (command.type) {
+      case 'found-company': {
+        check(s.company === null, '公司已经创建');
+        s.company = validateCompanyIdentity(command.company);
+        break;
+      }
       case 'open-business-team':
       case 'hire-business-worker':
       case 'expand-business-team':
@@ -436,7 +443,7 @@ export class GameCore {
 /** Create a complete state that already conforms to the current schema. */
 function newGame(now: number): GameState {
   const career = newCareer(0, now);
-  const s: GameState = { version: SAVE_VERSION, credits: 18000, simTime: 0, lastWallTime: now, nextId: 1,
+  const s: GameState = { version: SAVE_VERSION, company: null, credits: 18000, simTime: 0, lastWallTime: now, nextId: 1,
     airports: [{ id: 'PEK', level: 1 }], fleet: [], routes: [],
     stats: { flights: 0, passengers: 0, cargo: 0, revenue: 0, costs: 0 }, claimedTasks: [],
     log: [{ at: 0, text: '公司成立 · 从北京开始经营', amount: 18000 }],
@@ -461,7 +468,8 @@ export function validateSave(value: unknown): GameState {
   const version = (value as { version?: unknown }).version;
   if (version !== SAVE_VERSION) throw new Error('不支持此存档版本；请使用对应版本的游戏');
   const s = structuredClone(value) as GameState;
-  record(s, ['version','credits','simTime','lastWallTime','nextId','airports','fleet','routes','stats','claimedTasks','log','orders','nextOrderId','nextDemandAt','hangarSlots','fleetPeak','tutorial','career','talent','business']);
+  record(s, ['version','company','credits','simTime','lastWallTime','nextId','airports','fleet','routes','stats','claimedTasks','log','orders','nextOrderId','nextDemandAt','hangarSlots','fleetPeak','tutorial','career','talent','business']);
+  if (s.company !== null) s.company = validateCompanyIdentity(s.company);
   number(s.simTime, 1e12, false); number(s.nextDemandAt, 1e12, false); number(s.nextOrderId);
   if (s.nextOrderId < 1 || s.nextDemandAt <= s.simTime || s.nextDemandAt > s.simTime + DEMAND_INTERVAL) fail();
   number(s.hangarSlots, MAX_FLEET);

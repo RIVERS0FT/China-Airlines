@@ -163,9 +163,11 @@ export function App() {
   const blocking = view.blocked && <div className="blocking-screen" role="alert"><h2>{t('status.blocked')}</h2><p>{t('status.blockedText')}</p><button className="primary" onClick={() => location.reload()}>{t('status.reload')}</button></div>;
   const rotate = <div className="rotate-screen"><Icon name="rotate"/><h2>{t('rotate.title')}</h2><p>{t('rotate.subtitle')}</p></div>;
 
-  if (!playing) return <>
-    <StartScreen ready={Boolean(game) && !view.booting} recovery={view.recovery} error={view.error} onEnter={enterGame} onSettings={() => setModal('settings')}/>
-    <OverlayHost>{modal === 'settings' && <Settings onClose={() => setModal(null)}/>}{blocking}{rotate}</OverlayHost>
+  function companyRestarted() { setModal(null); setBrowsedAirport(null); navigate({ type: 'open', page: 'airports' }); setPlaying(true); }
+  if (!playing || (game && !game.company)) return <>
+    <StartScreen ready={Boolean(game) && !view.booting} recovery={view.recovery} error={view.error} company={game?.company ?? null}
+      onCreate={async company => { await controller.command({ type: 'found-company', company }); enterGame(); }} onEnter={enterGame} onSettings={() => setModal('settings')}/>
+    <OverlayHost>{modal === 'settings' && <Settings onClose={() => setModal(null)} onRestart={companyRestarted}/>}{blocking}{rotate}</OverlayHost>
   </>;
 
   return <>
@@ -185,7 +187,7 @@ export function App() {
       </PageFrame>}
     </GameShell>
     <OverlayHost>
-      {modal === 'settings' && <Settings onClose={() => setModal(null)}/>}
+      {modal === 'settings' && <Settings onClose={() => setModal(null)} onRestart={companyRestarted}/>}
       {game && modal && modal !== 'settings' && <GameDialog key={modal} title={modalTitles[modal]} className={`game-modal ${modal === 'help' ? 'help-modal' : ''}`} onClose={closeModal}>
         {modal === 'airport-detail' ? <AirportDetails game={game} id={detailAirport} busy={view.busy} backLabel={detailBackLabel} onBack={closeModal} onUnlocked={resumeRouteUnlock} onVisit={visitAirport} onPlane={selectPlane} onRoute={id => showMap(id)}/>
           : modal === 'tasks' ? <TaskCenter game={game} plane={plane ?? context?.selected} busy={view.busy} onNext={nextTask}/>

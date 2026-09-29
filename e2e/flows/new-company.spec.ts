@@ -150,7 +150,9 @@ test('new company: cancel purchase, buy with free configuration, refit, unlock, 
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
   page.once('dialog', dialog => void dialog.accept());
   await page.getByRole('button', { name: '重新开始', exact: true }).click();
+  await page.getByRole('button', { name: '创建公司并启航', exact: true }).click();
   await expect(page.getByTestId('fleet-count')).toHaveText('0 架');
+  await page.getByRole('button', { name: '存档设置', exact: true }).click();
   page.once('dialog', dialog => void dialog.accept());
   await page.getByLabel('选择存档文件').setInputFiles({ name: 'company-export.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(expanded)) });
   await expect(page.getByTestId('fleet-count')).toHaveText('1 架');

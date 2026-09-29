@@ -14,6 +14,7 @@ test('title enters the directory then opens the map, keeps Map leftmost, and swi
   await expect(page.locator('html')).toHaveAttribute('lang', 'en-US');
   await expect(page.getByRole('button', { name: 'Enter Game', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Enter Game', exact: true }).click();
+  await page.getByRole('button', { name: 'Create Airline & Play', exact: true }).click();
   await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step', 'unlock');
   await page.getByRole('button', { name: 'Skip Tutorial', exact: true }).click();
   await page.getByRole('button', { name: 'Map', exact: true }).click();
@@ -42,6 +43,7 @@ test('an in-flight scene keeps its default animation in reduced-motion previews'
 
   await page.goto('./');
   await page.getByRole('button', { name: '进入游戏', exact: true }).click();
+  await page.getByRole('button', { name: '创建公司并启航', exact: true }).click();
   await page.getByRole('button', { name: '跳过引导', exact: true }).click();
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
   page.once('dialog', dialog => void dialog.accept());
@@ -66,6 +68,7 @@ for (const viewport of [{ width: 844, height: 390 }, { width: 667, height: 375 }
     await expect(page.getByTestId('start-screen')).toBeVisible();
     await page.getByRole('button', { name: 'English', exact: true }).click();
     await page.getByRole('button', { name: 'Enter Game', exact: true }).click();
+  await page.getByRole('button', { name: 'Create Airline & Play', exact: true }).click();
   await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step', 'unlock');
   await page.getByRole('button', { name: 'Skip Tutorial', exact: true }).click();
   await page.getByRole('button', { name: 'Map', exact: true }).click();

@@ -109,8 +109,8 @@ describe('company incremental economy', () => {
   });
 });
 describe('strict business saves', () => {
-  it('requires v15 and rejects missing or forged business state without repairing it', () => {
-    expect(SAVE_VERSION).toBe(15);
+  it('requires v16 and rejects missing or forged business state without repairing it', () => {
+    expect(SAVE_VERSION).toBe(16);
     const s = established().snapshot();
     const mutations: ((x: GameState) => void)[] = [
       x => { (x as unknown as {version:number}).version = 14; },

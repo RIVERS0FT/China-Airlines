@@ -44,7 +44,7 @@ function unchanged(c: GameCore, command: Command) {
 describe("current economy and contracts", () => {
   it("starts with the current currency balances and ten purchasable capacity grades", () => {
     const s = new GameCore(NOW).snapshot();
-    expect(s.version).toBe(15);
+    expect(s.version).toBe(16);
     expect(s.credits).toBe(18000);
     expect(s.career.tickets).toBe(24);
     expect(MODELS).toHaveLength(10);

@@ -35,7 +35,7 @@ test('candidate choices, mentoring and employee profiles survive reload and offl
   await page.screenshot({path:'artifacts/company-talent-employee-history.png'});
   await page.getByRole('button',{name:'人才市场',exact:true}).click();await expect(page.locator('[data-candidate-id]').first()).toBeVisible();await page.screenshot({path:'artifacts/employee-portraits-candidates.png'});
   await page.getByRole('button',{name:'机队管理',exact:true}).click();await page.getByRole('button',{name:'负责飞行员 · 周远',exact:true}).click();await expect(detail.getByRole('heading',{name:'周远',exact:true})).toBeVisible();
-  const saved=await exportState(page);expect(saved.version).toBe(15);expect(saved.talent.mentoring).toHaveLength(1);expect(saved.talent.mentoring[0]).toMatchObject({employeeId:1,mentorId:2,level:1});expect(saved.talent.mentoring[0]!.at).toBeGreaterThanOrEqual(0);expect(saved.talent.mentoring[0]!.at).toBeLessThanOrEqual(saved.simTime);expect(saved.talent.candidates.some(c=>c.id===3)).toBe(false);expect(saved.career.employees[0]!.managerId).toBeNull();
+  const saved=await exportState(page);expect(saved.version).toBe(16);expect(saved.talent.mentoring).toHaveLength(1);expect(saved.talent.mentoring[0]).toMatchObject({employeeId:1,mentorId:2,level:1});expect(saved.talent.mentoring[0]!.at).toBeGreaterThanOrEqual(0);expect(saved.talent.mentoring[0]!.at).toBeLessThanOrEqual(saved.simTime);expect(saved.talent.candidates.some(c=>c.id===3)).toBe(false);expect(saved.career.employees[0]!.managerId).toBeNull();
   expect(saved.career.employees[0]!.planeId).toBe('AC0001');expect(saved.fleet[0]!.dispatcher).toBe(true);
   expect(saved.credits).toBe(1000000-1800-2400-trainingGold);expect(saved.career.tickets).toBe(10000-3-4-3);for(const employee of saved.career.employees){expect(employee.joinedAt).not.toBeNull();expect(employee.paidUntil).toBe(employee.joinedAt!+7*86400);}
   await page.evaluate(()=>navigator.serviceWorker.ready.then(()=>true));await page.reload();await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller));await context.setOffline(true);await page.reload();await openGlobal(page,'公司组织');
@@ -123,7 +123,7 @@ test('talent market refreshes a full batch on schedule and across offline restar
   await expect(page.getByRole('complementary',{name:'员工详情'}).getByRole('heading',{name:hiredName,exact:true})).toBeVisible();
   await expect(page.getByLabel(`${hiredName}岗位`,{exact:true})).toHaveValue('AC0001');
   const hired=await exportState(page);
-  expect(hired.version).toBe(15);expect(hired.credits).toBe(state.credits-1800);expect(hired.career.tickets).toBe(state.career.tickets-3);
+  expect(hired.version).toBe(16);expect(hired.credits).toBe(state.credits-1800);expect(hired.career.tickets).toBe(state.career.tickets-3);
   expect(hired.career.employees).toHaveLength(1);expect(hired.career.employees[0]).toMatchObject({name:hiredName,department:'flight',role:'specialist',planeId:'AC0001',joinedAt:1800,paidUntil:1800+7*86400});expect(hired.fleet[0]!.dispatcher).toBe(true);
   const hiredIds=hired.talent.candidates.map(candidate=>candidate.id).sort((a,b)=>a-b);
   expect(hiredIds).toHaveLength(15);expect(hiredIds).not.toContain(hiredId);

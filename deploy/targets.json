@@ -2,7 +2,12 @@
   "repository": "meviu523/China-Airlines",
   "runner": "VM-0-10-debian",
   "artifactRoot": "/var/lib/china-airlines-artifacts",
-  "publicUrl": "https://riversoft.top/china-airlines/",
-  "sshTarget": "deploy@116.204.134.56",
-  "sshPort": 2222
+  "platformUrl": "https://riversoft.top",
+  "project": {
+    "slug": "china-airlines",
+    "title": "中华航空",
+    "description": "航空运输经营游戏：规划航线、装载客货、经营机队。",
+    "kind": "game",
+    "visibility": "public"
+  }
 }

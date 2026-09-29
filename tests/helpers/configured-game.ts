@@ -9,6 +9,7 @@ export class GameCore extends BaseGameCore {
       const funding = new BaseGameCore(now).snapshot();
       funding.credits = 100000; funding.career.xp = 600;
       const prepared = new BaseGameCore(now, funding);
+      prepared.execute({ type: 'found-company', company: { name: '中华航空', logo: { kind: 'preset', id: 'wing' } } }, now);
       prepared.execute({ type: 'unlock', airportId: 'PVG' }, now);
       prepared.execute({ type: 'buy', modelId: 'heron-p', airportId: 'PEK', passengers: 3, cargo: 2 }, now);
       const state = prepared.snapshot();

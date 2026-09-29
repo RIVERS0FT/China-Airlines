@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { GameCore, parseSave, type AdvanceReport, type Command, type GameState } from './core/game.js';
 import { SaveConflictError, SaveRepository } from './persistence/saves.js';
+import type { CompanyIdentity } from './core/company-identity.js';
+import { verifyCompanyLogo } from './media/company-logo.js';
 interface ViewState {
   game: GameState | null; booting: boolean; busy: boolean; blocked: boolean; error: string | null;
   notice: string | null; savedAt: number | null; report: AdvanceReport | null; recovery: boolean;
@@ -50,7 +52,7 @@ class Controller {
         const loaded = await this.db.load(); this.revision = loaded.revision;
         if (!loaded.state && loaded.hasData) {
           useGame.setState({ recovery: true, error: loaded.incompatibleVersion
-            ? '检测到版本不兼容的存档。当前仅接受 v15；原数据未被覆盖。请先保留浏览器数据，确认版本后再决定是否重新开始。'
+            ? '检测到版本不兼容的存档。当前仅接受 v16；原数据未被覆盖。请先保留浏览器数据，确认版本后再决定是否重新开始。'
             : '主存档与备份均无法读取。请导入有效存档，或确认重新开始。' }); return;
         }
         this.core = new GameCore(Date.now(), loaded.state ?? undefined);
@@ -81,6 +83,15 @@ class Controller {
     const now = Date.now(), businessIncome = this.businessActive;
     return this.run(async () => {
       if (!this.core) throw new Error('尚未载入游戏');
+      if (command.type === 'found-company') {
+        const candidate = new GameCore(now, this.core.snapshot());
+        candidate.execute(command, now, { businessIncome });
+        await verifyCompanyLogo(command.company.logo);
+        this.revision = await this.db.save(candidate.snapshot(), this.revision);
+        this.core = candidate; this.lastAutosave = Date.now();
+        useGame.setState({ savedAt: this.lastAutosave, notice: null });
+        return;
+      }
       this.core.execute(command, now, { businessIncome });
       // Publish success only after the IndexedDB transaction commits. Otherwise an
       // immediate reload after a visible purchase can lose that purchase.
@@ -100,6 +111,8 @@ class Controller {
     const now = Date.now();
     return this.run(async () => {
       const candidate = GameCore.imported(parseSave(raw), now);
+      const company = candidate.snapshot().company;
+      if (company) await verifyCompanyLogo(company.logo);
       // Persist first. A rejected import cannot touch the in-memory or on-disk game.
       this.revision = await this.db.save(candidate.snapshot(), this.revision); this.core = candidate;
       useGame.setState({ savedAt: Date.now(), recovery: false, notice: '存档导入成功，旧进度已保留为备份。', report: null });
@@ -109,14 +122,18 @@ class Controller {
     const now = Date.now();
     return this.run(async () => {
       const candidate = GameCore.imported(await this.db.backup(), now);
+      const company = candidate.snapshot().company;
+      if (company) await verifyCompanyLogo(company.logo);
       this.revision = await this.db.save(candidate.snapshot(), this.revision); this.core = candidate;
       useGame.setState({ savedAt: Date.now(), recovery: false, notice: '已恢复上一份有效备份。', report: null });
     });
   }
-  restart() {
+  restart(company: CompanyIdentity) {
     const now = Date.now();
     return this.run(async () => {
       const candidate = new GameCore(now);
+      candidate.execute({ type: 'found-company', company }, now);
+      await verifyCompanyLogo(company.logo);
       this.revision = await this.db.save(candidate.snapshot(), this.revision); this.core = candidate;
       useGame.setState({ savedAt: Date.now(), recovery: false, notice: '已重新开始。', report: null });
     });

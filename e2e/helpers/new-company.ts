@@ -38,6 +38,7 @@ export async function startNewCompany(page: Page) {
   await page.clock.pauseAt(new Date('2026-09-25T00:00:01Z'));
   await page.goto('./');
   await page.getByRole('button', { name: '进入游戏', exact: true }).click();
+  await page.getByRole('button', { name: '创建公司并启航', exact: true }).click();
   await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
   await expect(page.getByTestId('fleet-count')).toHaveText('0 架');
   await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','unlock');

@@ -129,8 +129,8 @@ async function complete({ request = api, root = store.ROOT, run, env = process.e
   const pr = prs.find(p => p.merge_commit_sha === run.head_sha && p.merged_at && p.base.ref === 'main');
   return report({ request, root, run, pr: pr?.number, env,
     status: run.conclusion === 'success' ? '已上线，公开验收通过' : '部署失败或未完成',
-    message: run.conclusion === 'success' ? require('../../deploy/targets.json').publicUrl
-      : '请查看失败阶段。发布脚本的公开文件校验失败会恢复旧版本；发布后的浏览器验收失败会报告失败，不能据此声称已回滚。',
+    message: run.conclusion === 'success' ? '已通过 riversoft.top 发布并验证首页目录；实际入口见生产工作流 Summary。'
+      : '请查看失败阶段。平台提交失败不会报告上线；提交后的目录、文件或浏览器验收失败会报告失败，不能据此声称已回滚。',
     failures: run.conclusion === 'success' ? [] : await failureDetails(request, run) });
 }
 

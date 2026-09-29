@@ -35,7 +35,9 @@ npm run deliver -- --message "fix: 修复说明" --auto-merge --deploy -- src/ex
 
 当前私有仓库的规则集接口存在套餐限制，编排代码执行检查门槛，不绕过已有保护、不购买服务、不改变仓库可见性。事件工作流必须先在main存在；首次安装或验证回执版本变化时，交付脚本自动启动绑定当前提交的后台引导进程，并使用带版本的请求避免旧main误判。其余交付由服务器事件推进，不依赖助手长时间轮询。v2回执只接受一次完整相对路径验收，拒绝复用旧双路径回执。
 
-生产包继续通过受限SSH交给game-hk，服务器原子切换不可变版本。公开文件校验失败时由原固定脚本恢复旧链接。随后CI逐文件核对SHA-256，并使用 `playwright.production.config.ts` 运行真实新开局、导入导出、刷新离线、横竖屏与语言专项。后置验收失败仍报告失败，但不能声称已自动回滚；报告需区分发布与验收阶段。
+生产通过 riversoft.top HTTPS 托管 API 发布：读取管理员发布身份和已配置子域名 → 从 center 恢复已验证静态包 → 生成逐文件 SHA-256 清单 → 分块上传 → 再查最新 main → 平台提交。`RIVERSOFT_TOKEN` 仅从 production Secret 注入。禁止 SSH/SCP/rsync 直传、服务器脚本和目录切换，也不使用 `official-deployments` 补登记旧文件。公开 URL 来自提交响应，传入文件哈希和 `playwright.production.config.ts` 验收；首页列表和项目详情必须指向本次平台部署 ID。
+
+同名 `china-airlines` 项目已迁入 riversoft.top 托管系统，首页目录记录的发布方式为 `upload`。旧 SSH 发布工作流保持停用，只有 HTTPS 流程进入 main 后才重新启用 `deploy-production.yml`。平台不支持时明确失败，不自动改名或回退到旧流程。普通兼容沙箱不满足本游戏离线与存档要求；如平台分配新 origin，旧存档需由用户在旧地址导出、到支持该格式的新地址导入。后置验收失败不伪称自动回滚。公司资料新增后当前游戏只接受 v16，旧 v15 文件应保留用于旧版恢复。
 
 结果更新同一条PR状态评论、Actions Summary及center JSON；失败附步骤、关键堆栈和完整任务日志链接，密钥和常见令牌脱敏。日志下载暂不可用时明确说明并保留链接。正常等待不调用模型；当前聊天若无回调能力，不承诺主动推送聊天消息。
 
@@ -52,9 +54,9 @@ gh run rerun <失败运行ID> --failed
 
 项目文件相对仓库或模块位置解析，浏览器测试通过 `page.goto('./')` 使用配置baseURL。Vite base 固定为 `./`，不接受部署子目录注入；同一份产物仅在通用 `__game_test__/` 挂载目录下验收一次。部署目录由 riversoft.top 决定，线上专项也可设置 `PLAYWRIGHT_BASE_URL` 指向本地预览，以同一组用例检查构建。
 
-`deploy/targets.json` 集中存放生产域名、SSH目标和center构件根目录。站点根目录由riversoft.top统一管理，本仓库仅使用既有游戏预留位置；不修改riversoft.top仓库，不迁移服务器目录。`deploy/china-airlines-server.conf` 是已有目录值的部署配置，部署到固定服务器脚本旁并由root所有，不从PR加载、不通过用户请求指定路径。
+`deploy/targets.json` 只保留平台 API、项目元数据、center runner 与构件目录。项目传入相对文件路径，不指定主机 IP、SSH 密钥、web 根目录或游戏 URL；riversoft.top 决定部署位置并返回 URL。`scripts/publish-riversoft.mjs` 负责平台协议，服务器的旧接收脚本已从仓库移除，不修改主站仓库。
 
-服务器安装位置沿用原约定：`deploy/receive-release.sh`、`deploy/production-release.sh` 分别安装为 `/usr/local/libexec/china-airlines-receive`、`/usr/local/libexec/china-airlines-production-release`，配置安装为同目录 `china-airlines-server.conf`。三者root所有，脚本0755、配置0644。受限公钥命令、专用production私钥、固定known_hosts及预留游戏路径保持不变。脚本或配置变化必须同步安装并核对LF规范化哈希。
+上传失败只尝试取消未提交上传；失败日志、平台错误及上传 ID 存入既有失败证据。平台提交后的目录或浏览器验证失败可能已切换公开版本，需在平台管理页核实并恢复；不再次上传、不隐式回滚。发布成功后由平台提交结果填写 Actions 环境 URL 与 Summary。
 
 ## center 构件与结果
 
@@ -70,11 +72,11 @@ gh run rerun <失败运行ID> --failed
 定向测试：
 
 ```sh
-node --test .github/scripts/delivery.test.cjs .github/scripts/center-artifacts.test.cjs .github/scripts/artifact-retention.test.cjs
+node --test scripts/publish-riversoft.test.mjs .github/scripts/delivery.test.cjs .github/scripts/center-artifacts.test.cjs .github/scripts/artifact-retention.test.cjs
 ```
 
 源码、CI通过、合并、发布和公开验收分别记录；只有生产工作流及目标站点验收通过才能宣称上线。浏览器模拟不等于真实iOS/Android设备认证。
 
 ## 当前格式规则
 
-当前只支持存档 `version: 15` 和数据库结构版本 1。旧 `version: 13` 与所有其他版本拒绝，不自动迁移且不覆盖旧主档或备份。规则或格式变更必须同步更新 [DESIGN.md](DESIGN.md)、严格验证器、单元测试和浏览器流程。仓库不保留旧格式迁移器、历史夹具或旧版验收文档。
+当前只支持存档 `version: 16` 和数据库结构版本 1。旧 `version: 15` 与所有其他版本拒绝，不自动迁移且不覆盖旧主档或备份。规则或格式变更必须同步更新 [DESIGN.md](DESIGN.md)、严格验证器、单元测试和浏览器流程。仓库不保留旧格式迁移器、历史夹具或旧版验收文档。
