@@ -2,6 +2,7 @@ import { confirmPurchase, test, expect, type Page } from '../helpers/configured-
 import { readFile } from "node:fs/promises";
 import { GameCore, type GameState } from "../helpers/configured-game.js";
 import { openGlobal, selectCity, launchRoute } from "../helpers/dispatch-helpers.js";
+import { offerCandidates } from '../../tests/helpers/talent-market.js';
 const NOW = Date.parse("2026-09-13T02:00:00Z");
 async function setup(page: Page, saved?: GameState) {
   await page.clock.install({ time: new Date(NOW) });
@@ -18,7 +19,6 @@ async function setup(page: Page, saved?: GameState) {
 function funded() {
   const s = new GameCore(NOW).snapshot();
   s.credits = 1000000;
-  s.career.tickets = 1000;
   return s;
 }
 async function exportState(page: Page) {
@@ -36,7 +36,8 @@ for (const [width, height] of [[1440, 900],[844, 390],[667, 375]])
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
     await page.setViewportSize({ width: width!, height: height! });
-    await setup(page);
+    const offered=offerCandidates(new GameCore(NOW).snapshot(),[['flight','specialist'],['ground','specialist'],['company','manager']]);
+    await setup(page,offered);
     await openGlobal(page, "任务中心");
     await page.locator('[data-task-id="checkin-0"]').getByRole("button", { name: "领取奖励", exact: true }).click();
     await page.getByRole("tab", { name: /^已领取/ }).click();
@@ -63,7 +64,7 @@ for (const [width, height] of [[1440, 900],[844, 390],[667, 375]])
     expect(decoded).toBe(true);
     await page.screenshot({ path: `artifacts/career-logistics-${width}.png` });
     const saved = await exportState(page);
-    expect(saved.version).toBe(16);
+    expect(saved.version).toBe(18);
     expect(saved.career.employees[0]?.planeId).toBe("AC0001");
     expect(saved.fleet[0]?.dispatcher).toBe(true);
     expect(saved.career.claimed).toContain("checkin-0");
@@ -83,22 +84,22 @@ test("workshop quotes match growth and assembly charges and persist after refres
   await setup(page, state);
   await openGlobal(page, "经营中心");
   await page.getByRole("tab", { name: "机体工坊", exact: true }).click();
-  await page.getByRole("button", { name: "提升编队 · 4400金币＋2券", exact: true }).click();
-  await expect(page.getByTestId("credits")).toHaveText("¥ 995,600");
-  await page.getByRole("button", { name: "提升编队 · 12500金币＋4券", exact: true }).click();
-  await page.getByRole("button", { name: "机体进化 · 1800金币＋2券", exact: true }).click();
-  await expect(page.getByTestId("credits")).toHaveText("¥ 981,300");
+  await page.getByRole("button", { name: "提升编队 · 4600金币", exact: true }).click();
+  await expect(page.getByTestId("credits")).toHaveText("¥ 995,400");
+  await page.getByRole("button", { name: "提升编队 · 12900金币", exact: true }).click();
+  await page.getByRole("button", { name: "机体进化 · 2000金币", exact: true }).click();
+  await expect(page.getByTestId("credits")).toHaveText("¥ 980,500");
   await page.getByLabel("组装机型", { exact: true }).selectOption("swift-f");
-  await expect(page.locator(".career-form").filter({ has: page.getByLabel("组装机型", { exact: true }) })).toContainText("¥ 7,500");
+  await expect(page.locator(".career-form").filter({ has: page.getByLabel("组装机型", { exact: true }) })).toContainText("¥ 7,700");
   await page.getByRole("button", { name: "组装飞机", exact: true }).click();
-  await expect(page.getByTestId("credits")).toHaveText("¥ 973,800");
+  await expect(page.getByTestId("credits")).toHaveText("¥ 972,800");
   await page.reload();
   const saved = await exportState(page);
-  expect(saved.credits).toBe(973800);
+  expect(saved.credits).toBe(972800);
   expect(saved.fleet[0]!.tuning).toMatchObject({ group: 2, evolution: 1 });
   expect(saved.fleet[1]!).toMatchObject({ modelId: "swift-f", allocation: { passengers: 0, cargo: 0 } });
   expect(saved.career.inventory.frame).toBe(5);
-  expect(saved.career.tickets).toBe(990);
+
 });
 
 test("factory goods load onto a cargo plane, arrive in another city and fulfil one trade", async ({page}) => {

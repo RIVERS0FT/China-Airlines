@@ -16,7 +16,7 @@ test('destination stations group different destinations while preserving individ
   page.on('dialog', dialog => void dialog.accept());
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
   await page.getByLabel('选择存档文件').setInputFiles({ name: 'stations.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(state)) });
-  await expect(page.getByTestId('credits')).toHaveText('¥ 11,500');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 15,000');
   await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
   await expect(page.locator('.destination-station')).toHaveCount(2);
   for (const city of ['上海', '武汉']) {
@@ -68,7 +68,7 @@ test('first flight is guided through the mission without a bottom tutorial entry
 
 test('loading and unloading move an order between the apron and cabin without a toolbar', async ({ page }) => {
   await page.goto('./');
-  await expect(page.getByTestId('waiting-order')).toHaveCount(12);
+  await expect(page.getByTestId('waiting-order')).toHaveCount(18);
   await expect(page.locator('.job-quantity')).toHaveCount(0);
   await expect(page.locator('.order-toolbar')).toHaveCount(0);
   const item = page.getByTestId('waiting-order').first();
@@ -90,16 +90,23 @@ test('loading and unloading move an order between the apron and cabin without a 
   await expect(page.getByRole('button', { name: '查看机上客货', exact: true })).toHaveCount(0);
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   await page.getByRole('button', { name: '机场装载', exact: true }).click();
-  await expect(page.getByTestId('waiting-order')).toHaveCount(11);
+  await expect(page.getByTestId('waiting-order')).toHaveCount(17);
+  await expect(page.getByTestId('loaded-order')).toHaveCount(1);
+  await expect(page.getByTestId('loaded-order')).toHaveAttribute('data-order-id', id!);
 });
 
 test('loaded orders stay visible in the default cabin after using airport navigation', async ({ page }) => {
   await page.goto('./');
-  await page.getByTestId('waiting-order').first().click();
+  await expect(page.getByTestId('waiting-order')).toHaveCount(18);
+  const order = page.getByTestId('waiting-order').first();
+  const id = await order.getAttribute('data-order-id');
+  await order.click();
   await expect(page.getByRole('button', { name: '隐藏机舱', exact: true })).toBeVisible();
   await expect(page.getByTestId('loaded-order')).toHaveCount(1);
   await page.getByRole('button', { name: '机场装载', exact: true }).click();
-  await expect(page.getByTestId('waiting-order')).toHaveCount(11);
+  await expect(page.getByTestId('waiting-order')).toHaveCount(17);
+  await expect(page.getByTestId('loaded-order')).toHaveCount(1);
+  await expect(page.getByTestId('loaded-order')).toHaveAttribute('data-order-id', id!);
 });
 
 for (const [width, height] of [[1440, 900], [844, 390], [667, 375]]) {

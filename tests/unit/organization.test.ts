@@ -4,7 +4,7 @@ import { directReports, effectiveManager, employmentPrice, groundServiceQuote, m
 import { organizationLayout, ORG_NODE_HEIGHT, ORG_NODE_WIDTH } from '../../src/ui/organization-layout.js';
 const NOW = Date.parse('2026-09-14T02:00:00Z');
 function rich(planes = 1, airports = 2) {
-  const s = new GameCore(NOW).snapshot(); s.credits = 1000000; s.career.tickets = 10000; const c = new GameCore(NOW, s);
+  const s = new GameCore(NOW).snapshot(); s.credits = 1000000; const c = new GameCore(NOW, s);
   while(c.snapshot().fleet.length<planes){if(c.snapshot().fleet.length>=c.snapshot().hangarSlots)cmd(c,{type:'expand-hangar'});cmd(c,{type:'buy',modelId:'diamond-da40',airportId:'PEK',passengers:1,cargo:0});}
   for(const airportId of ['CAN','WUH'].slice(0,airports-2))cmd(c,{type:'unlock',airportId});
   return c;
@@ -48,7 +48,7 @@ describe('assignments, careers and reporting', () => {
     for (const training of ['skill','skill','management'] as const) cmd(c, { type: 'train-employee', employeeId: p.id, training });
     const before = c.snapshot(); cmd(c, { type: 'employee-role', employeeId: p.id, role: 'manager' });
     const after = c.snapshot(); expect(after.career.employees[0]!).toMatchObject({ id: p.id, name: p.name, paidUntil: p.paidUntil, planeId: null, role: 'manager', skill: 2 });
-    expect(after.fleet[0]!.dispatcher).toBe(false); expect(after.credits).toBe(before.credits); expect(after.career.tickets).toBe(before.career.tickets);
+    expect(after.fleet[0]!.dispatcher).toBe(false); expect(after.credits).toBe(before.credits);
   });
   it('cannot reassign or promote an operating pilot and preserves locked flight', () => {
     const c = rich(), p = recruit(c); for (const training of ['skill','skill','management'] as const) cmd(c, { type: 'train-employee', employeeId: p.id, training });
@@ -57,7 +57,8 @@ describe('assignments, careers and reporting', () => {
     const flight = c.snapshot().fleet[0]!.flight; recruit(c, 'ground'); expect(c.snapshot().fleet[0]!.flight).toEqual(flight);
   });
   it('demotion returns reports to the player and does not revoke earned crew tasks', () => {
-    const c = rich(), m = recruit(c, 'flight', 'manager'), p = recruit(c); cmd(c, { type: 'report-to', employeeId: p.id, managerId: m.id });
+    const state = rich().snapshot(); state.stats.revenue = 3000;
+    const c = new GameCore(NOW, state), m = recruit(c, 'flight', 'manager'), p = recruit(c); cmd(c, { type: 'report-to', employeeId: p.id, managerId: m.id });
     cmd(c, { type: 'career-claim', id: 'crew-1' });
     cmd(c, { type: 'employee-role', employeeId: m.id, role: 'specialist' }); expect(c.snapshot().career.employees[1]!.managerId).toBeNull();
     expect(c.snapshot().career.claimed).toContain('crew-1');
@@ -82,14 +83,14 @@ describe('bounded management and contracts', () => {
     for (const p of people) cmd(c, { type: 'report-to', employeeId: p.id, managerId: m.id });
     const s = c.snapshot(), capacity = managerCapacity(m), first = s.career.employees[1]!, last = s.career.employees.at(-1)!;
     expect(directReports(s, m.id)).toHaveLength(5); expect(effectiveManager(s, first)?.id).toBe(m.id); expect(effectiveManager(s, last)).toBeUndefined();
-    expect(capacity).toBeLessThan(5); expect(trainingQuote(s, first, 'skill').gold).toBeLessThan(400); expect(trainingQuote(s, last, 'skill').gold).toBe(400);
+    expect(capacity).toBeLessThan(5); expect(trainingQuote(s, first, 'skill').gold).toBeLessThan(700); expect(trainingQuote(s, last, 'skill').gold).toBe(700);
     expect(trainingQuote(s, first, 'management').discount).toBe(0); s.career.employees[0]!.paidUntil = 0;
-    expect(trainingQuote(s, first, 'skill').gold).toBe(400); expect(validateSave(s)).toEqual(s);
+    expect(trainingQuote(s, first, 'skill').gold).toBe(700); expect(validateSave(s)).toEqual(s);
   });
   it('uses the exact visible training quote and rolls back failed payment', () => {
     const c = rich(), p = recruit(c), m = recruit(c, 'flight', 'manager'); cmd(c, { type: 'report-to', employeeId: p.id, managerId: m.id });
     const s = c.snapshot(), cost = trainingQuote(s, s.career.employees[0]!, 'skill'); cmd(c, { type: 'train-employee', employeeId: p.id, training: 'skill' });
-    expect(c.snapshot().credits).toBe(s.credits-cost.gold); expect(c.snapshot().career.tickets).toBe(s.career.tickets-cost.tickets);
+    expect(c.snapshot().credits).toBe(s.credits-cost.gold);
     const poor = c.snapshot(); poor.credits = 0; rejects(new GameCore(NOW, poor), { type: 'train-employee', employeeId: p.id, training: 'skill' }, /金币不足/);
   });
   it('honors potential and bounded history without resetting wages or skills', () => {

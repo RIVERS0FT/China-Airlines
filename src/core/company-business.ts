@@ -1,6 +1,7 @@
+import { BUSINESS_BALANCE, paybackMinutes } from './balance-policy.js';
 import type { GameState } from './game.js';
 import { bill, guard } from './career.js';
-import { employeeHistory, generalManager, type Employee } from './organization.js';
+import { employeeHistory, generalManager, MAX_EMPLOYEES, departmentPrice, type Employee } from './organization.js';
 
 export const BUSINESS_KINDS = ['ticketing', 'services', 'forwarding'] as const;
 export type BusinessKind = typeof BUSINESS_KINDS[number];
@@ -12,11 +13,11 @@ export type BusinessCommand =
   | { type: 'train-business-employee'; employeeId: number };
 export const BUSINESS_CATALOG: Record<BusinessKind, {
   zh: string; en: string; airportLevel: number; opening: number; hiring: number; expansion: number;
-  gross: number; wage: number; overhead: number;
+  gross: number; wage: number; overhead: number; specialistTraining: number; managerTraining: number;
 }> = {
-  ticketing: { zh: '票务代理', en: 'Ticket agency', airportLevel: 1, opening: 900, hiring: 400, expansion: 800, gross: 900, wage: 300, overhead: 200 },
-  services: { zh: '地面服务', en: 'Ground services', airportLevel: 2, opening: 2400, hiring: 1000, expansion: 1800, gross: 1800, wage: 500, overhead: 400 },
-  forwarding: { zh: '货运代理', en: 'Freight agency', airportLevel: 3, opening: 6000, hiring: 2500, expansion: 4000, gross: 4200, wage: 1200, overhead: 1000 },
+  ticketing: { zh: '票务代理', en: 'Ticket agency', airportLevel: 1, ...BUSINESS_BALANCE.ticketing },
+  services: { zh: '地面服务', en: 'Ground services', airportLevel: 2, ...BUSINESS_BALANCE.services },
+  forwarding: { zh: '货运代理', en: 'Freight agency', airportLevel: 3, ...BUSINESS_BALANCE.forwarding },
 };
 export const MAX_BUSINESS_TEAMS = 300, MAX_BUSINESS_LEVEL = 5;
 // Rates are integer milli-coins/second; remainder is integer millionths of a coin.
@@ -25,8 +26,17 @@ export const newBusiness = (now = 0): BusinessState => ({ teams: [], nextId: 1, 
 export const businessCapacity = (team: BusinessTeam) => 2 * team.level;
 export const businessWorkers = (s: GameState, team: BusinessTeam) =>
   s.career.employees.filter(e => e.department === 'business' && e.role === 'specialist' && e.managerId === team.managerId);
-export const employeeCapacity = (s: GameState) => 15 + s.business.teams.reduce((n, t) => n + 1 + businessCapacity(t), 0);
+export const employeeCapacity = (s: GameState) => MAX_EMPLOYEES + s.business.teams.reduce((n, t) => n + 1 + businessCapacity(t), 0);
+export const businessOpeningPrice = (s: GameState, kind: BusinessKind) => departmentPrice(s, 'finance', BUSINESS_CATALOG[kind].opening);
 export const employeeTeam = (s: GameState, e: Employee) => s.business.teams.find(t => t.managerId === (e.role === 'manager' ? e.id : e.managerId));
+export function businessOpeningQuote(s: GameState, kind: BusinessKind) {
+  const spec = BUSINESS_CATALOG[kind], chief = generalManager(s);
+  const bonus = Math.min(40, 2 + (chief && chief.paidUntil > s.simTime ? chief.management : 0));
+  const workerGross = Math.floor(spec.gross * (100 + bonus) / 100);
+  const net = Math.max(0, workerGross - spec.wage - spec.overhead), cost = businessOpeningPrice(s, kind);
+  return { cost, net, payback: paybackMinutes(cost, net), staffedCost: cost + spec.hiring,
+    staffedNet: Math.max(0, 2 * (workerGross - spec.wage) - spec.overhead) };
+}
 export function businessTeamQuote(s: GameState, team: BusinessTeam, at = s.simTime) {
   const spec = BUSINESS_CATALOG[team.kind], workers = businessWorkers(s, team);
   const manager = s.career.employees.find(e => e.id === team.managerId), chief = generalManager(s);
@@ -37,10 +47,15 @@ export function businessTeamQuote(s: GameState, team: BusinessTeam, at = s.simTi
   const gross = workers.reduce((sum, e) => sum + employeeGross(e), 0);
   const costs = workers.length * spec.wage + spec.overhead;
   const net = Math.max(0, gross - costs);
+  const hiringCost = spec.hiring * (1 + Math.floor(workers.length / 3));
+  const hiringGain = Math.max(0, gross + employeeGross({ skill: 1 }) - costs - spec.wage) - net;
+  const expansionCost = departmentPrice(s, 'finance', spec.expansion * team.level * team.level);
+  const staffingCost = Array.from({ length: 2 }, (_, i) => spec.hiring * (1 + Math.floor((workers.length + i) / 3))).reduce((a, b) => a + b, 0);
+  const staffingGain = Math.max(0, gross + 2 * employeeGross({ skill: 1 }) - costs - 2 * spec.wage) - net;
   return { gross, costs, net, workers, bonus, workerGross: employeeGross({ skill: 1 }),
-    hiringCost: spec.hiring * (1 + Math.floor(workers.length / 3)),
-    hiringGain: employeeGross({ skill: 1 }) - spec.wage,
-    expansionCost: spec.expansion * team.level * team.level,
+    hiringCost, hiringGain, hiringPayback: paybackMinutes(hiringCost, hiringGain), expansionCost,
+    expansionStaffedCost: expansionCost + staffingCost, expansionGain: staffingGain,
+    expansionPayback: paybackMinutes(expansionCost + staffingCost, staffingGain),
     capacity: businessCapacity(team) };
 }
 export function businessIncomeQuote(s: GameState, at = s.simTime) {
@@ -54,10 +69,10 @@ export function businessOpeningReason(s: GameState, airportId: string, kind: Bus
   const owned = s.airports.find(a => a.id === airportId), spec = BUSINESS_CATALOG[kind];
   if (!owned) return '机场尚未开放';
   if (!s.stats.flights || !s.stats.revenue) return '完成首次有偿运输后开放公司业务';
-  if (owned.level < spec.airportLevel) return `该业务需要${spec.airportLevel}级机场`;
+  if (owned.level < spec.airportLevel) return `该业务需要运营设施Lv.${spec.airportLevel}`;
   if (s.business.teams.some(t => t.airportId === airportId && t.kind === kind)) return '该城市已开设此业务';
   if (s.business.teams.length >= MAX_BUSINESS_TEAMS) return '业务团队已达上限';
-  if (s.credits < spec.opening) return '运营资金不足';
+  if (s.credits < businessOpeningPrice(s, kind)) return '运营资金不足';
   return '';
 }
 function createBusinessEmployee(s: GameState, role: Employee['role'], managerId: number | null): Employee {
@@ -76,15 +91,19 @@ export function businessTrainingQuote(s: GameState, employee: Employee) {
   const team = employeeTeam(s, employee);
   guard(team && employee.department === 'business', '未找到业务员工');
   const field: 'management' | 'skill' = employee.role === 'manager' ? 'management' : 'skill';
-  const next = employee[field] + 1, cost = BUSINESS_CATALOG[team.kind].hiring * next * next;
+  const next = employee[field] + 1, training = BUSINESS_CATALOG[team.kind];
+  const base = field === 'skill' ? training.specialistTraining : training.managerTraining;
+  const factor = field === 'skill' ? 1.45 : 1.60;
+  const cost = departmentPrice(s, 'hr', Math.ceil(base * factor ** (next - 2) / 10) * 10);
   const q = businessTeamQuote(s, team), spec = BUSINESS_CATALOG[team.kind];
   const bonus = field === 'management' ? Math.min(40, q.bonus + 2) : q.bonus;
   const projected = q.workers.reduce((sum, worker) => {
     const skill = field === 'skill' && worker.id === employee.id ? next : worker.skill;
     return sum + Math.floor(spec.gross * (100 + 10 * (skill - 1) + bonus) / 100);
   }, 0);
-  return { field, next, cost, maximum: next > employee.potential,
-    gain: Math.max(0, projected - q.costs) - q.net };
+  const maximum = next > employee.potential;
+  const gain = maximum ? 0 : Math.max(0, projected - q.costs) - q.net;
+  return { field, next, cost, maximum, gain, payback: paybackMinutes(cost, gain) };
 }
 /** Called on an already time-advanced transaction copy; any failure discards all writes. */
 export function businessExecute(s: GameState, command: BusinessCommand): string {
@@ -92,7 +111,7 @@ export function businessExecute(s: GameState, command: BusinessCommand): string 
     const reason = businessOpeningReason(s, command.airportId, command.kind);
     guard(!reason, reason);
     guard(s.business.nextId < 1e12 && s.career.nextId < 1e12 - 1, '业务或人员编号已达上限');
-    bill(s, BUSINESS_CATALOG[command.kind].opening, 0);
+    bill(s, businessOpeningPrice(s, command.kind));
     const manager = createBusinessEmployee(s, 'manager', generalManager(s)?.id ?? null);
     s.business.teams.push({ id: s.business.nextId++, airportId: command.airportId, kind: command.kind, managerId: manager.id, level: 1 });
     createBusinessEmployee(s, 'specialist', manager.id);
@@ -103,7 +122,8 @@ export function businessExecute(s: GameState, command: BusinessCommand): string 
     guard(employee?.department === 'business', '未找到业务员工');
     const q = businessTrainingQuote(s, employee);
     guard(!q.maximum, '员工已达到潜力上限');
-    bill(s, q.cost, 0); employee[q.field] = q.next;
+    guard(q.gain > 0, '培养不会增加当前团队净收入');
+    bill(s, q.cost); employee[q.field] = q.next;
     employeeHistory(s, employee, 'trained', `业务${q.field === 'management' ? '管理' : '专业'}提升至${q.next}级`);
     return '业务员工培养完成，后续每秒收入已更新';
   }
@@ -113,13 +133,13 @@ export function businessExecute(s: GameState, command: BusinessCommand): string 
   if (command.type === 'hire-business-worker') {
     guard(q.workers.length < q.capacity, '团队岗位已满，请先扩建');
     guard(s.career.nextId < 1e12, '人员编号已达上限');
-    bill(s, q.hiringCost, 0); createBusinessEmployee(s, 'specialist', team.managerId);
+    bill(s, q.hiringCost); createBusinessEmployee(s, 'specialist', team.managerId);
     return '业务员工已上岗，每秒净收入增加';
   }
   guard(command.type === 'expand-business-team', '未知业务命令');
   const owned = s.airports.find(a => a.id === team.airportId);
-  guard(team.level < MAX_BUSINESS_LEVEL && team.level < (owned?.level ?? 0) + 2, '请先升级机场，或团队已达到扩建上限');
-  bill(s, q.expansionCost, 0); team.level++;
+  guard(team.level < MAX_BUSINESS_LEVEL && team.level < (owned?.level ?? 0) + 2, '请先升级运营设施，或团队已达到扩建上限');
+  bill(s, q.expansionCost); team.level++;
   return '业务团队已扩建，新增2个岗位';
 }
 /** Fixed-point, additive settlement. Splits at prepaid chief expiry, never at render frames. */

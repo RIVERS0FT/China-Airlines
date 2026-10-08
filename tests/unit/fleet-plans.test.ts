@@ -4,7 +4,7 @@ import { GameCore, validateSave, manifest, planQuote, quote, type GameState } fr
 import { ALL_MODELS, MODELS, aircraftSpecs, hangarPrice, retrofitPrice } from '../../src/core/catalog.js';
 const NOW = 1800000000000;
 const ID = 'AC0001';
-function rich() { const s = new GameCore(NOW).snapshot(); s.credits = 10000000; s.career.tickets=1000000; s.career.xp=20000; return new GameCore(NOW, s); }
+function rich() { const s = new GameCore(NOW).snapshot(); s.credits = 10000000; s.career.xp=20000; return new GameCore(NOW, s); }
 function prepared() {
   const c = rich();
   c.execute({ type: 'unlock', airportId: 'WUH' }, NOW);
@@ -130,7 +130,7 @@ describe('finite multi-stop plans',()=>{
     const c=prepared();c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG','PEK']},NOW);c.tick(NOW+10000);
     const loaded=new GameCore(NOW+10000,validateSave(c.snapshot()));c.tick(NOW+500000);loaded.tick(NOW+500000);expect(loaded.snapshot()).toEqual(c.snapshot());
   });
-  it('produces the same results with stepwise and single offline advances',()=>{
+  it('produces the same results with stepwise and single active advances',()=>{
     const c=prepared();c.execute({type:'dispatch-plan',planeId:ID,stops:['WUH','PVG','PEK','PVG','PEK']},NOW);
     const step=new GameCore(NOW,c.snapshot());for(let i=1;i<=480;i++)step.tick(NOW+i*60000);c.tick(NOW+8*3600000);expect(step.snapshot()).toEqual(c.snapshot());
   });

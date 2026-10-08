@@ -10,7 +10,7 @@ const send = (c: GameCore, to: string, planeId = 'AC0001') => {
 };
 describe('persistent passenger and cargo orders', () => {
   it('starts with visible supply but no invented onboard load or flight revenue', () => {
-    const s = new GameCore(NOW).snapshot(); expect(waiting(s,'PEK')).toHaveLength(12); expect(manifest(s,'AC0001')).toHaveLength(0);
+    const s = new GameCore(NOW).snapshot(); expect(waiting(s,'PEK')).toHaveLength(18); expect(manifest(s,'AC0001')).toHaveLength(0);
     expect(s.fleet[0]!.modelId).toBe('heron-p');
     expect(aircraftSpecs(s.fleet[0]!)).toMatchObject({ seats: 3, cargo: 2 });
     expect(waiting(s,'PEK').every(o => o.amount === 1)).toBe(true);
@@ -56,7 +56,7 @@ describe('persistent passenger and cargo orders', () => {
   it('automatic dispatch waits for real supply rather than generating free flights',()=>{
     const c=new GameCore(NOW);c.execute({type:'hire-dispatcher',planeId:'AC0001'},NOW);c.execute({type:'route',from:'PEK',to:'PVG'},NOW);const s=c.snapshot();s.orders=[];s.fleet[0]!.autoRouteId='PEK-PVG';const auto=new GameCore(NOW,s);
     auto.tick(NOW+60000);expect(auto.snapshot().stats.flights).toBe(0);expect(auto.snapshot().credits).toBe(s.credits);expect(()=>validateSave(auto.snapshot())).not.toThrow();
-    auto.tick(NOW+DEMAND_INTERVAL*1000);expect(auto.snapshot().fleet[0]!.flight?.passengers).toBeGreaterThan(0);expect(waiting(auto.snapshot(),'PEK').length).toBeLessThan(12);
+    auto.tick(NOW+DEMAND_INTERVAL*1000);expect(auto.snapshot().fleet[0]!.flight?.passengers).toBeGreaterThan(0);expect(waiting(auto.snapshot(),'PEK').length).toBeLessThan(18);
   });
   it('rejects a manifest that cannot be served by direct automatic return',()=>{
     const c=new GameCore(NOW),o=waiting(c.snapshot(),'PEK')[0]!;c.execute({type:'unlock',airportId:'WUH'},NOW);c.execute({type:'load',planeId:'AC0001',orderId:o.id},NOW);c.execute({type:'route',from:'PEK',to:'WUH'},NOW);

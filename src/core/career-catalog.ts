@@ -1,4 +1,5 @@
 import { RAILWAY_LEVELS } from "./railway-observations.js";
+import { CAREER_REWARDS, OPERATION_REWARDS, POINT_GOLD } from './balance-policy.js';
 import {
   TASKS as OLD_TASKS,
   type Upgrades,
@@ -32,6 +33,7 @@ export interface AircraftModel {
   range: number;
   speed: number;
   price: number;
+  /** Minimum fixed airport stars; independent of the player's facility level. */
   level: number;
   costKm: number;
   weight: number;
@@ -181,7 +183,8 @@ export const retrofitPrice = (
   p: { modelId: string; upgrades: Upgrades },
   key: keyof Upgrades,
 ) =>
-  Math.ceil(model(p.modelId).price * 0.025 * (1 + p.upgrades[key] * 0.12));
+  Math.ceil(model(p.modelId).price * 0.025 * (1 + p.upgrades[key] * 0.12)) +
+  Math.max(1, Math.ceil(RAILWAY_LEVELS[Math.min(99, p.upgrades[key])]![5] / 4)) * POINT_GOLD;
 export const cabinAllocationPrice = (
   current: { passengers: number; cargo: number },
   next: { passengers: number; cargo: number },
@@ -192,20 +195,12 @@ export function growthPrice(p: { modelId: string; tuning: Tuning }, key: 'group'
   const next = p.tuning[key] + 1, price = model(p.modelId).price;
   const gold = key === 'group' ? Math.ceil(price * 0.2 * next ** 1.5 / 100) * 100
     : key === 'evolution' ? Math.ceil(price * 0.08 * next / 100) * 100 : next * 500;
-  return { gold, tickets: next * 2 };
+  return { gold: gold + next * 2 * POINT_GOLD };
 }
 // Building an aircraft must not create a buy-parts/assemble/resell money loop.
-export const assemblyPrice = (modelId: string) => Math.ceil(model(modelId).price * 0.6);
+export const assemblyPrice = (modelId: string) => Math.ceil(model(modelId).price * 0.6) + model(modelId).level * 2 * POINT_GOLD;
 export const upgradeLimit = (_p: { modelId: string }, key: keyof Upgrades) =>
   key === "capacity" ? 0 : 99;
-export const upgradeTickets = (
-  p: { modelId: string; upgrades: Upgrades },
-  key: keyof Upgrades,
-) =>
-  Math.max(
-        1,
-        Math.ceil(RAILWAY_LEVELS[Math.min(99, p.upgrades[key])]![5] / 4),
-      );
 export const MATERIALS = {
   frame: "机身组件",
   engine: "动力组件",
@@ -335,14 +330,13 @@ export const RECIPES = [
     fee: 300,
   },
 ] as const;
-export const CAREER_TASKS = [
+const CAREER_TASK_DEFINITIONS = [
   {
     id: "deliver-10",
     title: "十份托付",
     metric: "deliveries",
     target: 10,
     gold: 1500,
-    tickets: 8,
   },
   {
     id: "network-3",
@@ -350,7 +344,6 @@ export const CAREER_TASKS = [
     metric: "airports",
     target: 3,
     gold: 1800,
-    tickets: 12,
   },
   {
     id: "flights-10",
@@ -358,7 +351,6 @@ export const CAREER_TASKS = [
     metric: "flights",
     target: 10,
     gold: 2500,
-    tickets: 20,
   },
   {
     id: "crew-1",
@@ -366,7 +358,6 @@ export const CAREER_TASKS = [
     metric: "crew",
     target: 1,
     gold: 1000,
-    tickets: 10,
   },
   {
     id: "assembly-1",
@@ -374,7 +365,6 @@ export const CAREER_TASKS = [
     metric: "assemblies",
     target: 1,
     gold: 4000,
-    tickets: 20,
   },
   {
     id: "production-5",
@@ -382,7 +372,6 @@ export const CAREER_TASKS = [
     metric: "production",
     target: 5,
     gold: 5000,
-    tickets: 25,
   },
   {
     id: "museum-1",
@@ -390,7 +379,6 @@ export const CAREER_TASKS = [
     metric: "museum",
     target: 1,
     gold: 3000,
-    tickets: 25,
   },
   {
     id: "trade-3",
@@ -398,13 +386,15 @@ export const CAREER_TASKS = [
     metric: "trades",
     target: 3,
     gold: 5000,
-    tickets: 30,
   },
 ] as const;
 
-export const TASKS = OLD_TASKS.map((t, i) => ({
+export const CAREER_TASKS = CAREER_TASK_DEFINITIONS.map(task => ({ ...task, ...CAREER_REWARDS[task.id] }));
+
+export const TASKS = OLD_TASKS.map(t => ({
   ...t,
-  reward: [1500, 1200, 4000, 3000][i]!,
+  reward: OPERATION_REWARDS[t.id].gold,
+  minRevenue: OPERATION_REWARDS[t.id].minRevenue,
 }));
 export const hangarPrice = (slots: number) => 2000 + slots * 500;
 export const upgradePrice = (level: number) => (level === 1 ? 8000 : 24000);

@@ -1,5 +1,6 @@
 import type { GameState } from './game.js';
 import { EMPLOYEE_POSITIONS, HISTORY_LIMIT, MAX_EMPLOYEES, canReportTo, isEmployeePosition, staffLimit } from './organization.js';
+import { isSupportDepartment } from './departments.js';
 /** Validate the complete identity graph, not only the currently visible tree. */
 export function validateEmployees(s: GameState): void {
   const fail = (): never => { throw new Error('存档公司组织数据无效，原进度未被覆盖'); };
@@ -24,6 +25,7 @@ export function validateEmployees(s: GameState): void {
     if (e.managerId !== null) { num(e.managerId); if (e.managerId < 1 || e.managerId === e.id) fail(); }
     if (e.role === 'manager' && (e.planeId !== null || e.airportId !== null || e.skill < 2 || e.management < 1)) fail();
     if (e.department === 'company' && (e.managerId !== null || e.flights !== 0 || e.deliveries !== 0)) fail();
+    if (isSupportDepartment(e.department) && (e.flights !== 0 || e.deliveries !== 0)) fail();
     if (e.planeId !== null) {
       if (typeof e.planeId !== 'string' || e.department !== 'flight' || e.role !== 'specialist' || planes.has(e.planeId) ||
         !s.fleet.some(p => p.id === e.planeId && p.dispatcher)) fail();

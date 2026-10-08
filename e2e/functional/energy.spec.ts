@@ -35,7 +35,9 @@ for(const [width,height] of [[1440,900],[844,390],[667,375]] as const){
     const service=page.getByRole('region',{name:'飞机能量管理'});
     await page.getByRole('button',{name:'开始地勤补能',exact:true}).scrollIntoViewIfNeeded();
     await expect(page.getByRole('button',{name:'开始地勤补能',exact:true})).toBeInViewport();
-    await expect(service).toContainText('每整分钟消耗1点');
+    await expect(service).toContainText('下次补能 120 秒');
+    await expect(service).toContainText('费用 0');
+    await expect(service).not.toContainText(/截止时间锁定|不会重复赠送|到达释放/);
     await page.screenshot({path:`artifacts/energy-service-${width}.png`});
     await page.getByRole('button',{name:'开始地勤补能',exact:true}).click();await expect(page.getByTestId('energy-service-status')).toContainText('地勤补能中');
     await page.clock.fastForward(60000);await expect(page.getByTestId('hangar-energy')).toHaveText('0.22 / 280 点');

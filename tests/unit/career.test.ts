@@ -21,7 +21,6 @@ const NOW = 1800000000000,
 function rich() {
   const s = new GameCore(NOW).snapshot();
   s.credits = 1e7;
-  s.career.tickets = 1e6;
   s.career.xp = 20000;
   for (const k of Object.keys(s.career.inventory))
     s.career.inventory[k as keyof typeof s.career.inventory] = 100;
@@ -44,9 +43,9 @@ function unchanged(c: GameCore, command: Command) {
 describe("current economy and contracts", () => {
   it("starts with the current currency balances and ten purchasable capacity grades", () => {
     const s = new GameCore(NOW).snapshot();
-    expect(s.version).toBe(16);
+    expect(s.version).toBe(18);
     expect(s.credits).toBe(18000);
-    expect(s.career.tickets).toBe(24);
+
     expect(MODELS).toHaveLength(10);
     expect(aircraftSpecs(s.fleet[0]!)).toMatchObject({
       seats: 3,
@@ -75,11 +74,12 @@ describe("current economy and contracts", () => {
     wait(c, 0);
     expect(c.snapshot()).toEqual(arrived);
   });
-  it("gates rank and airport level before spending", () => {
+  it("gates company rank and fixed airport stars before spending", () => {
     const c = new GameCore(NOW);
     unchanged(c, { type: "buy", modelId: "heron-p", airportId: "PEK", passengers: 1, cargo: 0 });
     const r = rich();
-    unchanged(r, { type: "buy", modelId: "aurora-p", airportId: "PEK", passengers: 1, cargo: 0 });
+    cmd(r,{type:'unlock',airportId:'WUH'});
+    unchanged(r, { type: "buy", modelId: "aurora-p", airportId: "WUH", passengers: 1, cargo: 0 });
   });
   it("uses historical hundred-level modifiers with real capacity and power", () => {
     const c = rich(),
@@ -122,7 +122,9 @@ describe("fleet, people, collections and tasks", () => {
     expect(c.snapshot().career.stored).toHaveLength(0);
     cmd(c, { type: "activate-achievement" });
     unchanged(c, { type: "museum-donate", planeId: "AC0002" });
-    cmd(c, { type: "career-claim", id: "museum-1" });
+    unchanged(c, { type: "career-claim", id: "museum-1" });
+    const eligible = c.snapshot(); eligible.stats.revenue = 8000; const ready = new GameCore(NOW, eligible);
+    cmd(ready, { type: "career-claim", id: "museum-1" });
     unchanged(c, { type: "career-claim", id: "museum-1" });
   });
   it("requires professional cargo bay and consumes materials only on success", () => {
@@ -159,14 +161,15 @@ describe("fleet, people, collections and tasks", () => {
       run.snapshot().simTime + 7 * 86400,
     );
   });
-  it("does not mint experience, tickets or materials for empty repositioning", () => {
+  it("does not mint experience, coin rewards or materials for empty repositioning", () => {
     const c = rich(),
-      before = c.snapshot().career;
+      before = c.snapshot();
     cmd(c, { type: "dispatch", planeId: ID, to: "PVG", auto: false });
     wait(c, c.snapshot().fleet[0]!.flight!.arriveAt);
-    expect(c.snapshot().career.tickets).toBe(before.tickets);
-    expect(c.snapshot().career.xp).toBe(before.xp);
-    expect(c.snapshot().career.inventory).toEqual(before.inventory);
+
+    expect(c.snapshot().career.xp).toBe(before.career.xp);
+    expect(c.snapshot().career.inventory).toEqual(before.career.inventory);
+    expect(c.snapshot().credits).toBe(before.credits - c.snapshot().stats.costs);
   });
   it("daily rewards and seeded research survive reload without rerolling", () => {
     const c = rich();
@@ -180,6 +183,17 @@ describe("fleet, people, collections and tasks", () => {
   });
 });
 describe("physical production and transport", () => {
+  it("freezes production, inventory and the business day while inactive", () => {
+    const c = rich();
+    cmd(c, { type: "build-facility", building: "factory" });
+    cmd(c, { type: "purchase-resource", material: "food", airportId: "PEK", count: 6 });
+    cmd(c, { type: "produce", recipe: "meal", airportId: "PEK", count: 2 });
+    const before = c.snapshot(), resumedAt = before.lastWallTime + 86400000;
+    c.tick(resumedAt, { active: false });
+    expect(c.snapshot()).toEqual({ ...before, lastWallTime: resumedAt, business: { ...before.business, wallPeak: resumedAt } });
+    c.tick(resumedAt + 500000);
+    expect(c.snapshot().career.produced).toBe(2);
+  });
   function factory() {
     const c = rich();
     cmd(c, { type: "build-facility", building: "factory" });
@@ -283,7 +297,7 @@ describe("physical production and transport", () => {
     cmd(c, { type: "close-airport", airportId: "WUH" });
     expect(c.snapshot().career.savedRoutes).toHaveLength(0);
     expect(c.snapshot().career.airportPeak).toBe(3);
-    cmd(c, { type: "career-claim", id: "network-3" });
+    unchanged(c, { type: "career-claim", id: "network-3" });
   });
   it("production components can be withdrawn into the workshop exactly once", () => {
     const c = rich();
@@ -333,7 +347,7 @@ describe("physical production and transport", () => {
     wait(c, 120);
     expect(
       c.snapshot().orders.filter((o) => o.location === "PEK"),
-    ).toHaveLength(18);
+    ).toHaveLength(24);
     cmd(c, { type: "airport-demand", airportId: "PVG", enabled: false });
     wait(c, 480);
     expect(c.snapshot().orders).toHaveLength(0);
@@ -356,17 +370,18 @@ describe("physical production and transport", () => {
   });
 });
 describe("strict expanded schema", () => {
-  it("refreshes only unaccepted demand, uses ten free refreshes then tickets, and enforces daily cap", () => {
+  it("refreshes only unaccepted demand, uses ten free refreshes then coins, and enforces daily cap", () => {
     const c = new GameCore(NOW),
       order = c.snapshot().orders[0]!;
     cmd(c, { type: "load", planeId: ID, orderId: order.id });
-    const tickets = c.snapshot().career.tickets;
+    const credits = c.snapshot().credits;
     for (let i = 0; i < 10; i++)
       cmd(c, { type: "refresh-demand", airportId: "PEK" });
-    expect(c.snapshot().career.tickets).toBe(tickets);
+
+    expect(c.snapshot().credits).toBe(credits);
     expect(manifest(c.snapshot(), ID)[0]!.id).toBe(order.id);
     cmd(c, { type: "refresh-demand", airportId: "PEK" });
-    expect(c.snapshot().career.tickets).toBe(tickets - 1);
+    expect(c.snapshot().credits).toBe(credits - 100);
     for (let i = 11; i < 30; i++)
       cmd(c, { type: "refresh-demand", airportId: "PEK" });
     unchanged(c, { type: "refresh-demand", airportId: "PEK" });
@@ -379,10 +394,8 @@ describe("strict expanded schema", () => {
       },
     ],
     [
-      "negative tickets",
-      (s) => {
-        s.career.tickets = -1;
-      },
+      "removed currency field",
+      (s) => { Object.assign(s.career, { tickets: 1 }); },
     ],
     [
       "extra material",

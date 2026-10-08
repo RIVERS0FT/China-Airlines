@@ -10,6 +10,8 @@ for (const locale of ['zh-CN', 'en-US'] as const) test(`help starts a real tutor
   const before = await exportCompany(page);
   await page.getByRole('button', { name: english ? 'Help' : '操作帮助', exact: true }).click();
   const help = page.getByRole('dialog', { name: english ? 'Flight Guide' : '起航指南', exact: true });
+  await expect(help).not.toContainText(/动画回调|补算|游戏化配置|行政边界|read-only|animation callbacks|game configurations|Offline progress/);
+  await expect(help.locator('.help-rule-strip')).toHaveCount(0);
   await help.getByRole('button', { name: english ? 'Start Guided Tutorial' : '开始分步引导', exact: true }).click();
   await expect(help).toHaveCount(0);
   const tutorial = page.getByTestId('tutorial');

@@ -1,3 +1,4 @@
+import { offerCandidates } from '../helpers/talent-market.js';
 import { describe, expect, it } from 'vitest';
 import { GameCore, validateSave, type Command, type GameState } from '../helpers/configured-game.js';
 import { GameCore as NewCompany } from '../../src/core/game.js';
@@ -5,7 +6,8 @@ import { effectiveManager, employmentPrice, recruitmentAssignment } from '../../
 
 const NOW = Date.parse('2026-09-27T02:00:00Z');
 function rich(planes = 1) {
-  const state = (planes ? new GameCore(NOW) : new NewCompany(NOW)).snapshot(); state.credits = 1000000; state.career.tickets = 10000;
+  const state = (planes ? new GameCore(NOW) : new NewCompany(NOW)).snapshot(); state.credits = 1000000;
+  offerCandidates(state,[['flight','specialist'],['flight','specialist'],['ground','specialist'],['ground','specialist'],['ground','specialist']]);
   const core = new GameCore(NOW, state);
   while (core.snapshot().fleet.length < planes) execute(core, { type: 'buy', modelId: 'diamond-da40', airportId: 'PEK', passengers: 1, cargo: 0 });
   return core;
@@ -14,7 +16,9 @@ function execute(core: GameCore, command: Command) {
   core.execute(command, core.snapshot().lastWallTime); expect(validateSave(core.snapshot())).toEqual(core.snapshot());
 }
 function candidateCommand(state: GameState, department: 'flight' | 'ground' = 'flight'): Command {
-  return { type: 'hire-candidate', candidateId: state.talent.candidates.find(c => c.department === department && c.role === 'specialist')!.id };
+  const candidate=state.talent.candidates.find(c=>c.department===department&&c.role==='specialist');
+  if(!candidate)throw new Error(`Missing ${department} candidate in staffing fixture`);
+  return {type:'hire-candidate',candidateId:candidate.id};
 }
 function reject(core: GameCore, command: Command, message?: RegExp) {
   const before = core.snapshot(); expect(() => core.execute(command, before.lastWallTime)).toThrow(message);
@@ -33,11 +37,11 @@ describe('recruitment immediately fills a real position', () => {
     expect(employee.history.map(event => event.kind)).toEqual(['assigned', 'joined']);
     expect(after.fleet.map(plane => plane.dispatcher)).toEqual([true, false]);
     const price = employmentPrice(employee, true);
-    expect(after.credits).toBe(before.credits - price.gold); expect(after.career.tickets).toBe(before.career.tickets - price.tickets);
+    expect(after.credits).toBe(before.credits - price.gold);
     if (entry === 'candidate') {
       const profile = before.talent.candidates.find(c => c.department === 'flight' && c.role === 'specialist')!;
       expect(employee).toMatchObject({ name: profile.name, potential: profile.potential, trait: profile.trait });
-      expect(after.talent.nextId).toBe(before.talent.nextId + 1);
+      expect(after.talent.nextId).toBe(before.talent.nextId);
     }
     expect(new GameCore(NOW, after).snapshot()).toEqual(after);
   });
@@ -48,7 +52,7 @@ describe('recruitment immediately fills a real position', () => {
     const assignments = after.career.employees[0]!.history.filter(event => event.kind === 'assigned');
     expect(assignments).toHaveLength(1); expect(assignments[0]!.text).toContain(target); expect(assignments[0]!.text).not.toContain('AC0001');
     expect(after.fleet.map(plane => plane.dispatcher)).toEqual([false, true]);
-    expect(after.credits).toBe(before.credits - 1800); expect(after.career.tickets).toBe(before.career.tickets - 3);
+    expect(after.credits).toBe(before.credits - 2100);
     reject(core, { type: 'hire-dispatcher', planeId: target });
   });
   it('assigns ground candidates in airport order and only permits one employee per airport', () => {
@@ -138,8 +142,8 @@ describe('unavailable recruitment is atomic', () => {
     expect(pilot.managerId).toBe(state.career.employees[0]!.id); expect(effectiveManager(after, pilot)).toBeUndefined();
   });
   it('does not reserve an aircraft or advance employee and candidate randomness on failed payment', () => {
-    for (const resource of ['credits', 'tickets'] as const) {
-      const state = rich().snapshot(); if (resource === 'credits') state.credits = 1799; else state.career.tickets = 2;
+    for (const credits of [0, 2099]) {
+      const state = rich().snapshot(); state.credits = credits;
       const core = new GameCore(NOW, state); reject(core, candidateCommand(state));
       reject(core, { type: 'recruit-pilot' }); reject(core, { type: 'hire-dispatcher', planeId: 'AC0001' });
     }

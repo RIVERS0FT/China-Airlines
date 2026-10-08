@@ -44,7 +44,7 @@ for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 150], [667, 37
       const map = page.getByTestId('map-canvas');
       await expect(map).toHaveAttribute('data-camera', /radius/);
       await expect(map).toHaveAttribute('data-range-origin', '');
-      await expect(map).toHaveAttribute('data-passenger-destinations', '');
+      await expect(map).toHaveAttribute('data-cargo-destinations', '');
       const camera = JSON.parse((await map.getAttribute('data-camera'))!) as GlobeCamera;
       const city = projectGeo(airport('PVG'), camera), box = (await map.boundingBox())!, scale = await displayScale(page);
       await page.touchscreen.tap(box.x + city.x * scale, box.y + city.y * scale);
@@ -58,10 +58,10 @@ for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 150], [667, 37
       await expect(map).toHaveAttribute('data-preview-path', '');
       await tapCity(page, 'WUH');
       await detail.getByRole('button', { name: /^解锁机场/ }).click();
-      await expect(detail).toContainText('1 级机场');
+      await expect(detail).toContainText('设施Lv.1');
       await detail.getByRole('button', { name: '返回地图', exact: true }).click();
       await expect(map).toHaveAttribute('data-preview-path', '');
-      await expect(page.getByTestId('credits')).toHaveText('¥ 11,500');
+      await expect(page.getByTestId('credits')).toHaveText('¥ 15,000');
       await page.screenshot({ path: `artifacts/map-browsing-${width}.png` });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.getByRole('button', { name: '机场装载', exact: true }).click();
@@ -75,7 +75,7 @@ for (const [width, height, zoom] of [[1440, 900, 100], [844, 390, 150], [667, 37
       await expect(page.getByRole('dialog')).toHaveCount(0);
       await page.getByRole('button', { name: '取消起飞', exact: true }).click();
       await page.reload();
-      await expect(page.getByTestId('credits')).toHaveText('¥ 11,500');
+      await expect(page.getByTestId('credits')).toHaveText('¥ 15,000');
       await expect(page.locator(`[data-order-id="${id}"]`)).toHaveAttribute('data-load-state', 'loaded');
       await expect(page.getByTestId('flights-count')).toHaveText('0 班');
       await page.getByRole('button', { name: '制定航线', exact: true }).click();
@@ -101,7 +101,7 @@ test('map search and unlock work without WebGL, cancellation and insufficient fu
   await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
   await selectCity(page, 'WUH');
   await page.getByRole('button', { name: /^解锁机场/ }).click();
-  await expect(page.getByRole('dialog', { name: '机场详情' })).toContainText('1 级机场');
+  await expect(page.getByRole('dialog', { name: '机场详情' })).toContainText('设施Lv.1');
   await page.getByRole('button', { name: '返回地图', exact: true }).click();
   await page.getByRole('button', { name: '选择城市', exact: true }).click();
   await page.getByLabel('搜索全球机场', { exact: true }).fill('不存在');
@@ -113,7 +113,7 @@ test('map search and unlock work without WebGL, cancellation and insufficient fu
   await page.getByLabel('选择机场', { exact: true }).selectOption('LHR');
   await expect(page.getByRole('button', { name: /^解锁机场/ })).toBeDisabled();
   await expect(page.getByRole('dialog', { name: '机场详情' })).toContainText('运营资金不足');
-  await expect(page.getByTestId('credits')).toHaveText('¥ 11,500');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 15,000');
   await expect(page.locator('.globe-hint')).toHaveCount(0);
   await expect(page.getByTestId('dispatch')).toHaveCount(0);
 });

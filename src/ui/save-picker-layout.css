@@ -1,0 +1,13 @@
+.game-layout dialog.ui-dialog.save-picker{transform:translate(-50%,-50%);width:min(760px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 24px);font-size:16px;--ui-control-size:44px;--ui-page-padding:16px;--ui-heading-size:20px;--ui-header-height:52px}
+.save-picker::backdrop{background:#082c4266}
+.save-picker-rotate{display:none}
+.save-list{display:grid;gap:12px}
+.save-card{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid #9db8bc;border-radius:12px;background:#fbfbec;box-shadow:0 2px 5px #19475716}
+.save-card-identity{display:flex;align-items:center;gap:14px;min-width:0}
+.save-card-identity>.company-logo,.save-slot-number{width:58px;height:58px;flex:none}
+.save-slot-number{display:grid;place-items:center;border-radius:50%;background:#dce7dc;color:#426877;font-size:25px;font-weight:800}
+.save-card-identity>div{min-width:0}.save-card h3{overflow-wrap:anywhere;font-size:18px;color:#244d65}.save-card p,.save-card time{display:block;margin-top:5px;font-size:13px;line-height:1.5;color:#42636d}
+.save-card-actions{display:flex;gap:8px;flex:none}.save-card-actions button{min-height:44px;min-width:62px}
+.save-picker-footer{display:flex;align-items:center;justify-content:space-between;gap:12px}.save-picker-footer button{min-height:44px}.save-empty{padding:30px 12px;text-align:center}
+@media(max-width:720px){.save-card{padding:12px;gap:10px}.save-card-identity>.company-logo,.save-slot-number{width:44px;height:44px}.save-card h3{font-size:16px}}
+@media(orientation:portrait){.save-picker .save-list,.save-picker .save-empty,.save-picker>.ui-dialog-footer{display:none}.save-picker-rotate{display:block;padding:24px 12px;text-align:center;line-height:1.6}.save-picker-rotate h3{margin-bottom:8px}}

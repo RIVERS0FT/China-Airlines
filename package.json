@@ -9,7 +9,7 @@
   "scripts": {
     "deliver": "node scripts/deliver.mjs",
     "predev": "node scripts/verify-aircraft-exteriors.mjs",
-    "dev": "vite --host 0.0.0.0",
+    "dev": "vite --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "pretest": "node --test scripts/publish-riversoft.test.mjs .github/scripts/artifact-retention.test.cjs .github/scripts/center-artifacts.test.cjs .github/scripts/delivery.test.cjs && node scripts/verify-aircraft-exteriors.mjs",
     "test": "vitest run",

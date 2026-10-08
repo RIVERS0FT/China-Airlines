@@ -24,7 +24,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     expect(orderIds).toHaveLength(1);
     expect(orderIds.every(id => offeredIds.includes(id))).toBe(true);
     expect(loaded.orders.filter(order => orderIds.includes(order.id)).every(order => order.from === 'PEK' && order.to === 'PVG')).toBe(true);
-    expect(loaded.credits).toBe(11700);
+    expect(loaded.credits).toBe(3600);
 
     await test.step('Plan and depart; charge only cost and ignore animation end events', async () => {
       await page.getByRole('button', { name: '制定航线', exact: true }).click();
@@ -46,7 +46,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
       await expect(page.getByTestId('network-destination')).toHaveText('上海');
       await expect(page.getByRole('dialog', {name:'选择城市',exact:true})).toHaveCount(0);
       await launchRoute(page);
-      await expect(page.getByTestId('credits')).toHaveText('¥ 11,604');
+      await expect(page.getByTestId('credits')).toHaveText('¥ 3,504');
       const aircraft = page.locator('.is-flying .airplane-display > svg');
       await aircraft.dispatchEvent('animationend');
       await aircraft.dispatchEvent('transitionend');
@@ -67,7 +67,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
       await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.clock.fastForward((flight.arriveAt - flying.simTime + 9) * 1000);
       await expect(page.getByTestId('flights-count')).toHaveText('1 班');
-      await expect(page.getByTestId('credits')).toHaveText('¥ 11,930');
+      await expect(page.getByTestId('credits')).toHaveText('¥ 3,830');
       const resume = page.getByRole('button', { name: '继续经营', exact: true });
       if (await resume.isVisible()) await resume.click();
     });
@@ -79,13 +79,13 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     await test.step('Claim once, then reload without repeating either delivery or reward', async () => {
       await page.getByRole('button', { name: '任务中心', exact: true }).click();
       await page.locator('[data-task-id="first-flight"]').getByRole('button', { name: '领取奖励', exact: true }).click();
-      await expect(page.getByTestId('credits')).toHaveText('¥ 13,430');
+      await expect(page.getByTestId('credits')).toHaveText('¥ 4,430');
       await page.getByRole('tab', { name: /^已领取/ }).click();
       await expect(page.locator('[data-task-id="first-flight"]').getByRole('button', { name: '已领取', exact: true })).toBeDisabled();
       await page.getByRole('button', { name: '关闭任务中心', exact: true }).click();
       await page.reload();
       const restored = await exportCompany(page);
-      expect(restored.credits).toBe(13430);
+      expect(restored.credits).toBe(4430);
       expect(restored.stats).toEqual(arrived.stats);
       expect(restored.claimedTasks.filter(id => id === 'first-flight')).toHaveLength(1);
     });
@@ -115,7 +115,7 @@ test('new company: cancel purchase, buy with free configuration, refit, unlock, 
   await confirm.click();
   await expect(purchase).toHaveCount(0);
   const bought = await exportCompany(page);
-  expect(bought.credits).toBe(12500);
+  expect(bought.credits).toBe(2900);
   expect(bought.fleet).toHaveLength(1);
   expect(bought.fleet[0]).toMatchObject({ id: 'AC0001', allocation: { passengers: 1, cargo: 1 }, airportId: 'PEK' });
   await page.getByRole('button', { name: '机队管理', exact: true }).click();
@@ -124,16 +124,16 @@ test('new company: cancel purchase, buy with free configuration, refit, unlock, 
   await allocation.getByRole('spinbutton', { name: '客位', exact: true }).fill('2');
   await allocation.getByRole('spinbutton', { name: '货位', exact: true }).fill('0');
   await allocation.getByRole('button', { name: '确认客货改装', exact: true }).click();
-  await expect(page.getByTestId('credits')).toHaveText('¥ 12,420');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 2,820');
   await page.getByRole('button', { name: '机场目录', exact: true }).click();
-  await page.getByLabel('搜索机场', { exact: true }).fill('武汉');
+  await page.getByLabel('搜索机场', { exact: true }).fill('上海');
   await page.getByRole('button', { name: /^未开放/ }).click();
-  await page.getByRole('button', { name: '查看武汉机场', exact: true }).click();
+  await page.getByRole('button', { name: '查看上海机场', exact: true }).click();
   await page.getByRole('button', { name: /^解锁机场/ }).click();
   await page.keyboard.press('Escape');
   const expanded = await exportCompany(page);
-  expect(expanded.credits).toBe(5920);
-  expect(expanded.airports.map(airport => airport.id)).toEqual(['PEK', 'WUH']);
+  expect(expanded.credits).toBe(320);
+  expect(expanded.airports.map(airport => airport.id)).toEqual(['PEK', 'PVG']);
   expect(expanded.fleet[0]!.allocation).toEqual({ passengers: 2, cargo: 0 });
 
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
@@ -148,8 +148,8 @@ test('new company: cancel purchase, buy with free configuration, refit, unlock, 
   expect(afterRejected.airports).toEqual(expanded.airports);
 
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
-  page.once('dialog', dialog => void dialog.accept());
-  await page.getByRole('button', { name: '重新开始', exact: true }).click();
+  await page.getByRole('button', { name: '保存并返回开始界面', exact: true }).click();
+  await page.getByRole('button', { name: '新游戏', exact: true }).click();
   await page.getByRole('button', { name: '创建公司并启航', exact: true }).click();
   await expect(page.getByTestId('fleet-count')).toHaveText('0 架');
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
@@ -159,7 +159,7 @@ test('new company: cancel purchase, buy with free configuration, refit, unlock, 
   await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
   await page.reload();
   const recovered = await exportCompany(page);
-  expect(recovered.credits).toBe(5920);
+  expect(recovered.credits).toBe(320);
   expect(recovered.fleet).toEqual(expanded.fleet);
   expect(recovered.airports).toEqual(expanded.airports);
 });

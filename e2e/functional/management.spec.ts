@@ -20,7 +20,7 @@ async function savedTutorial(page: Page) {
       const db = request.result;
       try {
         const transaction = db.transaction('saves', 'readonly');
-        const get = transaction.objectStore('saves').get('main');
+        const get = transaction.objectStore('saves').get(`${sessionStorage.getItem('china-airlines:slot:v1')}:main`);
         let record: { revision: number; state: GameState } | undefined;
         get.onsuccess = () => { record = get.result; };
         transaction.oncomplete = () => {
@@ -36,12 +36,12 @@ async function savedTutorial(page: Page) {
 
 test('hire and confirm or cancel empty-aircraft resale with persistent money',async({page})=>{
   await ready(page);await secondPlane(page);await expect(page.getByTestId('crew-status')).toContainText('未雇用');
-  await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await expect(page.getByTestId('crew-status')).toContainText('已雇用');await expect(page.getByTestId('credits')).toHaveText('¥ 3,700');
+  await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();await expect(page.getByTestId('crew-status')).toContainText('已雇用');await expect(page.getByTestId('credits')).toHaveText('¥ 3,400');
   page.once('dialog',d=>void d.accept());await page.getByRole('button',{name:'人员下岗',exact:true}).click();await page.getByRole('button',{name:'出售这架飞机',exact:true}).scrollIntoViewIfNeeded();await page.screenshot({path:'artifacts/desktop-crew-sale.png'});
   await page.getByRole('button',{name:'出售这架飞机',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
   page.once('dialog',d=>void d.accept());await page.getByRole('button',{name:'出售这架飞机',exact:true}).click();await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
-  await expect(page.getByTestId('credits')).toHaveText('¥ 9,950');await expect(page.getByRole('button',{name:'出售这架飞机',exact:true})).toBeDisabled();
-  await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('credits')).toHaveText('¥ 9,950');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 9,650');await expect(page.getByRole('button',{name:'出售这架飞机',exact:true})).toBeDisabled();
+  await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('1 架');await expect(page.getByTestId('credits')).toHaveText('¥ 9,650');
 });
 test('hangar duty can start for a reachable unlocked city without route purchase',async({page})=>{
   await ready(page);await openGlobal(page, '机队管理');await page.getByRole('button',{name:'雇用随航调度员',exact:true}).click();
@@ -91,7 +91,7 @@ test('narrow landscape personnel controls and skip remain reachable',async({page
   await expect(page.getByRole('button',{name:'存档设置',exact:true})).toContainText('已存档');
   await expect(page.locator('.toast')).toHaveCount(0);
   await page.reload();await expect(page.getByTestId('fleet-count')).toHaveText('2 架');
-  await expect(page.getByTestId('credits')).toHaveText('¥ 3,700');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 3,400');
   await expect(page.getByTestId('tutorial')).toHaveCount(0);
   expect((await savedTutorial(page)).tutorial).toBe('skipped');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

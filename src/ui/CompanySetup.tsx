@@ -31,7 +31,7 @@ export function CompanySetup({ onCreate, onClose }: { onCreate: (company: Compan
     try { await onCreate({ name: normalized, logo }); }
     catch (cause) { setError(text(cause instanceof Error ? cause.message : t('company.saveError'))); setSaving(false); }
   }
-  return <GameDialog title={t('company.title')} closeLabel={t('company.cancel')} className="company-setup" onClose={() => { if (!saving) onClose(); }}
+  return <GameDialog title={t('company.title')} closeLabel={t('company.cancel')} className="company-setup" busy={saving} onClose={onClose}
     footer={<div className="company-setup-actions"><p>{t('company.localHint')}</p><button form={formId} type="submit" className="primary" disabled={busy}>{saving ? t('company.saving') : t('company.create')}</button></div>}>
     <div className="company-setup-rotate"><h3>{t('rotate.title')}</h3><p>{t('rotate.subtitle')}</p></div>
     <form id={formId} onSubmit={event => void submit(event)} noValidate>

@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 
 async function setup(page: Page) {
   await page.goto('./');
-  await page.getByRole('button', { name: '进入游戏', exact: true }).click();
+  await page.getByRole('button', { name: '新游戏', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '创建航空公司', exact: true })).toBeVisible();
 }
 async function create(page: Page) {
@@ -49,7 +49,7 @@ for (const width of [1440, 667]) test(`company name and preset logo remain visib
   await page.screenshot({ path: `artifacts/company-hud-${width}.png` });
   const saved = await exportCompany(page);
   expect(saved.company).toEqual({ name, logo: { kind: 'preset', id: 'orbit' } });
-  expect(saved.credits).toBe(18000);
+  expect(saved.credits).toBe(8400);
   await page.reload();
   await expect(page.getByTestId('company-name')).toHaveText(name);
   await expect(page.getByRole('dialog', { name: '创建航空公司', exact: true })).toHaveCount(0);
@@ -60,7 +60,7 @@ for (const width of [1440, 667]) test(`company name and preset logo remain visib
     await expect(page.getByTestId('company-name')).toHaveText(name);
     await page.evaluate(() => sessionStorage.clear());
     await page.reload();
-    await page.getByRole('button', { name: 'Enter Game', exact: true }).click();
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await expect(page.getByTestId('company-name')).toHaveText(name);
     await expect(page.getByRole('dialog', { name: 'Create Your Airline', exact: true })).toHaveCount(0);
   }
@@ -128,21 +128,21 @@ test('invalid names and image files preserve the selected logo and allow correct
   await expect(page.getByTestId('company-name')).toHaveText('Valid Air');
 });
 
-test('restart waits for the new identity, cancellation keeps the old company and import restores it', async ({ page }) => {
+test('new game keeps the old company, cancellation preserves it and import restores identity', async ({ page }) => {
   await setup(page);
   await page.getByLabel('公司名称', { exact: true }).fill('原公司');
   await create(page);
   const before = await exportCompany(page);
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
-  page.once('dialog', dialog => void dialog.accept());
-  await page.getByRole('button', { name: '重新开始', exact: true }).click();
+  await page.getByRole('button', { name: '保存并返回开始界面', exact: true }).click();
+  await page.getByRole('button', { name: '新游戏', exact: true }).click();
   await page.getByLabel('公司名称', { exact: true }).fill('取消的公司');
   await page.getByRole('button', { name: '取消创建公司', exact: true }).click();
-  await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
+  await page.getByRole('button', { name: '继续游戏', exact: true }).click();
   expect((await exportCompany(page)).company).toEqual(before.company);
   await page.getByRole('button', { name: '存档设置', exact: true }).click();
-  page.once('dialog', dialog => void dialog.accept());
-  await page.getByRole('button', { name: '重新开始', exact: true }).click();
+  await page.getByRole('button', { name: '保存并返回开始界面', exact: true }).click();
+  await page.getByRole('button', { name: '新游戏', exact: true }).click();
   await page.getByLabel('公司名称', { exact: true }).fill('新公司');
   await page.getByRole('button', { name: '飞羽', exact: true }).click();
   await create(page);
@@ -157,8 +157,8 @@ test('a failed disk write does not create an in-memory company or skip setup aft
   await setup(page);
   await page.getByLabel('公司名称', { exact: true }).fill('写入失败');
   await page.evaluate(() => {
-    const original = IDBObjectStore.prototype.put;
-    IDBObjectStore.prototype.put = function(value, key) {
+    const original = IDBObjectStore.prototype.add;
+    IDBObjectStore.prototype.add = function(value, key) {
       if (this.name === 'saves' && value.state?.company) throw new DOMException('Company save failed', 'QuotaExceededError');
       return original.call(this, value, key);
     };
@@ -167,7 +167,7 @@ test('a failed disk write does not create an in-memory company or skip setup aft
   await expect(page.getByRole('dialog', { name: '创建航空公司' }).getByRole('alert')).toBeVisible();
   await expect(page.getByTestId('company-brand')).toHaveCount(0);
   await page.reload();
-  await page.getByRole('button', { name: '进入游戏', exact: true }).click();
+  await page.getByRole('button', { name: '新游戏', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '创建航空公司', exact: true })).toBeVisible();
   await create(page);
 });

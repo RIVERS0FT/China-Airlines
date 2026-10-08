@@ -1,5 +1,6 @@
+import { departmentPrice } from '../core/organization.js';
 import { useState } from 'react';
-import { upgradeLimit, upgradeTickets } from '../core/career-catalog.js';
+import { upgradeLimit } from '../core/career-catalog.js';
 import { EnergyService } from './EnergyService.js';
 import { AircraftService } from './AircraftService.js';
 import './management.css';
@@ -39,13 +40,12 @@ export function AircraftWorkshop({ game, busy, plane: p }: { game: GameState; bu
     </div>
     <section className="fleet-upgrades" tabIndex={-1} aria-label="性能改装"><h3>性能改装</h3>
         <div className="upgrade-grid">{(Object.keys(UPGRADE_LABEL) as UpgradeKey[]).filter(key=>key!=='capacity').map(key => {
-          const max = p.upgrades[key] >= upgradeLimit(p,key), price = retrofitPrice(p, key), next = aircraftSpecs({ ...p, upgrades: { ...p.upgrades, [key]: Math.min(upgradeLimit(p,key), p.upgrades[key] + 1) } });
+          const max = p.upgrades[key] >= upgradeLimit(p,key), price = departmentPrice(game, 'engineering', retrofitPrice(p, key)), next = aircraftSpecs({ ...p, upgrades: { ...p.upgrades, [key]: Math.min(upgradeLimit(p,key), p.upgrades[key] + 1) } });
           const nextText = key === 'engine' ? `${next.speed}` : key === 'range' ? `${next.range} km` : `重量 ${next.weight}`;
-          return <article key={key} data-testid={`upgrade-${key}`}><header><strong><Icon name="maintenance"/>{UPGRADE_LABEL[key]}</strong><span>Lv.{p.upgrades[key]} / {upgradeLimit(p,key)}</span></header><p>{details[key]}</p><small>{max ? '已达到最高等级' : `下一级 → ${nextText}`}</small><button disabled={busy || max || Boolean(reason) || game.credits < price || game.career.tickets < upgradeTickets(p,key)} aria-label={`升级${UPGRADE_LABEL[key]}`} onClick={() => ignore(controller.command({ type: 'retrofit', planeId: p.id, upgrade: key }))}>{max ? '已满级' : reason ? '暂不可改装' : game.credits < price ? '运营资金不足' : `改装 · ${money(price)}＋${upgradeTickets(p,key)}券`}</button></article>;
+          return <article key={key} data-testid={`upgrade-${key}`}><header><strong><Icon name="maintenance"/>{UPGRADE_LABEL[key]}</strong><span>Lv.{p.upgrades[key]} / {upgradeLimit(p,key)}</span></header><p>{details[key]}</p><small>{max ? '已达到最高等级' : `下一级 → ${nextText}`}</small><button disabled={busy || max || Boolean(reason) || game.credits < price} aria-label={`升级${UPGRADE_LABEL[key]}`} onClick={() => ignore(controller.command({ type: 'retrofit', planeId: p.id, upgrade: key }))}>{max ? '已满级' : reason ? '暂不可改装' : game.credits < price ? '运营资金不足' : `改装 · ${money(price)}`}</button></article>;
         })}</div>
     </section>
     <AircraftService key={p.id} game={game} plane={p} busy={busy}/>
     {view.error && <p role="alert" className="workshop-feedback">{view.error}</p>}{view.notice && <p role="status" className="workshop-feedback">{view.notice}</p>}
-    <p className="workshop-note">客货舱位由玩家在机库分配；已装载的客货不能被改装挤出。增加舱位收费，减少舱位不退款。数值为航空化游戏配置。</p>
   </section>;
 }

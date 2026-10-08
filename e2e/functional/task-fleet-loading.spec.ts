@@ -34,7 +34,7 @@ test('one task entrance claims the initial gift exactly once and retains the air
     '地图', '机场装载', '机场目录', '机队管理', '飞机商店', '公司组织', '经营中心', '制定航线',
   ]);
   for (const name of ['运营任务', '奖励', '航班', '改装']) await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
-  const selected = await page.locator('.plane-status').textContent(), credits = await page.getByTestId('credits').textContent();
+  const selected = await page.locator('.plane-status').textContent();
   await entry.click();
   await expect(page.getByRole('tab', { name: /^可领取/ })).toHaveAttribute('aria-selected', 'true');
   const gift = page.locator('[data-task-id="checkin-0"]');
@@ -60,13 +60,15 @@ test('one task entrance claims the initial gift exactly once and retains the air
   await expect(selectedTab).toHaveCSS('background-color', selectedBackground.color);
   await page.getByRole('button', { name: '关闭任务中心', exact: true }).click();
   await expect(page.locator('.plane-status')).toHaveText(selected!);
-  await expect(page.getByTestId('credits')).toHaveText(credits!);
-  // Ticket rewards update the read-only HUD balance, not the career navigation button.
-  await expect(page.getByTestId('tickets-count')).toHaveText('29 券');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 18,500');
+  // The converted gift updates the single coin balance once.
+  await expect(page.getByTestId('tickets-count')).toHaveCount(0);
+  await expect(page.getByTestId('credits')).toHaveText('¥ 18,500');
   await expect(dock.getByRole('button', { name: '经营中心', exact: true })).toHaveText('经营中心');
   await expect(entry).not.toContainText('可领取');
   await page.reload();
-  await expect(page.getByTestId('tickets-count')).toHaveText('29 券');
+  await expect(page.getByTestId('tickets-count')).toHaveCount(0);
+  await expect(page.getByTestId('credits')).toHaveText('¥ 18,500');
   await entry.click();
   await expect(page.getByRole('tab', { name: /^进行中/ })).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('tab', { name: /^已领取/ }).click();

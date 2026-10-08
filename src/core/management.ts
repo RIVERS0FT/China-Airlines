@@ -2,7 +2,7 @@ import { retrofitPrice } from './career-catalog.js';
 import { model, type Upgrades } from './catalog.js';
 
 /** Aviation adaptation values, not the reference game's exact economy. */
-export const DISPATCHER_PRICE = 1800;
+export const DISPATCHER_PRICE = 2100;
 export function resaleValue(plane: { modelId: string; upgrades: Upgrades }): number {
   const base = model(plane.modelId).price;
   let invested = 0;

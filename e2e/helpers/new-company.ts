@@ -37,9 +37,9 @@ export async function startNewCompany(page: Page) {
   await page.clock.install({ time: new Date('2026-09-25T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-09-25T00:00:01Z'));
   await page.goto('./');
-  await page.getByRole('button', { name: '进入游戏', exact: true }).click();
+  await page.getByRole('button', { name: '新游戏', exact: true }).click();
   await page.getByRole('button', { name: '创建公司并启航', exact: true }).click();
-  await expect(page.getByTestId('credits')).toHaveText('¥ 18,000');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 8,400');
   await expect(page.getByTestId('fleet-count')).toHaveText('0 架');
   await expect(page.getByTestId('tutorial')).toHaveAttribute('data-step','unlock');
 }
@@ -59,8 +59,8 @@ export async function exportCompany(page: Page): Promise<GameState> {
 export async function buyFirstAircraft(page: Page) {
   const guide=page.getByTestId('tutorial');
   await clickGuideMask(page);
-  await page.getByRole('button',{name:'解锁机场 ¥ 4,000',exact:true}).click();
-  await expect(page.getByTestId('credits')).toHaveText('¥ 14,000');
+  await page.getByRole('button',{name:'解锁机场 ¥ 2,500',exact:true}).click();
+  await expect(page.getByTestId('credits')).toHaveText('¥ 5,900');
   await expect(guide).toHaveAttribute('data-step','buy');
   await page.getByRole('button',{name:'支付 ¥ 2,300 购买',exact:true}).click();
   await expect(guide).toHaveAttribute('data-step','configure');
@@ -68,7 +68,7 @@ export async function buyFirstAircraft(page: Page) {
   await expect(purchase.getByRole('button',{name:/^支付 .+ 购买$/,exact:true})).toBeDisabled();
   await purchase.getByRole('spinbutton',{name:'客位',exact:true}).fill('1');
   await purchase.getByRole('button',{name:/^支付 .+ 购买$/,exact:true}).click();
-  await expect(page.getByTestId('credits')).toHaveText('¥ 11,700');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 3,600');
   await clickGuideMask(page);
   await expect(page.getByTestId('passenger-capacity')).toHaveText('旅客 0 / 1 人');
 }

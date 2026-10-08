@@ -50,21 +50,21 @@ export function PlanControls({ game, plane, stops, setStops, auto, setAuto, busy
     </div>}
     {detailsOpen && <DispatchDialog title={ui('路线详情')} onClose={() => setDetailsOpen(false)}>
       <h3 className="dispatch-route-title">{routeTitle}</h3>
-      <p data-testid="plan-summary">{active ? ui('当前航班已锁定，浏览不会修改目的地或账目。') : draft ? ui('{count} 段 · {time} · 成本 {cost} · 交付 {revenue} · 运输净收益 {profit}',{count:stops.length,time:duration(draft.duration),cost:money(draft.cost),revenue:money(draft.revenue),profit:money(draft.profit)}) : text(view.error) || ui('尚未选择路线，请在地图上依次点击城市。')}</p>
+      {!active && <p data-testid="plan-summary">{draft ? ui('{count} 段 · {time} · 成本 {cost} · 交付 {revenue} · 运输净收益 {profit}',{count:stops.length,time:duration(draft.duration),cost:money(draft.cost),revenue:money(draft.revenue),profit:money(draft.profit)}) : text(view.error) || ui('尚未选择路线，请在地图上依次点击城市。')}</p>}
       <div className="dispatch-detail-facts">
         <span>{ui('交付收入')} <b data-testid="network-revenue">{summary ? money(summary.revenue) : '—'}</b></span>
         <span>{ui('机上客货')} <b>{jobs.length} {ui('单')}</b></span>
         {plane && <span data-testid="network-energy">{ui('可用能量 {value} 点',{value:energyText(plane.energy.availableSeconds)})}{active ? ` · ${ui(plane.energy.reservedSeconds?'已预留本段':'旧航班免扣')}` : draft && stops.length === 1 ? ` · ${ui('本段需 {value} 点',{value:energyText(flightEnergy(plane,draft.legs[0]!.duration))})}` : ''}</span>}
       </div>
       {!active && plane && <label className="dispatch-auto-choice"><input type="checkbox" checked={auto} disabled={busy || !autoAllowed(game,plane) || stops.length !== 1} onChange={e => setAuto(e.target.checked)}/>{ui('自动往返')}<span>{ui(!autoAllowed(game,plane)?'需分配飞行员并续付工资':stops.length!==1?'仅单一目的城市可用':'需全部已装客货直达')}</span></label>}
-      {draft && plane && <p data-testid="plan-energy">{ui('全程需 {required} 点／可用 {available} 点（不含周转）。',{required:energyText(requiredEnergy),available:energyText(plane.energy.availableSeconds)})}{text(reason || warning) || ui('逐段预留能量，不预扣全程。')}</p>}
+      {draft && plane && <p data-testid="plan-energy">{ui('全程需 {required} 点／可用 {available} 点（不含周转）。',{required:energyText(requiredEnergy),available:energyText(plane.energy.availableSeconds)})}{text(reason || warning)}</p>}
       {summary && <div className="dispatch-table-scroll" tabIndex={0} role="region" aria-label={ui('逐段费用与交付')}>
         <table><caption>{ui('逐段费用与交付')}</caption><thead><tr><th scope="col">{ui('航段')}</th><th scope="col">{ui('飞行时间')}</th><th scope="col">{ui('运营成本')}</th><th scope="col">{ui('本段交付')}</th></tr></thead>
           <tbody>{(active ? [active] : draft?.legs ?? []).map((leg, i) => <tr key={i} data-testid="plan-leg"><th scope="row">{i + 1}. {city(leg.from)} → {city(leg.to)}</th><td>{duration(leg.duration)}</td><td>{money(leg.cost)}</td><td>{money(leg.revenue)}</td></tr>)}</tbody>
         </table>
       </div>}
       {active && plane && plane.itinerary.length > 0 && <p>{ui('后续：{route}',{route:plane.itinerary.map(city).join(' → ')})}</p>}
-      <p className="dispatch-dialog-note">{ui(active?'已付成本不重复扣除；到达交付只包含本段最终目的地订单。':'预计时间含途中周转。城市解锁后无需建设费；只在订单最终目的地交付。后续资金或能量不足，停在实际机场并保留客货。')} {draft && ui('路线结束后未交付 {count} 单。',{count:draft.undelivered})}</p>
+      {draft && draft.undelivered > 0 && <p className="dispatch-dialog-note">{ui('路线结束后未交付 {count} 单。',{count:draft.undelivered})}</p>}
       {alert && <p className="dispatch-detail-error">{text(alert)}</p>}
     </DispatchDialog>}
   </>;

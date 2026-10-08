@@ -12,7 +12,7 @@ const restore = (core: GameCore) => new GameCore(core.snapshot().lastWallTime, p
 describe('new-company guide follows committed gameplay', () => {
   it('saves an empty new fleet and refuses removed aircraft or an erased established fleet', () => {
     const core = new GameCore(NOW), initial = core.snapshot();
-    expect(initial).toMatchObject({ version: 16, credits: 18000, fleet: [], fleetPeak: 0, airports: [{ id: 'PEK', level: 1 }], tutorial: 'active' });
+    expect(initial).toMatchObject({ version: 18, credits: 8400, fleet: [], fleetPeak: 0, airports: [{ id: 'PEK', level: 1 }], tutorial: 'active' });
     expect(restore(core).snapshot()).toEqual(initial);
     core.execute({ type: 'buy', modelId: 'diamond-da40', airportId: 'PEK', passengers: 1, cargo: 0 }, NOW);
     const bought = core.snapshot(), erased = structuredClone(bought);
@@ -28,7 +28,7 @@ describe('new-company guide follows committed gameplay', () => {
     expect(step(core).id).toBe('unlock');
     core.execute({ type: 'unlock', airportId: 'PVG' }, NOW);
     core = restore(core);
-    expect(core.snapshot().credits).toBe(14000);
+    expect(core.snapshot().credits).toBe(5900);
     expect(step(core).id).toBe('buy');
     const before = core.snapshot();
     expect(step(core, true).id).toBe('configure');
@@ -38,7 +38,7 @@ describe('new-company guide follows committed gameplay', () => {
     expect(core.snapshot()).toEqual(before);
     core.execute({ type: 'buy', modelId: 'diamond-da40', airportId: 'PEK', ...allocation }, NOW);
     core = restore(core);
-    expect(core.snapshot().credits).toBe(11700);
+    expect(core.snapshot().credits).toBe(3600);
     expect(core.snapshot().fleet[0]!.allocation).toEqual(allocation);
     expect(step(core).id).toBe('load');
     const offered = core.snapshot().orders;
@@ -56,11 +56,11 @@ describe('new-company guide follows committed gameplay', () => {
     core.tick(arrival);
     core = restore(core);
     expect(step(core).id).toBe('reward');
-    expect(core.snapshot().credits).toBe(11930);
+    expect(core.snapshot().credits).toBe(3830);
     core.execute({ type: 'claim', taskId: 'first-flight' }, arrival);
     core = restore(core);
     expect(step(core).id).toBe('done');
-    expect(core.snapshot().credits).toBe(13430);
+    expect(core.snapshot().credits).toBe(4430);
     core.execute({ type: 'tutorial', action: 'finish' }, arrival);
     expect(restore(core).snapshot().tutorial).toBe('completed');
     const finished = core.snapshot();

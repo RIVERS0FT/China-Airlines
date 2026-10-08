@@ -37,7 +37,7 @@ npm run deliver -- --message "fix: 修复说明" --auto-merge --deploy -- src/ex
 
 生产通过 riversoft.top HTTPS 托管 API 发布：读取管理员发布身份和已配置子域名 → 从 center 恢复已验证静态包 → 生成逐文件 SHA-256 清单 → 分块上传 → 再查最新 main → 平台提交。`RIVERSOFT_TOKEN` 仅从 production Secret 注入。禁止 SSH/SCP/rsync 直传、服务器脚本和目录切换，也不使用 `official-deployments` 补登记旧文件。公开 URL 来自提交响应，传入文件哈希和 `playwright.production.config.ts` 验收；首页列表和项目详情必须指向本次平台部署 ID。
 
-同名 `china-airlines` 项目已迁入 riversoft.top 托管系统，首页目录记录的发布方式为 `upload`。旧 SSH 发布工作流保持停用，只有 HTTPS 流程进入 main 后才重新启用 `deploy-production.yml`。平台不支持时明确失败，不自动改名或回退到旧流程。普通兼容沙箱不满足本游戏离线与存档要求；如平台分配新 origin，旧存档需由用户在旧地址导出、到支持该格式的新地址导入。后置验收失败不伪称自动回滚。公司资料新增后当前游戏只接受 v16，旧 v15 文件应保留用于旧版恢复。
+同名 `china-airlines` 项目已迁入 riversoft.top 托管系统，首页目录记录的发布方式为 `upload`。旧 SSH 发布工作流保持停用，只有 HTTPS 流程进入 main 后才重新启用 `deploy-production.yml`。平台不支持时明确失败，不自动改名或回退到旧流程。普通兼容沙箱不满足本游戏离线与存档要求；如平台分配新 origin，旧存档需由用户在旧地址导出、到支持该格式的新地址导入。后置验收失败不伪称自动回滚。部门扩充后当前游戏只接受 v18，旧 v16 文件应保留用于旧版恢复。
 
 结果更新同一条PR状态评论、Actions Summary及center JSON；失败附步骤、关键堆栈和完整任务日志链接，密钥和常见令牌脱敏。日志下载暂不可用时明确说明并保留链接。正常等待不调用模型；当前聊天若无回调能力，不承诺主动推送聊天消息。
 
@@ -79,4 +79,4 @@ node --test scripts/publish-riversoft.test.mjs .github/scripts/delivery.test.cjs
 
 ## 当前格式规则
 
-当前只支持存档 `version: 16` 和数据库结构版本 1。旧 `version: 15` 与所有其他版本拒绝，不自动迁移且不覆盖旧主档或备份。规则或格式变更必须同步更新 [DESIGN.md](DESIGN.md)、严格验证器、单元测试和浏览器流程。仓库不保留旧格式迁移器、历史夹具或旧版验收文档。
+当前只支持存档 `version: 18` 和数据库结构版本 2。旧 `version: 17`、`version: 16` 与所有其他版本拒绝，不自动迁移且不覆盖旧主档或备份。规则或格式变更必须同步更新 [DESIGN.md](DESIGN.md)、严格验证器、单元测试和浏览器流程。仓库不保留旧格式迁移器、历史夹具或旧版验收文档。

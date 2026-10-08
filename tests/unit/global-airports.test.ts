@@ -4,7 +4,7 @@ import { DOMESTIC_AIRPORTS } from '../../src/core/domestic-airports.js';
 import { GameCore, manifest, quote, validateSave } from '../helpers/configured-game.js';
 import { searchAirports } from '../../src/ui/airport-search.js';
 const NOW = 1_800_000_000_000;
-function funded() { const s = new GameCore(NOW).snapshot(); s.credits = 100_000_000; s.career.tickets=1000000; s.career.xp=20000; return new GameCore(NOW, s); }
+function funded() { const s = new GameCore(NOW).snapshot(); s.credits = 100_000_000; s.career.xp=20000; return new GameCore(NOW, s); }
 describe('global airport registry', () => {
   it('adds 38 airports, covers six continents and uses explicit balanced airport prices', () => {
     expect(AIRPORTS).toHaveLength(50); expect(new Set(AIRPORTS.map(a => a.id)).size).toBe(50);
@@ -52,18 +52,18 @@ describe('world operations and persistence', () => {
   });
   it('persists a two-leg trans-Pacific plan without paying at the intermediate airport', () => {
     const c = funded();
-    for (const id of ['NRT', 'ANC', 'YVR']) {
+    for (const id of ['NRT', 'LAX', 'JFK']) {
       c.execute({ type: 'unlock', airportId: id }, NOW);
       c.execute({ type: 'upgrade', airportId: id }, NOW); c.execute({ type: 'upgrade', airportId: id }, NOW);
     }
     c.execute({ type: 'buy', modelId: 'aurora-p', airportId: 'NRT', passengers: 1, cargo: 0 }, NOW);
     const id = c.snapshot().fleet.at(-1)!.id, now = NOW + 360000;
     c.execute({ type: 'allocate-cabin', planeId: id, passengers: 6, cargo: 4 }, NOW);
-    c.tick(now); c.execute({ type: 'load-destination', planeId: id, to: 'YVR' }, now);
-    c.execute({ type: 'dispatch-plan', planeId: id, stops: ['ANC', 'YVR'] }, now);
+    c.tick(now); c.execute({ type: 'load-destination', planeId: id, to: 'JFK' }, now);
+    c.execute({ type: 'dispatch-plan', planeId: id, stops: ['LAX', 'JFK'] }, now);
     const saved = c.snapshot(), first = saved.fleet.find(p => p.id === id)!.flight!, restored = new GameCore(now, saved);
     expect(first.revenue).toBe(0); restored.tick(NOW + (first.arriveAt + 8) * 1000);
-    const second = restored.snapshot().fleet.find(p => p.id === id)!.flight!; expect(second.to).toBe('YVR'); expect(second.revenue).toBeGreaterThan(0);
+    const second = restored.snapshot().fleet.find(p => p.id === id)!.flight!; expect(second.to).toBe('JFK'); expect(second.revenue).toBeGreaterThan(0);
     expect(() => validateSave(restored.snapshot())).not.toThrow();
     restored.tick(NOW + second.arriveAt * 1000); expect(restored.snapshot().stats.revenue).toBe(second.revenue);
     expect(restored.tick(NOW + second.arriveAt * 1000).revenue).toBe(0);

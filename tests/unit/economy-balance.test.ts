@@ -97,13 +97,13 @@ describe('moderate aviation economy', () => {
   });
 
   it('makes a first airport affordable while the two airport rewards cannot repay its price', () => {
-    const c = new GameCore(NOW), before = c.snapshot().credits;
+    const initial = new GameCore(NOW).snapshot(); initial.stats.revenue = 1000; const c = new GameCore(NOW, initial), before = c.snapshot().credits;
     c.execute({ type: 'unlock', airportId: 'WUH' }, NOW);
     c.execute({ type: 'claim', taskId: 'three-airports' }, NOW);
     c.execute({ type: 'career-claim', id: 'network-3' }, NOW);
-    expect(before - c.snapshot().credits).toBe(3500);
+    expect(before - c.snapshot().credits).toBe(1200);
     expect(c.snapshot().credits).toBeGreaterThan(quote(c.snapshot(), c.snapshot().fleet[0]!, 'PVG').cost * 10);
-    expect(airport('WUH').price).toBe(6500); expect(airport('XIY').price).toBe(8500);
+    expect(airport('WUH').price).toBe(3000); expect(airport('XIY').price).toBe(5000);
     expect(airport('SIN').price).toBeGreaterThan(airport('NRT').price);
     expect(airport('JFK').price).toBeGreaterThan(airport('SIN').price * 3);
   });
@@ -112,20 +112,20 @@ describe('moderate aviation economy', () => {
     const c = new FreshGameCore(NOW);
     c.execute({ type: 'unlock', airportId: 'PVG' }, NOW);
     c.execute({ type: 'buy', modelId: 'diamond-da40', airportId: 'PEK', passengers: 1, cargo: 0 }, NOW);
-    c.execute({ type: 'buy', modelId: 'swift-p', airportId: 'PVG', passengers: 2, cargo: 0 }, NOW);
-    expect(c.snapshot().credits).toBe(6200);
+    c.execute({ type: 'buy', modelId: 'diamond-da40', airportId: 'PVG', passengers: 1, cargo: 0 }, NOW);
+    expect(c.snapshot().credits).toBe(1300);
     c.execute({ type: 'load-destination', planeId: PLANE, to: 'PVG' }, NOW);
     c.execute({ type: 'load-destination', planeId: 'AC0002', to: 'PEK' }, NOW);
     c.execute({ type: 'dispatch', planeId: PLANE, to: 'PVG', auto: false }, NOW);
     c.execute({ type: 'dispatch', planeId: 'AC0002', to: 'PEK', auto: false }, NOW);
-    expect(c.snapshot().credits).toBe(5912);
+    expect(c.snapshot().credits).toBe(1108);
     expect(c.snapshot().fleet.every(p => p.flight)).toBe(true);
     expect(validateSave(c.snapshot())).toEqual(c.snapshot());
   });
 
   it('raises growth investment by model and level and prevents assembly-resale arbitrage', () => {
     const starter = { modelId: 'heron-p', tuning: emptyTuning() };
-    expect(growthPrice(starter, 'group')).toEqual({ gold: 4400, tickets: 2 });
+    expect(growthPrice(starter, 'group')).toEqual({ gold: 4600 });
     expect(growthPrice({ ...starter, tuning: { ...starter.tuning, group: 5 } }, 'group').gold).toBeGreaterThan(15000);
     expect(growthPrice({ ...starter, modelId: 'aurora-p' }, 'group').gold).toBeGreaterThan(30000);
     for (const m of ALL_MODELS) {
@@ -142,6 +142,6 @@ describe('moderate aviation economy', () => {
     expect(() => validateSave(tampered)).toThrow();
     const previous = structuredClone(s) as Omit<GameState, 'version'> & { version: number }; previous.version = 11;
     expect(() => validateSave(previous)).toThrow(/版本/);
-    expect(c.snapshot().version).toBe(16);
+    expect(c.snapshot().version).toBe(18);
   });
 });

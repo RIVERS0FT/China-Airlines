@@ -1,5 +1,5 @@
 import { MAX_FLEET } from './simulation.js';
-import { AIRPORTS, ALL_MODELS, TASKS, routeId, model } from './catalog.js';
+import { AIRPORTS, ALL_MODELS, TASKS, routeId, model, airport } from './catalog.js';
 import type { GameState } from './game.js';
 /** Strict validation for the current infrastructure schema. */
 export function validateInfrastructure(s: GameState): void {
@@ -33,7 +33,7 @@ export function validateInfrastructure(s: GameState): void {
   for (const p of [...s.fleet,...s.career.stored]) {
     if (!p || typeof p.id !== 'string' || !/^AC\d{4,9}$/.test(p.id) || Number(p.id.slice(2)) < 1 ||
       Number(p.id.slice(2)) >= s.nextId || planes.has(p.id) || !ALL_MODELS.some(m => m.id === p.modelId) ||
-      !airports.has(p.airportId) || airports.get(p.airportId)! < model(p.modelId).level) fail();
+      !airports.has(p.airportId) || airport(p.airportId).stars < model(p.modelId).level) fail();
     planes.add(p.id);
   }
   record(s.stats, ['flights', 'passengers', 'cargo', 'revenue', 'costs']);

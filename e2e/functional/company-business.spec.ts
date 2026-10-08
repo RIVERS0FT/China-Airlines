@@ -15,7 +15,7 @@ function paidFlightState() {
   send({ type:'load-destination', planeId, to:'PVG' });
   send({ type:'dispatch', planeId, to:'PVG', auto:false });
   core.tick(NOW + core.snapshot().fleet[0]!.flight!.arriveAt * 1000);
-  return core.snapshot();
+  const state = core.snapshot(); state.credits = 10000; return state; // Isolated funded UI fixture after a real paid flight.
 }
 async function exportState(page: Page) {
   await page.getByRole('button', {name:'存档设置', exact:true}).click();
@@ -33,7 +33,7 @@ for (const [width,height] of [[1440,900],[844,390]]) test(`city business growth 
   await page.clock.install({time:new Date(NOW)});
   await page.clock.pauseAt(new Date(NOW+1000));
   await page.goto('./');
-  await page.getByRole('button', {name:'进入游戏', exact:true}).click();
+  await page.getByRole('button', {name:'新游戏', exact:true}).click();
   await page.getByRole('button', {name:'创建公司并启航', exact:true}).click();
   await expect(page.getByTestId('fleet-count')).toBeVisible();
   const skip=page.getByRole('button',{name:'跳过引导',exact:true});
@@ -46,23 +46,28 @@ for (const [width,height] of [[1440,900],[844,390]]) test(`city business growth 
   await page.getByRole('button',{name:'公司组织',exact:true}).click();
   await expect(page.getByTestId('business-net-income')).toHaveText('+0.00 金币/秒');
   await page.getByRole('button',{name:'扩张业务',exact:true}).click();
+  const offer = page.locator('[data-business-kind="ticketing"]');
+  await expect(offer).toContainText('预计净收入 +0.124 金币/秒');
+  await expect(offer).toContainText('单人团队约 162 分钟回本');
+  await expect(offer).toContainText('招满2人总投入 2100 金币，净收入 0.288/秒');
   await expect(page.locator('[data-business-kind="forwarding"] button')).toBeDisabled();
-  await page.getByRole('button',{name:'支付 900 开设票务代理',exact:true}).click();
+  await page.getByRole('button',{name:'支付 1200 开设票务代理',exact:true}).click();
   await expect(page.getByTestId('business-employee-detail')).toBeVisible();
-  await expect(page.getByTestId('business-net-income')).toHaveText('+0.418 金币/秒');
-  await page.getByRole('button',{name:'招募业务员工 · 400金币',exact:true}).click();
-  await expect(page.getByTestId('business-team-net')).toHaveText('+1.036 金币/秒');
-  await expect(page.getByRole('button',{name:'招募业务员工 · 400金币',exact:true})).toBeDisabled();
-  await page.getByRole('button',{name:'扩建增加2个岗位 · 800金币',exact:true}).click();
-  await expect(page.getByTestId('business-net-income')).toHaveText('+1.036 金币/秒');
-  await page.getByRole('button',{name:'招募业务员工 · 400金币',exact:true}).click();
-  await page.getByRole('button',{name:'培养至2级 · 1600金币',exact:true}).click();
-  await expect(page.getByTestId('business-net-income')).toHaveText('+1.744 金币/秒');
+  await expect(page.getByTestId('business-net-income')).toHaveText('+0.124 金币/秒');
+  await page.getByRole('button',{name:'招募业务员工 · 900金币',exact:true}).click();
+  await expect(page.getByTestId('business-team-net')).toHaveText('+0.288 金币/秒');
+  await expect(page.getByTestId('business-employee-detail')).toContainText('扩建并招聘2人的总投入 4300 金币 · +0.328/s · 约 219 分钟回本');
+  await expect(page.getByRole('button',{name:'招募业务员工 · 900金币',exact:true})).toBeDisabled();
+  await page.getByRole('button',{name:'扩建增加2个岗位 · 1600金币',exact:true}).click();
+  await expect(page.getByTestId('business-net-income')).toHaveText('+0.288 金币/秒');
+  await page.getByRole('button',{name:'招募业务员工 · 900金币',exact:true}).click();
+  await page.getByRole('button',{name:'培养至2级 · 200金币',exact:true}).click();
+  await expect(page.getByTestId('business-net-income')).toHaveText('+0.476 金币/秒');
   const before=await exportState(page);
   await page.clock.runFor(10000);
   const after=await exportState(page);
-  expect(after.credits-before.credits).toBe(17);
-  expect(after.business.earned-before.business.earned).toBe(17);
+  expect(after.credits-before.credits).toBe(4);
+  expect(after.business.earned-before.business.earned).toBe(4);
   expect(after.stats).toEqual(before.stats);
   expect(after.business.teams[0]?.level).toBe(2);
   expect(after.career.employees.filter(e=>e.department==='business')).toHaveLength(4);
@@ -73,7 +78,7 @@ for (const [width,height] of [[1440,900],[844,390]]) test(`city business growth 
   await page.screenshot({path:`artifacts/company-growth-${width}.png`});
   await page.reload();
   await page.getByRole('button',{name:'公司组织',exact:true}).click();
-  await expect(page.getByTestId('business-net-income')).toHaveText('+1.744 金币/秒');
+  await expect(page.getByTestId('business-net-income')).toHaveText('+0.476 金币/秒');
   const restored=await exportState(page);
   expect(restored.business).toEqual(after.business);
   await page.evaluate(()=>{ Object.defineProperty(document,"hidden",{configurable:true,value:true}); document.dispatchEvent(new Event("visibilitychange")); });
@@ -86,7 +91,7 @@ for (const [width,height] of [[1440,900],[844,390]]) test(`city business growth 
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang','en-US');
   await page.getByRole('button',{name:'Organization',exact:true}).click();
-  await expect(page.getByTestId('business-net-income')).toHaveText('+1.744 coins/s');
+  await expect(page.getByTestId('business-net-income')).toHaveText('+0.476 coins/s');
   await page.getByRole('button',{name:'Expand Business',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Open a city business team',exact:true})).toBeVisible();
   await expect(page.locator('[data-business-kind="ticketing"]')).toContainText('This city already has this business');

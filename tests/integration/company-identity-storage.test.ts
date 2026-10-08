@@ -22,9 +22,9 @@ it('restores company identity and preserves both slots after a rejected import',
   }
 });
 
-it('keeps v15 data untouched and asks for recovery', async () => {
-  const { company: _company, ...old } = new GameCore(1000).snapshot();
-  await db.saves.put({ slot: 'main', revision: 3, savedAt: 1000, state: { ...old, version: 15 } as unknown as GameState });
+it.each([15,16])('keeps v%s data untouched and asks for recovery', async version => {
+  const old = { ...new GameCore(1000).snapshot(), version } as unknown as GameState;
+  await db.saves.bulkPut([{ slot: 'main', revision: 3, savedAt: 1000, state: old }, { slot: 'backup', revision: 2, savedAt: 900, state: old }]);
   const before = await db.saves.toArray();
   expect(await db.load()).toMatchObject({ state: null, hasData: true, incompatibleVersion: true });
   expect(await db.saves.toArray()).toEqual(before);

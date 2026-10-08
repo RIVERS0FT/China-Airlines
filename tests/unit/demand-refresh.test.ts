@@ -34,12 +34,12 @@ describe('airport-scoped manual demand refresh', () => {
     const aboard = waiting(core.snapshot(), 'PEK').find(order => order.id !== accepted.id)!;
     command(core, { type: 'load', planeId: 'AC0001', orderId: aboard.id });
     const before = core.snapshot();
-    expect(waiting(before, 'PVG')).toHaveLength(11);
+    expect(waiting(before, 'PVG')).toHaveLength(19);
 
     command(core, { type: 'refresh-demand', airportId: 'PEK' });
     const refreshed = core.snapshot();
     expect(refreshed.orders.filter(order => order.location !== 'PEK')).toEqual(before.orders.filter(order => order.location !== 'PEK'));
-    expect(waiting(refreshed, 'PEK')).toHaveLength(12);
+    expect(waiting(refreshed, 'PEK')).toHaveLength(18);
     expect(waiting(refreshed, 'PEK').find(order => order.id === accepted.id)).toEqual(before.orders.find(order => order.id === accepted.id));
     const replaced = new Set(waiting(before, 'PEK').filter(order => order.expiresAt !== null).map(order => order.id));
     expect(refreshed.orders.some(order => replaced.has(order.id))).toBe(false);
@@ -47,13 +47,13 @@ describe('airport-scoped manual demand refresh', () => {
     expect(refreshed.nextDemandAt).toBe(before.nextDemandAt);
     expect(refreshed.career.dailyBought['refresh-PEK']).toBe(1);
     expect(refreshed.career.dailyBought['refresh-PVG']).toBeUndefined();
-    expect(refreshed.career.tickets).toBe(before.career.tickets);
+
     expect(validateSave(refreshed)).toEqual(refreshed);
 
     core.tick(NOW + (DEMAND_INTERVAL - 1) * 1000);
     expect(waiting(core.snapshot(), 'PVG')).toEqual(waiting(before, 'PVG'));
     core.tick(NOW + DEMAND_INTERVAL * 1000);
-    expect(waiting(core.snapshot(), 'PVG')).toHaveLength(12);
+    expect(waiting(core.snapshot(), 'PVG')).toHaveLength(20);
     expect(core.snapshot().nextDemandAt).toBe(before.nextDemandAt + DEMAND_INTERVAL);
     expect(manifest(core.snapshot(), otherPlane)).toEqual(manifest(before, otherPlane));
     expect(validateSave(core.snapshot())).toEqual(core.snapshot());

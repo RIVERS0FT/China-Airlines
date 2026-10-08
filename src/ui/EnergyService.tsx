@@ -15,9 +15,8 @@ export function EnergyService({ game, plane, busy }: { game: GameState; plane: P
   return <section className="energy-service" tabIndex={-1} aria-label={ui('飞机能量管理')}>
     <header><h3><Icon name="energy"/>{ui('飞机能量')}</h3><strong data-testid="hangar-energy">{energyText(e.availableSeconds)} / {energyCapacity(plane) / ENERGY_SECONDS_PER_POINT} {ui('点')}</strong></header>
     <progress aria-label={ui('可用能量')} value={e.availableSeconds} max={energyCapacity(plane)}/>
-    <p>{ui('每整分钟消耗1点，不足一分钟至少1点；起飞预留、到达释放。')}</p>
     <p data-testid="energy-service-status">{servicing ? ui('地勤补能中 · {time} 后补满',{time:duration(e.serviceUntil!-game.simTime)}) : ui(reason) || ui(e.availableSeconds===energyCapacity(plane)?'能量已满':'可安排地勤补能')}</p>
     {servicing ? <button disabled={busy} onClick={() => ignore(controller.command({ type: 'cancel-energy-service', planeId: plane.id }))}>{ui('取消地勤补能')}</button> : <button disabled={busy || Boolean(reason) || e.availableSeconds === energyCapacity(plane)} onClick={() => ignore(controller.command({ type: 'service-energy', planeId: plane.id }))}>{ui('开始地勤补能')}</button>}
-    <small>{ui('下次补能 {seconds} 秒{detail}，费用 0，已开始服务的截止时间锁定；完成前不增加能量；取消不补能。容量随机型与动力等级变化。营业日刷新时恢复电力；在途已预留电力不会重复赠送。', { seconds:service.seconds, detail:service.employee ? ui('（{name}负责，效率提升{reduction}%）', { name:service.employee.name, reduction:service.reduction }) : ui('（基础地勤）') })}</small>
+    <small>{ui('下次补能 {seconds} 秒{detail}，费用 0', { seconds:service.seconds, detail:service.employee ? ui('（{name}负责，效率提升{reduction}%）', { name:service.employee.name, reduction:service.reduction }) : ui('（基础地勤）') })}</small>
   </section>;
 }

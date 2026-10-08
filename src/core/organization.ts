@@ -1,8 +1,10 @@
+import { POINT_GOLD } from './balance-policy.js';
 import type { GameState } from './game.js';
 import { bill, guard, isParked, parked } from './career.js';
 import { ENERGY_SERVICE_SECONDS } from './energy.js';
+import { DEPARTMENT_CATALOG, OPERATING_DEPARTMENTS, SUPPORT_DEPARTMENTS, isSupportDepartment, type SupportDepartment } from './departments.js';
 
-export type Department = 'flight' | 'ground' | 'company' | 'business';
+export type Department = typeof OPERATING_DEPARTMENTS[number] | 'company' | 'business';
 export type EmployeeRole = 'specialist' | 'manager';
 export type Training = 'skill' | 'management';
 export type HistoryKind = 'joined' | 'assigned' | 'reporting' | 'promoted' | 'demoted' | 'trained' | 'renewed' | 'flight';
@@ -19,24 +21,25 @@ export type OrganizationCommand =
   | { type: 'employee-role'; employeeId: number; role: EmployeeRole }
   | { type: 'train-employee'; employeeId: number; training: Training }
   | { type: 'renew-employee'; employeeId: number };
-export const DEPARTMENTS: Record<Department, string> = { flight: '飞行部', ground: '地勤部', company: '公司', business: '公司业务' };
+export const DEPARTMENTS = { ...Object.fromEntries(OPERATING_DEPARTMENTS.map(d => [d, DEPARTMENT_CATALOG[d].zh])), company: '公司', business: '公司业务' } as Record<Department, string>;
 export const EMPLOYEE_POSITIONS = [
   { department: 'flight', role: 'specialist' }, { department: 'ground', role: 'specialist' },
   { department: 'flight', role: 'manager' }, { department: 'ground', role: 'manager' },
   { department: 'company', role: 'manager' },
+  ...SUPPORT_DEPARTMENTS.flatMap(department => [{ department, role: 'specialist' as const }, { department, role: 'manager' as const }]),
 ] as const satisfies readonly Pick<Employee, 'department' | 'role'>[];
 export const isEmployeePosition = (department: unknown, role: unknown) =>
   (department === 'business' && (role === 'manager' || role === 'specialist')) ||
   EMPLOYEE_POSITIONS.some(position => position.department === department && position.role === role);
 export const CONTRACT_SECONDS = 7 * 86400;
-export const MAX_EMPLOYEES = 15;
+export const MAX_EMPLOYEES = 15 + SUPPORT_DEPARTMENTS.length * 3;
 export const HISTORY_LIMIT = 20;
 export const roleName = (e: Pick<Employee, 'department' | 'role'>) =>
-  e.department === 'business' ? (e.role === 'manager' ? '业务主管' : '业务专员') : e.department === 'company' ? '总经理' : e.role === 'manager' ? `${DEPARTMENTS[e.department]}经理` : e.department === 'flight' ? '飞行员' : '地勤专员';
+  e.department === 'business' ? (e.role === 'manager' ? '业务主管' : '业务专员') : e.department === 'company' ? '总经理' : e.role === 'manager' ? `${DEPARTMENTS[e.department]}经理` : DEPARTMENT_CATALOG[e.department].specialist;
 export const staffIn = (s: GameState, department: Department, role: EmployeeRole = 'specialist') =>
   s.career.employees.filter(e => e.department === department && e.role === role);
 export const staffLimit = (department: Department, role: EmployeeRole) =>
-  !isEmployeePosition(department, role) ? 0 : role === 'manager' ? 1 : department === 'flight' ? 8 : 4;
+  !isEmployeePosition(department, role) ? 0 : role === 'manager' ? 1 : department === 'flight' ? 8 : isSupportDepartment(department) ? 2 : 4;
 /** A read-only preview shared by recruitment commands and candidate cards. */
 export function recruitmentAssignment(s: GameState, position: Pick<Employee, 'department' | 'role'>, targetPlaneId?: string) {
   const assignment: { planeId: string | null; airportId: string | null; reason: string } = { planeId: null, airportId: null, reason: '' };
@@ -65,16 +68,27 @@ export function effectiveManager(s: GameState, e: Employee) {
   return manager && manager.role === 'manager' && manager.department === e.department && manager.paidUntil > s.simTime &&
     directReports(s, manager.id).slice(0, managerCapacity(manager)).some(member => member.id === e.id) ? manager : undefined;
 }
+/** Contract and reporting coverage are evaluated at the time of a new quote. */
+export function departmentEffect(s: GameState, department: SupportDepartment) {
+  const people = staffIn(s, department).filter(e => e.paidUntil > s.simTime);
+  const points = people.reduce((sum, e) => sum + 2 + e.skill * 2 + (e.trait === 'efficient' ? 2 : 0) + (effectiveManager(s, e)?.management ?? 0), 0);
+  return Math.min(DEPARTMENT_CATALOG[department].cap, points);
+}
+export const departmentPrice = (s: GameState, department: SupportDepartment, base: number) =>
+  Math.ceil(base * (100 - departmentEffect(s, department)) / 100);
+export const promotionPrice = (s: GameState) => departmentPrice(s, 'publicity', 500);
+export const turnaroundSeconds = (s: GameState) => Math.round(8 * (100 - departmentEffect(s, 'operations'))) / 100;
 export const employmentPrice = (e: Pick<Employee, 'department' | 'role'>, recruit = false) => {
   const gold = e.role === 'manager' ? 800 : e.department === 'flight' ? 600 : 400;
-  const tickets = e.role === 'manager' ? 2 : e.department === 'flight' ? 2 : 1;
-  return { gold: gold * (recruit ? 3 : 1), tickets: recruit ? tickets + (e.role === 'manager' ? 2 : 1) : tickets };
+  const surcharge = (e.role === 'manager' ? 2 : e.department === 'flight' ? 2 : 1) * POINT_GOLD;
+  return { gold: gold * (recruit ? 3 : 1) + surcharge + (recruit ? (e.role === 'manager' ? 2 : 1) * POINT_GOLD : 0) };
 };
 export function trainingQuote(s: GameState, e: Employee, training: Training) {
   const m = training === 'skill' ? effectiveManager(s, e) : undefined;
-  const discount = m ? Math.min(20, m.management * 2 + (m.trait === 'mentor' ? 5 : 0)) : 0;
+  const mentoring = m ? Math.min(20, m.management * 2 + (m.trait === 'mentor' ? 5 : 0)) : 0;
+  const discount = Math.min(35, mentoring + departmentEffect(s, 'hr'));
   const base = (training === 'skill' ? 400 : 300) * (e[training] + 1);
-  return { gold: Math.ceil(base * (100 - discount) / 100), tickets: training === 'skill' ? 3 : 2, discount, maximum: e[training] >= e.potential };
+  return { gold: Math.ceil(base * (100 - discount) / 100) + (training === 'skill' ? 3 : 2) * POINT_GOLD, discount, maximum: e[training] >= e.potential };
 }
 /** A read-only quote. Only the command starting service persists the resulting deadline. */
 export function groundServiceQuote(s: GameState, airportId: string) {
@@ -121,7 +135,7 @@ export function organizationExecute(s: GameState, command: OrganizationCommand, 
       const assignment = recruitmentAssignment(s, command, targetPlaneId);
       guard(!assignment.reason, assignment.reason);
       guard(s.career.nextId < 1e12 && s.simTime + CONTRACT_SECONDS <= 1e12, '人员编号或合同期限超过存档范围');
-      const cost = employmentPrice(command, true); bill(s, cost.gold, cost.tickets);
+      const cost = employmentPrice(command, true); bill(s, cost.gold);
       const id = s.career.nextId++;
       s.career.seed = (Math.imul(s.career.seed, 1664525) + 1013904223) >>> 0;
       const names = command.department === 'company' ? ['沈远', '程宁', '顾承']
@@ -130,7 +144,7 @@ export function organizationExecute(s: GameState, command: OrganizationCommand, 
       const baseName = names[used % names.length]!;
       const name = s.career.employees.some(e => e.name === baseName) ? `${baseName}${id.toString(36)}` : baseName;
       const e: Employee = { id, name, planeId: null, paidUntil: s.simTime + CONTRACT_SECONDS,
-        skill: command.role === 'manager' ? 2 : command.department === 'ground' ? 1 : 0,
+        skill: command.role === 'manager' ? 2 : command.department === 'flight' ? 0 : 1,
         department: command.department, role: command.role, managerId: null, airportId: null,
         management: command.role === 'manager' ? 1 : 0, potential: 6 + s.career.seed % 5,
         trait: (s.career.seed >>> 8) % 2 ? 'mentor' : 'efficient', joinedAt: s.simTime, flights: 0, deliveries: 0, history: [] };
@@ -193,15 +207,15 @@ export function organizationExecute(s: GameState, command: OrganizationCommand, 
       const e = employeeById(s, command.employeeId);
       guard(['skill', 'management'].includes(command.training), '未知培训类型');
       const cost = trainingQuote(s, e, command.training);
-      guard(!cost.maximum, '已达到成长潜力上限'); bill(s, cost.gold, cost.tickets);
+      guard(!cost.maximum, '已达到成长潜力上限'); bill(s, cost.gold);
       e[command.training]++;
-      employeeHistory(s, e, 'trained', `${command.training === 'skill' ? '专业' : '管理'}能力升至${e[command.training]}级${cost.discount ? `，经理培养节省${cost.discount}%金币` : ''}`);
+      employeeHistory(s, e, 'trained', `${command.training === 'skill' ? '专业' : '管理'}能力升至${e[command.training]}级${cost.discount ? `，培训节省${cost.discount}%金币` : ''}`);
       return '培训完成；已开始的补能不受影响';
     }
     case 'renew-employee': {
       const e = employeeById(s, command.employeeId), cost = employmentPrice(e);
       const until = Math.max(s.simTime, e.paidUntil) + CONTRACT_SECONDS;
-      guard(until <= 1e12, '合同期限超过存档范围'); bill(s, cost.gold, cost.tickets);
+      guard(until <= 1e12, '合同期限超过存档范围'); bill(s, cost.gold);
       e.paidUntil = until; employeeHistory(s, e, 'renewed', '续付7天工资');
       return '已续付7天工资';
     }

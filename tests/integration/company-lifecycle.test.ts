@@ -30,14 +30,14 @@ describe('real new-company lifecycle across commands, time and persistence', () 
     expect(core.snapshot()).toEqual(initial);
 
     configure(core);
-    expect(core.snapshot().credits).toBe(11700);
+    expect(core.snapshot().credits).toBe(3600);
     const offered = core.snapshot().orders;
     core.execute({ type: 'load-destination', planeId: PLANE, to: 'PVG' }, NOW);
     const loaded = manifest(core.snapshot(), PLANE);
     expect(loaded).toHaveLength(1);
     expect(loaded.every(order => offered.some(item => item.id === order.id))).toBe(true);
     core.execute({ type: 'dispatch', planeId: PLANE, to: 'PVG', auto: false }, NOW);
-    expect(core.snapshot()).toMatchObject({ credits: 11604, stats: { costs: 96, revenue: 0, flights: 0 } });
+    expect(core.snapshot()).toMatchObject({ credits: 3504, stats: { costs: 96, revenue: 0, flights: 0 } });
     const flight = core.snapshot().fleet[0]!.flight!;
     expect(flight).toMatchObject({ cost: 96, revenue: 326 });
 
@@ -46,7 +46,7 @@ describe('real new-company lifecycle across commands, time and persistence', () 
     core = new GameCore(NOW, (await db.load()).state);
     core.tick(NOW + (flight.arriveAt + TURNAROUND) * 1000);
     const arrived = core.snapshot();
-    expect(arrived).toMatchObject({ credits: 11930, stats: { costs: 96, revenue: 326, flights: 1, passengers: 1, cargo: 0 } });
+    expect(arrived).toMatchObject({ credits: 3830, stats: { costs: 96, revenue: 326, flights: 1, passengers: 1, cargo: 0 } });
     expect(arrived.fleet[0]).toMatchObject({ airportId: 'PVG', flight: null });
     expect(arrived.orders.filter(order => loaded.some(item => item.id === order.id))).toEqual([]);
     revision = await db.save(arrived, revision);
@@ -56,19 +56,23 @@ describe('real new-company lifecycle across commands, time and persistence', () 
     expect(core.snapshot()).toEqual(arrived);
 
     core.execute({ type: 'claim', taskId: 'first-flight' }, now);
-    expect(core.snapshot().credits).toBe(13430);
+    expect(core.snapshot().credits).toBe(4430);
     const rewarded = core.snapshot();
     expect(() => core.execute({ type: 'claim', taskId: 'first-flight' }, now)).toThrow();
     expect(core.snapshot()).toEqual(rewarded);
     core.execute({ type: 'unlock', airportId: 'WUH' }, now);
-    core.execute({ type: 'buy', modelId: 'swift-p', airportId: 'WUH', passengers: 1, cargo: 1 }, now);
-    expect(core.snapshot().credits).toBe(1430);
+    const poor = core.snapshot();
+    expect(() => core.execute({ type: 'buy', modelId: 'swift-p', airportId: 'WUH', passengers: 1, cargo: 1 }, now)).toThrow();
+    expect(core.snapshot()).toEqual(poor);
+    core = new GameCore(now, rewarded);
+    core.execute({ type: 'buy', modelId: 'diamond-da40', airportId: 'PEK', passengers: 0, cargo: 1 }, now);
+    expect(core.snapshot().credits).toBe(2130);
     const purchasedId = core.snapshot().fleet[1]!.id;
     expect(purchasedId).not.toBe(PLANE);
-    expect(core.snapshot().fleet[1]).toMatchObject({ airportId: 'WUH', allocation: { passengers: 1, cargo: 1 } });
+    expect(core.snapshot().fleet[1]).toMatchObject({ airportId: 'PEK', allocation: { passengers: 0, cargo: 1 } });
     const bought = restore(core);
-    bought.execute({ type: 'allocate-cabin', planeId: purchasedId, passengers: 2, cargo: 0 }, now);
-    expect(bought.snapshot().credits).toBe(1350);
+    bought.execute({ type: 'allocate-cabin', planeId: purchasedId, passengers: 1, cargo: 0 }, now);
+    expect(bought.snapshot().credits).toBe(2050);
     await db.save(bought.snapshot(), revision);
     expect((await db.load()).state).toEqual(bought.snapshot());
   });

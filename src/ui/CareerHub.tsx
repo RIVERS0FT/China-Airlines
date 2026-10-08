@@ -1,3 +1,4 @@
+import { promotionPrice } from "../core/organization.js";
 import { useState, type ReactNode } from "react";
 import { aircraftSpecs, airport, MODELS } from "../core/catalog.js";
 import {
@@ -93,7 +94,7 @@ export function CareerHub({
           .filter((a) => a.id !== except)
           .map((a) => (
             <option key={a.id} value={a.id}>
-              {airportName(a.id,airport(a.id).city)} · {a.level} {ui("级")}
+              {airportName(a.id,airport(a.id).city)} · {'★'.repeat(airport(a.id).stars)} · {ui("设施Lv.{level}",{level:a.level})}
             </option>
           ))}
       </select>
@@ -122,7 +123,6 @@ export function CareerHub({
         <b>
           <Icon name="coin" />
           {money(game.credits)}
-          <small>{ui("点券 {count}",{count:c.tickets})}</small>
         </b>
       </div>
       <div className="career-tabs" role="tablist" aria-label={ui("经营中心栏目")}>
@@ -173,7 +173,7 @@ export function CareerHub({
                   {p.tuning.power + 1}/100
                 </p>
                 <small>
-                  成长需卸空停稳；编队与进化消耗金币、点券和机身/动力组件。
+                  成长需卸空停稳；编队与进化消耗金币和机身/动力组件。
                 </small>
               </div>
             </div>
@@ -181,7 +181,7 @@ export function CareerHub({
               {(["group-plane", "evolve-plane", "power-upgrade"] as const).map(
                 (type, i) =>
                   action(
-                    `${["提升编队", "机体进化", "提升电力"][i]} · ${growthPrice(p, (["group", "evolution", "power"] as const)[i]!).gold}金币＋${growthPrice(p, (["group", "evolution", "power"] as const)[i]!).tickets}券`,
+                    `${["提升编队", "机体进化", "提升电力"][i]} · ${growthPrice(p, (["group", "evolution", "power"] as const)[i]!).gold}金币`,
                     { type, planeId: p.id },
                     locked,
                   ),
@@ -218,7 +218,7 @@ export function CareerHub({
                 : p.tuning.special === "cold"
                   ? "冷链"
                   : "工业"}
-              。专业改装费用 1,800 金币、4 点券、3 合金、1
+              。专业改装费用 2,200 金币、3 合金、1
               图纸。编队每级增加基础收益20%、运行成本12%；进化每级增加收益1.5%。
             </p>
             <h3>零件组装</h3>
@@ -246,7 +246,7 @@ export function CareerHub({
               })}
             </div>
             <p>
-              消耗机身、动力、机翼组件各“机场需求等级”件，图纸1张，另付机价60%及等级×2点券。
+              消耗机身、动力、机翼组件各“机场准入星级”件，图纸1张，另付机价60%及机场准入星级×200金币。运营设施升级不改变准入星级。
             </p>
             <h3>封存仓库 · {c.stored.length} 架</h3>
             {!c.stored.length && (
@@ -301,7 +301,7 @@ export function CareerHub({
                     <small>
                       {c.buildings[id] >= 10
                         ? "已满级"
-                        : `${1000 * (c.buildings[id] + 1)}金币 / ${c.buildings[id]}券 / ${c.buildings[id] * 2}合金`}
+                        : `${1000 * (c.buildings[id] + 1) + c.buildings[id] * 100}金币 / ${c.buildings[id] * 2}合金`}
                     </small>
                   </button>
                 ),
@@ -450,12 +450,12 @@ export function CareerHub({
             <h3>研发与贸易</h3>
             <div className="career-actions">
               {action(
-                "设计图纸 · 300金币＋1券",
+                "设计图纸 · 400金币",
                 { type: "design-blueprint" },
                 !c.buildings.design,
               )}
               {action(
-                "开展研究 · 300金币＋1券",
+                "开展研究 · 400金币",
                 { type: "research" },
                 !c.buildings.research,
               )}
@@ -471,14 +471,14 @@ export function CareerHub({
               )}
             </div>
             <p>
-              贸易只收取从其他机场运入的货品；日单奖励1,000金币＋5券，周单奖励2,500金币＋12券。研发与设计每天各可使用“设施等级×3”次。
+              贸易只收取从其他机场运入的货品；日单奖励1,500金币，周单奖励3,700金币。研发与设计每天各可使用“设施等级×3”次。
             </p>
           </>
         )}
         {tab === "物资商店" && (
           <>
             <p>
-              每种材料每天限购20件；组件与图纸每件400金币＋1点券，其余每件80金币。材料可用于机体成长和设施建设。
+              每种材料每天限购20件；组件与图纸每件500金币，其余每件80金币。材料可用于机体成长和设施建设。
             </p>
             <div className="career-quests">
               {(Object.entries(MATERIALS) as [Material, string][])
@@ -540,7 +540,7 @@ export function CareerHub({
                 c.achievement >= 6 || c.museum.length <= c.achievement,
               )}
               <small>
-                需展品数达到下一等级，费用等级×1,000金币、5点券、1研发图纸。
+                需展品数达到下一等级，费用等级×1,000金币加500金币、1研发图纸。
               </small>
             </div>
             <div className="career-quests">
@@ -579,7 +579,7 @@ export function CareerHub({
             </div>
             <h3>移交封存飞机</h3>
             <p>
-              每种机型仅一次。消耗封存飞机与1,000金币，获得15点券、100公司经验。
+              每种机型仅一次。消耗封存飞机与1,000金币，获得1,500金币、100公司经验。
             </p>
             {c.stored.map((p) => (
               <div className="career-row" key={p.id}>
@@ -628,12 +628,12 @@ export function CareerHub({
                     },
                   )}
                   {action(
-                    `刷新客货 · ${(c.dailyBought[`refresh-${a.id}`] ?? 0) < 10 ? "免费" + (10 - (c.dailyBought[`refresh-${a.id}`] ?? 0)) + "次" : "1点券"}`,
+                    `刷新客货 · ${(c.dailyBought[`refresh-${a.id}`] ?? 0) < 10 ? "免费" + (10 - (c.dailyBought[`refresh-${a.id}`] ?? 0)) + "次" : "100金币"}`,
                     { type: "refresh-demand", airportId: a.id },
                     c.demandOff.includes(a.id) ||
                       (c.dailyBought[`refresh-${a.id}`] ?? 0) >= 30,
                   )}
-                  {action("宣传1小时 · 500金币", {
+                  {action(`宣传1小时 · ${promotionPrice(game)}金币`, {
                     type: "promote-airport",
                     airportId: a.id,
                   })}

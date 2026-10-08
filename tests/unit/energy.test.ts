@@ -121,7 +121,9 @@ describe('explicit ground service and event recovery', () => {
     expect(()=>c.execute({type:'cancel-energy-service',planeId:ID},NOW+SERVICE*1000)).toThrow('没有进行补能');
   });
   it('reload resumes the same deadline, with no repeated refill or forced autodeparture', () => {
-    const c=serviceCore(),s=c.snapshot(),loaded=new GameCore(NOW+60000,validateSave(s));loaded.tick(NOW+SERVICE*1000);
+    const c=serviceCore(),s=c.snapshot(),resumedAt=NOW+86400000,loaded=GameCore.imported(validateSave(s),resumedAt);
+    loaded.tick(resumedAt+(SERVICE-1)*1000);expect(loaded.snapshot().fleet[0]!.energy.availableSeconds).toBe(13);
+    loaded.tick(resumedAt+SERVICE*1000);
     expect(loaded.snapshot().fleet[0]!.energy).toEqual(fullEnergy());expect(loaded.snapshot().fleet[0]!.flight).toBeNull();expect(loaded.snapshot().stats.flights).toBe(0);
   });
   it('an explicit imported service uses its remaining simulation time rather than file wall age', () => {

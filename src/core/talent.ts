@@ -1,5 +1,6 @@
 import type { Command, GameState } from './game.js';
-import { EMPLOYEE_POSITIONS, MAX_EMPLOYEES, effectiveManager, isEmployeePosition, organizationExecute, staffIn, type Department, type Employee, type EmployeeRole } from './organization.js';
+import { EMPLOYEE_POSITIONS, MAX_EMPLOYEES, effectiveManager, organizationExecute, staffIn, type Department, type Employee, type EmployeeRole } from './organization.js';
+import { careerLevel } from './career.js';
 
 export interface Candidate {
   id: number; name: string; department: Department; role: EmployeeRole;
@@ -9,7 +10,7 @@ export type MilestoneKind = 'first-hire' | 'internal-manager' | 'two-departments
 export interface Milestone { kind: MilestoneKind; at: number; employeeId: number; mentorId: number | null }
 export interface Mentoring { employeeId: number; mentorId: number; at: number; level: number }
 export interface TalentState {
-  seed: number; nextId: number; startedAt: number; candidates: Candidate[];
+  seed: number; nextId: number; startedAt: number; batchLevel: number; candidates: Candidate[];
   mentoring: Mentoring[]; milestones: Milestone[]; deferred: { key: string; signature: string }[];
 }
 export type TalentCommand = { type: 'hire-candidate'; candidateId: number }
@@ -17,46 +18,42 @@ export type TalentCommand = { type: 'hire-candidate'; candidateId: number }
 export interface CompanyAffair {
   key: string; signature: string; kind: 'promotion' | 'training' | 'ground'; employeeId: number | null; airportId: string | null;
 }
-export const CANDIDATES_PER_POSITION = 3;
-export const CANDIDATE_COUNT = EMPLOYEE_POSITIONS.length * CANDIDATES_PER_POSITION;
-export const TALENT_REFRESH_INTERVAL = 30 * 60;
+export const INITIAL_CANDIDATES = 3, MAX_CANDIDATES = 12;
+export const talentBatchSize = (level: number) => Math.min(MAX_CANDIDATES, INITIAL_CANDIDATES + level - 1);
+export const TALENT_REFRESH_INTERVAL = 5 * 60;
 export const MILESTONE_KINDS: MilestoneKind[] = ['first-hire','internal-manager','two-departments','first-mentoring','paid-flight'];
 const MAX_ID = 1e12;
 function check(ok: unknown, message: string): asserts ok { if (!ok) throw new Error(message); }
-function nextCandidate(t: TalentState, department: Department, role: EmployeeRole): Candidate {
+function nextCandidate(t: TalentState): Candidate {
   check(t.nextId < MAX_ID, '候选人编号已达上限');
+  t.seed = (Math.imul(t.seed, 1664525) + 1013904223) >>> 0;
+  const { department, role } = EMPLOYEE_POSITIONS[t.seed % EMPLOYEE_POSITIONS.length]!;
   t.seed = (Math.imul(t.seed, 1664525) + 1013904223) >>> 0;
   const id = t.nextId++;
   const names = department === 'company' ? ['沈远','程宁','顾承']
     : department === 'flight' ? ['林航','许岚','周远','苏晴','陈翼','陆星','唐云','沈宁'] : ['顾川','叶宁','孟青','乔安'];
-  const offset = department === 'company' ? 0 : department === 'flight' && role === 'manager' ? 3 : role === 'manager' ? 1 : 0;
-  return { id, name: names[(Math.floor((id - 1) / CANDIDATE_COUNT) * CANDIDATES_PER_POSITION + (id - 1) % CANDIDATES_PER_POSITION + offset) % names.length]!, department, role,
+  return { id, name: names[(t.seed >>> 16) % names.length]!, department, role,
     potential: 6 + t.seed % 5, trait: (t.seed >>> 8) % 2 ? 'mentor' : 'efficient' };
 }
 /** A separate deterministic stream keeps recruitment and logistics randomness independent. */
-export function createTalent(seed: number, at: number): TalentState {
-  const t: TalentState = { seed: (seed ^ 0x41c6ce57) >>> 0, nextId: 1, startedAt: at, candidates: [], mentoring: [], milestones: [], deferred: [] };
-  for (const { department, role } of EMPLOYEE_POSITIONS) {
-    for (let i = 0; i < CANDIDATES_PER_POSITION; i++) t.candidates.push(nextCandidate(t, department, role));
-  }
+export function createTalent(seed: number, at: number, level = 1): TalentState {
+  const t: TalentState = { seed: (seed ^ 0x41c6ce57) >>> 0, nextId: 1, startedAt: at, batchLevel: level, candidates: [], mentoring: [], milestones: [], deferred: [] };
+  for (let i = 0; i < talentBatchSize(level); i++) t.candidates.push(nextCandidate(t));
   return t;
 }
 /** The market follows operating time, so reloads and wall-clock changes cannot reroll a batch. */
 export function nextTalentRefreshAt(s: Pick<GameState, 'simTime'>): number {
   return (Math.floor(s.simTime / TALENT_REFRESH_INTERVAL) + 1) * TALENT_REFRESH_INTERVAL;
 }
-/** Talent has an independent random stream and no transport events depend on the waiting list. */
-export function advanceTalent(s: GameState, from: number, to: number): void {
-  const batches = Math.floor(to / TALENT_REFRESH_INTERVAL) - Math.floor(from / TALENT_REFRESH_INTERVAL);
-  for (let batch = 0; batch < batches; batch++) {
-    // Exhausted identities must not partially replace a batch or stop the simulation clock.
-    if (s.talent.nextId > MAX_ID - CANDIDATE_COUNT) break;
-    const candidates: Candidate[] = [];
-    for (const { department, role } of EMPLOYEE_POSITIONS) {
-      for (let i = 0; i < CANDIDATES_PER_POSITION; i++) candidates.push(nextCandidate(s.talent, department, role));
-    }
-    s.talent.candidates = candidates;
-  }
+/** Called at an exact clock event, using the company level reached at that instant. */
+export function refreshTalent(s: GameState): void {
+  const level = careerLevel(s), count = talentBatchSize(level);
+  // Exhausted identities cannot partially replace a batch or stop the simulation clock.
+  if (s.talent.nextId > MAX_ID - count) return;
+  const candidates: Candidate[] = [];
+  for (let i = 0; i < count; i++) candidates.push(nextCandidate(s.talent));
+  s.talent.candidates = candidates;
+  s.talent.batchLevel = level;
 }
 export function recordMilestone(s: GameState, kind: MilestoneKind, employeeId: number, mentorId: number | null = null) {
   if (!s.talent.milestones.some(m => m.kind === kind)) s.talent.milestones.push({ kind, at: s.simTime, employeeId, mentorId });
@@ -109,7 +106,6 @@ export function talentExecute(s: GameState, command: TalentCommand) {
   if (command.type === 'hire-candidate') {
     const candidate = s.talent.candidates.find(c => c.id === command.candidateId);
     check(candidate, '候选人已入职或不在名单中');
-    check(s.talent.nextId < MAX_ID, '候选人编号已达上限');
     // Recruitment validation, price, limits, identity allocation and contract remain authoritative.
     organizationExecute(s, { type: 'recruit-employee', department: candidate.department, role: candidate.role });
     const employee = s.career.employees.at(-1)!;
@@ -117,7 +113,6 @@ export function talentExecute(s: GameState, command: TalentCommand) {
     employee.name = duplicate ? `${candidate.name}${employee.id.toString(36)}` : candidate.name;
     employee.potential = candidate.potential; employee.trait = candidate.trait;
     s.talent.candidates = s.talent.candidates.filter(c => c.id !== candidate.id);
-    s.talent.candidates.push(nextCandidate(s.talent, candidate.department, candidate.role));
     return '候选人已入职，包含7天合同';
   }
   const affair = companyAffairs(s, true).find(a => a.key === command.key && a.signature === command.signature);
@@ -138,19 +133,18 @@ export function validateTalent(s: GameState) {
     if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max || (integer && !Number.isSafeInteger(value))) fail();
   }
   const t = s.talent;
-  fields(t, ['seed','nextId','startedAt','candidates','mentoring','milestones','deferred']);
-  num(t.seed,0,0xffffffff); num(t.nextId,CANDIDATE_COUNT + 1,MAX_ID); num(t.startedAt,0,s.simTime,false);
-  if (!Array.isArray(t.candidates) || t.candidates.length !== CANDIDATE_COUNT || !Array.isArray(t.mentoring) || t.mentoring.length > MAX_EMPLOYEES * 10 ||
+  fields(t, ['seed','nextId','startedAt','batchLevel','candidates','mentoring','milestones','deferred']);
+  num(t.batchLevel,1,careerLevel(s));
+  const count = talentBatchSize(t.batchLevel);
+  num(t.seed,0,0xffffffff); num(t.nextId,count + 1,MAX_ID); num(t.startedAt,0,s.simTime,false);
+  if (!Array.isArray(t.candidates) || t.candidates.length > count || !Array.isArray(t.mentoring) || t.mentoring.length > MAX_EMPLOYEES * 10 ||
     !Array.isArray(t.milestones) || t.milestones.length > MILESTONE_KINDS.length || !Array.isArray(t.deferred) || t.deferred.length > 100) fail();
   const candidateIds = new Set<number>();
   for (const c of t.candidates) {
-    fields(c,['id','name','department','role','potential','trait']); num(c.id,1,t.nextId-1); num(c.potential,6,10);
+    fields(c,['id','name','department','role','potential','trait']); num(c.id,t.nextId-count,t.nextId-1); num(c.potential,6,10);
     if (candidateIds.has(c.id) || typeof c.name !== 'string' || !c.name.trim() || c.name.length > 12 ||
-      !isEmployeePosition(c.department, c.role) || !['mentor','efficient'].includes(c.trait)) fail();
+      !EMPLOYEE_POSITIONS.some(p => p.department === c.department && p.role === c.role) || !['mentor','efficient'].includes(c.trait)) fail();
     candidateIds.add(c.id);
-  }
-  for (const { department, role } of EMPLOYEE_POSITIONS) {
-    if (t.candidates.filter(c => c.department === department && c.role === role).length !== CANDIDATES_PER_POSITION) fail();
   }
   const people = new Map(s.career.employees.map(e => [e.id,e]));
   const keys = new Set<string>(); let previousAt = t.startedAt;

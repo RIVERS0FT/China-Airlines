@@ -57,7 +57,7 @@ describe('unified task eligibility is read-only and agrees with core', () => {
     expect(items.find(t => t.id === 'daily-2')?.state).toBe('claimed');
     expect(items.find(t => t.id === 'daily-9')?.state).toBe('active');
     expect(items.find(t => t.id === 'checkin-1')).toBeUndefined();
-    expect(items.find(t => t.id === 'checkin-6')).toMatchObject({ state: 'claimable', tickets: 17 });
+    expect(items.find(t => t.id === 'checkin-6')).toMatchObject({ state: 'claimable', gold: 1700 });
     careerExecute(game, { type: 'career-claim', id: 'checkin-6' });
     expect(taskItems(game).find(t => t.id === 'checkin-6')?.state).toBe('claimed');
     game.career.dailyDeliveries = 8;

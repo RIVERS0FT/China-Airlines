@@ -20,7 +20,7 @@ test('local art decodes and remains available after offline reload', async ({ pa
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByTestId('waiting-order')).toHaveCount(12);
+  await expect(page.getByTestId('waiting-order')).toHaveCount(18);
   const decoded = await page.evaluate(async sources => Promise.all([...new Set(sources)].map(async src => {
     const image = new Image(); image.src = src; await image.decode();
     return { width: image.naturalWidth, height: image.naturalHeight };

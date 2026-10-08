@@ -68,7 +68,6 @@ export function validateTuning(p: Plane) {
 export function validateCareer(s: GameState) {
   const c = s.career;
   record(c, [
-    "tickets",
     "xp",
     "day",
     "nextDayAt",
@@ -99,7 +98,6 @@ export function validateCareer(s: GameState) {
     "deliveredGoods",
   ]);
   for (const key of [
-    "tickets",
     "xp",
     "day",
     "nextId",
@@ -243,7 +241,7 @@ export function validateCareer(s: GameState) {
     if (typeof id !== "string") fail();
     const task = CAREER_TASKS.find((t) => t.id === id);
     if (task) {
-      if (taskValue(s, task.metric) < task.target) fail();
+      if (taskValue(s, task.metric) < task.target || s.stats.revenue < task.minRevenue) fail();
       continue;
     }
     const daily = /^daily-(\d+)$/.exec(id),

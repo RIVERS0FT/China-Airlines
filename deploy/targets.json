@@ -6,7 +6,7 @@
   "project": {
     "slug": "china-airlines",
     "title": "中华航空",
-    "description": "航空运输经营游戏：规划航线、装载客货、经营机队。",
+    "description": "单机航空运输经营游戏：规划航线、装载客货、经营机队。",
     "kind": "game",
     "visibility": "public"
   }

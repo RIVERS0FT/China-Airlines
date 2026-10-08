@@ -1,12 +1,13 @@
 import { DOMESTIC_AIRPORTS } from './domestic-airports.js';
 import { WORLD_AIRPORTS, type AirportDefinition } from './world-airports.js';
+import { airportScale } from './airport-traffic.js';
 export { MODELS, ALL_MODELS, UPGRADE_LABEL, emptyUpgrades, aircraftSpecs, retrofitPrice, cabinAllocationPrice,
   hangarPrice, TASKS, model, routeId, upgradePrice } from './career-catalog.js';
 export type { AircraftModel, UpgradeKey, Upgrades } from './career-catalog.js';
 export { CONTINENTS, type Continent, type AirportDefinition } from './world-airports.js';
-export const AIRPORTS: readonly AirportDefinition[] = [
+export const AIRPORTS: readonly (AirportDefinition & ReturnType<typeof airportScale>)[] = [
   ...DOMESTIC_AIRPORTS.map(a => ({ ...a, continent: '亚洲' as const })), ...WORLD_AIRPORTS
-];
+].map(a => ({ ...a, ...airportScale(a.id) }));
 export const airport = (id: string) => {
   const result = AIRPORTS.find(a => a.id === id);
   if (!result) throw new Error('未知机场');

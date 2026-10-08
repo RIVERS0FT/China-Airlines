@@ -36,13 +36,13 @@ for (const [width, height] of [[1440, 900], [844, 390], [667, 375]] as const) {
     const credits = await page.getByTestId('credits').textContent();
     await expect(page.getByRole('button', { name: '机场目录', exact: true })).toBeInViewport();
     await detail(page, '上海');
-    await expect(page.getByTestId('airport-traffic-summary')).toContainText('8 人');
+    await expect(page.getByTestId('airport-traffic-summary')).toContainText('14 人');
     await expect(page.getByTestId('airport-parked').getByRole('listitem')).toHaveCount(0);
     await page.screenshot({ path: `artifacts/airport-detail-${width}.png` });
     await page.getByRole('button', { name: '进入候机大厅', exact: true }).click();
     await expect(page.locator('.gate-sign')).toContainText('上海航空港');
     await expect(page.getByTestId('plane-art')).toHaveCount(0);
-    await expect(page.getByTestId('waiting-order')).toHaveCount(12);
+    await expect(page.getByTestId('waiting-order')).toHaveCount(20);
     for (const card of await page.getByTestId('waiting-order').all()) await expect(card).toBeDisabled();
     await expect(page.getByRole('button', { name: /^同目的地装载：/ }).first()).toBeDisabled();
     await expect(page.getByRole('button', { name: '制定航线', exact: true })).toBeDisabled();
@@ -67,16 +67,16 @@ test('airport search, locked information, unlock and upgrade use existing comman
   await page.getByRole('button', { name: '查看武汉机场', exact: true }).click();
   await expect(page.getByRole('button', { name: '进入候机大厅' })).toHaveCount(0);
   await page.getByRole('button', { name: /^解锁机场/ }).click();
-  await expect(page.getByTestId('credits')).toHaveText('¥ 11,500');
+  await expect(page.getByTestId('credits')).toHaveText('¥ 15,000');
   await expect(page.getByRole('button', { name: /^解锁机场/ })).toHaveCount(0);
-  await page.getByRole('button', { name: /^升级机场/ }).click();
-  await expect(page.getByTestId('credits')).toHaveText('¥ 3,500');
-  await expect(page.locator('.airport-detail-hero')).toContainText('2 级机场');
+  await page.getByRole('button', { name: /^升级运营设施/ }).click();
+  await expect(page.getByTestId('credits')).toHaveText('¥ 7,000');
+  await expect(page.locator('.airport-detail-hero')).toContainText('设施Lv.2');
   await page.getByRole('button', { name: '进入候机大厅', exact: true }).click();
   await expect(page.locator('.gate-sign')).toContainText('武汉航空港');
   await expect(page.getByTestId('plane-art')).toHaveCount(0);
   await page.reload(); await detail(page, '武汉');
-  await expect(page.locator('.airport-detail-hero')).toContainText('2 级机场');
+  await expect(page.locator('.airport-detail-hero')).toContainText('设施Lv.2');
 });
 test('purchase into an empty inspected airport enables only local aircraft loading and departure', async ({ page }) => {
   await ready(page); await detail(page, '上海');

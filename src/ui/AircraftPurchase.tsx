@@ -18,7 +18,7 @@ export function AircraftPurchase({ modelId, airportId, onDeliveryChange, game, b
   const valid = Number.isSafeInteger(passengers) && Number.isSafeInteger(cargo) && passengers >= 0 && cargo >= 0 &&
     passengers + cargo > 0 && passengers + cargo <= m.capacity;
   const unavailable=careerLevel(game)<m.rank?ui('公司需达到 Lv.{level}',{level:m.rank})
-    :(game.airports.find(a=>a.id===airportId)?.level??0)<m.level?ui('交付机场需升至 {level} 级',{level:m.level})
+    :!game.airports.some(a=>a.id===airportId)||airport(airportId).stars<m.level?t('purchase.airportStars',{stars:m.level})
     :game.fleet.length>=game.hangarSlots?ui('请先扩建机库'):game.credits<m.price?ui('运营资金不足'):'';
   async function confirm() {
     if (!valid || unavailable || busy || pending.current) return;
@@ -33,7 +33,7 @@ export function AircraftPurchase({ modelId, airportId, onDeliveryChange, game, b
     footer={<div className="purchase-actions"><button disabled={submitting} onClick={onClose}>{t('purchase.cancel')}</button><button className="primary" aria-describedby={unavailable?'purchase-unavailable':undefined} disabled={busy || submitting || !valid || Boolean(unavailable)} onClick={() => { void confirm(); }}>{t('purchase.confirm',{amount:formatMoney(m.price)})}</button></div>}>
     <p className="purchase-model"><strong>{modelName(m.id, m.name)}</strong></p>
     <label className="purchase-delivery">{ui('交付机场')}<select aria-label={ui('交付机场')} value={airportId} disabled={busy||submitting} onChange={e=>onDeliveryChange(e.target.value)}>
-      {game.airports.map(a=><option key={a.id} value={a.id}>{airportName(a.id,airport(a.id).city)} · {a.level} {ui('级')}</option>)}
+      {game.airports.map(a=><option key={a.id} value={a.id}>{airportName(a.id,airport(a.id).city)} · {'★'.repeat(airport(a.id).stars)} · {t('airport.facilityLevel',{level:a.level})}</option>)}
     </select></label>
     {unavailable&&<p className="inline-error" id="purchase-unavailable">{unavailable}</p>}
     <p>{t('purchase.help', { capacity: m.capacity })}</p>

@@ -37,7 +37,7 @@ test('empty-airport browsing and the running list keep independent aircraft loca
   await expect(page.locator('.gate-sign')).toContainText('上海航空港');
   await expect(page.getByTestId('plane-art')).toHaveCount(0);
   await expect(page.getByTestId('flight-cost')).toHaveCount(0);
-  await expect(page.getByTestId('waiting-order')).toHaveCount(12);
+  await expect(page.getByTestId('waiting-order')).toHaveCount(18);
   await expect(page.getByRole('button', { name: /^同目的地装载：/ }).first()).toBeDisabled();
   await openGlobal(page, '机队管理概览');
   const row=page.locator(`[data-plane-id="${ID}"]`);

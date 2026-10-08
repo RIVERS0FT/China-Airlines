@@ -1,3 +1,4 @@
+import { offerCandidates, STAFFING_OFFERS } from '../../tests/helpers/talent-market.js';
 import { test, expect, type Page } from '../helpers/configured-airport.js';
 import { readFile } from 'node:fs/promises';
 import { GameCore, type GameState } from '../helpers/configured-game.js';
@@ -9,7 +10,7 @@ const NOW = Date.parse('2026-09-14T02:00:00Z');
 const FULL_VISIBILITY = 1 - 1e-5;
 async function start(page: Page, saved?: unknown) {
   await page.clock.install({ time: new Date(NOW) }); await page.goto('./'); await expect(page.getByTestId('fleet-count')).toHaveText('1 架');
-  const rich = new GameCore(NOW).snapshot(); rich.credits = 1000000; rich.career.tickets = 10000;
+  const rich = new GameCore(NOW).snapshot(); rich.credits = 1000000; offerCandidates(rich, STAFFING_OFFERS);
   await openGlobal(page, '存档设置'); page.once('dialog', dialog => void dialog.accept());
   await page.getByLabel('选择存档文件').setInputFiles({ name:'organization.json', mimeType:'application/json', buffer:Buffer.from(JSON.stringify(saved ?? rich)) });
   await expect(page.locator('.settings-modal')).toContainText('存档导入成功');
@@ -42,13 +43,14 @@ for (const [width,height] of [[1440,900],[844,390],[667,375]] as const) test(`co
   await expect(tree.locator('[data-employee-id="2"]')).toBeInViewport({ratio:FULL_VISIBILITY});
   const generalSlot=page.getByTestId('general-manager-slot');await expect(generalSlot).toContainText('待任命');
   await generalSlot.click();const market=page.getByRole('region',{name:'人才市场',exact:true});
-  await expect(market.getByRole('combobox')).toHaveCount(0);await expect(page.getByLabel('招募岗位',{exact:true})).toHaveCount(0);
-  await expect(market.locator('article[data-candidate-id]')).toHaveCount(15);await expect(market.locator('[data-candidate-id][aria-pressed]')).toHaveCount(0);
-  for(const [position,hireGold,hireTickets,renewGold,renewTickets] of [['flight-specialist',1800,3,600,2],['ground-specialist',1200,2,400,1],['flight-manager',2400,4,800,2],['ground-manager',2400,4,800,2],['company-manager',2400,4,800,2]] as const){
-    const group=market.locator(`[data-talent-position="${position}"]`),cards=group.locator('[data-candidate-id]');await expect(cards).toHaveCount(3);
+  await expect(market.getByRole('combobox',{name:'招聘部门'})).toHaveCount(1);await expect(page.getByLabel('招募岗位',{exact:true})).toHaveCount(0);
+  await expect(market.getByRole('combobox',{name:'招聘部门'})).toHaveValue('company');await market.getByRole('combobox',{name:'招聘部门'}).selectOption('all');
+  await expect(market.locator('article[data-candidate-id]')).toHaveCount(9);await expect(market.locator('[data-candidate-id][aria-pressed]')).toHaveCount(0);
+  for(const [position,hireGold,renewGold,remaining] of [['flight-specialist',2100,800,2],['ground-specialist',1400,500,2],['flight-manager',2800,1000,1],['ground-manager',2800,1000,2],['company-manager',2800,1000,2]] as const){
+    const group=market.locator(`[data-talent-position="${position}"]`),cards=group.locator('[data-candidate-id]');await expect(cards).toHaveCount(remaining);
     for(const card of await cards.all()){
       const price=card.locator('.org-candidate-price');await expect(price.locator('dt')).toHaveText(['招募费用','续约薪资 / 7天']);
-      await expect(price.locator('dd')).toHaveText([`${hireGold} 金币 + ${hireTickets} 券`,`${renewGold} 金币 + ${renewTickets} 券`]);await expect(card).toContainText('招募含7天合同');
+      await expect(price.locator('dd')).toHaveText([`${hireGold} 金币`,`${renewGold} 金币`]);await expect(card).toContainText('招募含7天合同');
       await expect(card.getByRole('button')).toHaveText('招募');
       if(position==='flight-manager'||position==='flight-specialist'){
         await expect(card.getByRole('button')).toBeDisabled();
@@ -58,7 +60,7 @@ for (const [width,height] of [[1440,900],[844,390],[667,375]] as const) test(`co
       if(position==='company-manager')await expect(card.locator('.org-candidate-assignment')).toHaveText('自动分配：总经理');
     }
   }
-  const generalGroup=market.locator('[data-talent-position="company-manager"]');await expect(generalGroup).toBeInViewport();
+  const generalGroup=market.locator('[data-talent-position="company-manager"]');await market.getByRole('combobox',{name:'招聘部门'}).selectOption('company');await expect(generalGroup.locator('[data-candidate-id]').first()).toBeInViewport();
   const generalCard=generalGroup.locator('[data-candidate-id]').nth(1),generalName=(await generalCard.locator('.org-candidate-name').innerText()).trim();
   await expect(page.getByRole('heading',{name:'人才市场',exact:true})).toBeVisible();
   await expect(page.getByTestId('talent-refresh-countdown')).toHaveText(/^\d{2}:\d{2}$/);
@@ -66,7 +68,7 @@ for (const [width,height] of [[1440,900],[844,390],[667,375]] as const) test(`co
   await generalCard.getByRole('button',{name:`招募${generalName} · 总经理`,exact:true}).click();
   await expect(generalSlot).toHaveCount(0);await expect(detail.getByRole('heading',{name:generalName,exact:true})).toBeVisible();
   await page.getByRole('button',{name:'人才市场',exact:true}).click();
-  const fullGeneralButtons=page.locator('[data-talent-position="company-manager"] [data-candidate-id]').getByRole('button');await expect(fullGeneralButtons).toHaveCount(3);
+  const fullGeneralButtons=page.locator('[data-talent-position="company-manager"] [data-candidate-id]').getByRole('button');await expect(fullGeneralButtons).toHaveCount(1);
   for(const button of await fullGeneralButtons.all())await expect(button).toBeDisabled();
   await page.getByRole('button',{name:'返回组织树',exact:true}).click();
   await expect(detail).toContainText('总经理');await expect(detail.getByRole('combobox')).toHaveCount(0);
@@ -85,7 +87,7 @@ for (const [width,height] of [[1440,900],[844,390],[667,375]] as const) test(`co
   }));
   expect(portraits).toHaveLength(4);expect(portraits.every(Boolean)).toBe(true);
   await page.screenshot({path:`artifacts/company-organization-${width}.png`});
-  const state=await exportState(page); expect(state.version).toBe(16); expect(state.career.employees).toHaveLength(4); expect(Object.keys(state.career)).not.toContain('pilots');
+  const state=await exportState(page); expect(state.version).toBe(18); expect(state.career.employees).toHaveLength(4); expect(Object.keys(state.career)).not.toContain('pilots');
   expect(state.career.employees[0]).toMatchObject({name:'林航',planeId:'AC0001',managerId:3,skill:1}); expect(state.career.employees[1]!.airportId).toBe('PEK');
   expect(state.fleet[0]!.dispatcher).toBe(true);
   expect(state.career.employees[2]!.managerId).toBe(4);expect(state.career.employees[3]).toMatchObject({name:generalName,department:'company',role:'manager',managerId:null,planeId:null,airportId:null,skill:2,management:1});
@@ -100,7 +102,7 @@ test('promotion frees an aircraft for automatic recruitment at 150 percent UI sc
   await page.setViewportSize({width:844,height:390});await page.addInitScript(key=>localStorage.setItem(key,'150'),UI_SCALE_KEY);await start(page);
   await recruit(page,'flight-specialist','飞行员');await expect(page.getByLabel('林航岗位')).toHaveValue('AC0001');
   await page.getByRole('button',{name:'人才市场',exact:true}).click();
-  const pilots=page.locator('[data-talent-position="flight-specialist"] [data-candidate-id]');await expect(pilots).toHaveCount(3);
+  const pilots=page.locator('[data-talent-position="flight-specialist"] [data-candidate-id]');await expect(pilots).toHaveCount(2);
   for(const card of await pilots.all()){
     await expect(card.getByRole('button')).toBeDisabled();await expect(card.locator('.org-candidate-unavailable')).toHaveText('没有可分配的空闲飞机');
   }
@@ -124,14 +126,14 @@ test('promotion frees an aircraft for automatic recruitment at 150 percent UI sc
   await expect(page.getByLabel(`${replacementName}直属上级`,{exact:true})).toHaveValue('1');
   const staffed=await exportState(page);expect(staffed.fleet[0]!.dispatcher).toBe(true);
   expect(staffed.career.employees).toHaveLength(2);expect(staffed.career.employees[1]).toMatchObject({name:replacementName,planeId:'AC0001',managerId:1});
-  expect(staffed.credits).toBe(s.credits-1800);expect(staffed.career.tickets).toBe(s.career.tickets-3);
+  expect(staffed.credits).toBe(s.credits-2100);
   await page.reload();await openOrganization(page);await page.getByRole('button',{name:`查看${replacementName} · 飞行员`,exact:true}).click();
   await expect(page.getByLabel(`${replacementName}岗位`,{exact:true})).toHaveValue('AC0001');await expect(page.getByLabel(`${replacementName}直属上级`,{exact:true})).toHaveValue('1');
   await page.getByRole('button',{name:'人才市场',exact:true}).click();
   for(const card of await pilots.all())await expect(card.getByRole('button')).toBeDisabled();
 });
 for(const viewport of [{width:1280,height:720,zoom:100},{width:667,height:375,zoom:100},{width:844,height:390,zoom:150}])test(`organization canvas fits all staff and supports pan and zoom at ${viewport.width}/${viewport.zoom}`,async({page})=>{
-  const c=new GameCore(NOW),s=c.snapshot();s.credits=1000000;s.career.tickets=10000;s.hangarSlots=8;const full=new GameCore(NOW,s);
+  const c=new GameCore(NOW),s=c.snapshot();s.credits=1000000;s.hangarSlots=8;const full=new GameCore(NOW,s);
   for(let i=1;i<8;i++)full.execute({type:'buy',modelId:'diamond-da40',airportId:'PEK',passengers:1,cargo:0},NOW);
   for(const airportId of ['CAN','WUH'])full.execute({type:'unlock',airportId},NOW);
   for(const department of ['company','flight','ground'] as const)full.execute({type:'recruit-employee',department,role:'manager'},NOW);

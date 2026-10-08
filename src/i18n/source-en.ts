@@ -3,6 +3,8 @@ import type { Locale } from './I18n.js';
 // Current source-text catalogue. Chinese strings are stable display keys;
 // adding a locale does not change game state.
 const en: Readonly<Record<string, string>> = {
+  '设施Lv.{level}': 'Facilities Lv.{level}',
+  '消耗机身、动力、机翼组件各“机场准入星级”件，图纸1张，另付机价60%及机场准入星级×200金币。运营设施升级不改变准入星级。': 'Uses airframe, engine and wing components equal to the required airport stars, one blueprint, 60% of the aircraft price and 200 coins per required star. Facility upgrades do not change airport stars.',
   "未知业务类型": "Unknown business type",
   "完成首次有偿运输后开放公司业务": "Complete your first paid flight to unlock company businesses",
   "该业务需要1级机场": "This business requires a level 1 airport",
@@ -49,7 +51,7 @@ const en: Readonly<Record<string, string>> = {
   '尚无飞机，请前往飞机商店购买首架飞机并配置容量。':'Your fleet is empty. Buy your first aircraft in the shop and choose its capacity configuration.',
   '定位当前操作':'Locate current action', '购买上海机场':'Buy Shanghai Airport', '前往飞机商店':'Open Aircraft Shop', '配置容量':'Configure Capacity',
   '购买第一座目的地机场':'Buy Your First Destination Airport',
-  '北京是公司基地。先花费 4,000 金币购买上海机场，建立第一条可运营的连接。':'Beijing is your base. Buy Shanghai Airport for 4,000 coins to create your first operating connection.',
+  '北京是公司基地。先花费 2,500 金币购买上海机场，建立第一条可运营的连接。':'Beijing is your base. Buy Shanghai Airport for 2,500 coins to create your first operating connection.',
   '选购 1 格飞机':'Choose a One-Slot Aircraft',
   '前往飞机商店，选择 2,300 金币的钻石 DA40。点击购买后先选配容量，确认前不会扣款。':'Choose the Diamond DA40 for 2,300 coins in the shop. Configure its capacity before confirming; no funds are spent until confirmation.',
   '免费配置首架飞机':'Configure Your First Aircraft for Free',
@@ -61,7 +63,7 @@ const en: Readonly<Record<string, string>> = {
   '点击「制定航线」，选择已购买的上海机场，核对费用并确认起飞。':'Select Plan Route, choose your Shanghai Airport, review costs, and confirm departure.',
   '选择上海并确认起飞':'Choose Shanghai and Confirm Departure',
   '在地图上点选上海，再点击「检票起飞」。起飞只扣成本，运费在抵达后结算。':'Select Shanghai on the map, then dispatch the flight. Departure charges the cost; fares are paid on arrival.',
-  '航班正在飞行。抵达最终目的地后才会结算运费；可以离开页面，刷新也不会重复结算。':'Your flight is in the air. Fares are paid at the final destination. You may leave or reload without duplicating settlement.',
+  '航班正在飞行。抵达最终目的地后领取运费。':'Your flight is in the air. Collect the fare at its final destination.',
   '首航已抵达。打开任务中心，领取「第一道航迹」奖励；同一奖励只能领取一次。':'Your first flight has arrived. Open Tasks to claim First Flight Path. Each reward can be claimed only once.',
   '你已完成机场购买、飞机选配和首条航线。接下来可以积累利润，逐步扩大航网。':'You have bought an airport, configured an aircraft, and completed your first route. Build profits to expand your network.',
   '牛排':'Steak', '草莓':'Strawberries', '西瓜':'Watermelon', '雪花梨':'Pears', '苹果':'Apples', '葡萄':'Grapes', '大米':'Rice', '鲜鱼':'Fish',
@@ -125,7 +127,7 @@ const en: Readonly<Record<string, string>> = {
   '原创虚构飞机':'Original fictional aircraft', '机型分类':'Aircraft categories', '全部机型':'All Models', '客货两用':'Mixed Use', '纯客机':'Passenger', '纯货机':'Cargo',
   '交付机场':'Delivery Airport', '机位 {used} / {capacity}':'Hangar {used} / {capacity}', '载客':'Passengers', '载货':'Cargo', '航程':'Range', '机场等级':'Airport Level', '级':'Lv.',
   '公司需达到 Lv.{level}':'Company must reach Lv.{level}', '交付机场需升至 {level} 级':'Delivery airport must reach Level {level}', '请先扩建机库':'Expand the hangar first', '购买{model}':'Buy {model}',
-  '现实参考':'Real-world reference', '现实容量':'Real capacity', '游戏容量按经营节奏压缩':'Game capacity is compressed for progression',
+
   '19座 · 最大有效载荷2,347 kg':'19 seats · 2,347 kg maximum payload', '最多78座 · 货运型最大载荷9,200 kg':'Up to 78 seats · 9,200 kg freighter payload',
   '最多244座 · 货运型最大载荷28.1 t':'Up to 244 seats · 28.1 t freighter payload', '410座 · 货运型收益载荷133.1 t':'410 seats · 133.1 t freighter revenue payload',
   '4座（含飞行员）· 最大有效载荷407 kg':'4 seats including pilot · 407 kg maximum useful load',
@@ -150,11 +152,11 @@ const en: Readonly<Record<string, string>> = {
   '剩余客舱不足':'Not enough passenger capacity', '需要冷链货舱':'Cold-chain hold required', '需要工业货舱':'Industrial hold required', '纯客机不载货':'Passenger-only aircraft cannot carry cargo', '剩余货舱不足':'Not enough cargo capacity',
   '路线编辑':'Route editor', '路线':'Route', '后退':'Back', '撤销':'Clear', '路线后退':'Route Back', '路线撤销':'Clear Route', '返回':'Return', '取消':'Cancel', '起飞':'Departure', '查看':'View', '检票起飞':'Board & Depart',
   '返回航班':'Return to Flight', '取消起飞':'Cancel Departure', '查看路线':'View Route', '自动往返':'Auto Shuttle', '路线详情':'Route Details',
-  '尚未选择飞机':'No aircraft selected', '当前航班已锁定，浏览不会修改目的地或账目。':'The current flight is locked. Browsing cannot change its destination or finances.',
+  '尚未选择飞机':'No aircraft selected',
   '尚未选择路线，请在地图上依次点击城市。':'No route selected. Choose cities on the map in order.', '交付收入':'Delivery Revenue', '机上客货':'Onboard Traffic',
   '逐段费用与交付':'Cost and Delivery by Leg', '航段':'Leg', '飞行时间':'Flight Time', '运营成本':'Operating Cost', '本段交付':'Leg Delivery',
   '需分配飞行员并续付工资':'Assign a pilot and keep wages paid', '仅单一目的城市可用':'Available for one destination only', '需全部已装客货直达':'All loaded traffic must be direct',
-  '逐段预留能量，不预扣全程。':'Energy is reserved per leg, not prepaid for the whole route.',
+
   '这是空机{multi}调机路线，仍需支付运营成本。确定执行？':'This is an empty {multi} positioning route and still incurs operating cost. Continue?', '多段':'multi-leg',
   '路线结束后仍有 {count} 单未到最终目的地，将继续留在机上。确定执行？':'{count} orders will remain onboard after this route because they have not reached their final destination. Continue?',
   '{count} 段 · {time} · 成本 {cost} · 交付 {revenue} · 运输净收益 {profit}':'{count} legs · {time} · Cost {cost} · Delivery {revenue} · Net income {profit}',
@@ -162,8 +164,7 @@ const en: Readonly<Record<string, string>> = {
   '路线结束后未交付 {count} 单。':'{count} orders remain undelivered after the route.',
   '任务中心':'Task Center', '任务':'Tasks', '可领取':'Claimable', '进行中':'In Progress', '已完成':'Complete', '已领取':'Claimed',
   '查看已完成任务与运营日志':'View completed tasks and operating log', '起航引导':'Flight Tutorial', '完成引导':'Finish Tutorial', '查看首航任务':'View First-Flight Task', '定位操作':'Locate Action', '跳过引导':'Skip Tutorial',
-  '任务与奖励':'Tasks & Rewards', '运营资金 {credits} · 点券 {tickets}':'Operating funds {credits} · Tickets {tickets}', '任务状态':'Task status',
-  '{count} 点券':'{count} Tickets',
+  '任务与奖励':'Tasks & Rewards', '运营资金 {credits}':'Operating funds {credits}', '任务状态':'Task status',
   '奖励在此领取；航班运输收入仍在到达时自动结算。':'Claim rewards here. Flight revenue is still settled automatically at arrival.',
   '规划首航':'Plan First Flight', '查看首航航班':'View First Flight', '前往装载':'Go to Loading', '领取奖励':'Claim Reward',
   '暂无可领取奖励。完成任务后可在这里领取。':'No rewards available. Complete tasks to claim them here.', '当前任务已完成，可查看已领取记录。':'All current tasks are complete. Review claimed rewards.',
@@ -183,21 +184,22 @@ const en: Readonly<Record<string, string>> = {
   '公司 Lv.{level}':'Company Lv.{level}', '经验 {xp} · 营业第 {day} 天 · {time} 后刷新':'XP {xp} · Business day {day} · Refresh in {time}',
   '飞机能量管理':'Aircraft energy management', '飞机能量':'Aircraft Energy', '可用能量':'Available energy',
   '点':'points',
-  '每整分钟消耗1点，不足一分钟至少1点；起飞预留、到达释放。':'Aircraft use 1 energy per full minute, with a 1-point minimum. Energy is reserved at departure and released at arrival.',
+
   '地勤补能中 · {time} 后补满':'Ground energy service · Full in {time}', '能量已满':'Energy Full', '可安排地勤补能':'Energy service available',
   '取消地勤补能':'Cancel Energy Service', '开始地勤补能':'Start Energy Service',
   '（{name}负责，效率提升{reduction}%）':' ({name} assigned, {reduction}% faster)', '（基础地勤）':' (base ground service)',
-  '下次补能 {seconds} 秒{detail}，费用 0，已开始服务的截止时间锁定；完成前不增加能量；取消不补能。容量随机型与动力等级变化。营业日刷新时恢复电力；在途已预留电力不会重复赠送。':'Next service takes {seconds}s{detail} and costs 0. An active service keeps its locked completion time. Energy is added only on completion; cancellation adds none. Capacity varies by model and power level. Business-day refresh does not duplicate reserved in-flight energy.',
-  '点券 {count}':'Tickets {count}', '经营中心栏目':'Operations sections',
+  '下次补能 {seconds} 秒{detail}，费用 0':'Next service: {seconds}s{detail}, free of charge',
+  '经营中心栏目':'Operations sections',
   '累计运输收入达到目标，并领取上一区奖励':'Reach the transport-revenue target and claim the previous region reward', '1件动力组件':'1 power component', '请先领取上一区奖励':'Claim the previous region reward first',
-  '当前航班已锁定；浏览不会修改目的地或账目。':'Current flight values are locked; browsing does not change the destination or finances.',
-  '已付成本不重复扣除；到达交付只包含本段最终目的地订单。':'Paid cost is not charged again. Arrival delivers only orders whose final destination is on this leg.',
+
+
   '预计时间含途中周转。城市解锁后无需建设费；只在订单最终目的地交付。后续资金或能量不足，停在实际机场并保留客货。':'Estimated time includes en-route turnaround. Unlocked cities need no construction fee. Orders pay only at their final destination; insufficient funds or energy stops the plan at the actual airport with traffic preserved.',
 };
 
 export function sourceText(source: string, locale: Locale, params: Record<string, string | number> = {}) {
   let template = locale === 'en-US' ? en[source] ?? (source.includes(' · ') ? source.split(' · ').map(part => en[part] ?? part).join(' · ') : source) : source;
   if (locale === 'en-US' && template === source) template = source
+    .replace(/运输收入 (\d+) \/ (\d+) 金币/, 'Transport revenue $1 / $2 coins')
     .replace(/每日运输 · 第(\d+)天/, 'Daily Transport · Day $1')
     .replace(/营业第 (\d+) 天 · 交付8份客货/, 'Business day $1 · Deliver 8 orders')
     .replace(/七日启航礼 · 第(\d+)天/, 'Seven-Day Launch Gift · Day $1')

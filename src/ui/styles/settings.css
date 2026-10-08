@@ -24,14 +24,6 @@
 .settings-modal .settings-actions{gap:var(--ui-space-2);margin:0 0 var(--ui-space-3)}
 .settings-actions button{min-width:0;padding:8px;white-space:normal;overflow-wrap:anywhere}
 .settings-modal .settings-note{margin:0;font-size:12px;line-height:1.6;color:var(--ui-muted);overflow-wrap:anywhere}
-.settings-system{margin:var(--ui-space-4) 0}
-.settings-status-row{display:flex;align-items:center;justify-content:space-between;gap:var(--ui-space-4);padding:var(--ui-space-3) 0;border-bottom:1px solid var(--ui-line)}
-.settings-status-row>div{min-width:0}
-.settings-status-row strong{font-size:13px;font-weight:600}
-.settings-status-row .settings-note{margin-top:4px}
-.settings-status-row>button{flex-shrink:0}
-.settings-cache-status{flex-shrink:0;padding:6px 10px;border-radius:var(--ui-radius);background:var(--ui-surface);color:var(--ui-warning);font-size:12px}
-.settings-cache-status.is-ready{color:var(--ui-accent)}
 .settings-footer{display:flex;align-items:center;justify-content:space-between;gap:var(--ui-space-4);margin-top:var(--ui-space-3)}
 .settings-footer .danger{flex-shrink:0;color:var(--ui-warning);background:transparent;border-color:var(--ui-line)}
 .settings-modal :is(.inline-error,.workshop-feedback),.display-settings>p{font-size:12px;line-height:1.6;overflow-wrap:anywhere}

@@ -1,4 +1,5 @@
-import { organizationExecute, assignPilot, employeeHistory, type Employee, type OrganizationCommand } from './organization.js';
+import { POINT_GOLD, DAILY_TRANSPORT_REWARD, REGION_REWARD_PER_TIER } from './balance-policy.js';
+import { organizationExecute, assignPilot, employeeHistory, promotionPrice, type Employee, type OrganizationCommand } from './organization.js';
 import type { GameState, Plane, Order } from "./game.js";
 import { aircraftSpecs, airport, model, emptyUpgrades } from "./catalog.js";
 import {
@@ -23,7 +24,6 @@ export interface Production {
   finishAt: number;
 }
 export interface Career {
-  tickets: number;
   xp: number;
   day: number;
   nextDayAt: number;
@@ -113,7 +113,6 @@ export const inventory = (): Record<Material, number> =>
     number
   >;
 export const newCareer = (simTime: number, now: number): Career => ({
-  tickets: 24,
   xp: 0,
   day: 0,
   nextDayAt: simTime + (86400 - ((Math.floor(now / 1000) + 28800) % 86400)),
@@ -148,18 +147,13 @@ export const careerLevel = (s: GameState) =>
 export function guard(ok: unknown, message: string): asserts ok {
   if (!ok) throw new Error(message);
 }
-export const bill = (s: GameState, gold: number, tickets = 0) => {
+export const bill = (s: GameState, gold: number) => {
   guard(
-    Number.isSafeInteger(gold) &&
-      gold >= 0 &&
-      Number.isSafeInteger(tickets) &&
-      tickets >= 0,
+    Number.isSafeInteger(gold) && gold >= 0,
     "费用无效",
   );
   guard(s.credits >= gold, "金币不足");
-  guard(s.career.tickets >= tickets, "点券不足");
   s.credits -= gold;
-  s.career.tickets -= tickets;
 };
 export const consume = (
   bag: Record<Material, number>,
@@ -241,7 +235,6 @@ export function onArrival(s: GameState, p: Plane, orders: Order[]) {
     );
     s.career.dailyFlights++;
     s.career.dailyDeliveries += n;
-    s.career.tickets += Math.min(4, 1 + Math.floor(n / 5));
     s.career.inventory.alloy++;
   }
   for (const o of orders)
@@ -308,15 +301,14 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       const task = CAREER_TASKS.find((t) => t.id === id);
       if (task) {
         guard(taskValue(s, task.metric) >= task.target, "任务尚未完成");
+        guard(s.stats.revenue >= task.minRevenue, "运输业绩尚未达标");
         s.credits += task.gold;
-        c.tickets += task.tickets;
       } else if (id === `daily-${c.day}`) {
         guard(c.dailyDeliveries >= 8, "今日还需完成8份运输");
-        s.credits += 1000;
-        c.tickets += 8;
+        s.credits += DAILY_TRANSPORT_REWARD;
       } else if (id === `checkin-${Math.min(6, c.day)}`) {
         guard(!c.claimed.some((x) => x === id), "今日已领取");
-        c.tickets += 5 + Math.min(c.day, 6) * 2;
+        s.credits += (5 + Math.min(c.day, 6) * 2) * POINT_GOLD;
         c.inventory.blueprint++;
       } else if (/^boss-[1-6]$/.test(id)) {
         const tier = Number(id.slice(5));
@@ -325,8 +317,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
           tier === 1 || c.claimed.includes(`boss-${tier - 1}`),
           "请先完成上一地区挑战",
         );
-        s.credits += tier * 1500;
-        c.tickets += tier * 10;
+        s.credits += tier * REGION_REWARD_PER_TIER;
         c.inventory.engine++;
       } else throw new Error("未知奖励");
       c.claimed.push(id);
@@ -355,8 +346,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       ].includes(k);
       bill(
         s,
-        (premium ? 400 : 80) * command.count,
-        premium ? command.count : 0,
+        (premium ? 400 + POINT_GOLD : 80) * command.count,
       );
       c.inventory[k] += command.count;
       c.dailyBought[k] = used + command.count;
@@ -399,9 +389,9 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       guard(careerLevel(s) >= m.rank, "公司等级不足");
       guard(
         s.airports.some(
-          (a) => a.id === command.airportId && a.level >= m.level,
+          (a) => a.id === command.airportId && airport(a.id).stars >= m.level,
         ),
-        "交付机场等级不足",
+        "交付机场星级不足",
       );
       guard(s.fleet.length < s.hangarSlots, "机位不足");
       consume(c.inventory, {
@@ -410,7 +400,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
         engine: m.level,
         blueprint: 1,
       });
-      bill(s, assemblyPrice(m.id), m.level * 2);
+      bill(s, assemblyPrice(m.id));
       const p: Plane = {
         id: `AC${String(s.nextId++).padStart(4, "0")}`,
         modelId: m.id,
@@ -442,7 +432,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       bill(s, 1000);
       c.stored = c.stored.filter((x) => x.id !== p.id);
       c.museum.push(p.modelId);
-      c.tickets += 15;
+      s.credits += 15 * POINT_GOLD;
       c.xp += 100;
       return "展品已入馆，飞机已从封存仓库移出";
     }
@@ -461,7 +451,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       guard(key !== "evolution" || p.tuning.group >= 2, "编队2级后可进化");
       const n = p.tuning[key] + 1;
       const price = growthPrice(p, key);
-      bill(s, price.gold, price.tickets);
+      bill(s, price.gold);
       if (key !== "power") consume(c.inventory, { frame: n, engine: n });
       p.tuning[key]++;
       return "机体成长完成";
@@ -476,8 +466,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       guard(p.tuning.special !== command.special, "货舱配置未变化");
       bill(
         s,
-        command.special === "none" ? 0 : 1800,
-        command.special === "none" ? 0 : 4,
+        command.special === "none" ? 0 : 1800 + 4 * POINT_GOLD,
       );
       if (command.special !== "none")
         consume(c.inventory, { alloy: 3, blueprint: 1 });
@@ -498,7 +487,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       guard(Object.hasOwn(BUILDINGS, command.building), "未知设施");
       const lv = c.buildings[command.building];
       guard(lv < 10, "设施已满级");
-      bill(s, 1000 * (lv + 1), lv);
+      bill(s, 1000 * (lv + 1) + lv * POINT_GOLD);
       consume(c.inventory, { alloy: lv * 2 });
       c.buildings[command.building]++;
       return `${BUILDINGS[command.building]}已升级`;
@@ -593,7 +582,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
         (c.dailyBought[key] ?? 0) < c.buildings[building] * 3,
         "今日次数已用完",
       );
-      bill(s, 300, 1);
+      bill(s, 300 + POINT_GOLD);
       c.dailyBought[key] = (c.dailyBought[key] ?? 0) + 1;
       const material: Material =
         building === "design"
@@ -620,7 +609,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
       consume(stock(s, command.airportId), { [material]: amount });
       consume(delivered, { [material]: amount });
       s.credits += command.weekly ? 2500 : 1000;
-      c.tickets += command.weekly ? 12 : 5;
+      s.credits += (command.weekly ? 12 : 5) * POINT_GOLD;
       c.trades++;
       c.claimed.push(id);
       return "贸易已交付，奖励已到账";
@@ -642,7 +631,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
         s.airports.some((a) => a.id === command.airportId),
         "机场未开放",
       );
-      bill(s, 500);
+      bill(s, promotionPrice(s));
       c.promotions[command.airportId] = s.simTime + 3600;
       return "机场宣传已启动，持续1小时";
     }
@@ -752,7 +741,7 @@ export function careerExecute(s: GameState, command: CareerCommand): string {
     case "activate-achievement": {
       guard(c.achievement < 6, "成就已满级");
       guard(c.museum.length >= c.achievement + 1, "请先增加不同机型展品");
-      bill(s, 1000 * (c.achievement + 1), 5);
+      bill(s, 1000 * (c.achievement + 1) + 5 * POINT_GOLD);
       consume(c.inventory, { research: 1 });
       c.achievement++;
       return "收藏成就已激活，额外运输经验永久生效";

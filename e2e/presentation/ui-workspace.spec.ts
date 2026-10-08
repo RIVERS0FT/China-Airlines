@@ -108,6 +108,7 @@ test('work page switches preserve fleet filters and shop category without keepin
   await expect(page.getByTestId('shop-aircraft')).toHaveCount(10);
   const da40 = page.getByTestId('shop-aircraft').filter({ has: page.getByRole('heading', { name: '钻石 DA40', exact: true }) });
   await expect(da40).toHaveCount(1);
-  await expect(da40.locator('.aircraft-reference')).toContainText('Diamond DA40 NG');
+  await expect(da40.locator('.aircraft-reference')).toHaveCount(0);
+  await expect(da40.getByRole('button', {name:'支付 ¥ 2,300 购买',exact:true})).toBeEnabled();
   await expect(page.getByTestId('page-fleet')).toHaveCount(0);
 });

@@ -33,12 +33,12 @@ describe('company incremental economy', () => {
     expect(s.business.teams).toHaveLength(1); expect(s.career.employees).toHaveLength(2);
     expect(s.business.teams[0]!.managerId).toBe(s.career.employees[0]!.id);
     expect(s.career.employees[1]!.managerId).toBe(s.career.employees[0]!.id);
-    expect(employeeCapacity(s)).toBe(18);
-    expect(businessIncomeQuote(s)).toEqual({ gross: 918, costs: 500, net: 418 });
+    expect(employeeCapacity(s)).toBe(39);
+    expect(businessIncomeQuote(s)).toEqual({ gross: 244, costs: 120, net: 124 });
     const originalStats = s.stats;
     c.tick(s.lastWallTime + 10000);
-    expect(c.snapshot().credits).toBe(s.credits + 4);
-    expect(c.snapshot().business.remainder).toBe(180000);
+    expect(c.snapshot().credits).toBe(s.credits + 1);
+    expect(c.snapshot().business.remainder).toBe(240000);
     expect(c.snapshot().stats).toEqual(originalStats);
   });
   it('keeps fractional income invariant across frame sizes, snapshots and reloads', () => {
@@ -54,14 +54,14 @@ describe('company incremental economy', () => {
   });
   it('does not create company earnings during explicit background advancement or import', () => {
     const s = established().snapshot(), c = new GameCore(s.lastWallTime, s);
-    c.tick(s.lastWallTime + 3600000, { businessIncome: false });
+    c.tick(s.lastWallTime + 3600000, { active: false });
     expect(c.snapshot().credits).toBe(s.credits);
     expect(c.snapshot().business).toEqual({ ...s.business, wallPeak: s.lastWallTime + 3600000 });
     const imported = GameCore.imported(c.snapshot(), s.lastWallTime + 7200000);
     expect(imported.snapshot().business).toEqual({ ...s.business, wallPeak: s.lastWallTime + 7200000 });
   });
   it('settles chief expiry at the exact boundary without double charging prepaid salary', () => {
-    const c = established(); command(c, { type: 'recruit-employee', department: 'company', role: 'manager' });
+    const baseline = established().snapshot(); baseline.credits = 10000; const c = new GameCore(baseline.lastWallTime, baseline); command(c, { type: 'recruit-employee', department: 'company', role: 'manager' });
     const s = c.snapshot(), chief = s.career.employees.find(e => e.department === 'company')!;
     chief.paidUntil = s.simTime + 2.5;
     const once = structuredClone(s), parts = structuredClone(s);
@@ -71,7 +71,7 @@ describe('company incremental economy', () => {
     expect(businessIncomeQuote(s, chief.paidUntil - .1).net).toBeGreaterThan(businessIncomeQuote(s, chief.paidUntil).net);
   });
   it('grows capacity instead of silently exceeding a team or duplicating cities', () => {
-    const c = established(), team = c.snapshot().business.teams[0]!;
+    const baseline = established().snapshot(); baseline.credits = 10000; const c = new GameCore(baseline.lastWallTime, baseline), team = c.snapshot().business.teams[0]!;
     command(c, { type: 'hire-business-worker', teamId: team.id });
     rejects(c, { type: 'hire-business-worker', teamId: team.id });
     command(c, { type: 'expand-business-team', teamId: team.id });
@@ -109,8 +109,8 @@ describe('company incremental economy', () => {
   });
 });
 describe('strict business saves', () => {
-  it('requires v16 and rejects missing or forged business state without repairing it', () => {
-    expect(SAVE_VERSION).toBe(16);
+  it('requires v18 and rejects missing or forged business state without repairing it', () => {
+    expect(SAVE_VERSION).toBe(18);
     const s = established().snapshot();
     const mutations: ((x: GameState) => void)[] = [
       x => { (x as unknown as {version:number}).version = 14; },

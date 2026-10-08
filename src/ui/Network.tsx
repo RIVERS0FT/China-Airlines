@@ -67,7 +67,7 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
       {!browsing && <PlanControls game={game} plane={plane} stops={stops} setStops={value => { dismissTip(); setStops(value); if (value.length !== 1) setAuto(false); }} auto={auto} setAuto={setAuto} busy={busy} onDepart={onDepart} onCancel={onReturn} onDetails={dismissTip}/>}
     </div>
     {citiesOpen && <DispatchDialog title={t('map.selectCity')} onClose={() => setCitiesOpen(false)}>
-      <p>{browsing ? t('map.selectCityBrowse') : active ? t('map.selectCityFlight') : t('map.selectCityPlan', { city:city(from), count:MAX_PLAN_LEGS })}</p>
+      {(!active || browsing) && <p>{browsing ? t('map.selectCityBrowse') : t('map.selectCityPlan', { city:city(from), count:MAX_PLAN_LEGS })}</p>}
       <div className="dispatch-world-search">
         <label>{t('map.search')}<input type="search" aria-label={t('map.search')} value={citySearch} placeholder={t('map.searchPlaceholder')} autoComplete="off" onChange={e => setCitySearch(e.target.value)}/></label>
         <label>{t('map.region')}<select aria-label={t('map.cityRegion')} value={continent} onChange={e => setContinent(e.target.value as ContinentFilter)}><option value="all">{t('map.allRegions')}</option>{CONTINENTS.map(c => <option key={c} value={c}>{continentName(c)}</option>)}</select></label>
@@ -77,7 +77,7 @@ export function Network({ game, plane, destination, setDestination, onReturn, on
         <option value="" disabled>{t('map.chooseCity')}</option>{cities.map(item => <option value={item.id} key={item.id}>{airportName(item.id, item.city)} · {continentName(item.continent)}{game.airports.some(x => x.id === item.id) ? '' : ` · ${t('map.locked')}`}</option>)}
       </select></label>
       {!browsing && <><button className="dispatch-inspect" disabled={busy} aria-label={t('map.inspect', { city:city(destination) })} onClick={inspectSelected}>{t('map.inspect', { city:city(destination) })}</button>
-      <p className="dispatch-dialog-note">{t('map.catalogNote')}</p></>}
+      </>}
     </DispatchDialog>}
   </section>;
 }

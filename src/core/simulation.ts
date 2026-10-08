@@ -1,4 +1,3 @@
-export const OFFLINE_LIMIT = 8 * 3600;
 export const MAX_FLEET = 16;
 export const TURNAROUND = 8;
 
@@ -62,9 +61,9 @@ export type Command =
 
 export interface AdvanceReport {
   elapsed: number;
+  events: number;
   flights: number;
   revenue: number;
   profit: number;
-  capped: boolean;
   clockBack: boolean;
 }

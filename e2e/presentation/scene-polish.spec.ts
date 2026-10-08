@@ -42,7 +42,7 @@ for (const [width, height] of [[1440,900],[844,390],[667,375]]) {
     await expect(queue.locator(`[data-order-id="${id}"]`)).toHaveCount(0);
     expect((await loaded.boundingBox())!.y).toBeLessThan(position!.y);
     await loaded.click();
-    await expect(page.getByTestId('waiting-order')).toHaveCount(12);
+    await expect(page.getByTestId('waiting-order')).toHaveCount(18);
     expect((await queue.locator(`[data-order-id="${id}"]`).boundingBox())!.x).toBeCloseTo(position!.x, 0);
     await expect(prev).toBeDisabled(); await expect(next).toBeEnabled({ enabled: overflow });
     const card = page.getByTestId('waiting-order').first(), label = card.locator('.job-price');
@@ -75,7 +75,7 @@ for (const [width, height] of [[1440,900],[844,390]]) {
     await detail.getByRole('button', { name:/^解锁机场/ }).click();
     // Unlocking from route planning closes the transient detail and appends the city.
     await expect(detail).toHaveCount(0);
-    await expect(page.getByTestId('credits')).toHaveText('¥ 11,500');
+    await expect(page.getByTestId('credits')).toHaveText('¥ 15,000');
     await expect(canvas).toHaveAttribute('data-preview-path','WUH');
     const money = await page.getByTestId('credits').textContent();
     await selectCity(page, 'PEK');

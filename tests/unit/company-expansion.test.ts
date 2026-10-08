@@ -28,7 +28,7 @@ it('expands beyond fifteen people through valid city teams, with unique staff an
   const state = core.snapshot();
   expect(state.career.employees).toHaveLength(21);
   expect(new Set(state.career.employees.map(e=>e.id)).size).toBe(21);
-  expect(employeeCapacity(state)).toBe(36);
+  expect(employeeCapacity(state)).toBe(57); // 36 headquarters positions plus three 7-person city teams.
   expect(() => core.execute({type:'close-airport',airportId:'CAN'},state.lastWallTime)).toThrow(/业务团队/);
   expect(core.snapshot()).toEqual(state);
 });

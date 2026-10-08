@@ -1,5 +1,6 @@
 import { airport, aircraftSpecs, upgradePrice } from '../core/catalog.js';
 import { MAX_WAITING, type GameState, type Plane } from '../core/game.js';
+import { demandCapacity } from '../core/demand.js';
 import { controller, useGame } from '../runtime.js';
 import { airportTraffic } from './airport-presentation.js';
 import { money, duration, ignore } from './Panels.js';
@@ -22,18 +23,18 @@ export function AirportDetails({ game, id, busy, backLabel = '返回机场目录
   const city = (airportId: string) => airportName(airportId, airport(airportId).city);
   const flightRow = (p: Plane) => <li key={p.id}><span><b>{p.id} · {modelName(p.modelId,aircraftSpecs(p).name)}</b><small>{city(p.flight!.from)} → {city(p.flight!.to)} · {ui('{time} 后{event}',{time:duration(p.flight!.arriveAt-game.simTime),event:ui('抵达')})}</small></span><button onClick={() => onPlane(p.id)} aria-label={ui(`查看航班${p.id}`)}>{ui('查看航班')}</button></li>;
   return <section className="airport-details">
-    <div className="airport-detail-hero"><div><h3>{t('airport.name',{city:city(a.id)})}</h3><p>{airportRegion(a.id,a.region)} · {a.level ? ui('{value} 级机场',{value:a.level}) : ui('尚未开放')}</p></div><button onClick={onBack}>{backLabel === '返回机场目录' ? ui('返回机场目录') : backLabel}</button></div>
+    <div className="airport-detail-hero"><div><h3>{t('airport.name',{city:city(a.id)})} {'★'.repeat(a.stars)}</h3><p>{airportRegion(a.id,a.region)} · {a.level ? t('airport.facilityLevel',{level:a.level}) : ui('尚未开放')}</p><p data-testid="airport-real-traffic">{t('airport.annualTraffic',{period:a.trafficPeriod,amount:`${a.trafficApproximate ? '≈ ' : ''}${a.annualPassengers.toLocaleString()}`})}</p></div><button onClick={onBack}>{backLabel === '返回机场目录' ? ui('返回机场目录') : backLabel}</button></div>
     <div className="airport-detail-actions">
       {a.level > 0 && <><button className="primary" onClick={() => onVisit(id)}>{ui('进入候机大厅')}</button><button onClick={() => onRoute(id)}>{ui('安排飞机飞来')}</button></>}
       {a.level < 3 ? <button data-guide={!a.level ? 'unlock-airport' : undefined} disabled={busy || game.credits < price} onClick={() => ignore(changeAirport())}>
-        {a.level ? ui('升级机场') : ui('解锁机场')} {money(price)}
-      </button> : <strong>{ui('机场已满级')}</strong>}
+        {a.level ? t('airport.upgradeFacilities') : ui('解锁机场')} {money(price)}
+      </button> : <strong>{t('airport.facilitiesMax')}</strong>}
       {a.level < 3 && game.credits < price && <span className="airport-funds">{ui('运营资金不足')}</span>}
     </div>
     {view.error && <p className="workshop-feedback" role="alert">{text(view.error)}</p>}
     {view.notice && <p className="workshop-feedback" role="status">{text(view.notice)}</p>}
     {!a.level ? <p className="airport-empty">{ui('解锁后可浏览候机大厅、接收客货并购买飞机交付到此处。解锁不会把已有飞机移动到本机场。')}</p> : <>
-      <div className="airport-facts" data-testid="airport-traffic-summary"><span>{ui('候运')} <b>{a.orders} / {MAX_WAITING} {ui('单')}</b></span><span>{ui('旅客')} <b>{a.passengers} {ui('人')}</b></span><span>{ui('货物')} <b>{a.cargo} {ui('吨')}</b></span><span>{ui('中转')} <b>{a.transfers} {ui('单')}</b></span></div>
+      <div className="airport-facts" data-testid="airport-traffic-summary"><span>{ui('候运')} <b>{a.orders} / {MAX_WAITING} {ui('单')}</b></span><span>{ui('旅客')} <b>{a.passengers} {ui('人')}</b></span><span>{ui('货物')} <b>{a.cargo} {ui('吨')}</b></span><span>{ui('中转')} <b>{a.transfers} {ui('单')}</b></span><span>{t('airport.demandTarget',{count:demandCapacity(id,a.level,(game.career.promotions[id]??0)>game.simTime)})}</span></div>
       <p className="airport-explanation">{ui('{time} 后检查客源补充。中转订单已经接受、不会过期；查看页面不会刷新订单。',{time:duration(game.nextDemandAt-game.simTime)})}</p>
       <div className="airport-detail-columns">
         <section><h4>{ui('候运去向')}</h4><ul className="airport-destinations">{a.destinations.map(d => <li key={d.id}><strong>{city(d.id)}</strong><span>{d.passengers} {ui('人')} / {d.cargo} {ui('吨')} · {d.orders} {ui('单')}{d.transfers > 0 ? ` (${ui('中转')} ${d.transfers} ${ui('单')})` : ''}</span></li>)}</ul>{!a.destinations.length && <p className="airport-empty">{ui('暂无候运客货。')}</p>}</section>

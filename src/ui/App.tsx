@@ -19,6 +19,7 @@ import { PageFrame } from './layout/PageFrame.js';
 import { GameShell, OverlayHost } from './shell/GameShell.js';
 import { TopStatusBar } from './shell/TopStatusBar.js';
 import { MainNavigation } from './shell/MainNavigation.js';
+import { usePageMemory } from './shell/PageState.js';
 import { initialNavigation, isWorkPage, navigationReducer, type Page, type WorkPage } from './shell/navigation.js';
 import './management.css';
 import './workshop.css';
@@ -31,7 +32,8 @@ const sessionValue = (key: string) => { try { return sessionStorage.getItem(key)
 
 export function App() {
   const view = useGame(), game = view.game;
-  const { locale, t, money, duration, text } = useI18n();
+  const pageMemory = usePageMemory();
+  const { locale, t, text } = useI18n();
   const [playing, setPlaying] = useState(() => sessionValue(PLAYING_KEY) === 'true');
   const [navigation, navigate] = useReducer(navigationReducer, sessionValue(SCREEN_KEY), initialNavigation);
   const screen = navigation.scene === 'airport' ? 'airport' : 'map';
@@ -64,9 +66,9 @@ export function App() {
     return () => clearTimeout(timer);
   }, [view.notice]);
   useEffect(() => {
-    if (!playing) return;
-    try { sessionStorage.setItem(PLAYING_KEY, 'true'); sessionStorage.setItem(SCREEN_KEY, screen); } catch { /* Presentation preferences are optional. */ }
+    try { sessionStorage.setItem(PLAYING_KEY, String(playing)); if (playing) sessionStorage.setItem(SCREEN_KEY, screen); } catch { /* Presentation preferences are optional. */ }
   }, [playing, screen]);
+  useEffect(() => { controller.setPlaying(playing && Boolean(game?.company) && !view.recovery && !view.blocked); }, [playing, game?.company, view.recovery, view.blocked]);
 
   function openPage(page: WorkPage) {
     navigate({ type: 'open', page }); setModal(null);
@@ -123,11 +125,17 @@ export function App() {
     else if (isWorkPage(page)) openPage(page);
   }
   function enterGame() {
-    if (!game || view.recovery) return;
-    const selected = context?.selected ?? game.fleet[0];
+    const latest = useGame.getState();
+    if (!latest.game?.company || latest.recovery) return;
+    pageMemory?.clear();
+    const selected = latest.game.fleet[0];
     if (selected) { setPlaneId(selected.id); setDestination(selected.flight?.to ?? selected.airportId); }
-    setBrowsedAirport(null); navigate({ type: 'open', page: game.fleet.length ? 'map' : 'airports' }); setPlaying(true);
+    else { setPlaneId('AC0001'); setDestination('PEK'); }
+    setBrowsedAirport(null); setAboard(false); setOrganizationTarget(null); setModal(null);
+    mapReturn.current = null; routeUnlockResume.current = null; setOrderViewKey(key => key + 1);
+    navigate({ type: 'open', page: latest.game.fleet.length ? 'map' : 'airports' }); setPlaying(true);
   }
+  async function returnToTitle() { await controller.returnToTitle(); setPlaying(false); setModal(null); }
   function finishDeparture() { mapReturn.current = null; navigate({ type: 'open', page: 'airport' }); setAboard(true); }
   function locateTutorial(target: string) {
     if (target === 'settings') setModal('settings');
@@ -163,11 +171,10 @@ export function App() {
   const blocking = view.blocked && <div className="blocking-screen" role="alert"><h2>{t('status.blocked')}</h2><p>{t('status.blockedText')}</p><button className="primary" onClick={() => location.reload()}>{t('status.reload')}</button></div>;
   const rotate = <div className="rotate-screen"><Icon name="rotate"/><h2>{t('rotate.title')}</h2><p>{t('rotate.subtitle')}</p></div>;
 
-  function companyRestarted() { setModal(null); setBrowsedAirport(null); navigate({ type: 'open', page: 'airports' }); setPlaying(true); }
-  if (!playing || (game && !game.company)) return <>
-    <StartScreen ready={Boolean(game) && !view.booting} recovery={view.recovery} error={view.error} company={game?.company ?? null}
-      onCreate={async company => { await controller.command({ type: 'found-company', company }); enterGame(); }} onEnter={enterGame} onSettings={() => setModal('settings')}/>
-    <OverlayHost>{modal === 'settings' && <Settings onClose={() => setModal(null)} onRestart={companyRestarted}/>}{blocking}{rotate}</OverlayHost>
+  if (!playing || (!view.booting && !game?.company)) return <>
+    <StartScreen ready={!view.booting} busy={view.busy} recovery={view.recovery} error={view.error} count={view.slots.length} company={view.slots.find(slot => slot.id === view.recentSlot)?.company ?? null}
+      onCreate={async company => { await controller.newGame(company); enterGame(); }} onEnter={() => ignore(controller.loadSlot().then(enterGame))} onLoaded={enterGame} onSettings={() => setModal('settings')}/>
+    <OverlayHost>{modal === 'settings' && <Settings onClose={() => setModal(null)} onLoaded={enterGame}/>}{blocking}{rotate}</OverlayHost>
   </>;
 
   return <>
@@ -187,7 +194,7 @@ export function App() {
       </PageFrame>}
     </GameShell>
     <OverlayHost>
-      {modal === 'settings' && <Settings onClose={() => setModal(null)} onRestart={companyRestarted}/>}
+      {modal === 'settings' && <Settings onClose={() => setModal(null)} onReturnTitle={returnToTitle}/>}
       {game && modal && modal !== 'settings' && <GameDialog key={modal} title={modalTitles[modal]} className={`game-modal ${modal === 'help' ? 'help-modal' : ''}`} onClose={closeModal}>
         {modal === 'airport-detail' ? <AirportDetails game={game} id={detailAirport} busy={view.busy} backLabel={detailBackLabel} onBack={closeModal} onUnlocked={resumeRouteUnlock} onVisit={visitAirport} onPlane={selectPlane} onRoute={id => showMap(id)}/>
           : modal === 'tasks' ? <TaskCenter game={game} plane={plane ?? context?.selected} busy={view.busy} onNext={nextTask}/>
@@ -195,10 +202,9 @@ export function App() {
       </GameDialog>}
       {view.notice && !modal && !isDispatch && !workPage && <div className="toast" role="status"><Icon name="check"/><span>{text(view.notice)}</span><button type="button" className="toast-close" aria-label={t('common.closeNotice')} onClick={() => useGame.setState({ notice:null })}>×</button></div>}
       {view.error && game && !modal && !view.blocked && !workPage && <div className="error-toast" role="alert"><span>{text(view.error)}</span>{isDispatch && <button onClick={() => setModal('settings')}>{t('map.settings')}</button>}<button onClick={() => useGame.setState({ error:null })}>{t('common.close')}</button></div>}
-      {view.report && !modal && !isDispatch && !workPage && <div className="return-report" role="status"><h3>{view.report.clockBack ? t('status.clockBack') : t('status.offlineReport')}</h3><p>{t('status.offlineSummary', { elapsed:duration(view.report.elapsed), flights:view.report.flights, profit:money(view.report.profit) })}</p>{view.report.capped && <p>{t('status.offlineCap')}</p>}<button className="primary" onClick={() => useGame.setState({ report:null })}>{t('status.continue')}</button></div>}
       {view.updateAvailable && !modal && !isDispatch && <button className="update-notice" onClick={() => setModal('settings')}>{t('status.update')}</button>}
       {blocking}{rotate}
     </OverlayHost>
-    {game && game.tutorial === 'active' && modal !== 'settings' && modal !== 'help' && !view.recovery && !view.blocked && !(view.report && !modal && !isDispatch && !workPage) && <Tutorial game={game} plane={plane} screen={navigation.page} destination={to} busy={view.busy} onLocate={locateTutorial}/>}
+    {game && game.tutorial === 'active' && modal !== 'settings' && modal !== 'help' && !view.recovery && !view.blocked && <Tutorial game={game} plane={plane} screen={navigation.page} destination={to} busy={view.busy} onLocate={locateTutorial}/>}
   </>;
 }

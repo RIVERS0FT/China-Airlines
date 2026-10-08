@@ -6,16 +6,17 @@ function outside(dialog: HTMLDialogElement, x: number, y: number) {
   return x < box.left || x > box.right || y < box.top || y > box.bottom;
 }
 /** One native-modal lifecycle and focus policy for all temporary overlays. */
-export function GameDialog({ title, children, onClose, className = '', closeLabel, dismissOnBackdrop = false, footer }: {
+export function GameDialog({ title, children, onClose, className = '', closeLabel, dismissOnBackdrop = false, footer, busy = false }: {
   title: string; children: ReactNode; onClose: () => void; className?: string;
   closeLabel?: string; dismissOnBackdrop?: boolean; footer?: ReactNode;
+  busy?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null), press = useRef(false), closing = useRef(false);
   const close = useRef(onClose), titleId = useId();
   close.current = onClose;
   const { t } = useI18n();
   function requestClose() {
-    if (closing.current) return;
+    if (busy || closing.current) return;
     closing.current = true;
     close.current();
   }
@@ -40,7 +41,7 @@ export function GameDialog({ title, children, onClose, className = '', closeLabe
       press.current = false;
       if (dismiss) requestClose();
     }}>
-    <header className="ui-dialog-header"><h2 id={titleId}>{title}</h2><button type="button" className="ui-close-button" aria-label={closeLabel ?? t('modal.close', { title })} onClick={requestClose}>×</button></header>
+    <header className="ui-dialog-header"><h2 id={titleId}>{title}</h2><button type="button" className="ui-close-button" disabled={busy} aria-label={closeLabel ?? t('modal.close', { title })} onClick={requestClose}>×</button></header>
     <div className="ui-dialog-body">{children}</div>
     {footer && <footer className="ui-dialog-footer">{footer}</footer>}
   </dialog>;

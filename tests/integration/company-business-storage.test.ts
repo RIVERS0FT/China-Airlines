@@ -30,8 +30,8 @@ it('persists business income once and rejects corrupt business imports without c
   let revision = await db.save(initial, 0);
   core.tick(initial.lastWallTime + 10_000);
   const earned = core.snapshot();
-  expect(earned.credits - initial.credits).toBe(4);
-  expect(earned.business.remainder).toBe(180_000);
+  expect(earned.credits - initial.credits).toBe(1);
+  expect(earned.business.remainder).toBe(240_000);
   expect(earned.stats).toEqual(initial.stats);
   revision = await db.save(earned, revision);
   expect((await db.load()).state).toEqual(earned);
@@ -61,7 +61,7 @@ it('recovers the intact business backup without minting hidden-time income or ov
   expect(loaded.state).toEqual(initial);
   expect(await db.saves.toArray()).toEqual(before);
   const recovered = new GameCore(initial.lastWallTime, loaded.state!);
-  recovered.tick(initial.lastWallTime + 3_600_000, { businessIncome: false });
+  recovered.tick(initial.lastWallTime + 3_600_000, { active: false });
   expect(recovered.snapshot().credits).toBe(initial.credits);
   expect(recovered.snapshot().business.earned).toBe(0);
   expect(recovered.snapshot().business.remainder).toBe(0);

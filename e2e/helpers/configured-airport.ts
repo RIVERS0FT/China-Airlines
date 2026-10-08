@@ -55,7 +55,10 @@ export async function ensureConfiguredAirport(page: Page) {
   // Existing browser journeys start with an already purchased and configured
   // aircraft. Import that explicit fixture through the public UI; the
   // production new-company path remains empty.
-  await page.locator('[data-testid="fleet-count"], .start-enter:enabled').first().waitFor({ state: 'visible' });
+  // The HUD can render while IndexedDB is loading, before the empty title is
+  // selected. Wait for the real ready screen before choosing the journey.
+  await page.waitForFunction(() => Boolean(document.querySelector('.start-enter:enabled')) ||
+    Boolean(document.querySelector('[data-testid="fleet-count"]')) && !document.querySelector('.startup'));
   const enter = page.locator('.start-enter');
   if (await enter.isVisible()) {
     await enter.click();

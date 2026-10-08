@@ -7,7 +7,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 
     page.on('pageerror', error => errors.push(error.message));
     await page.setViewportSize(viewport);
     await page.goto('./');
-    await expect(page.getByTestId('waiting-order')).toHaveCount(12);
+    await expect(page.getByTestId('waiting-order')).toHaveCount(18);
     await expect(page.getByTestId('waiting-order').nth(0)).toHaveAttribute('aria-label', /1位旅客/);
     await expect(page.getByTestId('waiting-order').nth(2)).toHaveAttribute('aria-label', /1吨货物/);
     await testInfo.attach('unit-orders-small-starter', { body: await page.screenshot(), contentType: 'image/png' });

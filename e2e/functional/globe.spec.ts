@@ -95,18 +95,19 @@ test('two-finger zoom never appends a destination on finger release', async ({ p
 });
 test('Pacific multi-leg arcs and global selection preserve camera and read-only previews', async ({ page }) => {
   const s = new GameCore(NOW).snapshot(); s.credits = 5000000; s.career.xp=20000; const c = new GameCore(NOW, s);
-  for (const id of ['NRT', 'ANC', 'YVR']) { c.execute({ type: 'unlock', airportId: id }, NOW); c.execute({ type: 'upgrade', airportId: id }, NOW); c.execute({ type: 'upgrade', airportId: id }, NOW); }
-  c.execute({ type: 'buy', modelId: 'aurora-p', airportId: 'NRT', passengers: 1, cargo: 0 }, NOW);
+  for (const id of ['NRT', 'HNL', 'YVR']) c.execute({ type: 'unlock', airportId: id }, NOW);
+  c.execute({ type: 'buy', modelId: 'albatross-p', airportId: 'NRT', passengers: 1, cargo: 0 }, NOW);
   await ready(page); await page.getByRole('button', { name: '存档设置', exact: true }).click();
   page.once('dialog', d => void d.accept());
   await page.getByLabel('选择存档文件').setInputFiles({ name: 'global-plan.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(c.snapshot())) });
   await expect(page.getByTestId('fleet-count')).toHaveText('2 架'); await page.getByRole('button', { name: '关闭存档设置', exact: true }).click();
   await page.getByRole('button', { name: '机队管理概览', exact: true }).click(); await page.getByRole('button', { name: '查看AC0002飞机', exact: true }).click();await expect(page.locator('#fleet-detail-heading')).toBeFocused();await page.getByRole('button', { name: '前往这架飞机', exact: true }).click();
-  await page.getByRole('button', { name: '制定航线', exact: true }).click(); await selectCity(page, 'ANC'); await selectCity(page, 'YVR');
-  const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-preview-path', 'ANC,YVR');
+  await page.getByRole('button', { name: '制定航线', exact: true }).click(); await selectCity(page, 'HNL'); await selectCity(page, 'YVR');
+  const host = page.getByTestId('map-canvas'); await expect(host).toHaveAttribute('data-preview-path', 'HNL,YVR');
   const camera = await host.getAttribute('data-camera'), credits = await page.getByTestId('credits').textContent();
   await routeDetails(page); await expect(page.getByTestId('plan-leg')).toHaveCount(2); await page.keyboard.press('Escape');
   await expect(host).toHaveAttribute('data-camera', camera!); await expect(page.getByTestId('credits')).toHaveText(credits!);
+  await expect(host).toHaveAttribute('data-route-flow-motion','flowing');
   await page.screenshot({ path: 'artifacts/globe-pacific-route.png' });
 });
 test('world search and foreign flight remain usable when WebGL fails', async ({ page }) => {

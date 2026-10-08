@@ -2,12 +2,13 @@ import type { GameState } from '../core/game.js';
 import { airport } from '../core/catalog.js';
 import { BUSINESS_CATALOG, businessWorkers } from '../core/company-business.js';
 import { DEPARTMENTS, directReports, generalManager, staffIn, type Department, type Employee } from '../core/organization.js';
+import { OPERATING_DEPARTMENTS } from '../core/departments.js';
 export const ORG_NODE_WIDTH = 122, ORG_NODE_HEIGHT = 124;
 export interface OrganizationNode { employee: Employee; x: number; y: number }
 /** Current reporting links only. Business groups retain insertion order as they grow. */
-export function organizationLayout(s: GameState, collapsed: ReadonlySet<number> = new Set()) {
-  const departments = ['flight','ground'] as const;
-  const width = (departments.length + s.business.teams.length) * 456 + 32;
+export function organizationLayout(s: GameState, collapsed: ReadonlySet<number> = new Set(), departments: readonly Department[] = OPERATING_DEPARTMENTS, showBusiness = true) {
+  const teams = showBusiness ? s.business.teams : [];
+  const width = Math.max(1, departments.length + teams.length) * 456 + 32;
   const executive = { x: (width - ORG_NODE_WIDTH) / 2, y: 8 };
   const nodes: OrganizationNode[] = [], edges: { path: string; direct: boolean }[] = [];
   const labels: { x: number; y: number; text: string; airportId?: string; businessName?: string }[] = [];
@@ -42,8 +43,8 @@ export function organizationLayout(s: GameState, collapsed: ReadonlySet<number> 
     if (direct.length) { labels.push({ x:center,y:y-22,text:'玩家直管 · 无需经理' }); row(direct,false); }
     bottom = Math.max(bottom,y+24);
   }
-  for (const [i, team] of s.business.teams.entries()) {
-    const left = 32 + (i + 2) * 456, center = left + 204, manager = s.career.employees.find(e => e.id === team.managerId)!;
+  for (const [i, team] of teams.entries()) {
+    const left = 32 + (i + departments.length) * 456, center = left + 204, manager = s.career.employees.find(e => e.id === team.managerId)!;
     labels.push({ x: center, y: 149, text: `${airport(team.airportId).city} · ${BUSINESS_CATALOG[team.kind].zh}`, airportId: team.airportId, businessName: BUSINESS_CATALOG[team.kind].en });
     nodes.push({ employee: manager, x: center - ORG_NODE_WIDTH/2, y: 164 });
     if (chief && manager.managerId === chief.id) edges.push({ path: `M${width/2} 132 V140 H${center} V164`, direct: false });

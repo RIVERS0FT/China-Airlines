@@ -5,9 +5,9 @@ export const GUIDE_STEPS = 8;
 /** Progress follows committed state. Pending purchase selection is presentation only. */
 export function guideStep(game: GameState, plane: Plane | undefined, screen: string, _to: string, purchaseOpen = false): GuideStep {
   if (game.claimedTasks.includes('first-flight')) return { id: 'done', number: 8, title: '首航培训完成', text: '你已完成机场购买、飞机选配和首条航线。接下来可以积累利润，逐步扩大航网。', target: '.game-dock', screen: 'airport' };
-  if (game.stats.flights > 0) return { id: 'reward', number: 7, title: '领取首航奖励', text: '首航已抵达。打开任务中心，领取「第一道航迹」奖励；同一奖励只能领取一次。', target: '[data-task-id="first-flight"] button:not(:disabled), [data-guide="tasks"]', screen: 'tasks' };
-  if (game.fleet.some(p => p.flight)) return { id: 'flight', number: 6, title: '观察航班到达', text: '航班正在飞行。抵达最终目的地后才会结算运费；可以离开页面，刷新也不会重复结算。', target: '.scene-wrap', screen: 'airport' };
-  if (game.airports.length < 2) return { id: 'unlock', number: 1, title: '购买第一座目的地机场', text: '北京是公司基地。先花费 4,000 金币购买上海机场，建立第一条可运营的连接。', target: '[data-guide="unlock-airport"], [data-airport-id="PVG"], [data-guide="locked-airports"]:not([aria-pressed="true"]), [data-guide="airports"]:not([aria-current="page"])', screen: 'airports' };
+  if (game.stats.flights > 0 && game.stats.revenue > 0) return { id: 'reward', number: 7, title: '领取首航奖励', text: '首航已抵达。打开任务中心，领取「第一道航迹」奖励；同一奖励只能领取一次。', target: '[data-task-id="first-flight"] button:not(:disabled), [data-guide="tasks"]', screen: 'tasks' };
+  if (game.fleet.some(p => p.flight)) return { id: 'flight', number: 6, title: '观察航班到达', text: '航班正在飞行。抵达最终目的地后领取运费。', target: '.scene-wrap', screen: 'airport' };
+  if (game.airports.length < 2) return { id: 'unlock', number: 1, title: '购买第一座目的地机场', text: '北京是公司基地。先花费 2,500 金币购买上海机场，建立第一条可运营的连接。', target: '[data-guide="unlock-airport"], [data-airport-id="PVG"], [data-guide="locked-airports"]:not([aria-pressed="true"]), [data-guide="airports"]:not([aria-current="page"])', screen: 'airports' };
   if (!game.fleet.length && !purchaseOpen) return { id: 'buy', number: 2, title: '选购 1 格飞机', text: '前往飞机商店，选择 2,300 金币的钻石 DA40。点击购买后先选配容量，确认前不会扣款。', target: '[data-guide="buy-first-plane"], [data-guide="shop"]', screen: 'shop' };
   if (purchaseOpen) return { id: 'configure', number: 3, title: '免费配置首架飞机', text: 'DA40 总容量为 1 格。将客位设为 1、货位设为 0，或选择 1 格货位；确认选配并购买，只扣机价。', target: '.purchase-controls, .purchase-actions', screen: 'shop' };
   const selected = plane ?? game.fleet[0];

@@ -4,7 +4,7 @@ import { CONTRACT_SECONDS, MAX_EMPLOYEES, directReports, effectiveManager, emplo
 import { organizationLayout, ORG_NODE_WIDTH } from '../../src/ui/organization-layout.js';
 
 const NOW = Date.parse('2026-09-14T02:00:00Z');
-function rich() { const state = new GameCore(NOW).snapshot(); state.credits = 1000000; state.career.tickets = 10000; return new GameCore(NOW, state); }
+function rich() { const state = new GameCore(NOW).snapshot(); state.credits = 1000000; return new GameCore(NOW, state); }
 function execute(core: GameCore, command: Command) { core.execute(command, core.snapshot().lastWallTime); expect(validateSave(core.snapshot())).toEqual(core.snapshot()); }
 function hire(core: GameCore, department: Department = 'company', role: EmployeeRole = 'manager') { execute(core, { type: 'recruit-employee', department, role }); return core.snapshot().career.employees.at(-1)!; }
 function reject(core: GameCore, command: Command) { const before = core.snapshot(); expect(() => core.execute(command, before.lastWallTime)).toThrow(); expect(core.snapshot()).toEqual(before); }
@@ -14,8 +14,8 @@ describe('recruitable general manager', () => {
     const core = rich(), before = core.snapshot(), manager = hire(core), after = core.snapshot();
     expect(manager).toMatchObject({ department: 'company', role: 'manager', managerId: null, planeId: null, airportId: null, skill: 2, management: 1, paidUntil: CONTRACT_SECONDS });
     expect(manager.name).not.toBe(''); expect(roleName(manager)).toBe('总经理');
-    expect(employmentPrice(manager, true)).toEqual({ gold: 2400, tickets: 4 });
-    expect(after.credits).toBe(before.credits - 2400); expect(after.career.tickets).toBe(before.career.tickets - 4);
+    expect(employmentPrice(manager, true)).toEqual({ gold: 2800 });
+    expect(after.credits).toBe(before.credits - 2800);
     expect(after.fleet).toEqual(before.fleet); expect(after.airports).toEqual(before.airports); expect(after.orders).toEqual(before.orders);
     reject(core, { type: 'recruit-employee', department: 'company', role: 'manager' });
     reject(core, { type: 'recruit-employee', department: 'company', role: 'specialist' });
@@ -28,36 +28,35 @@ describe('recruitable general manager', () => {
     for (let i = 0; i < 8; i++) hire(core, 'flight', 'specialist');
     for (let i = 0; i < 4; i++) hire(core, 'ground', 'specialist');
     hire(core, 'flight'); hire(core, 'ground'); hire(core);
-    expect(MAX_EMPLOYEES).toBe(15); expect(core.snapshot().career.employees).toHaveLength(15);
+    expect(MAX_EMPLOYEES).toBe(36); expect(core.snapshot().career.employees).toHaveLength(15);
     for (const [department, role] of [['company', 'manager'], ['flight', 'manager'], ['ground', 'manager'], ['flight', 'specialist'], ['ground', 'specialist']] as const)
       reject(core, { type: 'recruit-employee', department, role });
   });
 
   it('rejects unaffordable recruitment atomically including RNG and reporting changes', () => {
     const core = rich(); hire(core, 'flight'); const state = core.snapshot();
-    for (const shortfall of ['credits', 'tickets'] as const) {
+    for (const credits of [0, 2799]) {
       const insufficient = structuredClone(state);
-      if (shortfall === 'credits') insufficient.credits = 2399;
-      else insufficient.career.tickets = 3;
+      insufficient.credits = credits;
       reject(new GameCore(NOW, insufficient), { type: 'recruit-employee', department: 'company', role: 'manager' });
     }
   });
 
   it('supports ordinary training and contract renewal with exact charges and reload recovery', () => {
     const core = rich(), manager = hire(core), before = core.snapshot();
-    expect(trainingQuote(before, manager, 'skill')).toMatchObject({ gold: 1200, tickets: 3, discount: 0 });
-    expect(trainingQuote(before, manager, 'management')).toMatchObject({ gold: 600, tickets: 2, discount: 0 });
+    expect(trainingQuote(before, manager, 'skill')).toMatchObject({ gold: 1500, discount: 0 });
+    expect(trainingQuote(before, manager, 'management')).toMatchObject({ gold: 800, discount: 0 });
     execute(core, { type: 'train-employee', employeeId: manager.id, training: 'skill' });
     execute(core, { type: 'train-employee', employeeId: manager.id, training: 'management' });
     execute(core, { type: 'renew-employee', employeeId: manager.id });
     const after = core.snapshot();
-    expect(after.credits).toBe(before.credits - 1200 - 600 - 800); expect(after.career.tickets).toBe(before.career.tickets - 3 - 2 - 2);
+    expect(after.credits).toBe(before.credits - 1500 - 800 - 1000);
     expect(after.career.employees[0]).toMatchObject({ id: manager.id, name: manager.name, skill: 3, management: 2, paidUntil: 2 * CONTRACT_SECONDS });
     expect(new GameCore(NOW, JSON.parse(JSON.stringify(after))).snapshot()).toEqual(after);
     const expired = structuredClone(after); expired.career.employees[0]!.paidUntil = 1;
     const run = new GameCore(NOW, expired); run.tick(NOW + 2000); const expiredBalance = run.snapshot().credits;
     execute(run, { type: 'renew-employee', employeeId: manager.id });
-    expect(run.snapshot().career.employees[0]!.paidUntil).toBe(2 + CONTRACT_SECONDS); expect(run.snapshot().credits).toBe(expiredBalance - 800);
+    expect(run.snapshot().career.employees[0]!.paidUntil).toBe(2 + CONTRACT_SECONDS); expect(run.snapshot().credits).toBe(expiredBalance - 1000);
   });
 });
 

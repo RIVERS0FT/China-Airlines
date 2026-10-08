@@ -9,12 +9,12 @@
   --button-rest-shadow:inset 0 2px 0 #fff, 0 2px 0 #2b668f55;
   --button-hover-bg:linear-gradient(#f4fdff, #bceafa) #bceafa;
   --button-hover-edge:#247aa7;
-  --button-hover-shadow:inset 0 2px 0 #fff, 0 2px 0 #236389, 0 0 0 2px #8bd9ed55;
+  --button-hover-shadow:inset 0 2px 0 #fff, 0 2px 0 #236389;
   --button-selected-bg:linear-gradient(#fff5c4, #ffd268) #ffd268;
   --button-selected-edge:#af7a24;
   --button-selected-ink:#634416;
   --button-selected-shadow:inset 0 2px 0 #fff9dd, inset 0 -3px 0 #c78c2b, 0 2px 0 #885b2359;
-  --button-selected-hover-shadow:inset 0 2px 0 #fff9dd, inset 0 -3px 0 #c78c2b, 0 2px 0 #885b2359, 0 0 0 2px #f4cb6880;
+  --button-selected-hover-shadow:inset 0 2px 0 #fff9dd, inset 0 -3px 0 #c78c2b, 0 2px 0 #885b2359;
   --button-active-bg:linear-gradient(#b1d9e9, #d4edf5) #c5e5f1;
   --button-active-edge:#245e80;
   --button-active-shadow:inset 0 2px 4px #17486755, 0 1px 0 #ffffff80;
@@ -47,6 +47,17 @@
   .game-layout button:not(.tutorial-mask):not(.airplane-display), .tutorial-coach button.guide-skip {
     transform:none !important;
   }
+  /* A separate outline keeps the same hover feedback on beveled and image faces.
+     It never changes content geometry; keyboard focus takes priority below. */
+  .game-layout button:not(.tutorial-mask):where(:enabled:not([aria-disabled=true]):hover),
+  .tutorial-coach button.guide-skip:where(:enabled:hover) {
+    outline:2px solid #f4fdff !important;
+    outline-offset:1px !important;
+  }
+  .game-layout button:not(.tutorial-mask):where(:active, :disabled, [aria-disabled=true]),
+  .tutorial-coach button.guide-skip:where(:active, :disabled) {
+    outline:none !important;
+  }
   .game-layout button:not(.tutorial-mask):focus-visible,
   .tutorial-coach button.guide-skip:focus-visible {
     outline:3px solid #b47d19 !important;
@@ -67,7 +78,7 @@
   --button-rest-edge:#2b7197;
   --button-rest-shadow:inset 0 2px 0 #eeffff, 0 3px 0 #225777;
   --button-hover-bg:linear-gradient(#d5faff, #77d5ee 65%, #45acd2) #77d5ee;
-  --button-hover-shadow:inset 0 2px 0 #fff, 0 3px 0 #225777, 0 0 0 2px #c8f5ff88;
+  --button-hover-shadow:inset 0 2px 0 #fff, 0 3px 0 #225777;
 }
 .game-layout button:is(.primary, .gold-button, .org-primary, .start-enter, .route-dispatch-button) {
   --button-rest-bg:linear-gradient(#ffe992, #ffc64e 65%, #efaa2e) #ffc64e;
@@ -76,7 +87,7 @@
   --button-rest-shadow:inset 0 2px 0 #fff8cf, 0 3px 0 #916024;
   --button-hover-bg:linear-gradient(#fff4be, #ffdc79 65%, #ffc04b) #ffdc79;
   --button-hover-edge:#8d5f20;
-  --button-hover-shadow:inset 0 2px 0 #fffced, 0 3px 0 #916024, 0 0 0 2px #ffeaa677;
+  --button-hover-shadow:inset 0 2px 0 #fffced, 0 3px 0 #916024;
   --button-active-bg:linear-gradient(#e8b047, #ffdc7a) #f4c15a;
   --button-active-edge:#916024;
   --button-active-shadow:inset 0 2px 4px #80531666, 0 1px 0 #fff5c5;
@@ -199,14 +210,17 @@
   cursor:not-allowed;
 }
 
-/* Portraits and passenger/cargo artwork get their own non-rectangular feedback. */
+/* Artwork brightens inside the common hover outline; selected portraits stay gold. */
 .game-layout .org-person:is(:enabled:hover, [aria-pressed=true]) .org-portrait-ring {
   border-color:var(--button-state-edge);
   background:#fff7d4;
+  box-shadow:0 2px 4px #3c587533;
+}
+.game-layout .org-person[aria-pressed=true] .org-portrait-ring {
   box-shadow:0 0 0 3px #f2cf78, 0 2px 4px #3c587533;
 }
 .game-layout .org-person:enabled:active .org-portrait-ring {
-  box-shadow:inset 0 2px 4px #86672955, 0 0 0 3px #e4ba54;
+  box-shadow:inset 0 2px 4px #86672955;
 }
 .game-layout .aviation-game .company-organization button.org-person:active {
   --button-state-bg:transparent;
@@ -216,7 +230,7 @@
 .game-layout .aviation-game .cabin-order:enabled:hover .job-art,
 .game-layout .aviation-game button.airplane-display:enabled:hover > svg,
 .game-layout .airport-shortcuts > button:enabled:hover > .icon {
-  filter:drop-shadow(0 0 4px #fff0a3) drop-shadow(0 1px 2px #225c8180);
+  filter:brightness(1.08) drop-shadow(0 1px 2px #225c8180);
 }
 .game-layout .aviation-game .apron-queue .destination-orders .job-card:enabled:active .job-art,
 .game-layout .aviation-game .cabin-order:enabled:active .job-art,
@@ -232,48 +246,70 @@
 .game-layout .aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button:enabled:hover > span {
   border-color:#ffdd87;
   background:linear-gradient(#3979a4, #24567e);
-  box-shadow:inset 0 1px #c3efff, 0 2px #18456666, 0 0 0 2px #e0f6ff77;
+  box-shadow:inset 0 1px #c3efff, 0 2px #18456666;
 }
 .game-layout .aviation-game:not(.dispatch-focused) .game-hud .fleet-status-button:enabled:active > span {
   background:#1a456a;
   box-shadow:inset 0 2px 4px #09284580;
 }
 
-/* Both route actions use a square painted icon above a separate caption. */
-.game-layout .aviation-game:not(.dispatch-focused) .game-dock .depart-button > .painted-icon {
-  width:62px;
-  height:62px;
-  object-fit:contain;
-  transform:translateY(-8px);
-}
-.game-layout .aviation-game .route-dispatch-button > .painted-icon {
-  width:48px;
-  height:48px;
-  flex:0 0 48px;
-  object-fit:contain;
-  transform:none;
-  filter:drop-shadow(0 2px 1px #71512255);
-}
+/* Dock entries and route actions share centered art with a bottom overlay caption. */
+.game-layout .aviation-game:not(.dispatch-focused) .game-dock > button,
 .game-layout .aviation-game .route-dispatch-button {
-  gap:0;
-  padding:2px 3px;
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  align-items:center;
+  justify-content:center;
+  padding:1px 3px;
+  border-width:2px;
 }
+.game-layout .aviation-game:not(.dispatch-focused) .game-dock > button > .painted-icon,
+.game-layout .aviation-game .route-dispatch-button > .painted-icon {
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:60px;
+  height:60px;
+  object-fit:contain;
+  transform:translate(-50%, -50%);
+}
+.game-layout .aviation-game:not(.dispatch-focused) .game-dock > button > span,
 .game-layout .aviation-game .route-dispatch-button > strong {
-  font-size:16px;
-  line-height:20px;
+  position:absolute;
+  left:50%;
+  bottom:5px;
+  z-index:3;
+  transform:translateX(-50%);
+  pointer-events:none;
+  max-width:calc(100% - 6px);
+  padding:1px 3px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:clip;
+  border-radius:4px;
+  background:linear-gradient(180deg,#123b5900,#123b5999);
+  color:#fff0a4;
+  font-size:14px;
+  font-weight:900;
+  line-height:17px;
+  letter-spacing:.02em;
+  text-shadow:-1px -1px 0 #18384e,1px -1px 0 #18384e,-1px 1px 0 #18384e,1px 1px 0 #18384e,0 2px 1px #102c40;
 }
+.game-layout .aviation-game .route-dispatch-button > .painted-icon { filter:drop-shadow(0 2px 1px #71512255); }
 @media(max-height:600px) and (orientation:landscape) {
-  .game-layout .aviation-game:not(.dispatch-focused) .game-dock .depart-button > .painted-icon {
-    width:42px;
-    height:42px;
-    transform:translateY(-6px);
-  }
+  .game-layout .aviation-game:not(.dispatch-focused) .game-dock > button > .painted-icon,
   .game-layout .aviation-game .route-dispatch-button > .painted-icon {
-    width:32px;
-    height:32px;
-    flex-basis:32px;
+    width:40px;
+    height:40px;
   }
-  .game-layout .aviation-game .route-dispatch-button > strong { font-size:12px; line-height:14px; }
+  .game-layout .aviation-game:not(.dispatch-focused) .game-dock > button > span,
+  .game-layout .aviation-game .route-dispatch-button > strong {
+    bottom:2px;
+    padding:0 2px;
+    font-size:11px;
+    line-height:13px;
+  }
 }
 @media(prefers-reduced-motion:reduce) {
   .game-layout button, .tutorial-coach button.guide-skip { transition:none; }

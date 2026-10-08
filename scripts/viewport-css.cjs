@@ -3,7 +3,7 @@ module.exports = () => ({
   postcssPlugin: 'china-airlines-logical-viewport',
   Once(root) {
     // The popover tutorial also lives in the physical top layer, outside the scaled canvas.
-    if (/(?:^|[\\/])(?:viewport|tutorial-layout|company-setup-layout)\.css$/.test(root.source?.input.file || '')) return;
+    if (/(?:^|[\\/])(?:viewport|tutorial-layout|company-setup-layout|save-picker-layout)\.css$/.test(root.source?.input.file || '')) return;
     root.walkAtRules('media', rule => {
       if (/\((?:min-|max-)?(?:width|height|aspect-ratio|orientation)\s*:/.test(rule.params)) {
         // Environmental preferences (reduced motion, contrast, etc.) stay @media.
